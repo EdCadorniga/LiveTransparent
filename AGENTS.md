@@ -68,10 +68,11 @@
 - Trigger per source.
 - Only apply warm tag + source metadata.
 - Do not move pipeline/stage in micro-automations.
-3. Build `Master Warm Intake and Routing` workflow:
-- Trigger on any `Warm  ...` tag.
-- Apply priority routing + idempotency + lock checks.
-- Move records using canonical pipeline/stage IDs.
+3. `WL - Master Warm Intake and Routing` in GHL:
+- Trigger set on all warm channel tags.
+- Priority branch routing configured.
+- Per-branch field updates configured in order: `Warm Source`, `Primary Engagement Channel`, `Warm Trigger Type`.
+- Base actions configured: set `Lead Temperature`, set `Warm Date`, add tags `Lead Status: Warm` and `Stage: MQL`.
 4. Owner overwrite restrictions are deferred:
 - Follow current default owner assignment behavior for now.
 5. Run test matrix before broad rollout:
@@ -79,16 +80,24 @@
 - multi-channel collisions
 - referral precedence
 - re-engagement transitions
-6. Publish knowledge docs to GHL AI Agent chatbot after routing stabilizes.
+6. Build channel micro-automations in GHL UI (next):
+- One micro-workflow per channel/source trigger.
+- Apply exact `Warm  ...` tag only.
+- Set source metadata fields only.
+7. Publish knowledge docs to GHL AI Agent chatbot after routing stabilizes.
+8. Setup Chatbot with AI Agent to make knowledgebase available to users (deferred until routing tests pass).
 
 ## Existing Setup Artifacts
 - n8n workflow `GHL Warm Lead Setup - Fields and Tags`: `BYvEuUMUQFlXoxRj`
 - n8n workflow `GHL Warm Pipelines - Validate and Map IDs`: `v3oYLcD3pzVr8l2O`
 - n8n workflow `GHL Warm Lead Setup - UTM and Routing Fields`: `21yw9WflGkFISbQD`
 - n8n workflow `GHL Warm Lead Fields - Duplicate Cleanup`: `6lVyZHKyZRYbVomd`
+- n8n workflow `WF - Warm Channel Micro Entry`: `LaXTCx5689lVaFIj` (inactive, dryRun=true)
+- n8n workflow `WF - Master Warm Intake and Routing`: `y3O34qp0O6hzD79x` (inactive, dryRun=true)
 - Plan doc: `GHL Live Transparent CRM/Warm_Lead_Conflict_Safe_Implementation_Spec.md`
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
+- AI agent process: `GHL Live Transparent CRM/AI_Agent_Knowledgebase_Setup_Process.md`
 
 ## Contact Field Status (Current)
 - Warm fields: complete.
@@ -96,6 +105,12 @@
 - LT routing metadata fields: complete.
 - Duplicate UTM/LT fields were created during initial run and cleaned up; one canonical field per name now exists.
 - `Warm Date` remains `DATE` by design for now (accepted; no Date/Time migration currently planned).
+
+## Workflow Status (Current)
+- GHL workflow `WL - Master Warm Intake and Routing`: `970cd6cb-dc37-4a17-8a79-62252623c371`
+- Branch routing and branch field updates are configured.
+- Channel micro-automations are pending build in GHL UI.
+- End-to-end tests are pending (no production contacts yet).
 
 ## LLM Operating Constraints
 You are a code-first, automation-focused assistant under strict constraints.

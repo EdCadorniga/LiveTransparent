@@ -37,19 +37,19 @@ Create and use these custom fields:
 
 ## 5) Tag Taxonomy
 Entry tags (channel tags):
-- `Warm - Instagram`
-- `Warm - Facebook`
-- `Warm - LinkedIn`
-- `Warm - LinkedIn DM`
-- `Warm - LinkedIn Lead Form`
-- `Warm - Meta Lead Form`
-- `Warm - Meta Traffic`
-- `Warm - Meta Remarketing`
-- `Warm - Email Outbound`
-- `Warm - Email Inbound`
-- `Warm - SMS`
-- `Warm - Website`
-- `Warm - Referral`
+- `Warm  Instagram`
+- `Warm  Facebook`
+- `Warm  LinkedIn`
+- `Warm  LinkedIn DM`
+- `Warm  LinkedIn Lead Form`
+- `Warm  Meta Lead Form`
+- `Warm  Meta Traffic`
+- `Warm  Meta Remarketing`
+- `Warm  Email Outbound`
+- `Warm  Email Inbound`
+- `Warm  SMS`
+- `Warm  Website`
+- `Warm  Referral`
 
 System tags:
 - `Lead Status: Warm`
@@ -220,7 +220,38 @@ Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n
 - Duplicate UTM/LT custom fields were removed; canonical field IDs above are the only active set.
 
 ## 17) Next Action
-- Setup Chatbot with AI Agent to make knowledgebase available to users.
+- Build GHL channel micro-automations (current next step).
+- Status: `Ready to build` (`2026-02-13`).
+- Scope for each channel micro-automation:
+  - trigger on source event
+  - apply exactly one `Warm  ...` tag
+  - set source metadata only
+  - no pipeline/stage movement
+
+## 20) Automation Build Status (2026-02-13)
+- Created `WF - Warm Channel Micro Entry` (`LaXTCx5689lVaFIj`)
+  - Trigger: Webhook `POST /webhook/lt-warm-channel-entry`
+  - State: `inactive`
+  - Runtime mode: `dryRun=true` by default
+  - Scope: apply warm channel tags + source metadata only
+- Created `WF - Master Warm Intake and Routing` (`y3O34qp0O6hzD79x`)
+  - Trigger: Webhook `POST /webhook/lt-master-warm-routing`
+  - State: `inactive`
+  - Runtime mode: `dryRun=true` by default
+  - Scope: priority routing + idempotency + lock checks + stage routing
+
+## 21) GHL UI Build Status (2026-02-13)
+- Workflow: `WL - Master Warm Intake and Routing` (`970cd6cb-dc37-4a17-8a79-62252623c371`)
+- Trigger model:
+  - warm channel tag triggers are configured
+- Routing model:
+  - two If/Else route groups are configured due to branch limits
+  - branch order and channel mapping are configured
+- Branch actions:
+  - every branch updates `Warm Source`, `Primary Engagement Channel`, and `Warm Trigger Type`
+  - standard warm markers are configured (`Lead Temperature`, `Warm Date`, `Lead Status: Warm`, `Stage: MQL`)
+- Validation state:
+  - end-to-end contact tests are pending
 
 ## 18) Locked Pipeline and Stage ID Map (Canonical)
 Location: `Live Transparent` (`Zwz4relUXVPxx8uohnjV`)

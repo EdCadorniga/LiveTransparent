@@ -20,3 +20,10 @@ Main Website:livetransparent.comFunnels (GHL Hosted):offers.livetransparent.comb
 - LT routing metadata fields created and active.
 - Duplicate UTM/LT fields created during initial setup were cleaned up; canonical single-field-per-name structure is now in place.
 - Warm Date remains DATE type by decision (accepted for now).
+
+9. Next Step Status (2026-02-13)
+- GHL workflow `WL - Master Warm Intake and Routing` is configured in UI.
+- Branch routing and per-branch field updates are complete.
+- Next: build channel micro-automations in GHL UI (tag + source metadata only; no stage/pipeline movement).
+- After routing tests pass: proceed with AI Agent knowledgebase rollout.
+- Process doc: GHL Live Transparent CRM/AI_Agent_Knowledgebase_Setup_Process.md
