@@ -1,0 +1,136 @@
+{
+  "mcp_server": "ghl_official",
+  "categories": {
+    "sequences_campaigns": {
+      "tools": [],
+      "note": "No GoHighLevel MCP tools are currently exposed for sequence/campaign create, update, list, or get."
+    },
+    "sequence_steps_events": {
+      "tools": [],
+      "note": "No GoHighLevel MCP tools are currently exposed for sequence step/event create, update, list, or delete."
+    },
+    "email_templates": {
+      "tools": [
+        {
+          "name": "mcp__ghl_official__emails_create-template",
+          "endpoint": "/emails/builder",
+          "required_parameters": [
+            "body_importProvider",
+            "body_type"
+          ],
+          "optional_parameters": [
+            "body_builderVersion",
+            "body_importURL",
+            "body_isPlainText",
+            "body_locationId",
+            "body_name",
+            "body_parentId",
+            "body_templateDataUrl",
+            "body_templateSource",
+            "body_title",
+            "body_updatedBy"
+          ],
+          "example_payload": {
+            "body_importProvider": "mailchimp",
+            "body_type": "html",
+            "body_locationId": "loc_123",
+            "body_name": "Welcome Series - Day 1",
+            "body_title": "Welcome Email",
+            "body_isPlainText": false
+          }
+        },
+        {
+          "name": "mcp__ghl_official__emails_fetch-template",
+          "endpoint": "/emails/builder",
+          "required_parameters": [],
+          "optional_parameters": [
+            "query_archived",
+            "query_builderVersion",
+            "query_limit",
+            "query_locationId",
+            "query_name",
+            "query_offset",
+            "query_originId",
+            "query_parentId",
+            "query_search",
+            "query_sortByDate",
+            "query_templatesOnly"
+          ],
+          "example_payload": {
+            "query_locationId": "loc_123",
+            "query_limit": "20",
+            "query_offset": "0",
+            "query_search": "welcome",
+            "query_templatesOnly": "true"
+          }
+        }
+      ],
+      "gaps": [
+        "No explicit exposed tool for single-template GET by ID.",
+        "No explicit exposed tool for email template UPDATE."
+      ]
+    },
+    "sms_templates": {
+      "tools": [],
+      "note": "No GoHighLevel MCP tools are currently exposed for SMS template create, update, list, or get.",
+      "related_but_not_template_management": [
+        {
+          "name": "mcp__ghl_official__conversations_send-a-new-message",
+          "endpoint": "/conversations/messages",
+          "note": "Can send a message with body_templateId, but does not create/update/list/get SMS templates."
+        }
+      ]
+    },
+    "workflows_for_sequence_triggering": {
+      "tools": [],
+      "note": "No GoHighLevel MCP workflow tools are currently exposed for workflow create, update, or enroll."
+    },
+    "location_subaccount_context_switching": {
+      "tools": [
+        {
+          "name": "mcp__ghl_official__locations_get-location",
+          "endpoint": "/locations/{locationId}",
+          "required_parameters": [],
+          "optional_parameters": [
+            "path_locationId"
+          ],
+          "example_payload": {
+            "path_locationId": "loc_123"
+          },
+          "note": "Schema marks path_locationId optional, but it is practically required to fetch a specific sub-account."
+        },
+        {
+          "name": "mcp__ghl_official__locations_get-custom-fields",
+          "endpoint": "/locations/{locationId}/customFields",
+          "required_parameters": [],
+          "optional_parameters": [
+            "path_locationId",
+            "query_model"
+          ],
+          "example_payload": {
+            "path_locationId": "loc_123",
+            "query_model": "contact"
+          },
+          "note": "Schema marks path_locationId optional, but it is practically required for location-scoped retrieval."
+        }
+      ],
+      "context_parameter_pattern": {
+        "note": "Many other GHL tools are location-scoped via locationId parameters rather than a dedicated 'switch context' endpoint.",
+        "examples": [
+          {
+            "tool": "mcp__ghl_official__emails_create-template",
+            "parameter": "body_locationId"
+          },
+          {
+            "tool": "mcp__ghl_official__emails_fetch-template",
+            "parameter": "query_locationId"
+          },
+          {
+            "tool": "mcp__ghl_official__contacts_create-contact",
+            "parameter": "body_locationId"
+          }
+        ]
+      }
+    }
+  }
+}

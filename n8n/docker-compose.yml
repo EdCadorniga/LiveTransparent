@@ -1,0 +1,38 @@
+services:
+  n8n:
+    image: 'n8nio/n8n:latest'
+    restart: unless-stopped
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=coolify-shared'
+      - 'traefik.http.routers.n8n-automations.rule=Host(`automations.livetransparent.com`)'
+      - 'traefik.http.routers.n8n-automations.entrypoints=https'
+      - 'traefik.http.routers.n8n-automations.tls=true'
+      - 'traefik.http.routers.n8n-automations.service=n8n-automations'
+      - 'traefik.http.services.n8n-automations.loadbalancer.server.port=5678'
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n
+      DB_POSTGRESDB_PASSWORD: '${N8N_DB_PASSWORD}'
+      N8N_PROTOCOL: https
+      N8N_HOST: automations.livetransparent.com
+      N8N_PORT: 5678
+      WEBHOOK_URL: 'https://automations.livetransparent.com/'
+      N8N_EDITOR_BASE_URL: 'https://automations.livetransparent.com/'
+      N8N_SECURE_COOKIE: 'true'
+      N8N_ENCRYPTION_KEY: '${N8N_ENCRYPTION_KEY}'
+      GENERIC_TIMEZONE: America/Los_Angeles
+    volumes:
+      - 'n8n_data:/home/node/.n8n'
+    networks:
+      coolify-shared:
+        aliases:
+          - n8n
+volumes:
+  n8n_data: null
+networks:
+  coolify-shared:
+    external: true
