@@ -171,9 +171,30 @@ Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n
 ### Contact Custom Fields Created
 - `Lead Temperature` (`h7AEoiSE81GCNxI7dlTS`) - `DROPDOWN_SINGLE`
 - `Primary Engagement Channel` (`e2OsKzZCf4On2vKPnNrz`) - `DROPDOWN_SINGLE`
-- `Warm Date` (`3XhbeFiYESQor0GJZSFT`) - `DATETIME`
+- `Warm Date` (`3XhbeFiYESQor0GJZSFT`) - `DATE` (accepted for now)
 - `Warm Source` (`olS5L76mtvyGUUwosjPj`) - `DROPDOWN_SINGLE`
 - `Warm Trigger Type` (`2pry8UETsoDBHJ7f3QRc`) - `DROPDOWN_SINGLE`
+
+### UTM and Routing Metadata Fields Created (Canonical)
+- `UTM Source First` (`t5yZ0UGubzs1X0olHyhy`) - `TEXT`
+- `UTM Medium First` (`WulRu4QdE48o2d7gjXNw`) - `TEXT`
+- `UTM Campaign First` (`RKyRrCsg8xsicTUyyH78`) - `TEXT`
+- `UTM Content First` (`zMvJ3fmKxX3ilfq6WotA`) - `TEXT`
+- `UTM Term First` (`X8gW33Z887h3PbjcghW0`) - `TEXT`
+- `UTM Source Last` (`p0X1vD2jDj5AZjXJ6Bcg`) - `TEXT`
+- `UTM Medium Last` (`WsfJa98NxTuXV9lKIL05`) - `TEXT`
+- `UTM Campaign Last` (`IUQRaxhOZQT8tiPZKL1z`) - `TEXT`
+- `UTM Content Last` (`9wRews3knMzLhAtqvQog`) - `TEXT`
+- `UTM Term Last` (`dPX3SoyLePXCje9K0ndL`) - `TEXT`
+- `UTM Landing Page First` (`2BJCjWu96VkFXlcb2SFP`) - `TEXT`
+- `UTM Landing Page Last` (`15oRMShGogK0LnwicFTc`) - `TEXT`
+- `LT Last Routing Reason` (`FQv9wyl2JrMkpf1GPprP`) - `TEXT`
+- `LT Last Routing Channel` (`IPzJpFLekz9TDi4nWBaV`) - `TEXT`
+- `LT Last Routed At` (`aJ3LMhy5fZzh10WoykZ6`) - `DATE`
+- `LT Route Lock Until` (`o5RwCwvYqAMciL73Dln5`) - `DATE`
+- `LT Routing Priority` (`ocuVbpOOwczvq00XL7xL`) - `NUMERICAL`
+- `LT Last Event Fingerprint` (`ixsqR8e2HPPvt00S8eYP`) - `TEXT`
+- `LT Last Event At` (`ITv2PYQ75kzKLfOCFhuO`) - `DATE`
 
 ### Visual Tags Created
 - `Warm  Instagram`
@@ -196,6 +217,7 @@ Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n
 - Pipelines were not modified.
 - Existing workflows were not modified.
 - No rename/delete actions were performed.
+- Duplicate UTM/LT custom fields were removed; canonical field IDs above are the only active set.
 
 ## 17) Next Action
 - Setup Chatbot with AI Agent to make knowledgebase available to users.

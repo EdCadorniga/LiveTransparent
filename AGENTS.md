@@ -84,9 +84,18 @@
 ## Existing Setup Artifacts
 - n8n workflow `GHL Warm Lead Setup - Fields and Tags`: `BYvEuUMUQFlXoxRj`
 - n8n workflow `GHL Warm Pipelines - Validate and Map IDs`: `v3oYLcD3pzVr8l2O`
+- n8n workflow `GHL Warm Lead Setup - UTM and Routing Fields`: `21yw9WflGkFISbQD`
+- n8n workflow `GHL Warm Lead Fields - Duplicate Cleanup`: `6lVyZHKyZRYbVomd`
 - Plan doc: `GHL Live Transparent CRM/Warm_Lead_Conflict_Safe_Implementation_Spec.md`
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
+
+## Contact Field Status (Current)
+- Warm fields: complete.
+- UTM first/last-touch fields: complete.
+- LT routing metadata fields: complete.
+- Duplicate UTM/LT fields were created during initial run and cleaned up; one canonical field per name now exists.
+- `Warm Date` remains `DATE` by design for now (accepted; no Date/Time migration currently planned).
 
 ## LLM Operating Constraints
 You are a code-first, automation-focused assistant under strict constraints.

@@ -13,3 +13,10 @@ Trigger:Contact receives ANY Warm – [Channel] tag.Step 1 – Standardization:-
 - Install tracking scripts and confirm load (external-tracking.js returns 200).- Submit test forms from each channel.- Confirm tags applied correctly.- Confirm Master Workflow triggers.- Confirm routing and assignment.- Test duplicate prevention logic.- Validate pipeline movement.
 7. Recommended Domain Structure
 Main Website:livetransparent.comFunnels (GHL Hosted):offers.livetransparent.combook.livetransparent.comEmail Tracking Domain:mg.livetransparent.comAutomation (n8n):automations.livetransparent.com
+
+8. Implementation Status (2026-02-12)
+- Warm contact fields created and active: Lead Temperature, Warm Source, Warm Trigger Type, Warm Date, Primary Engagement Channel.
+- UTM first-touch and last-touch contact fields created and active.
+- LT routing metadata fields created and active.
+- Duplicate UTM/LT fields created during initial setup were cleaned up; canonical single-field-per-name structure is now in place.
+- Warm Date remains DATE type by decision (accepted for now).
