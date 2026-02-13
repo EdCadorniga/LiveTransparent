@@ -29,3 +29,94 @@ Main Website:livetransparent.comFunnels (GHL Hosted):offers.livetransparent.comb
 - BookStack docs: bookstack/README.md
 - AI Agent knowledgebase is deferred to a later phase (license/usage decision pending).
 - Process doc: GHL Live Transparent CRM/AI_Agent_Knowledgebase_Setup_Process.md
+
+10. Sequence and Nurture Architecture
+- Objective: convert warm engagement into booked sales conversations without duplicate or conflicting outreach.
+- Sequence execution owner: GHL Workflows/Sequences (not n8n for this phase).
+- Entry control: only `WL - Master Warm Intake and Routing` starts/stops follow-up sequences.
+- Tag guards:
+  - `LT Outreach Active`
+  - `LT Nurture Active`
+- Exit control:
+  - stop nurture when high-intent reply/form/referral appears
+  - stop outreach when booked/closed states are reached
+
+11. Sequence Catalog (Planned)
+A. `WL - Outreach - 7 Day`
+- Audience: Lead Form, LinkedIn DM, Email Inbound, SMS Reply (high intent).
+- Goal: first meeting request and booking.
+- Cadence:
+  - Day 0: Intro + value proposition + booking CTA
+  - Day 1: Follow-up with one proof point
+  - Day 3: Direct question + booking link
+  - Day 5: Objection-handling message
+  - Day 7: Final follow-up + close loop
+- Channel mix:
+  - Email primary
+  - optional SMS touch if permissioned
+
+B. `WL - Nurture - 14 Day`
+- Audience: Website, Meta Traffic, Meta Remarketing, low-intent social click.
+- Goal: increase intent to reply/book.
+- Cadence:
+  - Day 0: Helpful resource
+  - Day 2: Use case/story
+  - Day 5: Educational content
+  - Day 8: Problem/solution framing
+  - Day 11: Social proof
+  - Day 14: Strong CTA to book
+
+C. `WL - Referral Fast Track`
+- Audience: `Warm  Referral`.
+- Goal: immediate human outreach and fast booking.
+- SLA:
+  - notify sales immediately
+  - first contact within same business day
+  - no nurture enrollment
+
+12. Enrollment and Collision Rules
+- Never enroll same contact into same sequence twice within cooldown.
+- If `LT Outreach Active` present: skip outreach enrollment.
+- If `LT Nurture Active` present: skip nurture enrollment.
+- If contact escalates from nurture to high intent:
+  - remove/stop nurture
+  - start outreach once
+- Referral always overrides nurture and standard outreach path.
+
+13. Sequence Content Build Requirements
+- Build reusable email templates with these blocks:
+  - personalization opener
+  - pain/goal alignment
+  - one proof point
+  - single CTA
+- Keep one CTA per message (book call / reply).
+- Include unsubscribe/compliance elements where required.
+- Keep subject lines short and channel-consistent.
+- Track:
+  - send count
+  - reply count
+  - click/book rate
+
+14. Workflow Integration Tasks
+- In `WL - Master Warm Intake and Routing`:
+  - add actions to start/stop sequences per branch policy
+  - add/remove `LT Outreach Active` and `LT Nurture Active` tags as guards
+  - add re-entry safety checks before every enrollment
+- In channel micro-workflows:
+  - do not start sequences
+  - do not alter pipeline/stage
+- In pipeline progression workflows:
+  - auto-stop active sequences when opportunity reaches booked/closed stages
+
+15. Rollout Plan for Sequences
+1. Create sequence assets (templates + timing) in draft.
+2. Wire sequence enrollment actions in master workflow (still paused).
+3. Internal QA with test contacts:
+   - duplicate event scenario
+   - nurture-to-outreach transition
+   - referral override
+4. Activate with limited channels first:
+   - LinkedIn Lead Form
+   - LinkedIn DM (when reliable indicator is confirmed)
+5. Review first 7 days of outcomes; tune copy/timing.
+6. Expand to all channels after stable performance.
