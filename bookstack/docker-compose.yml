@@ -1,0 +1,64 @@
+services:
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    restart: unless-stopped
+    depends_on:
+      bookstack-db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=coolify-shared"
+      - "traefik.http.routers.bookstack.rule=Host(`${BOOKSTACK_HOST}`)"
+      - "traefik.http.routers.bookstack.entrypoints=https"
+      - "traefik.http.routers.bookstack.tls=true"
+      - "traefik.http.routers.bookstack.service=bookstack"
+      - "traefik.http.services.bookstack.loadbalancer.server.port=80"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: ${BOOKSTACK_TIMEZONE}
+      APP_URL: ${BOOKSTACK_APP_URL}
+      APP_KEY: ${BOOKSTACK_APP_KEY}
+      DB_HOST: bookstack-db
+      DB_PORT: 3306
+      DB_DATABASE: ${BOOKSTACK_DB_NAME}
+      DB_USERNAME: ${BOOKSTACK_DB_USER}
+      DB_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
+    volumes:
+      - bookstack_app_config:/config
+    networks:
+      coolify-shared:
+        aliases:
+          - bookstack
+
+  bookstack-db:
+    image: lscr.io/linuxserver/mariadb:latest
+    restart: unless-stopped
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: ${BOOKSTACK_TIMEZONE}
+      MYSQL_ROOT_PASSWORD: ${BOOKSTACK_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${BOOKSTACK_DB_NAME}
+      MYSQL_USER: ${BOOKSTACK_DB_USER}
+      MYSQL_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
+    volumes:
+      - bookstack_db_data:/config
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      coolify-shared:
+        aliases:
+          - bookstack-db
+
+volumes:
+  bookstack_app_config: null
+  bookstack_db_data: null
+
+networks:
+  coolify-shared:
+    external: true

@@ -228,6 +228,20 @@ Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n
   - set source metadata only
   - no pipeline/stage movement
 
+## 22) Internal Knowledgebase Deployment Plan (2026-02-13)
+- Decision: deploy BookStack in Coolify for internal SOP/knowledge sharing.
+- Service assets:
+  - `bookstack/docker-compose.yml`
+  - `bookstack/.env.example`
+  - `bookstack/README.md`
+- Access policy:
+  - internal-only access required (Cloudflare Access or equivalent)
+- Rollout order:
+  1. Deploy BookStack service
+  2. Publish current CRM/Warm Lead docs
+  3. Validate team access and searchability
+  4. Optional later: connect content to GHL AI Agent if licensed
+
 ## 20) Automation Build Status (2026-02-13)
 - Created `WF - Warm Channel Micro Entry` (`LaXTCx5689lVaFIj`)
   - Trigger: Webhook `POST /webhook/lt-warm-channel-entry`

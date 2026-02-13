@@ -1,0 +1,115 @@
+MASTER INSTRUCTION BLOCK (PASTE THIS FIRST IF YOUR UI ACCEPTS A GLOBAL RECIPE)
+Create 13 separate workflows.
+Each workflow must do only these actions:
+1) Trigger on the specified source event
+2) Add exactly one warm tag
+3) Update UTM Last fields when values exist
+4) Update UTM First fields only if empty
+Do not move pipeline.
+Do not move stage.
+Do not assign owner.
+Do not add sequence actions.
+
+WORKFLOW BLOCK 01
+Workflow Name: WL - Micro - Referral
+Trigger: Referral intake event (form submission or manual referral submission)
+Add Tag: Warm  Referral
+Defaults if missing: source=referral, medium=referral, campaign=referral
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 02
+Workflow Name: WL - Micro - LinkedIn Lead Form
+Trigger: LinkedIn lead form submission
+Add Tag: Warm  LinkedIn Lead Form
+Defaults if missing: source=linkedin, medium=paid, campaign=linkedin_lead_form
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 03
+Workflow Name: WL - Micro - Meta Lead Form
+Trigger: Meta lead form submission
+Add Tag: Warm  Meta Lead Form
+Defaults if missing: source=meta, medium=paid, campaign=meta_lead_form
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 04
+Workflow Name: WL - Micro - Meta Traffic
+Trigger: Meta traffic visit/engagement event
+Add Tag: Warm  Meta Traffic
+Defaults if missing: source=meta, medium=paid, campaign=meta_traffic
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 05
+Workflow Name: WL - Micro - Meta Remarketing
+Trigger: Meta remarketing revisit/engagement event
+Add Tag: Warm  Meta Remarketing
+Defaults if missing: source=meta, medium=paid, campaign=meta_remarketing
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 06
+Workflow Name: WL - Micro - LinkedIn DM
+Trigger: LinkedIn DM reply
+Add Tag: Warm  LinkedIn DM
+Defaults if missing: source=linkedin, medium=dm, campaign=linkedin_dm
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 07
+Workflow Name: WL - Micro - Instagram
+Trigger: Instagram DM reply
+Add Tag: Warm  Instagram
+Defaults if missing: source=instagram, medium=dm, campaign=instagram_dm
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 08
+Workflow Name: WL - Micro - Facebook
+Trigger: Facebook Messenger reply
+Add Tag: Warm  Facebook
+Defaults if missing: source=facebook, medium=dm, campaign=facebook_messenger
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 09
+Workflow Name: WL - Micro - LinkedIn
+Trigger: LinkedIn engagement event (not DM, not lead form)
+Add Tag: Warm  LinkedIn
+Defaults if missing: source=linkedin, medium=organic, campaign=linkedin_engagement
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 10
+Workflow Name: WL - Micro - Email Inbound
+Trigger: Inbound email reply
+Add Tag: Warm  Email Inbound
+Defaults if missing: source=email, medium=inbound, campaign=email_inbound
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 11
+Workflow Name: WL - Micro - Email Outbound
+Trigger: Outbound email engagement event
+Add Tag: Warm  Email Outbound
+Defaults if missing: source=email, medium=outbound, campaign=email_outbound
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 12
+Workflow Name: WL - Micro - SMS
+Trigger: Inbound SMS reply
+Add Tag: Warm  SMS
+Defaults if missing: source=sms, medium=inbound, campaign=sms_reply
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+
+WORKFLOW BLOCK 13
+Workflow Name: WL - Micro - Website
+Trigger: Website engagement event (visit depth/time threshold)
+Add Tag: Warm  Website
+Defaults if missing: source=website, medium=organic, campaign=website_engagement
+Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
+Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First

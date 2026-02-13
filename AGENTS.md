@@ -18,6 +18,7 @@
 ## Paths and Layout
 - Keep Docker and service-specific assets under their service folders (for example, `n8n/` and `postgres/`).
 - Place service docs close to the service they describe.
+- Keep knowledgebase deployment assets under `bookstack/`.
 
 ## File Map
 - `AGENTS.md`: Agent rules and project operating notes.
@@ -28,6 +29,9 @@
 - `n8n/nodes/ghl/REFERENCE.md`: GHL node/API reference map used in this repo.
 - `n8n/nodes/twilio/REFERENCE.md`: Twilio node/API reference map used in this repo.
 - `postgres/docker-compose.yml`: Postgres service definition for the stack.
+- `bookstack/docker-compose.yml`: BookStack + MariaDB service definition and Traefik labels.
+- `bookstack/.env.example`: BookStack environment template for Coolify.
+- `bookstack/README.md`: BookStack deployment and hardening notes.
 
 ## Reference Docs Convention
 - Keep service reference files under `n8n/nodes/<service>/REFERENCE.md`.
@@ -84,8 +88,11 @@
 - One micro-workflow per channel/source trigger.
 - Apply exact `Warm  ...` tag only.
 - Set source metadata fields only.
-7. Publish knowledge docs to GHL AI Agent chatbot after routing stabilizes.
-8. Setup Chatbot with AI Agent to make knowledgebase available to users (deferred until routing tests pass).
+7. Deploy internal team knowledgebase on Coolify using BookStack:
+- Deploy `bookstack/docker-compose.yml`.
+- Restrict access to internal team (Cloudflare Access or equivalent).
+- Publish internal SOP/process docs there.
+8. Optional later phase: connect GHL AI Agent to knowledgebase content after routing tests pass and licensing is approved.
 
 ## Existing Setup Artifacts
 - n8n workflow `GHL Warm Lead Setup - Fields and Tags`: `BYvEuUMUQFlXoxRj`
@@ -98,6 +105,7 @@
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
 - AI agent process: `GHL Live Transparent CRM/AI_Agent_Knowledgebase_Setup_Process.md`
+- BookStack deploy guide: `bookstack/README.md`
 
 ## Contact Field Status (Current)
 - Warm fields: complete.

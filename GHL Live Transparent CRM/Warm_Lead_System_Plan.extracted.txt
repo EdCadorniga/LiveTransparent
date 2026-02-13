@@ -25,5 +25,7 @@ Main Website:livetransparent.comFunnels (GHL Hosted):offers.livetransparent.comb
 - GHL workflow `WL - Master Warm Intake and Routing` is configured in UI.
 - Branch routing and per-branch field updates are complete.
 - Next: build channel micro-automations in GHL UI (tag + source metadata only; no stage/pipeline movement).
-- After routing tests pass: proceed with AI Agent knowledgebase rollout.
+- In parallel: deploy internal BookStack knowledgebase in Coolify and publish SOP docs for team enablement.
+- BookStack docs: bookstack/README.md
+- AI Agent knowledgebase is deferred to a later phase (license/usage decision pending).
 - Process doc: GHL Live Transparent CRM/AI_Agent_Knowledgebase_Setup_Process.md
