@@ -120,3 +120,9 @@ C. `WL - Referral Fast Track`
    - LinkedIn DM (when reliable indicator is confirmed)
 5. Review first 7 days of outcomes; tune copy/timing.
 6. Expand to all channels after stable performance.
+
+16. Micro-Automation Status Update (2026-02-14)
+- Completed in GHL UI: WL - Micro - LinkedIn, WL - Micro - LinkedIn DM, WL - Micro - LinkedIn Lead Form, WL - Micro - Meta Lead Form.
+- Built but trigger pending: WL - Micro - Instagram (page connection not complete).
+- Deferred pending connection: WL - Micro - Facebook (Messenger/page connection not complete).
+- Referral intake trigger pattern updated: Contact Tag Added `Referral - Intake`; workflow removes `Referral - Intake` at end after applying `Warm  Referral` and metadata.

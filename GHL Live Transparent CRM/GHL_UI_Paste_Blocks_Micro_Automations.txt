@@ -9,14 +9,16 @@ Do not move pipeline.
 Do not move stage.
 Do not assign owner.
 Do not add sequence actions.
+Status note (2026-02-14): Meta Lead Form is configured; Instagram is built but trigger pending page connection; Facebook Messenger is pending page connection.
 
 WORKFLOW BLOCK 01
 Workflow Name: WL - Micro - Referral
-Trigger: Referral intake event (form submission or manual referral submission)
+Trigger: Contact Tag Added where tag = Referral - Intake
 Add Tag: Warm  Referral
 Defaults if missing: source=referral, medium=referral, campaign=referral
 Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
 Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First
+End action: Remove Tag Referral - Intake
 
 WORKFLOW BLOCK 02
 Workflow Name: WL - Micro - LinkedIn Lead Form
@@ -30,6 +32,7 @@ WORKFLOW BLOCK 03
 Workflow Name: WL - Micro - Meta Lead Form
 Trigger: Meta lead form submission
 Add Tag: Warm  Meta Lead Form
+Warm metadata: Warm Source=Meta Lead Form, Primary Engagement Channel=Social, Warm Trigger Type=Form Submission
 Defaults if missing: source=meta, medium=paid, campaign=meta_lead_form
 Update Last fields: UTM Source Last, UTM Medium Last, UTM Campaign Last, UTM Content Last, UTM Term Last, UTM Landing Page Last
 Update First fields only if empty: UTM Source First, UTM Medium First, UTM Campaign First, UTM Content First, UTM Term First, UTM Landing Page First

@@ -33,12 +33,16 @@ Create these pages in BookStack:
 3. `Warm Lead Conflict-Safe Rules`
 4. `Warm Lead Tags and Custom Fields Dictionary`
 5. `Escalation Rules: When AI Should Hand Off to Human`
+6. `Warm Channel Rollout Status and Trigger Dependencies` (include active channels vs pending connections)
 
 ### Validation Checklist (Phase 1)
-1. Team members can log in and view all five pages.
+1. Team members can log in and view all six pages.
 2. Search returns expected results for `Warm  LinkedIn Lead Form`, `Stage: MQL`, and pipeline names.
-3. Unauthorized users are blocked by access policy.
-4. Docs reflect current canonical IDs and tags.
+3. Search returns expected results for `Referral - Intake` and `Warm  Referral`.
+4. Search returns expected results for `Meta Lead Form` and `Form Submission`.
+5. Content clearly marks pending channel dependencies (`Instagram`, `Facebook Messenger`) so users do not assume those triggers are active.
+6. Unauthorized users are blocked by access policy.
+7. Docs reflect current canonical IDs and tags.
 
 ## Phase 2 - GHL AI Agent (Deferred)
 Run this phase only after routing stabilizes and AI licensing/usage is approved.

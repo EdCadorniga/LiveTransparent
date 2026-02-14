@@ -84,7 +84,9 @@
 - multi-channel collisions
 - referral precedence
 - re-engagement transitions
-6. Build channel micro-automations in GHL UI (next):
+- outreach booked handoff to sales pipeline
+- sequence stop conditions on booked/closed outcomes
+6. Build channel micro-automations in GHL UI (in progress):
 - One micro-workflow per channel/source trigger.
 - Apply exact `Warm  ...` tag only.
 - Set source metadata fields only.
@@ -101,6 +103,12 @@
 - n8n workflow `GHL Warm Lead Fields - Duplicate Cleanup`: `6lVyZHKyZRYbVomd`
 - n8n workflow `WF - Warm Channel Micro Entry`: `LaXTCx5689lVaFIj` (inactive, dryRun=true)
 - n8n workflow `WF - Master Warm Intake and Routing`: `y3O34qp0O6hzD79x` (inactive, dryRun=true)
+- n8n workflow `GHL Apollo Enrichment - Webhook Intake`: `HQaHuLZbtKCSaKqE`
+- n8n workflow `LT Error Notify - Apollo Enrichment Workflow`: `99MrjrJPoJbbf3Zp`
+- n8n workflow `GHL Apollo Enrichment - Webhook Intake (Sheet First)`: `WmKAhG7mIaXonNsh`
+- n8n workflow `Apollo Contacts -> Postgres Ingest`: `EzevYndAVXzpXhMs`
+- n8n workflow `GHL Ensure Batch_Upload Field`: `SjzeAx8G38dnNYDE`
+- n8n workflow `GHL Import - Apollo Sheet Opened Email`: `zsaUaazamrkg1M47`
 - Plan doc: `GHL Live Transparent CRM/Warm_Lead_Conflict_Safe_Implementation_Spec.md`
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
@@ -112,12 +120,32 @@
 - UTM first/last-touch fields: complete.
 - LT routing metadata fields: complete.
 - Duplicate UTM/LT fields were created during initial run and cleaned up; one canonical field per name now exists.
-- `Warm Date` remains `DATE` by design for now (accepted; no Date/Time migration currently planned).
+- `Warm Date` is canonically `DATE` by design (no Date/Time migration planned).
 
 ## Workflow Status (Current)
 - GHL workflow `WL - Master Warm Intake and Routing`: `970cd6cb-dc37-4a17-8a79-62252623c371`
 - Branch routing and branch field updates are configured.
-- Channel micro-automations are pending build in GHL UI.
+- Channel micro-automations are partially built in GHL UI.
+- Completed in GHL UI (as of `2026-02-14`):
+- `WL - Micro - LinkedIn` (previously complete)
+- `WL - Micro - LinkedIn DM` (previously complete)
+- `WL - Micro - LinkedIn Lead Form` (previously complete)
+- `WL - Micro - Meta Lead Form` (trigger + tag + warm source metadata + UTM first/last-touch logic)
+- `WL - Micro - Instagram` actions are configured but trigger is not connected yet.
+- Added intake tag `Referral - Intake` for referral-triggered micro workflow entry.
+- Pending / revisit required:
+- `WL - Micro - Instagram`: connect trigger after Instagram pages are selected.
+- `WL - Micro - Facebook` (Messenger): deferred until Facebook pages are connected.
+- `WL - Micro - Referral`: finish/verify trigger on tag added `Referral - Intake`, then remove intake tag at workflow end.
+- `WL - Micro - Meta Traffic`: build/verify trigger and warm tag flow.
+- `WL - Micro - Meta Remarketing`: build/verify trigger and warm tag flow.
+- `WL - Micro - Email Outbound`: build/verify trigger and warm tag flow.
+- `WL - Micro - Email Inbound`: build/verify trigger and warm tag flow.
+- `WL - Micro - SMS`: build/verify trigger and warm tag flow.
+- `WL - Micro - Website`: build/verify trigger and warm tag flow.
+- Verify `WL - Master Warm Intake and Routing` trigger list includes every warm tag, including `Warm  Meta Remarketing`.
+- Verify opportunity routing handoff automation for `Sales Outreach: Booked` -> `Sales: Discovery Scheduled`.
+- Verify active outreach/nurture sequence stop conditions at booked/closed states.
 - End-to-end tests are pending (no production contacts yet).
 
 ## LLM Operating Constraints
@@ -143,7 +171,7 @@ You are a code-first, automation-focused assistant under strict constraints.
 - Prefer batch operations; respect quotas and limits.
 
 ### N8N (MANDATORY)
-- Assume latest stable n8n unless specified.
+- Assume currently deployed n8n version is `2.7.4` (self-hosted) unless explicitly updated.
 - Before using any node, operation, or parameter, VERIFY no newer version/schema exists.
   - If verification is not possible, STOP and ask for n8n version and node details.
 - Use ONLY current native nodes and parameters.

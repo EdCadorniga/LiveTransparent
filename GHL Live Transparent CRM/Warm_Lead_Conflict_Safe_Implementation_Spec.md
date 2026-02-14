@@ -28,11 +28,13 @@ Do not branch logic on label text like `Booked or Pending` vs `Booked or Ready`.
 Create and use these custom fields:
 - `lt_last_routing_reason` (text)
 - `lt_last_routing_channel` (text)
-- `lt_last_routed_at` (datetime UTC)
-- `lt_route_lock_until` (datetime UTC)
+- `lt_last_routed_at` (date)
+- `lt_route_lock_until` (date)
 - `lt_routing_priority` (number)
 - `lt_last_event_fingerprint` (text)
-- `lt_last_event_at` (datetime UTC)
+- `lt_last_event_at` (date)
+
+Deferred (owner restrictions phase):
 - `lt_owner_lock` (boolean)
 
 ## 5) Tag Taxonomy
@@ -86,7 +88,7 @@ Default lock windows:
 ## 8) Micro-Automation Contract
 Each channel micro-automation only does:
 1. Validate event quality (real reply/intent, not bot/noise).
-2. Apply exactly one `Warm - [Channel]` tag.
+2. Apply exactly one `Warm  [Channel]` tag.
 3. Set source metadata fields (`source`, `utm_*` when present).
 4. Exit.
 
@@ -94,14 +96,14 @@ Micro-automations must not move stages, assign owners, or start long sequences.
 
 ## 9) Master Workflow Logic
 Trigger:
-- Contact gets any `Warm - [Channel]` tag.
+- Contact gets any `Warm  [Channel]` tag.
 
 Flow:
 1. Resolve channel and priority.
 2. Run idempotency checks.
 3. Apply standard tags (`Lead Status: Warm`, `Stage: MQL`).
 4. Ensure minimum stage/pipeline:
-- Move to Warm Leads pipeline + MQL stage only if contact is not already further in sales progression.
+- Move to Warm pipeline + MQL stage only if contact is not already further in sales progression.
 5. Route by highest-priority channel:
 - Referral:
   - Move to Sales pipeline at booked/pending stage.
@@ -171,7 +173,7 @@ Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n
 ### Contact Custom Fields Created
 - `Lead Temperature` (`h7AEoiSE81GCNxI7dlTS`) - `DROPDOWN_SINGLE`
 - `Primary Engagement Channel` (`e2OsKzZCf4On2vKPnNrz`) - `DROPDOWN_SINGLE`
-- `Warm Date` (`3XhbeFiYESQor0GJZSFT`) - `DATE` (accepted for now)
+- `Warm Date` (`3XhbeFiYESQor0GJZSFT`) - `DATE` (canonical)
 - `Warm Source` (`olS5L76mtvyGUUwosjPj`) - `DROPDOWN_SINGLE`
 - `Warm Trigger Type` (`2pry8UETsoDBHJ7f3QRc`) - `DROPDOWN_SINGLE`
 
@@ -220,13 +222,18 @@ Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n
 - Duplicate UTM/LT custom fields were removed; canonical field IDs above are the only active set.
 
 ## 17) Next Action
-- Build GHL channel micro-automations (current next step).
-- Status: `Ready to build` (`2026-02-13`).
+- Complete remaining non-LinkedIn GHL channel micro-automations.
+- Status: `In progress` (`2026-02-13`).
 - Scope for each channel micro-automation:
   - trigger on source event
   - apply exactly one `Warm  ...` tag
   - set source metadata only
   - no pipeline/stage movement
+- Update status (`2026-02-14`):
+  - `WL - Micro - Meta Lead Form` configured (trigger + warm tag + warm source metadata + UTM first/last-touch logic)
+  - `WL - Micro - Instagram` actions configured; trigger pending Instagram page connection
+  - `WL - Micro - Facebook` pending Facebook page/Messenger connection
+  - Referral trigger pattern standardized on `Contact Tag Added: Referral - Intake` with end cleanup `Remove Tag: Referral - Intake`
 
 ## 22) Internal Knowledgebase Deployment Plan (2026-02-13)
 - Decision: deploy BookStack in Coolify for internal SOP/knowledge sharing.
@@ -266,6 +273,27 @@ Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n
   - standard warm markers are configured (`Lead Temperature`, `Warm Date`, `Lead Status: Warm`, `Stage: MQL`)
 - Validation state:
   - end-to-end contact tests are pending
+
+## 23) Channel Micro Workflow Status (2026-02-14)
+- Complete:
+  - `WL - Micro - LinkedIn`
+  - `WL - Micro - LinkedIn DM`
+  - `WL - Micro - LinkedIn Lead Form`
+  - `WL - Micro - Meta Lead Form`
+- Partially complete:
+  - `WL - Micro - Instagram` (actions complete; trigger pending channel connection)
+- Pending:
+  - `WL - Micro - Facebook` (Messenger trigger pending page connection)
+  - `WL - Micro - Referral` final trigger/cleanup verification in UI (`Referral - Intake` add/remove pattern)
+  - `WL - Micro - Meta Traffic` trigger + warm tag flow verification
+  - `WL - Micro - Meta Remarketing` trigger + warm tag flow verification
+  - `WL - Micro - Email Outbound` trigger + warm tag flow verification
+  - `WL - Micro - Email Inbound` trigger + warm tag flow verification
+  - `WL - Micro - SMS` trigger + warm tag flow verification
+  - `WL - Micro - Website` trigger + warm tag flow verification
+  - master trigger-set verification for all warm tags (including `Warm  Meta Remarketing`)
+  - booked handoff verification (`Sales Outreach: Booked` -> `Sales: Discovery Scheduled`)
+  - outreach/nurture stop-condition verification at booked/closed outcomes
 
 ## 18) Locked Pipeline and Stage ID Map (Canonical)
 Location: `Live Transparent` (`Zwz4relUXVPxx8uohnjV`)

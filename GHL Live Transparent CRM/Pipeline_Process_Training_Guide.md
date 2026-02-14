@@ -10,16 +10,16 @@ This process applies to:
 - Sales progression through close
 
 ## 3) Pipeline Overview
-- `Warm Leads`: intake, qualification, and early sorting
+- `Warm`: intake, qualification, and early sorting
 - `Sales Outreach`: active contact attempts and meeting conversion
 - `Sales`: deal progression from discovery to close
 
 ## 4) Pipeline Definitions and Stage Criteria
 
-### A) Warm Leads Pipeline
+### A) Warm Pipeline
 Use this pipeline for newly identified warm intent before full sales outreach or nurture decisions.
 
-#### 1. `Warm - New`
+#### 1. `New`
 Definition:
 - Contact has a warm signal but has not been reviewed.
 Entry criteria:
@@ -27,7 +27,7 @@ Entry criteria:
 Exit criteria:
 - Qualified into MQL, routed to outreach, routed to nurture, or disqualified.
 
-#### 2. `Warm - Qualified (MQL)`
+#### 2. `Qualified (MQL)`
 Definition:
 - Contact matches minimum quality criteria for sales attention.
 Entry criteria:
@@ -35,7 +35,7 @@ Entry criteria:
 Exit criteria:
 - Routed to outreach, nurture, or disqualified.
 
-#### 3. `Warm - Routed to Outreach`
+#### 3. `Routed to Outreach`
 Definition:
 - Contact is approved for direct outreach and handed to outreach process.
 Entry criteria:
@@ -43,7 +43,7 @@ Entry criteria:
 Exit criteria:
 - Opportunity moved to `Sales Outreach` pipeline.
 
-#### 4. `Warm - Nurture Active`
+#### 4. `Nurture Active`
 Definition:
 - Contact is warm but not ready for direct outreach; nurture is active.
 Entry criteria:
@@ -51,7 +51,7 @@ Entry criteria:
 Exit criteria:
 - New intent signal qualifies for outreach, or disqualified.
 
-#### 5. `Warm - Disqualified`
+#### 5. `Disqualified`
 Definition:
 - Contact is not currently a viable opportunity.
 Entry criteria:
@@ -64,7 +64,7 @@ Exit criteria:
 ### B) Sales Outreach Pipeline
 Use this pipeline once a lead is approved for direct contact and meeting conversion.
 
-#### 1. `Outreach - New`
+#### 1. `New`
 Definition:
 - Lead has entered outreach and is awaiting first touch.
 Entry criteria:
@@ -72,7 +72,7 @@ Entry criteria:
 Exit criteria:
 - First outreach attempt is completed.
 
-#### 2. `Outreach - Attempting Contact`
+#### 2. `Attempting Contact`
 Definition:
 - Active attempts underway (email, SMS, call, DM).
 Entry criteria:
@@ -80,7 +80,7 @@ Entry criteria:
 Exit criteria:
 - Lead engages, meeting requested, or becomes unresponsive.
 
-#### 3. `Outreach - Engaged`
+#### 3. `Engaged`
 Definition:
 - Lead has replied or meaningfully interacted.
 Entry criteria:
@@ -88,7 +88,7 @@ Entry criteria:
 Exit criteria:
 - Meeting requested/booked or stalled.
 
-#### 4. `Outreach - Meeting Requested`
+#### 4. `Meeting Requested`
 Definition:
 - Scheduling conversation is active but not yet booked.
 Entry criteria:
@@ -96,7 +96,7 @@ Entry criteria:
 Exit criteria:
 - Meeting booked or outreach stalls.
 
-#### 5. `Outreach - Booked`
+#### 5. `Booked`
 Definition:
 - Meeting is confirmed.
 Entry criteria:
@@ -104,7 +104,7 @@ Entry criteria:
 Exit criteria:
 - Opportunity is handed to `Sales` pipeline.
 
-#### 6. `Outreach - Unresponsive`
+#### 6. `Unresponsive`
 Definition:
 - Outreach sequence completed with no meaningful response.
 Entry criteria:
@@ -117,7 +117,7 @@ Exit criteria:
 ### C) Sales Pipeline
 Use this pipeline for active opportunities after meeting/booked handoff.
 
-#### 1. `Sales - Discovery Scheduled`
+#### 1. `Discovery Scheduled`
 Definition:
 - Discovery meeting is booked and pending.
 Entry criteria:
@@ -125,7 +125,7 @@ Entry criteria:
 Exit criteria:
 - Discovery completed or no-show/cancel path handled.
 
-#### 2. `Sales - Discovery Completed`
+#### 2. `Discovery Completed`
 Definition:
 - Discovery completed and next-step decision made.
 Entry criteria:
@@ -133,7 +133,7 @@ Entry criteria:
 Exit criteria:
 - Proposal prepared/sent or opportunity paused/lost.
 
-#### 3. `Sales - Proposal Sent`
+#### 3. `Proposal Sent`
 Definition:
 - Proposal delivered and awaiting review.
 Entry criteria:
@@ -141,7 +141,7 @@ Entry criteria:
 Exit criteria:
 - Negotiation starts, win, or loss.
 
-#### 4. `Sales - Negotiation`
+#### 4. `Negotiation`
 Definition:
 - Terms, scope, or price discussion in progress.
 Entry criteria:
@@ -149,7 +149,7 @@ Entry criteria:
 Exit criteria:
 - Closed Won or Closed Lost.
 
-#### 5. `Sales - Closed Won`
+#### 5. `Closed Won`
 Definition:
 - Deal accepted and converted.
 Entry criteria:
@@ -157,7 +157,7 @@ Entry criteria:
 Exit criteria:
 - None (terminal stage).
 
-#### 6. `Sales - Closed Lost`
+#### 6. `Closed Lost`
 Definition:
 - Deal not moving forward.
 Entry criteria:
@@ -167,7 +167,7 @@ Exit criteria:
 
 ## 5) Handoff Rules (Operational)
 - Warm-to-Outreach handoff: move only after qualification or strong engagement.
-- Outreach-to-Sales handoff: move at `Outreach - Booked`.
+- Outreach-to-Sales handoff: move at `Booked`.
 - Do not skip stages unless manager-approved.
 - Do not move backward except documented correction.
 
@@ -187,7 +187,7 @@ Exit criteria:
 
 ## 8) Reporting Standard
 Track weekly:
-- Volume entering `Warm - New`
+- Volume entering `Warm -> New`
 - Conversion `Warm Qualified -> Outreach Booked`
 - Conversion `Outreach Booked -> Sales Closed Won`
 - Loss reasons at `Closed Lost`
@@ -203,3 +203,49 @@ Track weekly:
 ## 10) Governance
 - Stage names are controlled terms; do not rename without approval.
 - Any process change must be reflected in this guide before rollout.
+
+## 11) Warm Channel Entry Status (2026-02-14)
+Use this status when training users on what should currently fire automatically.
+
+### Active/Configured in GHL UI
+- `WL - Micro - LinkedIn`
+- `WL - Micro - LinkedIn DM`
+- `WL - Micro - LinkedIn Lead Form`
+- `WL - Micro - Meta Lead Form`
+
+### Built but Not Trigger-Ready
+- `WL - Micro - Instagram`: actions configured, trigger pending Instagram page connection.
+- `WL - Micro - Facebook`: pending Facebook page/Messenger connection before trigger can be enabled.
+
+### Referral Intake Pattern (Current)
+- Referral micro entry is tag-based:
+  - intake tag added: `Referral - Intake`
+  - micro workflow trigger: `Contact Tag Added` on `Referral - Intake`
+  - workflow adds `Warm  Referral`, sets source/UTM metadata, then removes `Referral - Intake` at end.
+
+## 12) Warm Automation Coverage Checklist (2026-02-14)
+Use this list during onboarding to avoid assuming all channel triggers are already active.
+
+### Configured
+- `WL - Micro - LinkedIn`
+- `WL - Micro - LinkedIn DM`
+- `WL - Micro - LinkedIn Lead Form`
+- `WL - Micro - Meta Lead Form`
+
+### Pending Trigger Connection
+- `WL - Micro - Instagram`
+- `WL - Micro - Facebook`
+
+### Build/Verification Pending
+- `WL - Micro - Referral` final trigger + cleanup verification (`Referral - Intake` add/remove flow)
+- `WL - Micro - Meta Traffic`
+- `WL - Micro - Meta Remarketing`
+- `WL - Micro - Email Outbound`
+- `WL - Micro - Email Inbound`
+- `WL - Micro - SMS`
+- `WL - Micro - Website`
+
+### Master Routing Verification Pending
+- Confirm master trigger listens to all warm tags (including `Warm  Meta Remarketing`).
+- Confirm booked handoff path from `Sales Outreach` -> `Sales` is active.
+- Confirm outreach/nurture sequences stop on booked/closed outcomes.
