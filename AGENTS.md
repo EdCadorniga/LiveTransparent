@@ -42,9 +42,16 @@
 - `bookstack/.env.example`: BookStack environment template for Coolify.
 - `bookstack/README.md`: BookStack deployment and hardening notes.
 - `EMAIL templates/Cannabis Ads Sequence/`: Source HTML email templates for the cannabis ads sequence.
+- `ghl create sequence plan/`: Working folder for sequence build specs, MCP preflight artifacts, and rollout checklists.
+- `ghl create sequence plan/ab-sequence-enrollment-checklist.md`: Execution checklist for 50/50 A/B enrollment, stop rules, tracking fields, and sender warm-up ramp.
+- `ghl create sequence plan/create_sequence_plan.md`: Prompt-driven sequence planning instructions and MCP execution guidance.
+- `ghl create sequence plan/sequence-build-spec.json`: Sequence build specification artifact for deterministic workflow/template creation.
+- `ghl create sequence plan/preflight-report.json`: Preflight validation output for sequence creation/update readiness.
+- `ghl create sequence plan/ghl-mcp-tool-inventory.json`: MCP capability inventory snapshot used for tool/endpoint validation.
 - `ghl create sequence plan/email-templates-cannabis-ads/Order A/`: Ordered HTML package for A path upload/copy.
 - `ghl create sequence plan/email-templates-cannabis-ads/Order B/`: Ordered HTML package for B path upload/copy.
 - `Email Sequence.docx`: Source sequence copy used to rebuild HTML templates.
+- `Backup of all n8n workflows/`: Full-instance n8n workflow JSON backups (one file per workflow) plus export `manifest.json`.
 
 ## Reference Docs Convention
 - Keep service reference files under `n8n/nodes/<service>/REFERENCE.md`.
@@ -278,11 +285,41 @@
 - Greeting/body line-break spacing fixed in:
 - `ghl create sequence plan/email-templates-cannabis-ads/Order A/04-cannabis-ads-4-v1.html`
 - `ghl create sequence plan/email-templates-cannabis-ads/Order B/05-cannabis-ads-4-v1.html`
+- n8n full workflow backup exported to:
+- `Backup of all n8n workflows/`
+- Export scope and format:
+- `24` workflows exported from live n8n.
+- `manifest.json` included with export timestamp, workflow IDs, names, and file mapping.
 - MCP prep for direct workflow creation:
 - Added MCP server `ghl_workflows` in Codex global config using `@drausal/gohighlevel-mcp`.
 - Restart required before this session can use newly added `ghl_workflows` tools.
 - Immediate next action after restart:
 - Build `WL - Seq - Sales Outreach` workflow directly in GHL with exit checks between each send (reply/booked/closed states).
+- n8n website intake workflows updated live (MCP verified):
+- `Website Lead Intake from Hero form` (`RTV5jUiTt05lad07`)
+- `Website Lead Intake from Footer Form` (`RSfLF7LU0rDC4jAI`)
+- Both workflows now add tags after successful upsert/update:
+- `Warm Website`
+- `Enrollment Queue - Cannabis Ads`
+- Webhook paths remain unchanged:
+- `lt-form-demo-intake`
+- `lt-form-footer-intake`
+- Both workflows remain active.
+- Current dry-run behavior remains in place:
+- `defaultDryRun=true` unless request payload passes `dryRun=false`.
+
+## Next Steps (Queued)
+- Run a full review pass of all existing n8n workflows that were previously left behind:
+- confirm active/inactive state
+- confirm dryRun/defaultDryRun behavior
+- confirm trigger paths, credentials, and downstream actions
+- identify stale/duplicate workflows for archive or cleanup plan
+- Review and expand other intake flows in n8n beyond hero/footer website forms:
+- funnel intake webhook flow
+- referral intake flow
+- email inbound/outbound intake tagging flows
+- SMS intake tagging flow
+- ensure each intake path can reliably add enrollment tag(s) for the sequence router
 
 ## LLM Operating Constraints
 You are a code-first, automation-focused assistant under strict constraints.
