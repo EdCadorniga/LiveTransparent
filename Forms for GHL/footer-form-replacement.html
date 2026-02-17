@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Transparent - Footer Form</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #ffffff;
+      --line: #ffffff;
+      --logo-border: #d8d2e6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      padding: 56px 28px;
+    }
+
+    .footer-form-wrap {
+      max-width: 1260px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 230px minmax(250px, 1fr) minmax(360px, 1.9fr);
+      gap: 42px;
+      align-items: start;
+    }
+
+    .logo-box {
+      width: 188px;
+      height: 188px;
+      border: 7px solid var(--logo-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: grayscale(100%) brightness(1.15);
+    }
+
+    .left-col label,
+    .right-col label {
+      display: block;
+      margin: 0 0 8px;
+      font-size: 33px;
+      font-weight: 500;
+      line-height: 1.1;
+    }
+
+    .line-input {
+      width: 100%;
+      height: 58px;
+      margin: 0 0 14px;
+      color: var(--text);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 24px;
+      padding: 8px 0;
+      outline: none;
+    }
+
+    textarea.message {
+      width: 100%;
+      min-height: 204px;
+      color: var(--text);
+      background: transparent;
+      border: 1px solid var(--line);
+      font-size: 22px;
+      padding: 12px;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 28px;
+    }
+
+    .submit-btn {
+      min-width: 138px;
+      height: 50px;
+      padding: 0 28px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      font-size: 30px;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 920px) {
+      .footer-form-wrap {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .logo-box {
+        width: 156px;
+        height: 156px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <form
+    class="footer-form-wrap"
+    action="https://automations.livetransparent.com/webhook/lt-form-footer-intake"
+    method="POST"
+  >
+    <div class="logo-box" aria-hidden="true">
+      <img src="../livetransparent_logo.png" alt="Transparent logo" />
+    </div>
+
+    <div class="left-col">
+      <label for="full_name">Name*</label>
+      <input id="full_name" class="line-input" type="text" name="full_name" required />
+
+      <label for="email">Email*</label>
+      <input id="email" class="line-input" type="email" name="email" required />
+
+      <label for="phone">Phone*</label>
+      <input id="phone" class="line-input" type="tel" name="phone" required />
+    </div>
+
+    <div class="right-col">
+      <label for="message">Message*</label>
+      <textarea id="message" class="message" name="message" required></textarea>
+
+      <button class="submit-btn" type="submit">Submit</button>
+    </div>
+  </form>
+</body>
+</html>

@@ -3,7 +3,7 @@
 This reference tracks the 10 Apollo.io HTTP Request nodes added to n8n workflow `Workflow Test` (`X2QOdM9xh2rFokps86sGQ`).
 
 ## Runtime Notes
-- n8n version observed: `2.6.4`
+- n8n version observed: `2.7.4` (self-hosted LiveTransparent instance)
 - Node used: `n8n-nodes-base.httpRequest`
 - Node `typeVersion`: `4.4`
 - All Apollo nodes are currently `disabled: true`
