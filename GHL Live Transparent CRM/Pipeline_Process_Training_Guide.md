@@ -204,7 +204,7 @@ Track weekly:
 - Stage names are controlled terms; do not rename without approval.
 - Any process change must be reflected in this guide before rollout.
 
-## 11) Warm Channel Entry Status (2026-02-14)
+## 11) Warm Channel Entry Status (Last Known 2026-02-17)
 Use this status when training users on what should currently fire automatically.
 
 ### Active/Configured in GHL UI
@@ -212,6 +212,8 @@ Use this status when training users on what should currently fire automatically.
 - `WL - Micro - LinkedIn DM`
 - `WL - Micro - LinkedIn Lead Form`
 - `WL - Micro - Meta Lead Form`
+- `WL - Micro - Email Inbound`
+- `WL - Micro - Email Outbound`
 
 ### Built but Not Trigger-Ready
 - `WL - Micro - Instagram`: actions configured, trigger pending Instagram page connection.
@@ -223,7 +225,7 @@ Use this status when training users on what should currently fire automatically.
   - micro workflow trigger: `Contact Tag Added` on `Referral - Intake`
   - workflow adds `Warm  Referral`, sets source/UTM metadata, then removes `Referral - Intake` at end.
 
-## 12) Warm Automation Coverage Checklist (2026-02-14)
+## 12) Warm Automation Coverage Checklist (Last Known 2026-02-17)
 Use this list during onboarding to avoid assuming all channel triggers are already active.
 
 ### Configured
@@ -231,6 +233,8 @@ Use this list during onboarding to avoid assuming all channel triggers are alrea
 - `WL - Micro - LinkedIn DM`
 - `WL - Micro - LinkedIn Lead Form`
 - `WL - Micro - Meta Lead Form`
+- `WL - Micro - Email Inbound`
+- `WL - Micro - Email Outbound`
 
 ### Pending Trigger Connection
 - `WL - Micro - Instagram`
@@ -240,8 +244,6 @@ Use this list during onboarding to avoid assuming all channel triggers are alrea
 - `WL - Micro - Referral` final trigger + cleanup verification (`Referral - Intake` add/remove flow)
 - `WL - Micro - Meta Traffic`
 - `WL - Micro - Meta Remarketing`
-- `WL - Micro - Email Outbound`
-- `WL - Micro - Email Inbound`
 - `WL - Micro - SMS`
 - `WL - Micro - Website`
 
@@ -249,3 +251,4 @@ Use this list during onboarding to avoid assuming all channel triggers are alrea
 - Confirm master trigger listens to all warm tags (including `Warm  Meta Remarketing`).
 - Confirm booked handoff path from `Sales Outreach` -> `Sales` is active.
 - Confirm outreach/nurture sequences stop on booked/closed outcomes.
+- Re-verify current status in `AGENTS.md` and GHL UI before rollout decisions.

@@ -1,3 +1,16 @@
+DEPRECATION NOTICE (2026-02-17):
+- This file is a legacy text extraction from an older planning document and includes outdated terms.
+- Do not use this file as the source of truth for live implementation.
+- Canonical references:
+  - AGENTS.md (project-level current status and locked map)
+  - GHL Live Transparent CRM/Warm_Lead_Conflict_Safe_Implementation_Spec.md
+  - GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md
+- Canonical pipeline/stage model is:
+  - Warm: New -> Qualified (MQL) -> Routed to Outreach -> Nurture Active -> Disqualified
+  - Sales Outreach: New -> Attempting Contact -> Engaged -> Meeting Requested -> Booked -> Unresponsive
+  - Sales: Discovery Scheduled -> Discovery Completed -> Proposal Sent -> Negotiation -> Closed Won -> Closed Lost
+- Canonical warm tags use double-space format, for example: `Warm  LinkedIn Lead Form` (not `Warm – LinkedIn Lead Form`).
+
 Warm Lead Intake & Routing System Plan
 1. Executive Summary
 Goal: Centralize all warm lead signals into GoHighLevel (GHL), standardize tagging, and route leads through a Master Workflow for sales or nurture automation.Architecture:Channel Engagement → Apply Warm Tag → Master Workflow → Conditional Routing → Sales or Nurture

@@ -11,12 +11,13 @@ Do NOT add any pipeline/stage/owner/sequence actions here.
 
 ---
 
-## Current Build Status (2026-02-14)
-- Completed: `WL - Micro - LinkedIn`, `WL - Micro - LinkedIn DM`, `WL - Micro - LinkedIn Lead Form`, `WL - Micro - Meta Lead Form`
+## Current Build Status (Last Known 2026-02-17)
+- Completed in GHL UI: `WL - Micro - LinkedIn`, `WL - Micro - LinkedIn DM`, `WL - Micro - LinkedIn Lead Form`, `WL - Micro - Meta Lead Form`, `WL - Micro - Email Inbound`, `WL - Micro - Email Outbound`
 - Built but trigger pending channel connection: `WL - Micro - Instagram`
 - Deferred pending page connection: `WL - Micro - Facebook` (Messenger)
-- Referral intake pattern now standardized on tag trigger `Referral - Intake`
-- Build/verification pending: `WL - Micro - Meta Traffic`, `WL - Micro - Meta Remarketing`, `WL - Micro - Email Outbound`, `WL - Micro - Email Inbound`, `WL - Micro - SMS`, `WL - Micro - Website`
+- Referral intake pattern standardized on trigger tag `Referral - Intake` with end cleanup `Remove Tag: Referral - Intake`
+- Build/verification pending: `WL - Micro - Meta Traffic`, `WL - Micro - Meta Remarketing`, `WL - Micro - SMS`, `WL - Micro - Website`
+- Re-verify live status before edits using `AGENTS.md` + GHL UI.
 
 ## Global Field Update Rules (apply in every micro-workflow)
 

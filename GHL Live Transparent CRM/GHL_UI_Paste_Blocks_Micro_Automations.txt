@@ -9,7 +9,7 @@ Do not move pipeline.
 Do not move stage.
 Do not assign owner.
 Do not add sequence actions.
-Status note (2026-02-14): Meta Lead Form is configured; Instagram is built but trigger pending page connection; Facebook Messenger is pending page connection.
+Status note (last known 2026-02-17): LinkedIn, LinkedIn DM, LinkedIn Lead Form, Meta Lead Form, Email Inbound, and Email Outbound are configured. Instagram is built but trigger pending page connection; Facebook Messenger is pending page connection. Re-verify in GHL UI before changes.
 
 WORKFLOW BLOCK 01
 Workflow Name: WL - Micro - Referral
