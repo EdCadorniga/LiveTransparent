@@ -1,0 +1,174 @@
+{
+  "updatedAt": "2026-02-13T14:26:29.470Z",
+  "createdAt": "2026-02-13T14:13:04.427Z",
+  "id": "Q2PBWCFiVMGeTjFX",
+  "name": "GHL Apollo Enrichment Fields - Ensure (DryRun/Live)",
+  "description": null,
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        288,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "value": "Zwz4relUXVPxx8uohnjV",
+              "type": "string"
+            },
+            {
+              "id": "api_base_url",
+              "name": "apiBaseUrl",
+              "value": "https://services.leadconnectorhq.com",
+              "type": "string"
+            },
+            {
+              "id": "api_key",
+              "name": "apiKey",
+              "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28",
+              "type": "string"
+            },
+            {
+              "id": "dry_run",
+              "name": "dryRun",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $json || {};\n\nif (!cfg.locationId) throw new Error('Missing locationId');\nif (!cfg.apiKey) throw new Error('Missing apiKey');\n\ncfg.apiBaseUrl = cfg.apiBaseUrl || 'https://services.leadconnectorhq.com';\ncfg.dryRun = cfg.dryRun !== undefined ? !!cfg.dryRun : true;\n\nconst baseUrl = cfg.apiBaseUrl.replace(/\\/$/, '');\nconst headers = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') {\n    return await $httpRequest(options);\n  }\n  if (typeof this !== 'undefined' && this?.helpers?.httpRequest) {\n    return await this.helpers.httpRequest(options);\n  }\n  throw new Error('HTTP not available in Code node runtime');\n}\n\nasync function apiRequest(method, path, bodyPayload) {\n  const options = {\n    method,\n    url: `${baseUrl}${path}`,\n    headers,\n    json: true,\n  };\n  if (bodyPayload !== undefined) options.body = bodyPayload;\n\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, status: 200, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nfunction getArrayPayload(obj, preferredKeys = []) {\n  if (Array.isArray(obj)) return obj;\n  for (const key of preferredKeys) {\n    if (Array.isArray(obj?.[key])) return obj[key];\n  }\n  if (Array.isArray(obj?.data)) return obj.data;\n  if (Array.isArray(obj?.customFields)) return obj.customFields;\n  if (Array.isArray(obj?.data?.customFields)) return obj.data.customFields;\n  return [];\n}\n\nfunction extractFieldName(field) {\n  return field?.name || field?.label || field?.fieldName || '';\n}\n\nfunction normalizeType(value) {\n  const v = String(value || '').toUpperCase();\n  if (!v) return '';\n  if (v.includes('NUMBER') || v === 'NUMERIC' || v === 'NUMERICAL') return 'NUMBER';\n  if (['DATE_TIME', 'DATETIME'].includes(v)) return 'DATETIME';\n  if (v === 'DATE') return 'DATE';\n  return 'TEXT';\n}\n\nfunction extractFieldType(field) {\n  return normalizeType(field?.dataType || field?.fieldType || field?.type || field?.valueType);\n}\n\nconst targetGroupName = 'Apollo Enrichment';\n\nconst requiredFields = [\n  { name: 'Apollo Contact Id', requiredType: 'TEXT' },\n  { name: 'Apollo Account Id', requiredType: 'TEXT' },\n  { name: 'Apollo Email Status', requiredType: 'TEXT' },\n  { name: 'Apollo Primary Email Source', requiredType: 'TEXT' },\n  { name: 'Apollo Primary Email Verification Source', requiredType: 'TEXT' },\n  { name: 'Apollo Email Confidence', requiredType: 'NUMBER' },\n  { name: 'Apollo Primary Email Catch-all Status', requiredType: 'TEXT' },\n  { name: 'Apollo Primary Email Last Verified At', requiredType: 'DATE' },\n  { name: 'Apollo Seniority', requiredType: 'TEXT' },\n  { name: 'Apollo Departments', requiredType: 'TEXT' },\n  { name: 'Apollo Sub Departments', requiredType: 'TEXT' },\n  { name: 'Apollo Company Employees', requiredType: 'NUMBER' },\n  { name: 'Apollo Industry', requiredType: 'TEXT' },\n  { name: 'Apollo Keywords', requiredType: 'TEXT' },\n  { name: 'Apollo Person LinkedIn URL', requiredType: 'TEXT' },\n  { name: 'Apollo Company LinkedIn URL', requiredType: 'TEXT' },\n  { name: 'Apollo Facebook URL', requiredType: 'TEXT' },\n  { name: 'Apollo Twitter URL', requiredType: 'TEXT' },\n  { name: 'Apollo Technologies', requiredType: 'TEXT' },\n  { name: 'Apollo Annual Revenue', requiredType: 'NUMBER' },\n  { name: 'Apollo Total Funding', requiredType: 'NUMBER' },\n  { name: 'Apollo Latest Funding', requiredType: 'TEXT' },\n  { name: 'Apollo Latest Funding Amount', requiredType: 'NUMBER' },\n  { name: 'Apollo Last Raised At', requiredType: 'DATE' },\n  { name: 'Apollo Subsidiary Of', requiredType: 'TEXT' },\n  { name: 'Apollo Secondary Email', requiredType: 'TEXT' },\n  { name: 'Apollo Secondary Email Source', requiredType: 'TEXT' },\n  { name: 'Apollo Secondary Email Status', requiredType: 'TEXT' },\n  { name: 'Apollo Secondary Email Verification Source', requiredType: 'TEXT' },\n  { name: 'Apollo Tertiary Email', requiredType: 'TEXT' },\n  { name: 'Apollo Tertiary Email Source', requiredType: 'TEXT' },\n  { name: 'Apollo Tertiary Email Status', requiredType: 'TEXT' },\n  { name: 'Apollo Tertiary Email Verification Source', requiredType: 'TEXT' },\n  { name: 'Apollo Primary Intent Topic', requiredType: 'TEXT' },\n  { name: 'Apollo Primary Intent Score', requiredType: 'NUMBER' },\n  { name: 'Apollo Secondary Intent Topic', requiredType: 'TEXT' },\n  { name: 'Apollo Secondary Intent Score', requiredType: 'NUMBER' },\n  { name: 'Apollo Qualify Contact', requiredType: 'TEXT' },\n];\n\nconst fieldsRes = await apiRequest.call(this, 'GET', `/locations/${cfg.locationId}/customFields?model=contact`);\nif (!fieldsRes.ok) {\n  throw new Error(`Failed to fetch custom fields: ${fieldsRes.status} ${JSON.stringify(fieldsRes.data)}`);\n}\n\nconst existingFields = getArrayPayload(fieldsRes.data, ['customFields']);\nconst fieldByName = new Map();\nfor (const field of existingFields) {\n  const name = extractFieldName(field);\n  if (name) fieldByName.set(name, field);\n}\n\nconst conflicts = [];\nconst report = [];\nconst toCreate = [];\n\nfor (const req of requiredFields) {\n  const existing = fieldByName.get(req.name);\n  if (existing) {\n    const existingType = extractFieldType(existing);\n    if (existingType !== req.requiredType) {\n      conflicts.push({\n        fieldName: req.name,\n        existingType: existing?.dataType || existing?.fieldType || existing?.type || 'UNKNOWN',\n        requiredType: req.requiredType,\n      });\n    } else {\n      report.push({\n        fieldName: req.name,\n        fieldId: existing.id || existing._id || 'N/A',\n        type: req.requiredType,\n        action: 'Reused',\n        group: targetGroupName,\n      });\n    }\n  } else {\n    toCreate.push(req);\n  }\n}\n\nif (conflicts.length) {\n  return [{\n    json: {\n      dryRun: cfg.dryRun,\n      locationId: cfg.locationId,\n      targetGroupName,\n      CONFLICT: conflicts,\n    },\n  }];\n}\n\nasync function createField(req) {\n  const dataTypes = req.requiredType === 'NUMBER'\n    ? ['NUMERIC', 'NUMBER']\n    : req.requiredType === 'DATE'\n      ? ['DATE']\n      : req.requiredType === 'DATETIME'\n        ? ['DATE_TIME', 'DATETIME']\n        : ['TEXT', 'LARGE_TEXT'];\n\n  let lastError = null;\n  for (const dataType of dataTypes) {\n    const bodies = [\n      { name: req.name, model: 'contact', dataType },\n      { name: req.name, objectKey: 'contact', dataType },\n      { name: req.name, model: 'contact', dataType, group: targetGroupName },\n      { name: req.name, model: 'contact', dataType, folder: targetGroupName },\n      { name: req.name, model: 'contact', dataType, category: targetGroupName },\n    ];\n\n    for (const bodyPayload of bodies) {\n      const res = await apiRequest.call(this, 'POST', `/locations/${cfg.locationId}/customFields`, bodyPayload);\n      if (res.ok) return res.data;\n      lastError = { status: res.status, data: res.data, body: bodyPayload };\n    }\n  }\n\n  throw new Error(`Failed creating field ${req.name}: ${JSON.stringify(lastError)}`);\n}\n\nif (!cfg.dryRun) {\n  for (const req of toCreate) {\n    const created = await createField.call(this, req);\n    report.push({\n      fieldName: req.name,\n      fieldId: created?.id || created?.data?.id || created?.customField?.id || 'N/A',\n      type: req.requiredType,\n      action: 'Created',\n      group: targetGroupName,\n    });\n  }\n} else {\n  for (const req of toCreate) {\n    report.push({\n      fieldName: req.name,\n      fieldId: 'N/A',\n      type: req.requiredType,\n      action: 'Planned Create (dryRun)',\n      group: targetGroupName,\n    });\n  }\n}\n\nreport.sort((a, b) => a.fieldName.localeCompare(b.fieldName));\n\nreturn [{\n  json: {\n    dryRun: cfg.dryRun,\n    locationId: cfg.locationId,\n    targetGroupName,\n    CUSTOM_FIELDS: report,\n  },\n}];"
+      },
+      "id": "ensure_fields",
+      "name": "Validate and Ensure Apollo Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Validate and Ensure Apollo Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "e084ebcf-9cf7-40c9-96dd-cfd68f99c64d",
+  "activeVersionId": null,
+  "versionCounter": 14,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-13T14:13:04.427Z",
+      "createdAt": "2026-02-13T14:13:04.427Z",
+      "role": "workflow:owner",
+      "workflowId": "Q2PBWCFiVMGeTjFX",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-11T08:02:27.672Z",
+            "createdAt": "2026-02-11T08:02:27.672Z",
+            "userId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+            "projectId": "4Vzf1F1ukTvP58LF",
+            "user": {
+              "updatedAt": "2026-02-17T11:36:05.615Z",
+              "createdAt": "2026-02-11T08:02:26.709Z",
+              "id": "861fb655-b176-4d63-a4ed-3cc66e279642",
+              "email": "ed@livetransparent.com",
+              "firstName": "Ed",
+              "lastName": "cadorniga",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-11T00:23:58.932Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [],
+                "companyIndustryExtended": [
+                  "marketing-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "devops",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": false
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-17",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

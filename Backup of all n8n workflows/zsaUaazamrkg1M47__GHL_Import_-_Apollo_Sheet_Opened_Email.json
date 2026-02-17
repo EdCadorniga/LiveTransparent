@@ -1,0 +1,204 @@
+{
+  "updatedAt": "2026-02-13T16:56:43.664Z",
+  "createdAt": "2026-02-13T16:52:35.568Z",
+  "id": "zsaUaazamrkg1M47",
+  "name": "GHL Import - Apollo Sheet Opened Email",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        272,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "value": "Zwz4relUXVPxx8uohnjV",
+              "type": "string"
+            },
+            {
+              "id": "api_base_url",
+              "name": "apiBaseUrl",
+              "value": "https://services.leadconnectorhq.com",
+              "type": "string"
+            },
+            {
+              "id": "api_key",
+              "name": "apiKey",
+              "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28",
+              "type": "string"
+            },
+            {
+              "id": "sheet_id",
+              "name": "sheetId",
+              "value": "1hR8PzOarxX2gOctRt_qWQfq7sLHXMmknrtWWM9yHw34",
+              "type": "string"
+            },
+            {
+              "id": "sheet_name",
+              "name": "sheetName",
+              "value": "Contacts who have opened an email",
+              "type": "string"
+            },
+            {
+              "id": "sheet_gid",
+              "name": "sheetGid",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "batch_value",
+              "name": "batchValue",
+              "value": "Batch_OpenedEmail_2026_02_13",
+              "type": "string"
+            },
+            {
+              "id": "dry_run",
+              "name": "dryRun",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "max_rows",
+              "name": "maxRows",
+              "value": 0,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $json || {};\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\nif (!cfg.sheetId) throw new Error('Missing Config.sheetId');\nif (!cfg.sheetName) throw new Error('Missing Config.sheetName');\nif (!cfg.batchValue) throw new Error('Missing Config.batchValue');\n\nconst dryRun = !!cfg.dryRun;\nconst maxRows = Number(cfg.maxRows || 0);\nconst baseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\n\nconst headers = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nasync function apiRequest({ method, path, body, fullUrl, raw = false }) {\n  const options = {\n    method,\n    url: fullUrl || `${baseUrl}${path}`,\n    headers: raw ? { Accept: 'text/csv' } : headers,\n    json: !raw,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, status: 200, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n      requestBody: body,\n    };\n  }\n}\n\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [];\n  let cell = '';\n  let inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    const next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { cell += '\"'; i++; }\n      else if (ch === '\"') { inQuotes = false; }\n      else { cell += ch; }\n    } else {\n      if (ch === '\"') inQuotes = true;\n      else if (ch === ',') { row.push(cell); cell = ''; }\n      else if (ch === '\\n') { row.push(cell); rows.push(row); row = []; cell = ''; }\n      else if (ch === '\\r') { }\n      else { cell += ch; }\n    }\n  }\n  if (cell.length || row.length) { row.push(cell); rows.push(row); }\n  return rows;\n}\n\nfunction rowsToObjects(rows) {\n  if (!rows.length) return [];\n  const headers = rows[0].map((h) => String(h || '').trim());\n  const out = [];\n  for (let i = 1; i < rows.length; i++) {\n    const r = rows[i];\n    const obj = {};\n    headers.forEach((h, idx) => { if (h) obj[h] = r[idx] ?? ''; });\n    const hasAny = Object.values(obj).some((v) => String(v || '').trim() !== '');\n    if (hasAny) out.push(obj);\n  }\n  return out;\n}\n\nfunction nk(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''); }\nfunction pick(obj, aliases) {\n  const wanted = new Set(aliases.map(nk));\n  for (const [k, v] of Object.entries(obj)) {\n    if (wanted.has(nk(k)) && String(v ?? '').trim() !== '') return String(v).trim();\n  }\n  return '';\n}\nfunction toNum(v) {\n  if (v === null || v === undefined || v === '') return null;\n  const n = Number(String(v).replace(/[^0-9.-]/g, ''));\n  return Number.isFinite(n) ? n : null;\n}\nfunction toDate(v) {\n  if (!v) return null;\n  const d = new Date(v);\n  return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);\n}\nfunction getArrayPayload(obj) {\n  if (Array.isArray(obj)) return obj;\n  if (Array.isArray(obj?.customFields)) return obj.customFields;\n  if (Array.isArray(obj?.data?.customFields)) return obj.data.customFields;\n  if (Array.isArray(obj?.data)) return obj.data;\n  return [];\n}\n\nconst urls = [];\nurls.push(`https://docs.google.com/spreadsheets/d/${cfg.sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(cfg.sheetName)}`);\nif (cfg.sheetGid) urls.push(`https://docs.google.com/spreadsheets/d/${cfg.sheetId}/export?format=csv&gid=${encodeURIComponent(String(cfg.sheetGid))}`);\nurls.push(`https://docs.google.com/spreadsheets/d/${cfg.sheetId}/export?format=csv`);\n\nlet csvText = null;\nlet csvErr = null;\nfor (const url of urls) {\n  const r = await apiRequest.call(this, { method: 'GET', fullUrl: url, raw: true });\n  if (r.ok) {\n    csvText = typeof r.data === 'string' ? r.data : String(r.data || '');\n    if (csvText.trim()) break;\n  } else {\n    csvErr = r;\n  }\n}\nif (!csvText) throw new Error(`Failed to read Google Sheet CSV: ${JSON.stringify(csvErr)}`);\n\nlet records = rowsToObjects(parseCsv(csvText));\nif (!records.length) throw new Error('No rows found in source sheet');\nif (maxRows > 0) records = records.slice(0, maxRows);\n\nconst cfRes = await apiRequest.call(this, { method: 'GET', path: `/locations/${cfg.locationId}/customFields?model=contact` });\nif (!cfRes.ok) throw new Error(`Failed to fetch contact custom fields: ${cfRes.status} ${JSON.stringify(cfRes.data)}`);\nconst customFields = getArrayPayload(cfRes.data);\nconst fieldByName = new Map(customFields.map((f) => [String(f?.name || '').trim(), f]));\n\nconst batchField = fieldByName.get('Batch_Upload');\nif (!batchField?.id) throw new Error('Batch_Upload field not found. Create it first.');\n\nconst apolloFieldNames = [\n  'Apollo Contact Id','Apollo Account Id','Apollo Email Status','Apollo Primary Email Source','Apollo Primary Email Verification Source',\n  'Apollo Email Confidence','Apollo Primary Email Catch-all Status','Apollo Primary Email Last Verified At','Apollo Seniority','Apollo Departments',\n  'Apollo Sub Departments','Apollo Company Employees','Apollo Industry','Apollo Keywords','Apollo Person LinkedIn URL',\n  'Apollo Company LinkedIn URL','Apollo Facebook URL','Apollo Twitter URL','Apollo Technologies','Apollo Annual Revenue',\n  'Apollo Total Funding','Apollo Latest Funding','Apollo Latest Funding Amount','Apollo Last Raised At','Apollo Subsidiary Of',\n  'Apollo Secondary Email','Apollo Secondary Email Source','Apollo Secondary Email Status','Apollo Secondary Email Verification Source',\n  'Apollo Tertiary Email','Apollo Tertiary Email Source','Apollo Tertiary Email Status','Apollo Tertiary Email Verification Source',\n  'Apollo Primary Intent Topic','Apollo Primary Intent Score','Apollo Secondary Intent Topic','Apollo Secondary Intent Score','Apollo Qualify Contact'\n];\n\nconst missingApolloFields = apolloFieldNames.filter((n) => !fieldByName.get(n)?.id);\nif (missingApolloFields.length) {\n  throw new Error(`Missing required Apollo custom fields in GHL: ${missingApolloFields.join(', ')}`);\n}\n\nfunction mapApollo(rec) {\n  return {\n    'Apollo Contact Id': pick(rec,['Apollo Contact Id','apollo_contact_id']),\n    'Apollo Account Id': pick(rec,['Apollo Account Id','apollo_account_id']),\n    'Apollo Email Status': pick(rec,['Email Status','Apollo Email Status','email_status']),\n    'Apollo Primary Email Source': pick(rec,['Primary Email Source','Apollo Primary Email Source']),\n    'Apollo Primary Email Verification Source': pick(rec,['Primary Email Verification Source','Apollo Primary Email Verification Source']),\n    'Apollo Email Confidence': toNum(pick(rec,['Email Confidence','Apollo Email Confidence'])),\n    'Apollo Primary Email Catch-all Status': pick(rec,['Primary Email Catch-all Status','Apollo Primary Email Catch-all Status']),\n    'Apollo Primary Email Last Verified At': toDate(pick(rec,['Primary Email Last Verified At','Apollo Primary Email Last Verified At'])),\n    'Apollo Seniority': pick(rec,['Seniority','Apollo Seniority']),\n    'Apollo Departments': pick(rec,['Departments','Apollo Departments']),\n    'Apollo Sub Departments': pick(rec,['Sub Departments','Apollo Sub Departments']),\n    'Apollo Company Employees': toNum(pick(rec,['# Employees','Apollo Company Employees'])),\n    'Apollo Industry': pick(rec,['Industry','Apollo Industry']),\n    'Apollo Keywords': pick(rec,['Keywords','Apollo Keywords']),\n    'Apollo Person LinkedIn URL': pick(rec,['Person Linkedin Url','Apollo Person LinkedIn URL']),\n    'Apollo Company LinkedIn URL': pick(rec,['Company Linkedin Url','Apollo Company LinkedIn URL']),\n    'Apollo Facebook URL': pick(rec,['Facebook Url','Apollo Facebook URL']),\n    'Apollo Twitter URL': pick(rec,['Twitter Url','Apollo Twitter URL']),\n    'Apollo Technologies': pick(rec,['Technologies','Apollo Technologies']),\n    'Apollo Annual Revenue': toNum(pick(rec,['Annual Revenue','Apollo Annual Revenue'])),\n    'Apollo Total Funding': toNum(pick(rec,['Total Funding','Apollo Total Funding'])),\n    'Apollo Latest Funding': pick(rec,['Latest Funding','Apollo Latest Funding']),\n    'Apollo Latest Funding Amount': toNum(pick(rec,['Latest Funding Amount','Apollo Latest Funding Amount'])),\n    'Apollo Last Raised At': toDate(pick(rec,['Last Raised At','Apollo Last Raised At'])),\n    'Apollo Subsidiary Of': pick(rec,['Subsidiary of','Apollo Subsidiary Of']),\n    'Apollo Secondary Email': pick(rec,['Secondary Email','Apollo Secondary Email']),\n    'Apollo Secondary Email Source': pick(rec,['Secondary Email Source','Apollo Secondary Email Source']),\n    'Apollo Secondary Email Status': pick(rec,['Secondary Email Status','Apollo Secondary Email Status']),\n    'Apollo Secondary Email Verification Source': pick(rec,['Secondary Email Verification Source','Apollo Secondary Email Verification Source']),\n    'Apollo Tertiary Email': pick(rec,['Tertiary Email','Apollo Tertiary Email']),\n    'Apollo Tertiary Email Source': pick(rec,['Tertiary Email Source','Apollo Tertiary Email Source']),\n    'Apollo Tertiary Email Status': pick(rec,['Tertiary Email Status','Apollo Tertiary Email Status']),\n    'Apollo Tertiary Email Verification Source': pick(rec,['Tertiary Email Verification Source','Apollo Tertiary Email Verification Source']),\n    'Apollo Primary Intent Topic': pick(rec,['Primary Intent Topic','Apollo Primary Intent Topic']),\n    'Apollo Primary Intent Score': toNum(pick(rec,['Primary Intent Score','Apollo Primary Intent Score'])),\n    'Apollo Secondary Intent Topic': pick(rec,['Secondary Intent Topic','Apollo Secondary Intent Topic']),\n    'Apollo Secondary Intent Score': toNum(pick(rec,['Secondary Intent Score','Apollo Secondary Intent Score'])),\n    'Apollo Qualify Contact': pick(rec,['Qualify Contact','Apollo Qualify Contact']),\n  };\n}\n\nconst results = [];\nfor (const rec of records) {\n  const firstName = pick(rec,['First Name','first_name','firstname']);\n  const lastName = pick(rec,['Last Name','last_name','lastname']);\n  const email = pick(rec,['Email','email']);\n  const phone = pick(rec,['Mobile Phone','mobile_phone','Work Direct Phone','Corporate Phone','phone']);\n  const companyName = pick(rec,['Company Name','company_name','company']);\n\n  if (!email && !phone) {\n    results.push({ status: 'skipped', reason: 'missing email and phone' });\n    continue;\n  }\n\n  const ap = mapApollo(rec);\n  const updateEntries = [{ id: batchField.id, value: cfg.batchValue }];\n  for (const [name, val] of Object.entries(ap)) {\n    if (val === null || val === undefined || val === '') continue;\n    const fid = fieldByName.get(name)?.id;\n    if (fid) updateEntries.push({ id: fid, value: val });\n  }\n\n  if (dryRun) {\n    results.push({ status: 'planned', email, phone, firstName, lastName, customFieldsToSet: updateEntries.length });\n    continue;\n  }\n\n  const upsertBody = {\n    locationId: cfg.locationId,\n    email: email || undefined,\n    phone: phone || undefined,\n    firstName: firstName || undefined,\n    lastName: lastName || undefined,\n    companyName: companyName || undefined,\n  };\n  Object.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\n  const upsertRes = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsertRes.ok) {\n    results.push({ status: 'error', step: 'upsert', email, details: upsertRes.data });\n    continue;\n  }\n  const contactId = upsertRes.data?.contact?.id || upsertRes.data?.id || upsertRes.data?.contactId;\n  if (!contactId) {\n    results.push({ status: 'error', step: 'resolve_contact_id', email, details: upsertRes.data });\n    continue;\n  }\n\n  const customFieldObject = Object.fromEntries(updateEntries.map((e) => [e.id, e.value]));\n  const stampBodies = [\n    { locationId: cfg.locationId, customField: customFieldObject },\n    { customField: customFieldObject },\n    { locationId: cfg.locationId, customFields: updateEntries.map((e) => ({ id: e.id, value: e.value })) },\n    { customFields: updateEntries.map((e) => ({ id: e.id, value: e.value })) },\n    { locationId: cfg.locationId, customFields: updateEntries.map((e) => ({ id: e.id, field_value: e.value })) },\n    { customFields: updateEntries.map((e) => ({ id: e.id, field_value: e.value })) },\n  ];\n\n  let stampOk = false;\n  let stampErr = null;\n  for (const body of stampBodies) {\n    const sr = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${contactId}`, body });\n    if (sr.ok) { stampOk = true; break; }\n    stampErr = sr;\n  }\n\n  if (!stampOk) {\n    results.push({ status: 'error', step: 'custom_field_update', contactId, email, details: stampErr?.data || stampErr });\n    continue;\n  }\n\n  results.push({ status: 'imported', contactId, email, customFieldsSet: updateEntries.length });\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun,\n    sourceSheet: cfg.sheetName,\n    sourceRecords: records.length,\n    imported: results.filter((r) => r.status === 'imported').length,\n    planned: results.filter((r) => r.status === 'planned').length,\n    skipped: results.filter((r) => r.status === 'skipped').length,\n    errors: results.filter((r) => r.status === 'error').length,\n    RESULTS: results,\n  },\n}];"
+      },
+      "id": "import_run",
+      "name": "Import Sheet Contacts -> GHL + Apollo Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Import Sheet Contacts -> GHL + Apollo Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "433b82eb-2aea-4d81-8043-29cd47af7b96",
+  "activeVersionId": null,
+  "versionCounter": 2,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-13T16:52:35.568Z",
+      "createdAt": "2026-02-13T16:52:35.568Z",
+      "role": "workflow:owner",
+      "workflowId": "zsaUaazamrkg1M47",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-11T08:02:27.672Z",
+            "createdAt": "2026-02-11T08:02:27.672Z",
+            "userId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+            "projectId": "4Vzf1F1ukTvP58LF",
+            "user": {
+              "updatedAt": "2026-02-17T11:36:05.615Z",
+              "createdAt": "2026-02-11T08:02:26.709Z",
+              "id": "861fb655-b176-4d63-a4ed-3cc66e279642",
+              "email": "ed@livetransparent.com",
+              "firstName": "Ed",
+              "lastName": "cadorniga",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-11T00:23:58.932Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [],
+                "companyIndustryExtended": [
+                  "marketing-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "devops",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": false
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-17",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

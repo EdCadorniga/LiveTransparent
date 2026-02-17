@@ -1,0 +1,350 @@
+{
+  "updatedAt": "2026-02-17T15:02:11.411Z",
+  "createdAt": "2026-02-17T14:23:32.890Z",
+  "id": "RTV5jUiTt05lad07",
+  "name": "Website Lead Intake from Hero form",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-form-demo-intake",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_in",
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "value": "Zwz4relUXVPxx8uohnjV",
+              "type": "string"
+            },
+            {
+              "id": "api_base_url",
+              "name": "apiBaseUrl",
+              "value": "https://services.leadconnectorhq.com",
+              "type": "string"
+            },
+            {
+              "id": "api_key",
+              "name": "apiKey",
+              "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28",
+              "type": "string"
+            },
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "help_field_key",
+              "name": "helpFieldKey",
+              "value": "contact.how_can_we_help",
+              "type": "string"
+            },
+            {
+              "id": "help_field_id",
+              "name": "helpFieldId",
+              "value": "rHopakQWppoQkfWUrpH3",
+              "type": "string"
+            },
+            {
+              "id": "auth_header_name",
+              "name": "authHeaderName",
+              "value": "x-intake-key",
+              "type": "string"
+            },
+            {
+              "id": "auth_header_value",
+              "name": "authHeaderValue",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $json || {};\nconst body = (src.body && typeof src.body === 'object') ? src.body : src;\nconst headers = src.headers || {};\n\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  defaultDryRun: !!src.defaultDryRun,\n  helpFieldKey: String(src.helpFieldKey || 'contact.how_can_we_help'),\n  helpFieldId: String(src.helpFieldId || ''),\n  authHeaderName: String(src.authHeaderName || 'x-intake-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n};\n\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid intake auth header' } }];\n}\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction splitFullName(fullName) {\n  const raw = clean(fullName).replace(/\\s+/g, ' ');\n  if (!raw) return { firstName: '', lastName: '' };\n  const parts = raw.split(' ');\n  if (parts.length === 1) return { firstName: parts[0], lastName: '' };\n  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };\n}\n\nconst fullName = clean(body.full_name || body.fullName || body.name || body['First & Last Name']);\nconst { firstName, lastName } = splitFullName(fullName);\nconst email = clean(body.email);\nconst phone = clean(body.phone || body.mobile || body.phone_number);\nconst website = clean(body.website || body.company_website || body.companyWebsite || body.url);\nconst howCanWeHelp = clean(body.message || body.how_can_we_help || body.howCanWeHelp || body['How can we help?']);\nlet contactId = clean(body.contactId || body.contact_id || body.id);\n\nif (!contactId && !email && !phone) {\n  return [{\n    json: {\n      ok: false,\n      error: 'missing_identity',\n      message: 'Provide contactId or at least email/phone in payload.',\n      expected: ['contactId', 'email', 'phone'],\n    },\n  }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = {\n    method,\n    url: `${cfg.apiBaseUrl}${path}`,\n    headers: headersGhl,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n      requestBody: body,\n    };\n  }\n}\n\nconst upsertBody = {\n  locationId: cfg.locationId,\n  email: email || undefined,\n  phone: phone || undefined,\n  firstName: firstName || undefined,\n  lastName: lastName || undefined,\n  website: website || undefined,\n};\nObject.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\nif (!contactId) {\n  const upsertRes = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsertRes.ok) {\n    return [{ json: { ok: false, error: 'upsert_failed', details: upsertRes.data, requestBody: upsertBody } }];\n  }\n  contactId = upsertRes.data?.contact?.id || upsertRes.data?.id || upsertRes.data?.contactId || '';\n  if (!contactId) {\n    return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsertRes.data } }];\n  }\n}\n\nif (dryRun) {\n  return [{\n    json: {\n      ok: true,\n      dryRun: true,\n      action: 'would_upsert_contact_and_update_help_field',\n      contactId,\n      mapped: {\n        full_name: fullName,\n        first_name: firstName,\n        last_name: lastName,\n        email,\n        website,\n        how_can_we_help: howCanWeHelp,\n      },\n      helpField: { id: cfg.helpFieldId, key: cfg.helpFieldKey },\n    },\n  }];\n}\n\nconst updateBodies = [\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, field_value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldId || cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n].map((b) => {\n  const cleanObj = { ...b };\n  Object.keys(cleanObj).forEach((k) => cleanObj[k] === undefined && delete cleanObj[k]);\n  return cleanObj;\n}).filter((b) => Object.keys(b).length > 0);\n\nlet updateOk = null;\nlet lastErr = null;\nfor (const bodyTry of updateBodies) {\n  const r = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${contactId}`, body: bodyTry });\n  if (r.ok) {\n    updateOk = { bodyUsed: bodyTry, response: r.data };\n    break;\n  }\n  lastErr = r;\n}\n\nif (!updateOk) {\n  return [{\n    json: {\n      ok: false,\n      error: 'contact_update_failed',\n      contactId,\n      attemptedBodies: updateBodies,\n      details: lastErr?.data || lastErr,\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun: false,\n    action: 'contact_updated',\n    contactId,\n    mapped: {\n      first_name: firstName,\n      last_name: lastName,\n      website,\n      how_can_we_help: howCanWeHelp,\n    },\n    updateRequestBodyUsed: updateOk.bodyUsed,\n  },\n}];"
+      },
+      "id": "apply_mapping",
+      "name": "Map + Upsert + Update Contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Map + Upsert + Update Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "db78c019-3211-49db-a1da-343b37a2eb08",
+  "activeVersionId": "db78c019-3211-49db-a1da-343b37a2eb08",
+  "versionCounter": 7,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-17T14:23:32.890Z",
+      "createdAt": "2026-02-17T14:23:32.890Z",
+      "role": "workflow:owner",
+      "workflowId": "RTV5jUiTt05lad07",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-11T08:02:27.672Z",
+            "createdAt": "2026-02-11T08:02:27.672Z",
+            "userId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+            "projectId": "4Vzf1F1ukTvP58LF",
+            "user": {
+              "updatedAt": "2026-02-17T11:36:05.615Z",
+              "createdAt": "2026-02-11T08:02:26.709Z",
+              "id": "861fb655-b176-4d63-a4ed-3cc66e279642",
+              "email": "ed@livetransparent.com",
+              "firstName": "Ed",
+              "lastName": "cadorniga",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-11T00:23:58.932Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [],
+                "companyIndustryExtended": [
+                  "marketing-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "devops",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": false
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-17",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-02-17T14:32:09.087Z",
+    "createdAt": "2026-02-17T14:29:01.388Z",
+    "versionId": "db78c019-3211-49db-a1da-343b37a2eb08",
+    "workflowId": "RTV5jUiTt05lad07",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lt-form-demo-intake",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "webhook_in",
+        "name": "Webhook Intake",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          260,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "location_id",
+                "name": "locationId",
+                "value": "Zwz4relUXVPxx8uohnjV",
+                "type": "string"
+              },
+              {
+                "id": "api_base_url",
+                "name": "apiBaseUrl",
+                "value": "https://services.leadconnectorhq.com",
+                "type": "string"
+              },
+              {
+                "id": "api_key",
+                "name": "apiKey",
+                "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28",
+                "type": "string"
+              },
+              {
+                "id": "default_dry_run",
+                "name": "defaultDryRun",
+                "value": true,
+                "type": "boolean"
+              },
+              {
+                "id": "help_field_key",
+                "name": "helpFieldKey",
+                "value": "contact.how_can_we_help",
+                "type": "string"
+              },
+              {
+                "id": "help_field_id",
+                "name": "helpFieldId",
+                "value": "rHopakQWppoQkfWUrpH3",
+                "type": "string"
+              },
+              {
+                "id": "auth_header_name",
+                "name": "authHeaderName",
+                "value": "x-intake-key",
+                "type": "string"
+              },
+              {
+                "id": "auth_header_value",
+                "name": "authHeaderValue",
+                "value": "",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "config",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          500,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $json || {};\nconst body = (src.body && typeof src.body === 'object') ? src.body : src;\nconst headers = src.headers || {};\n\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  defaultDryRun: !!src.defaultDryRun,\n  helpFieldKey: String(src.helpFieldKey || 'contact.how_can_we_help'),\n  helpFieldId: String(src.helpFieldId || ''),\n  authHeaderName: String(src.authHeaderName || 'x-intake-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n};\n\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid intake auth header' } }];\n}\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction splitFullName(fullName) {\n  const raw = clean(fullName).replace(/\\s+/g, ' ');\n  if (!raw) return { firstName: '', lastName: '' };\n  const parts = raw.split(' ');\n  if (parts.length === 1) return { firstName: parts[0], lastName: '' };\n  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };\n}\n\nconst fullName = clean(body.full_name || body.fullName || body.name || body['First & Last Name']);\nconst { firstName, lastName } = splitFullName(fullName);\nconst email = clean(body.email);\nconst phone = clean(body.phone || body.mobile || body.phone_number);\nconst website = clean(body.website || body.company_website || body.companyWebsite || body.url);\nconst howCanWeHelp = clean(body.message || body.how_can_we_help || body.howCanWeHelp || body['How can we help?']);\nlet contactId = clean(body.contactId || body.contact_id || body.id);\n\nif (!contactId && !email && !phone) {\n  return [{\n    json: {\n      ok: false,\n      error: 'missing_identity',\n      message: 'Provide contactId or at least email/phone in payload.',\n      expected: ['contactId', 'email', 'phone'],\n    },\n  }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = {\n    method,\n    url: `${cfg.apiBaseUrl}${path}`,\n    headers: headersGhl,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n      requestBody: body,\n    };\n  }\n}\n\nconst upsertBody = {\n  locationId: cfg.locationId,\n  email: email || undefined,\n  phone: phone || undefined,\n  firstName: firstName || undefined,\n  lastName: lastName || undefined,\n  website: website || undefined,\n};\nObject.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\nif (!contactId) {\n  const upsertRes = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsertRes.ok) {\n    return [{ json: { ok: false, error: 'upsert_failed', details: upsertRes.data, requestBody: upsertBody } }];\n  }\n  contactId = upsertRes.data?.contact?.id || upsertRes.data?.id || upsertRes.data?.contactId || '';\n  if (!contactId) {\n    return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsertRes.data } }];\n  }\n}\n\nif (dryRun) {\n  return [{\n    json: {\n      ok: true,\n      dryRun: true,\n      action: 'would_upsert_contact_and_update_help_field',\n      contactId,\n      mapped: {\n        full_name: fullName,\n        first_name: firstName,\n        last_name: lastName,\n        email,\n        website,\n        how_can_we_help: howCanWeHelp,\n      },\n      helpField: { id: cfg.helpFieldId, key: cfg.helpFieldKey },\n    },\n  }];\n}\n\nconst updateBodies = [\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, field_value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldId || cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n].map((b) => {\n  const cleanObj = { ...b };\n  Object.keys(cleanObj).forEach((k) => cleanObj[k] === undefined && delete cleanObj[k]);\n  return cleanObj;\n}).filter((b) => Object.keys(b).length > 0);\n\nlet updateOk = null;\nlet lastErr = null;\nfor (const bodyTry of updateBodies) {\n  const r = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${contactId}`, body: bodyTry });\n  if (r.ok) {\n    updateOk = { bodyUsed: bodyTry, response: r.data };\n    break;\n  }\n  lastErr = r;\n}\n\nif (!updateOk) {\n  return [{\n    json: {\n      ok: false,\n      error: 'contact_update_failed',\n      contactId,\n      attemptedBodies: updateBodies,\n      details: lastErr?.data || lastErr,\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun: false,\n    action: 'contact_updated',\n    contactId,\n    mapped: {\n      first_name: firstName,\n      last_name: lastName,\n      website,\n      how_can_we_help: howCanWeHelp,\n    },\n    updateRequestBodyUsed: updateOk.bodyUsed,\n  },\n}];"
+        },
+        "id": "apply_mapping",
+        "name": "Map + Upsert + Update Contact",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          760,
+          300
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Intake": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Map + Upsert + Update Contact",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": "Version db78c019",
+    "description": "",
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-02-17T14:32:09.065Z",
+        "id": 14,
+        "workflowId": "RTV5jUiTt05lad07",
+        "versionId": "db78c019-3211-49db-a1da-343b37a2eb08",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-02-17T15:02:11.623Z",
+        "id": 15,
+        "workflowId": "RTV5jUiTt05lad07",
+        "versionId": "db78c019-3211-49db-a1da-343b37a2eb08",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

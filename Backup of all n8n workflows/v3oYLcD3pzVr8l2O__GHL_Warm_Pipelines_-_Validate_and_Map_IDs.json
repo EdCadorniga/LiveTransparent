@@ -1,0 +1,168 @@
+{
+  "updatedAt": "2026-02-12T17:13:55.296Z",
+  "createdAt": "2026-02-12T16:23:17.607Z",
+  "id": "v3oYLcD3pzVr8l2O",
+  "name": "GHL Warm Pipelines - Validate and Map IDs",
+  "description": null,
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "value": "Zwz4relUXVPxx8uohnjV",
+              "type": "string"
+            },
+            {
+              "id": "api_base_url",
+              "name": "apiBaseUrl",
+              "value": "https://services.leadconnectorhq.com",
+              "type": "string"
+            },
+            {
+              "id": "api_key",
+              "name": "apiKey",
+              "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $json;\nif (!cfg.locationId) throw new Error('Missing locationId');\nif (!cfg.apiKey) throw new Error('Missing apiKey in Config node');\n\nconst baseUrl = (cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst locationId = cfg.locationId;\n\nconst expected = {\n  'Warm Leads': [\n    'Warm - New',\n    'Warm - Qualified (MQL)',\n    'Warm - Routed to Outreach',\n    'Warm - Nurture Active',\n    'Warm - Disqualified',\n  ],\n  'Sales Outreach': [\n    'Outreach - New',\n    'Outreach - Attempting Contact',\n    'Outreach - Engaged',\n    'Outreach - Meeting Requested',\n    'Outreach - Booked',\n    'Outreach - Unresponsive',\n  ],\n  'Sales': [\n    'Sales - Discovery Scheduled',\n    'Sales - Discovery Completed',\n    'Sales - Proposal Sent',\n    'Sales - Negotiation',\n    'Sales - Closed Won',\n    'Sales - Closed Lost',\n  ],\n};\n\nconst headers = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  Accept: 'application/json',\n};\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (typeof this !== 'undefined' && this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP not available in Code node runtime.');\n}\n\nlet data;\ntry {\n  data = await doHttpRequest.call(this, {\n    method: 'GET',\n    url: `${baseUrl}/opportunities/pipelines?locationId=${encodeURIComponent(locationId)}`,\n    headers,\n    json: true,\n  });\n} catch (err) {\n  const code = err?.statusCode || err?.httpCode || 500;\n  const body = err?.response?.body || err?.message || err;\n  throw new Error(`Failed to fetch pipelines: ${code} ${JSON.stringify(body)}`);\n}\n\nconst pipelines = Array.isArray(data?.pipelines)\n  ? data.pipelines\n  : Array.isArray(data?.data?.pipelines)\n    ? data.data.pipelines\n    : Array.isArray(data)\n      ? data\n      : [];\n\nconst byName = new Map();\nfor (const p of pipelines) {\n  if (p?.name) byName.set(p.name, p);\n}\n\nconst missingPipelines = [];\nconst missingStages = [];\nconst idMap = {};\n\nfor (const [pipelineName, stages] of Object.entries(expected)) {\n  const pipeline = byName.get(pipelineName);\n  if (!pipeline) {\n    missingPipelines.push(pipelineName);\n    continue;\n  }\n\n  idMap[pipelineName] = {\n    pipelineId: pipeline.id || pipeline._id || null,\n    stages: {},\n  };\n\n  const stageByName = new Map((pipeline.stages || []).map((s) => [s.name, s]));\n  for (const stageName of stages) {\n    const st = stageByName.get(stageName);\n    if (!st) {\n      missingStages.push({ pipelineName, stageName });\n    } else {\n      idMap[pipelineName].stages[stageName] = st.id || st._id || null;\n    }\n  }\n}\n\nif (missingPipelines.length || missingStages.length) {\n  const report = {\n    status: 'BLOCKED_MANUAL_CREATE_REQUIRED',\n    locationId,\n    missingPipelines,\n    missingStages,\n    note: 'Create missing pipelines/stages in GHL UI exactly as named, then re-run this workflow.',\n  };\n  throw new Error(JSON.stringify(report, null, 2));\n}\n\nreturn [{\n  json: {\n    status: 'READY',\n    locationId,\n    pipelineStageIdMap: idMap,\n  },\n}];"
+      },
+      "id": "validate_map",
+      "name": "Validate Pipelines and Map IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Validate Pipelines and Map IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "837a4be8-06d9-4105-88a5-4f5e77ee51c1",
+  "activeVersionId": null,
+  "versionCounter": 2,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-12T16:23:17.607Z",
+      "createdAt": "2026-02-12T16:23:17.607Z",
+      "role": "workflow:owner",
+      "workflowId": "v3oYLcD3pzVr8l2O",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-11T08:02:27.672Z",
+            "createdAt": "2026-02-11T08:02:27.672Z",
+            "userId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+            "projectId": "4Vzf1F1ukTvP58LF",
+            "user": {
+              "updatedAt": "2026-02-17T11:36:05.615Z",
+              "createdAt": "2026-02-11T08:02:26.709Z",
+              "id": "861fb655-b176-4d63-a4ed-3cc66e279642",
+              "email": "ed@livetransparent.com",
+              "firstName": "Ed",
+              "lastName": "cadorniga",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-11T00:23:58.932Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [],
+                "companyIndustryExtended": [
+                  "marketing-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "devops",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": false
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-17",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

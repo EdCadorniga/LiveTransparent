@@ -1,0 +1,314 @@
+{
+  "updatedAt": "2026-02-16T15:54:37.453Z",
+  "createdAt": "2026-02-16T15:32:04.076Z",
+  "id": "5nYzp9DgQUopzWhR",
+  "name": "GHL Warm Intake - SMS Tag (Webhook)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-warm-intake-sms",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_in",
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "value": "Zwz4relUXVPxx8uohnjV",
+              "type": "string"
+            },
+            {
+              "id": "api_base_url",
+              "name": "apiBaseUrl",
+              "value": "https://services.leadconnectorhq.com",
+              "type": "string"
+            },
+            {
+              "id": "api_key",
+              "name": "apiKey",
+              "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28",
+              "type": "string"
+            },
+            {
+              "id": "fixed_tag",
+              "name": "intakeTag",
+              "value": "Warm Intake - SMS",
+              "type": "string"
+            },
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $json;\nconst body = src.body || {};\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  intakeTag: String(src.intakeTag || '').trim(),\n  defaultDryRun: !!src.defaultDryRun,\n};\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\nif (!cfg.intakeTag) throw new Error('Missing Config.intakeTag');\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\nfunction clean(v) { return String(v || '').trim(); }\nlet contactId = clean(body.contactId);\nconst email = clean(body.email);\nconst phone = clean(body.phone);\nconst firstName = clean(body.firstName);\nconst lastName = clean(body.lastName);\nif (!contactId && !email && !phone) {\n  return [{ json: { ok: false, error: 'missing_contact', message: 'Provide contactId or email/phone' } }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\nasync function apiRequest({ method, path, body }) {\n  const options = { method, url: `${cfg.apiBaseUrl}${path}`, headers: headersGhl, json: true };\n  if (body !== undefined) options.body = body;\n  try { const data = await doHttpRequest.call(this, options); return { ok: true, data }; }\n  catch (err) {\n    return { ok: false, status: err?.statusCode || err?.httpCode || 500, data: err?.response?.body || err?.message || err };\n  }\n}\n\nlet resolvedVia = 'contactId';\nif (!contactId) {\n  resolvedVia = 'upsert';\n  const upsertBody = { locationId: cfg.locationId, email: email || undefined, phone: phone || undefined, firstName: firstName || undefined, lastName: lastName || undefined };\n  Object.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n  const upsert = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsert.ok) return [{ json: { ok: false, error: 'upsert_failed', details: upsert.data } }];\n  contactId = upsert.data?.contact?.id || upsert.data?.id || upsert.data?.contactId || '';\n  if (!contactId) return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsert.data } }];\n}\n\nif (dryRun) {\n  return [{ json: { ok: true, dryRun: true, action: 'would_add_intake_tag', contactId, intakeTag: cfg.intakeTag, resolvedVia } }];\n}\nconst tagRes = await apiRequest.call(this, { method: 'POST', path: `/contacts/${contactId}/tags`, body: { tags: [cfg.intakeTag] } });\nif (!tagRes.ok) return [{ json: { ok: false, error: 'tag_add_failed', contactId, intakeTag: cfg.intakeTag, details: tagRes.data } }];\nreturn [{ json: { ok: true, dryRun: false, action: 'intake_tag_added', contactId, intakeTag: cfg.intakeTag, resolvedVia } }];"
+      },
+      "id": "apply_tag",
+      "name": "Resolve Contact + Add Intake Tag",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Resolve Contact + Add Intake Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "5632a1e8-7c86-4761-96f6-da8afbd93aa0",
+  "activeVersionId": "5632a1e8-7c86-4761-96f6-da8afbd93aa0",
+  "versionCounter": 7,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-16T15:32:04.076Z",
+      "createdAt": "2026-02-16T15:32:04.076Z",
+      "role": "workflow:owner",
+      "workflowId": "5nYzp9DgQUopzWhR",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-02-11T08:02:27.672Z",
+            "createdAt": "2026-02-11T08:02:27.672Z",
+            "userId": "861fb655-b176-4d63-a4ed-3cc66e279642",
+            "projectId": "4Vzf1F1ukTvP58LF",
+            "user": {
+              "updatedAt": "2026-02-17T11:36:05.615Z",
+              "createdAt": "2026-02-11T08:02:26.709Z",
+              "id": "861fb655-b176-4d63-a4ed-3cc66e279642",
+              "email": "ed@livetransparent.com",
+              "firstName": "Ed",
+              "lastName": "cadorniga",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-02-11T00:23:58.932Z",
+                "personalization_survey_n8n_version": "2.6.4",
+                "automationGoalDevops": [],
+                "companyIndustryExtended": [
+                  "marketing-industry"
+                ],
+                "companySize": "<20",
+                "companyType": "other",
+                "role": "devops",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": false
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-17",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-02-16T15:32:04.108Z",
+    "createdAt": "2026-02-16T15:32:04.108Z",
+    "versionId": "5632a1e8-7c86-4761-96f6-da8afbd93aa0",
+    "workflowId": "5nYzp9DgQUopzWhR",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lt-warm-intake-sms",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "webhook_in",
+        "name": "Webhook Intake",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          280,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "location_id",
+                "name": "locationId",
+                "value": "Zwz4relUXVPxx8uohnjV",
+                "type": "string"
+              },
+              {
+                "id": "api_base_url",
+                "name": "apiBaseUrl",
+                "value": "https://services.leadconnectorhq.com",
+                "type": "string"
+              },
+              {
+                "id": "api_key",
+                "name": "apiKey",
+                "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28",
+                "type": "string"
+              },
+              {
+                "id": "fixed_tag",
+                "name": "intakeTag",
+                "value": "Warm Intake - SMS",
+                "type": "string"
+              },
+              {
+                "id": "default_dry_run",
+                "name": "defaultDryRun",
+                "value": true,
+                "type": "boolean"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "config",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          520,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $json;\nconst body = src.body || {};\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  intakeTag: String(src.intakeTag || '').trim(),\n  defaultDryRun: !!src.defaultDryRun,\n};\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\nif (!cfg.intakeTag) throw new Error('Missing Config.intakeTag');\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\nfunction clean(v) { return String(v || '').trim(); }\nlet contactId = clean(body.contactId);\nconst email = clean(body.email);\nconst phone = clean(body.phone);\nconst firstName = clean(body.firstName);\nconst lastName = clean(body.lastName);\nif (!contactId && !email && !phone) {\n  return [{ json: { ok: false, error: 'missing_contact', message: 'Provide contactId or email/phone' } }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\nasync function apiRequest({ method, path, body }) {\n  const options = { method, url: `${cfg.apiBaseUrl}${path}`, headers: headersGhl, json: true };\n  if (body !== undefined) options.body = body;\n  try { const data = await doHttpRequest.call(this, options); return { ok: true, data }; }\n  catch (err) {\n    return { ok: false, status: err?.statusCode || err?.httpCode || 500, data: err?.response?.body || err?.message || err };\n  }\n}\n\nlet resolvedVia = 'contactId';\nif (!contactId) {\n  resolvedVia = 'upsert';\n  const upsertBody = { locationId: cfg.locationId, email: email || undefined, phone: phone || undefined, firstName: firstName || undefined, lastName: lastName || undefined };\n  Object.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n  const upsert = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsert.ok) return [{ json: { ok: false, error: 'upsert_failed', details: upsert.data } }];\n  contactId = upsert.data?.contact?.id || upsert.data?.id || upsert.data?.contactId || '';\n  if (!contactId) return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsert.data } }];\n}\n\nif (dryRun) {\n  return [{ json: { ok: true, dryRun: true, action: 'would_add_intake_tag', contactId, intakeTag: cfg.intakeTag, resolvedVia } }];\n}\nconst tagRes = await apiRequest.call(this, { method: 'POST', path: `/contacts/${contactId}/tags`, body: { tags: [cfg.intakeTag] } });\nif (!tagRes.ok) return [{ json: { ok: false, error: 'tag_add_failed', contactId, intakeTag: cfg.intakeTag, details: tagRes.data } }];\nreturn [{ json: { ok: true, dryRun: false, action: 'intake_tag_added', contactId, intakeTag: cfg.intakeTag, resolvedVia } }];"
+        },
+        "id": "apply_tag",
+        "name": "Resolve Contact + Add Intake Tag",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          780,
+          300
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Intake": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Resolve Contact + Add Intake Tag",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-02-16T15:47:34.146Z",
+        "id": 5,
+        "workflowId": "5nYzp9DgQUopzWhR",
+        "versionId": "5632a1e8-7c86-4761-96f6-da8afbd93aa0",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-02-16T15:54:37.541Z",
+        "id": 12,
+        "workflowId": "5nYzp9DgQUopzWhR",
+        "versionId": "5632a1e8-7c86-4761-96f6-da8afbd93aa0",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

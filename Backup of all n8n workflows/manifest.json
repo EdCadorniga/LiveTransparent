@@ -1,0 +1,176 @@
+{
+  "exportedAt": "2026-02-17T16:56:56.515150+00:00",
+  "source": "https://automations.livetransparent.com/api/v1",
+  "count": 24,
+  "workflows": [
+    {
+      "id": "X2QOdM9xh2rFokps86sGQ",
+      "name": "Workflow Test",
+      "active": false,
+      "updatedAt": "2026-02-11T12:56:29.645Z",
+      "file": "X2QOdM9xh2rFokps86sGQ__Workflow_Test.json"
+    },
+    {
+      "id": "hYiL3fce5IadRR1z",
+      "name": "GHL Ensure Company Phone Field",
+      "active": false,
+      "updatedAt": "2026-02-13T17:57:07.548Z",
+      "file": "hYiL3fce5IadRR1z__GHL_Ensure_Company_Phone_Field.json"
+    },
+    {
+      "id": "BYvEuUMUQFlXoxRj",
+      "name": "GHL Warm Lead Setup - Fields and Tags",
+      "active": false,
+      "updatedAt": "2026-02-13T14:28:32.403Z",
+      "file": "BYvEuUMUQFlXoxRj__GHL_Warm_Lead_Setup_-_Fields_and_Tags.json"
+    },
+    {
+      "id": "HQaHuLZbtKCSaKqE",
+      "name": "GHL Apollo Enrichment - Webhook Intake",
+      "active": true,
+      "updatedAt": "2026-02-13T17:53:38.770Z",
+      "file": "HQaHuLZbtKCSaKqE__GHL_Apollo_Enrichment_-_Webhook_Intake.json"
+    },
+    {
+      "id": "6lp8sIS3YMB1t9Ri",
+      "name": "GHL Warm Intake - Referral Tag (Webhook)",
+      "active": true,
+      "updatedAt": "2026-02-16T15:54:40.805Z",
+      "file": "6lp8sIS3YMB1t9Ri__GHL_Warm_Intake_-_Referral_Tag_Webhook.json"
+    },
+    {
+      "id": "5nYzp9DgQUopzWhR",
+      "name": "GHL Warm Intake - SMS Tag (Webhook)",
+      "active": true,
+      "updatedAt": "2026-02-16T15:54:37.453Z",
+      "file": "5nYzp9DgQUopzWhR__GHL_Warm_Intake_-_SMS_Tag_Webhook.json"
+    },
+    {
+      "id": "EzevYndAVXzpXhMs",
+      "name": "Apollo Contacts -> Postgres Ingest",
+      "active": false,
+      "updatedAt": "2026-02-13T15:12:09.328Z",
+      "file": "EzevYndAVXzpXhMs__Apollo_Contacts_-_Postgres_Ingest.json"
+    },
+    {
+      "id": "_vpi6c9Eo1wSDZkfXmjEI",
+      "name": "Apollo to GHL Create Contact and Opportunity",
+      "active": false,
+      "updatedAt": "2026-02-11T13:17:50.612Z",
+      "file": "_vpi6c9Eo1wSDZkfXmjEI__Apollo_to_GHL_Create_Contact_and_Opportunity.json"
+    },
+    {
+      "id": "v3oYLcD3pzVr8l2O",
+      "name": "GHL Warm Pipelines - Validate and Map IDs",
+      "active": false,
+      "updatedAt": "2026-02-12T17:13:55.296Z",
+      "file": "v3oYLcD3pzVr8l2O__GHL_Warm_Pipelines_-_Validate_and_Map_IDs.json"
+    },
+    {
+      "id": "SjzeAx8G38dnNYDE",
+      "name": "GHL Ensure Batch_Upload Field",
+      "active": false,
+      "updatedAt": "2026-02-13T16:49:10.113Z",
+      "file": "SjzeAx8G38dnNYDE__GHL_Ensure_Batch_Upload_Field.json"
+    },
+    {
+      "id": "WmKAhG7mIaXonNsh",
+      "name": "GHL Apollo Enrichment - Webhook Intake (Sheet First)",
+      "active": false,
+      "updatedAt": "2026-02-13T18:08:41.354Z",
+      "file": "WmKAhG7mIaXonNsh__GHL_Apollo_Enrichment_-_Webhook_Intake_Sheet_First.json"
+    },
+    {
+      "id": "6lVyZHKyZRYbVomd",
+      "name": "GHL Warm Lead Fields - Duplicate Cleanup",
+      "active": false,
+      "updatedAt": "2026-02-12T17:13:48.593Z",
+      "file": "6lVyZHKyZRYbVomd__GHL_Warm_Lead_Fields_-_Duplicate_Cleanup.json"
+    },
+    {
+      "id": "WRSGosEr4qnAGMUR",
+      "name": "GHL Import - Apollo Sheet Extra Fields Only",
+      "active": false,
+      "updatedAt": "2026-02-13T17:46:25.888Z",
+      "file": "WRSGosEr4qnAGMUR__GHL_Import_-_Apollo_Sheet_Extra_Fields_Only.json"
+    },
+    {
+      "id": "Q2PBWCFiVMGeTjFX",
+      "name": "GHL Apollo Enrichment Fields - Ensure (DryRun/Live)",
+      "active": false,
+      "updatedAt": "2026-02-13T14:26:29.470Z",
+      "file": "Q2PBWCFiVMGeTjFX__GHL_Apollo_Enrichment_Fields_-_Ensure_DryRun_Live.json"
+    },
+    {
+      "id": "zsaUaazamrkg1M47",
+      "name": "GHL Import - Apollo Sheet Opened Email",
+      "active": false,
+      "updatedAt": "2026-02-13T16:56:43.664Z",
+      "file": "zsaUaazamrkg1M47__GHL_Import_-_Apollo_Sheet_Opened_Email.json"
+    },
+    {
+      "id": "HQcknMtVfhC53oYy",
+      "name": "GHL Ensure Extra Import Fields",
+      "active": false,
+      "updatedAt": "2026-02-13T17:46:12.559Z",
+      "file": "HQcknMtVfhC53oYy__GHL_Ensure_Extra_Import_Fields.json"
+    },
+    {
+      "id": "RSfLF7LU0rDC4jAI",
+      "name": "Website Lead Intake from Footer Form",
+      "active": true,
+      "updatedAt": "2026-02-17T15:03:20.502Z",
+      "file": "RSfLF7LU0rDC4jAI__Website_Lead_Intake_from_Footer_Form.json"
+    },
+    {
+      "id": "99MrjrJPoJbbf3Zp",
+      "name": "LT Error Notify - Apollo Enrichment Workflow",
+      "active": false,
+      "updatedAt": "2026-02-16T17:47:54.942Z",
+      "file": "99MrjrJPoJbbf3Zp__LT_Error_Notify_-_Apollo_Enrichment_Workflow.json"
+    },
+    {
+      "id": "J4B0n0QeSeOeqAci",
+      "name": "GHL Warm Intake - Email Outbound Tag (Webhook)",
+      "active": true,
+      "updatedAt": "2026-02-16T15:54:34.155Z",
+      "file": "J4B0n0QeSeOeqAci__GHL_Warm_Intake_-_Email_Outbound_Tag_Webhook.json"
+    },
+    {
+      "id": "RTV5jUiTt05lad07",
+      "name": "Website Lead Intake from Hero form",
+      "active": true,
+      "updatedAt": "2026-02-17T15:02:11.411Z",
+      "file": "RTV5jUiTt05lad07__Website_Lead_Intake_from_Hero_form.json"
+    },
+    {
+      "id": "OowP3sAd8c9paSKf",
+      "name": "GHL Warm Intake - Add Intake Tag (Webhook)",
+      "active": true,
+      "updatedAt": "2026-02-16T15:54:26.363Z",
+      "file": "OowP3sAd8c9paSKf__GHL_Warm_Intake_-_Add_Intake_Tag_Webhook.json"
+    },
+    {
+      "id": "21yw9WflGkFISbQD",
+      "name": "GHL Warm Lead Setup - UTM and Routing Fields",
+      "active": false,
+      "updatedAt": "2026-02-12T17:13:52.465Z",
+      "file": "21yw9WflGkFISbQD__GHL_Warm_Lead_Setup_-_UTM_and_Routing_Fields.json"
+    },
+    {
+      "id": "jUJZ8qK6njAOVIHG",
+      "name": "GHL Apollo Enrichment Fields - Ensure v2 CLEAN",
+      "active": false,
+      "updatedAt": "2026-02-13T14:28:17.275Z",
+      "file": "jUJZ8qK6njAOVIHG__GHL_Apollo_Enrichment_Fields_-_Ensure_v2_CLEAN.json"
+    },
+    {
+      "id": "SmMf8QIfysuxQJbG",
+      "name": "GHL Warm Intake - Email Inbound Tag (Webhook)",
+      "active": true,
+      "updatedAt": "2026-02-16T15:54:30.157Z",
+      "file": "SmMf8QIfysuxQJbG__GHL_Warm_Intake_-_Email_Inbound_Tag_Webhook.json"
+    }
+  ],
+  "failed": []
+}
