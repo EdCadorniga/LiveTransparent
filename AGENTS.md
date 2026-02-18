@@ -307,6 +307,11 @@
 - Both workflows remain active.
 - Current dry-run behavior remains in place:
 - `defaultDryRun=true` unless request payload passes `dryRun=false`.
+- A/B enrollment routing decision finalized:
+- Canonical splitter is now **GHL Randomizer** inside GHL workflow `WL - Seq Enrollment Router - Cannabis Ads`.
+- n8n router workflows are retained only as inactive rollback artifacts:
+- `WL - Seq Enrollment Router - Cannabis Ads (Workflow IDs Live)` (`UJnHFPxSdTcsK9iW`) - inactive
+- `WL - Seq Enrollment Router - Cannabis Ads` (`L5Cpe7ZdUgauQcF7`) - inactive
 
 ## Next Steps (Queued)
 - Run a full review pass of all existing n8n workflows that were previously left behind:
@@ -320,6 +325,9 @@
 - email inbound/outbound intake tagging flows
 - SMS intake tagging flow
 - ensure each intake path can reliably add enrollment tag(s) for the sequence router
+- Archive then remove obsolete n8n sequence routers after hold window:
+- keep both inactive router workflows for 7 days as rollback safety
+- then delete both if no dependency appears
 
 ## LLM Operating Constraints
 You are a code-first, automation-focused assistant under strict constraints.
