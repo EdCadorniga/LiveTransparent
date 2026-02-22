@@ -4,11 +4,28 @@
 This document defines the canonical mapping from Apollo CSV export headers to GHL contact fields/custom fields for the Live Transparent sub-account.
 
 - Location ID: `Zwz4relUXVPxx8uohnjV`
-- Updated: `2026-02-13`
+- Updated: `2026-02-20`
 - Source CSV: `Exported Apollo Contacts who have opened an email at least once - Contacts who have opened an email (2).csv`
 - Related workflows:
   - `zsaUaazamrkg1M47` (`GHL Import - Apollo Sheet Opened Email`)
   - `WmKAhG7mIaXonNsh` (`GHL Apollo Enrichment - Webhook Intake (Sheet First)`)
+  - `T28iLcm4Hszo19MG` (`LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)`)
+
+## Recent Update (`2026-02-20`)
+- Applied live workflow update to `T28iLcm4Hszo19MG` to align `Import Contacts + Tags` with the canonical field mapping in this document.
+- Removed `$env` dependency used in workflow field mapping logic (source of prior dry-run failure).
+- Added company address mapping to standard GHL `address1` using CSV aliases:
+  - `Address`
+  - `address1`
+  - `Company Address`
+  - `company_address`
+- Added city/state/country fallback aliases to ensure canonical GHL standard fields always populate when company-prefixed columns are present:
+  - `city`: includes `Company City` / `company_city`
+  - `state`: includes `Company State` / `company_state`
+  - `country`: includes `Company Country` / `company_country`
+- Canonical reusable mapping spec updated at `cold-outreach-prep/mapping/apollo_csv_mappings.json`.
+- Canonical validator updated at `cold-outreach-prep/scripts/validate_apollo_csv_mapping.py`:
+  - alias-covered headers now count as matched coverage to avoid false unmatched header reporting when synonym columns are used.
 
 ## Canonical Header Standard
 Use the renamed `Apollo ...` headers in CSV/Sheet for stable matching.

@@ -204,7 +204,46 @@ Track weekly:
 - Stage names are controlled terms; do not rename without approval.
 - Any process change must be reflected in this guide before rollout.
 
-## 11) Warm Channel Entry Status (Last Known 2026-02-17)
+## 11) Cannabis Ads Cold-Outreach Process (Current Live)
+This process is separate from warm lead stage movement and is controlled by automation.
+
+### A) What Triggers Enrollment
+- Contacts are sourced from Postgres `Apollo_Contacts` with tag `cold-outreach`.
+- Release automation sets `marketing_sender_email`, then adds `Enrollment Queue - Cannabis Ads`.
+- GHL router workflow enrolls into Variant A/B only when routing guards pass.
+
+### B) Sender + Pace Controls
+- Sender field used by all Cannabis Ads email actions:
+- `From Email = {{contact.marketing_sender_email}}`
+- Warm-up caps:
+- Week 1 `50/day` per sender
+- Week 2 `75/day` per sender
+- Week 3+ `100/day` per sender
+- Cap includes in-flight sequence load, not only new enrollments.
+
+### C) Live Dispatch Windows
+- Automation runs hourly.
+- Dispatch occurs only:
+- `Mon-Sat`
+- `8:00 AM ET` to `5:00 PM PT`
+- Sundays: summary-only runs, no dispatch.
+- Additional contact-local gate: contact local `8:00 AM-4:59 PM` required.
+
+### D) What Users Should Do in GHL
+- Verify sender emails under `Marketing > Emails > Settings > Verified sender emails`.
+- Keep Cannabis Ads Router guard requiring `marketing_sender_email` not empty.
+- Confirm Variant A/B workflow email actions keep dynamic sender merge field.
+- Monitor queue and sequence tags:
+- `Enrollment Queue - Cannabis Ads`
+- `Seq Enrolled - Cannabis Ads`
+- `Seq Variant A` / `Seq Variant B`
+
+### E) What Users Should Not Do
+- Do not manually bulk-add `Enrollment Queue - Cannabis Ads` without sender field populated.
+- Do not overwrite `marketing_sender_email` mid-sequence unless intentional.
+- Do not treat sender cap as \"new contacts/day only\".
+
+## 12) Warm Channel Entry Status (Last Known 2026-02-17)
 Use this status when training users on what should currently fire automatically.
 
 ### Active/Configured in GHL UI
@@ -225,7 +264,7 @@ Use this status when training users on what should currently fire automatically.
   - micro workflow trigger: `Contact Tag Added` on `Referral - Intake`
   - workflow adds `Warm  Referral`, sets source/UTM metadata, then removes `Referral - Intake` at end.
 
-## 12) Warm Automation Coverage Checklist (Last Known 2026-02-17)
+## 13) Warm Automation Coverage Checklist (Last Known 2026-02-17)
 Use this list during onboarding to avoid assuming all channel triggers are already active.
 
 ### Configured

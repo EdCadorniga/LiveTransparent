@@ -1,0 +1,12 @@
+{
+  "timestamp": "20260220T094226Z",
+  "http_status": "200",
+  "response_bytes": "101",
+  "execution_id": "123",
+  "execution": {
+    "status": "success",
+    "finished": "true",
+    "lastNodeExecuted": "Respond to Webhook",
+    "error": ""
+  }
+}

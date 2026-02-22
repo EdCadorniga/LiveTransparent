@@ -1,6 +1,6 @@
 # Cannabis Ads Sequence Enrollment (A/B 50-50) - Implementation Checklist
 
-Last updated: `2026-02-17`
+Last updated: `2026-02-21`
 
 ## 1) GHL Contact Fields
 - [x] Create `Email Campaign` (Single line text).
@@ -8,6 +8,8 @@ Last updated: `2026-02-17`
 - [x] Create `Email Variant` (Single line text).
 - [x] Create `Last Marketing Email Sent At` (Single line text or date/time, current setup kept as text).
 - [x] Move fields into field group `Campaign Details` (completed manually in GHL UI).
+- [x] Create `marketing_sender_email` (contact custom field).
+- [ ] Optional but recommended: create `Sender Locked At` (Date/Time).
 
 ## 2) GHL Tags
 - [x] `Seq Enrolled - Cannabis Ads`
@@ -40,12 +42,14 @@ Last updated: `2026-02-17`
 - [ ] Does not have `Meeting Booked`
 - [ ] Does not have `Do Not Nurture`
 - [ ] DND Enabled Channels does not include `Email`
+- [ ] Has non-empty `marketing_sender_email`
 - [ ] Randomizer split 50/50 to Variant A and Variant B.
 - [ ] In each branch, set:
 - [ ] `Email Campaign = Cannabis Ads Sequence`
 - [ ] `Email Variant = A` or `B`
 - [ ] Add `Seq Variant A` or `Seq Variant B`
 - [ ] Add `Seq Enrolled - Cannabis Ads`
+- [ ] Add sender audit tag from `marketing_sender_email` (or sender-specific static tag if dynamic tag formatting is unavailable).
 - [ ] Remove `Enrollment Queue - Cannabis Ads`
 - [ ] Enroll to corresponding sequence workflow (A or B).
 
@@ -54,9 +58,15 @@ Last updated: `2026-02-17`
 - [x] A: `https://app.gohighlevel.com/location/Zwz4relUXVPxx8uohnjV/workflow/716d5fd7-09ef-4535-855b-70a7a73e731b`
 - [x] B: `https://app.gohighlevel.com/location/Zwz4relUXVPxx8uohnjV/workflow/1ea5efa6-652b-4213-bf26-f32ff7275d71/advanced-canvas`
 - [x] Delay pattern selected: `2d, 2d, 3d, 4d`.
+- [x] `From Email` now configured as `{{contact.marketing_sender_email}}` in workflow email actions (verify every send step in both A and B).
 - [ ] Confirm each email step updates:
 - [ ] `Last Marketing Email`
 - [ ] `Last Marketing Email Sent At`
+- [ ] Dynamic sender validation pass:
+- [ ] Test contact with `marketing_sender_email=<verified_sender_1>`
+- [ ] Confirm all sent steps use that sender
+- [ ] Test contact with `marketing_sender_email=<verified_sender_2>` once second sender is added
+- [ ] Confirm no fallback to personal sender
 
 ## 6) Stop/Suppression Automation
 - [ ] Build/verify `WL - Seq - Stop on Booked/Reply/Closed`.
@@ -72,10 +82,21 @@ Last updated: `2026-02-17`
 - [ ] Remove from sequence workflow B
 
 ## 7) Sender Warm-Up Controls
-- [ ] Implement controlled daily enrollment cap for sequence entry.
-- [ ] Start with conservative caps and increase only after healthy metrics.
-- [ ] Keep sending in business hours.
-- [ ] Avoid batch bursts at the same minute (stagger enrollment/actions).
+- [x] Implement controlled daily enrollment cap using n8n dispatcher `NTpQnMrpjzusPXHX` (automated release model).
+- [x] Week 1 cap locked: `50/day` per sender.
+- [x] Ramp locked: Week 2 `75/day` per sender, Week 3+ `100/day` per sender.
+- [x] Cap interpretation locked: cap is total outbound emails/day per sender (not just new enrollments).
+- [x] Global dispatch window: `Mon-Sat`, `8:00 AM ET` to `5:00 PM PT`.
+- [x] Sunday policy: summary-only execution, no dispatch.
+- [x] Per-contact local-hour gate enabled (`8:00 AM-4:59 PM`, timezone then state/country fallback).
+- [x] Per-sender allowance formula in automation:
+- [x] `remaining = cap - in_flight_sends_today - safety_buffer`
+- [x] Safety buffer applied: `max(10% of cap, 5)`.
+- [x] Current sender pool (equal distribution):
+- [x] `cameron@livetransparent.com`
+- [x] `cameron@livetransparent.co`
+- [x] `cameron@livetransparent.agency`
+- [x] `cameron@livetransparent.org`
 
 ## 8) QA
 - [ ] Test with internal contacts first.
@@ -83,6 +104,11 @@ Last updated: `2026-02-17`
 - [ ] Verify 50/50 distribution is roughly even over time.
 - [ ] Verify booking/reply/closed/do-not-nurture exits remove contacts from both sequences.
 - [ ] Verify `Email Campaign`, `Email Variant`, `Last Marketing Email`, `Last Marketing Email Sent At` update correctly.
+- [ ] Verify sender stickiness:
+- [ ] Contact remains on same `marketing_sender_email` across entire sequence.
+- [ ] Mid-sequence field edits do not unintentionally switch sender.
+- [ ] Verify queue release math:
+- [ ] Released count per sender does not exceed daily cap.
 
 ## 9) Backlog (After Core Launch)
 - [ ] Review all left-behind workflows for cleanup/activation status.

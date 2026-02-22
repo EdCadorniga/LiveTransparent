@@ -1,0 +1,78 @@
+Source CSV: cold-outreach-prep/postgres/cold-outreach-all.dedup-email.workflow-input.csv
+GHL custom field count: 76
+
+Matched headers (exact name match):
+MATCH | Title
+MATCH | Company Name for Emails
+MATCH | Corporate Phone
+MATCH | Lists
+MATCH | Company Phone
+MATCH | Apollo Contact Id
+MATCH | Apollo Account Id
+
+Unmatched headers (not present as GHL custom field names):
+UNMATCHED | First Name
+UNMATCHED | Last Name
+UNMATCHED | Company Name
+UNMATCHED | Email
+UNMATCHED | Email Status
+UNMATCHED | Primary Email Source
+UNMATCHED | Primary Email Verification Source
+UNMATCHED | Email Confidence
+UNMATCHED | Primary Email Catch-all Status
+UNMATCHED | Primary Email Last Verified At
+UNMATCHED | Seniority
+UNMATCHED | Departments
+UNMATCHED | Sub Departments
+UNMATCHED | Contact Owner
+UNMATCHED | Work Direct Phone
+UNMATCHED | Home Phone
+UNMATCHED | Mobile Phone
+UNMATCHED | Other Phone
+UNMATCHED | Stage
+UNMATCHED | Last Contacted
+UNMATCHED | Account Owner
+UNMATCHED | # Employees
+UNMATCHED | Industry
+UNMATCHED | Keywords
+UNMATCHED | Person Linkedin Url
+UNMATCHED | Website
+UNMATCHED | Company Linkedin Url
+UNMATCHED | Facebook Url
+UNMATCHED | Twitter Url
+UNMATCHED | City
+UNMATCHED | State
+UNMATCHED | Country
+UNMATCHED | Company Address
+UNMATCHED | Company City
+UNMATCHED | Company State
+UNMATCHED | Company Country
+UNMATCHED | Technologies
+UNMATCHED | Annual Revenue
+UNMATCHED | Total Funding
+UNMATCHED | Latest Funding
+UNMATCHED | Latest Funding Amount
+UNMATCHED | Last Raised At
+UNMATCHED | Subsidiary of
+UNMATCHED | Email Sent
+UNMATCHED | Email Open
+UNMATCHED | Email Bounced
+UNMATCHED | Replied
+UNMATCHED | Demoed
+UNMATCHED | Number of Retail Locations
+UNMATCHED | Secondary Email
+UNMATCHED | Secondary Email Source
+UNMATCHED | Secondary Email Status
+UNMATCHED | Secondary Email Verification Source
+UNMATCHED | Tertiary Email
+UNMATCHED | Tertiary Email Source
+UNMATCHED | Tertiary Email Status
+UNMATCHED | Tertiary Email Verification Source
+UNMATCHED | Primary Intent Topic
+UNMATCHED | Primary Intent Score
+UNMATCHED | Secondary Intent Topic
+UNMATCHED | Secondary Intent Score
+UNMATCHED | Qualify Contact
+UNMATCHED | Tags
+UNMATCHED | source_sheet
+UNMATCHED | source_segment

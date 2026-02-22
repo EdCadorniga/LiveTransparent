@@ -1,0 +1,38 @@
+{
+  "timestamp_utc": "2026-02-20T05:34:55Z",
+  "postgres": {
+    "workflow_id": "kVCTmy1m8fEyP6Q7",
+    "execution_id": "114",
+    "http_status": 200,
+    "response_body_bytes": 1,
+    "execution_status": "error",
+    "finished": false,
+    "last_node_executed": "Upsert Into Apollo_Contacts",
+    "error": "Cannot read properties of undefined (reading 'match')",
+    "request_file": "cold-outreach-prep/reports/dry-run-postgres-10-request-20260220T053455Z.json",
+    "response_file": "cold-outreach-prep/reports/dry-run-postgres-10-response-20260220T053455Z.json",
+    "execution_detail_file": "cold-outreach-prep/reports/dry-run-postgres-execution-detail-20260220T053455Z.json"
+  },
+  "ghl": {
+    "workflow_id": "T28iLcm4Hszo19MG",
+    "execution_id": "115",
+    "http_status": 200,
+    "response_body_bytes": 6090,
+    "execution_status": "success",
+    "finished": true,
+    "last_node_executed": "Respond to Webhook",
+    "request_file": "cold-outreach-prep/reports/dry-run-ghl-10-request-20260220T053455Z.json",
+    "response_file": "cold-outreach-prep/reports/dry-run-ghl-10-response-20260220T053455Z.json",
+    "execution_detail_file": "cold-outreach-prep/reports/dry-run-ghl-execution-detail-20260220T053455Z.json",
+    "response": {
+      "ok": true,
+      "dryRun": true,
+      "sourceRecords": 10,
+      "planned": 10,
+      "imported": 0,
+      "skipped": 0,
+      "errors": 0,
+      "missingCustomFields": []
+    }
+  }
+}

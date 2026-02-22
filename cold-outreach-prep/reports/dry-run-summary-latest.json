@@ -1,0 +1,32 @@
+{
+  "timestamp": "20260220T053705Z",
+  "postgres": {
+    "http_status": "200",
+    "execution_id": "116",
+    "execution": {
+      "status": "success",
+      "finished": true,
+      "lastNodeExecuted": "Respond to Webhook",
+      "error": null
+    }
+  },
+  "ghl": {
+    "http_status": "200",
+    "execution_id": "117",
+    "execution": {
+      "status": "success",
+      "finished": true,
+      "lastNodeExecuted": "Respond to Webhook",
+      "error": null
+    },
+    "response": {
+      "ok": true,
+      "dryRun": true,
+      "sourceRecords": 10,
+      "planned": 10,
+      "imported": 0,
+      "skipped": 0,
+      "errors": 0
+    }
+  }
+}

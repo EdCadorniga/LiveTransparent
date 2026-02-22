@@ -1,0 +1,12 @@
+{
+  "dryRun": true,
+  "records": [
+    {
+      "Apollo Contact Id": "schema-ensure-probe-20260220",
+      "First Name": "Schema",
+      "Last Name": "Ensure",
+      "Email": "schema.ensure+probe@livetransparent.com",
+      "Tags": "cold-outreach"
+    }
+  ]
+}

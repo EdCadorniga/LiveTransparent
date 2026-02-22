@@ -1,0 +1,35 @@
+{
+  "timestamp_utc": "2026-02-20T05:26:41Z",
+  "postgres": {
+    "workflow_id": "kVCTmy1m8fEyP6Q7",
+    "endpoint": "/webhook/lt-cold-outreach-postgres-intake",
+    "http_status": 200,
+    "batch_size": 10,
+    "request_file": "cold-outreach-prep/reports/dry-run-postgres-10-request-20260220T052641Z.json",
+    "response_file": "cold-outreach-prep/reports/dry-run-postgres-10-response-20260220T052641Z.json",
+    "raw_response_file": "cold-outreach-prep/reports/dry-run-postgres-10-response-raw-20260220T052641Z.txt",
+    "response_body_empty": true
+  },
+  "ghl": {
+    "workflow_id": "T28iLcm4Hszo19MG",
+    "endpoint": "/webhook/lt-cold-outreach-ghl-import",
+    "http_status": 200,
+    "batch_size": 10,
+    "request_file": "cold-outreach-prep/reports/dry-run-ghl-10-request-20260220T052641Z.json",
+    "response_file": "cold-outreach-prep/reports/dry-run-ghl-10-response-20260220T052641Z.json",
+    "raw_response_file": "cold-outreach-prep/reports/dry-run-ghl-10-response-raw-20260220T052641Z.txt",
+    "response": {
+      "ok": true,
+      "dryRun": true,
+      "sourceRecords": 10,
+      "planned": 10,
+      "imported": 0,
+      "skipped": 0,
+      "errors": 0,
+      "missingCustomFields": []
+    }
+  },
+  "notes": [
+    "n8n REST execution verification is currently blocked because /api/v1/executions requires X-N8N-API-KEY and no key is configured in this shell."
+  ]
+}

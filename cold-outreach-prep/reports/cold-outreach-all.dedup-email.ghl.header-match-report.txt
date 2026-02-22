@@ -1,0 +1,31 @@
+Source CSV: cold-outreach-prep/ghl/cold-outreach-all.dedup-email.ghl.csv
+GHL custom field count: 76
+
+Matched headers (exact name match):
+MATCH | Title
+MATCH | Company Phone
+
+Unmatched headers (not present as GHL custom field names):
+UNMATCHED | First Name
+UNMATCHED | Last Name
+UNMATCHED | Email
+UNMATCHED | Phone
+UNMATCHED | Company Name
+UNMATCHED | Website
+UNMATCHED | City
+UNMATCHED | State
+UNMATCHED | Country
+UNMATCHED | Company Address
+UNMATCHED | Company City
+UNMATCHED | Company State
+UNMATCHED | Company Country
+UNMATCHED | Person Linkedin Url
+UNMATCHED | Company Linkedin Url
+UNMATCHED | Facebook Url
+UNMATCHED | Twitter Url
+UNMATCHED | Industry
+UNMATCHED | # Employees
+UNMATCHED | Annual Revenue
+UNMATCHED | Tags
+UNMATCHED | source_sheet
+UNMATCHED | source_segment

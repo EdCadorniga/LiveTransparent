@@ -1,0 +1,845 @@
+{
+  "csv_path": "cold-outreach-prep/postgres/cold-outreach-all.dedup-email.workflow-input.csv",
+  "workflow": "LT - Cold Outreach CSV -> Postgres Ingest (Staged) :: Build SQL (DryRun Safe)",
+  "workflow_id": "kVCTmy1m8fEyP6Q7",
+  "header_count": 72,
+  "matched_field_count": 72,
+  "missing_field_count": 0,
+  "unmatched_headers": [],
+  "record_rule": {
+    "type": "at_least_one_of",
+    "targets": [
+      "email",
+      "work_direct_phone",
+      "home_phone",
+      "mobile_phone",
+      "corporate_phone",
+      "other_phone"
+    ],
+    "per_target": [
+      {
+        "target": "email",
+        "present_in_headers": true
+      },
+      {
+        "target": "work_direct_phone",
+        "present_in_headers": true
+      },
+      {
+        "target": "home_phone",
+        "present_in_headers": true
+      },
+      {
+        "target": "mobile_phone",
+        "present_in_headers": true
+      },
+      {
+        "target": "corporate_phone",
+        "present_in_headers": true
+      },
+      {
+        "target": "other_phone",
+        "present_in_headers": true
+      }
+    ],
+    "pass": true
+  },
+  "fields": [
+    {
+      "target": "apollo_contact_id",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Apollo Contact Id",
+        "apollo_contact_id",
+        "apolloContactId"
+      ],
+      "matched_header": "Apollo Contact Id",
+      "status": "matched"
+    },
+    {
+      "target": "apollo_account_id",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Apollo Account Id",
+        "apollo_account_id",
+        "apolloAccountId"
+      ],
+      "matched_header": "Apollo Account Id",
+      "status": "matched"
+    },
+    {
+      "target": "first_name",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "First Name",
+        "first_name",
+        "firstName"
+      ],
+      "matched_header": "First Name",
+      "status": "matched"
+    },
+    {
+      "target": "last_name",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Last Name",
+        "last_name",
+        "lastName"
+      ],
+      "matched_header": "Last Name",
+      "status": "matched"
+    },
+    {
+      "target": "title",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Title",
+        "title"
+      ],
+      "matched_header": "Title",
+      "status": "matched"
+    },
+    {
+      "target": "company_name",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Company Name",
+        "company_name",
+        "companyName"
+      ],
+      "matched_header": "Company Name",
+      "status": "matched"
+    },
+    {
+      "target": "company_name_for_emails",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Company Name for Emails",
+        "company_name_for_emails"
+      ],
+      "matched_header": "Company Name for Emails",
+      "status": "matched"
+    },
+    {
+      "target": "email",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Email",
+        "email"
+      ],
+      "matched_header": "Email",
+      "status": "matched"
+    },
+    {
+      "target": "email_status",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Email Status",
+        "email_status"
+      ],
+      "matched_header": "Email Status",
+      "status": "matched"
+    },
+    {
+      "target": "primary_email_source",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Primary Email Source",
+        "primary_email_source"
+      ],
+      "matched_header": "Primary Email Source",
+      "status": "matched"
+    },
+    {
+      "target": "primary_email_verification_source",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Primary Email Verification Source",
+        "primary_email_verification_source"
+      ],
+      "matched_header": "Primary Email Verification Source",
+      "status": "matched"
+    },
+    {
+      "target": "email_confidence",
+      "destination": "postgres_column",
+      "transform": "toNum",
+      "aliases": [
+        "Email Confidence",
+        "email_confidence"
+      ],
+      "matched_header": "Email Confidence",
+      "status": "matched"
+    },
+    {
+      "target": "primary_email_catch_all_status",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Primary Email Catch-all Status",
+        "primary_email_catch_all_status"
+      ],
+      "matched_header": "Primary Email Catch-all Status",
+      "status": "matched"
+    },
+    {
+      "target": "primary_email_last_verified_at",
+      "destination": "postgres_column",
+      "transform": "toTs",
+      "aliases": [
+        "Primary Email Last Verified At",
+        "primary_email_last_verified_at"
+      ],
+      "matched_header": "Primary Email Last Verified At",
+      "status": "matched"
+    },
+    {
+      "target": "seniority",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Seniority",
+        "seniority"
+      ],
+      "matched_header": "Seniority",
+      "status": "matched"
+    },
+    {
+      "target": "departments",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Departments",
+        "departments"
+      ],
+      "matched_header": "Departments",
+      "status": "matched"
+    },
+    {
+      "target": "sub_departments",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Sub Departments",
+        "sub_departments"
+      ],
+      "matched_header": "Sub Departments",
+      "status": "matched"
+    },
+    {
+      "target": "contact_owner",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Contact Owner",
+        "contact_owner"
+      ],
+      "matched_header": "Contact Owner",
+      "status": "matched"
+    },
+    {
+      "target": "work_direct_phone",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Work Direct Phone",
+        "work_direct_phone"
+      ],
+      "matched_header": "Work Direct Phone",
+      "status": "matched"
+    },
+    {
+      "target": "home_phone",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Home Phone",
+        "home_phone"
+      ],
+      "matched_header": "Home Phone",
+      "status": "matched"
+    },
+    {
+      "target": "mobile_phone",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Mobile Phone",
+        "mobile_phone"
+      ],
+      "matched_header": "Mobile Phone",
+      "status": "matched"
+    },
+    {
+      "target": "corporate_phone",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Corporate Phone",
+        "corporate_phone"
+      ],
+      "matched_header": "Corporate Phone",
+      "status": "matched"
+    },
+    {
+      "target": "other_phone",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Other Phone",
+        "other_phone"
+      ],
+      "matched_header": "Other Phone",
+      "status": "matched"
+    },
+    {
+      "target": "stage",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Stage",
+        "stage"
+      ],
+      "matched_header": "Stage",
+      "status": "matched"
+    },
+    {
+      "target": "lists",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Lists",
+        "lists"
+      ],
+      "matched_header": "Lists",
+      "status": "matched"
+    },
+    {
+      "target": "last_contacted",
+      "destination": "postgres_column",
+      "transform": "toTs",
+      "aliases": [
+        "Last Contacted",
+        "last_contacted"
+      ],
+      "matched_header": "Last Contacted",
+      "status": "matched"
+    },
+    {
+      "target": "account_owner",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Account Owner",
+        "account_owner"
+      ],
+      "matched_header": "Account Owner",
+      "status": "matched"
+    },
+    {
+      "target": "employees_count",
+      "destination": "postgres_column",
+      "transform": "toInt",
+      "aliases": [
+        "# Employees",
+        "employees_count",
+        "employees"
+      ],
+      "matched_header": "# Employees",
+      "status": "matched"
+    },
+    {
+      "target": "industry",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Industry",
+        "industry"
+      ],
+      "matched_header": "Industry",
+      "status": "matched"
+    },
+    {
+      "target": "keywords",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Keywords",
+        "keywords"
+      ],
+      "matched_header": "Keywords",
+      "status": "matched"
+    },
+    {
+      "target": "person_linkedin_url",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Person Linkedin Url",
+        "person_linkedin_url"
+      ],
+      "matched_header": "Person Linkedin Url",
+      "status": "matched"
+    },
+    {
+      "target": "website",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Website",
+        "website"
+      ],
+      "matched_header": "Website",
+      "status": "matched"
+    },
+    {
+      "target": "company_linkedin_url",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Company Linkedin Url",
+        "company_linkedin_url"
+      ],
+      "matched_header": "Company Linkedin Url",
+      "status": "matched"
+    },
+    {
+      "target": "facebook_url",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Facebook Url",
+        "facebook_url"
+      ],
+      "matched_header": "Facebook Url",
+      "status": "matched"
+    },
+    {
+      "target": "twitter_url",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Twitter Url",
+        "twitter_url"
+      ],
+      "matched_header": "Twitter Url",
+      "status": "matched"
+    },
+    {
+      "target": "city",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "City",
+        "city"
+      ],
+      "matched_header": "City",
+      "status": "matched"
+    },
+    {
+      "target": "state",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "State",
+        "state"
+      ],
+      "matched_header": "State",
+      "status": "matched"
+    },
+    {
+      "target": "country",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Country",
+        "country"
+      ],
+      "matched_header": "Country",
+      "status": "matched"
+    },
+    {
+      "target": "company_address",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Company Address",
+        "company_address"
+      ],
+      "matched_header": "Company Address",
+      "status": "matched"
+    },
+    {
+      "target": "company_city",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Company City",
+        "company_city"
+      ],
+      "matched_header": "Company City",
+      "status": "matched"
+    },
+    {
+      "target": "company_state",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Company State",
+        "company_state"
+      ],
+      "matched_header": "Company State",
+      "status": "matched"
+    },
+    {
+      "target": "company_country",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Company Country",
+        "company_country"
+      ],
+      "matched_header": "Company Country",
+      "status": "matched"
+    },
+    {
+      "target": "company_phone",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Company Phone",
+        "company_phone"
+      ],
+      "matched_header": "Company Phone",
+      "status": "matched"
+    },
+    {
+      "target": "technologies",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Technologies",
+        "technologies"
+      ],
+      "matched_header": "Technologies",
+      "status": "matched"
+    },
+    {
+      "target": "annual_revenue",
+      "destination": "postgres_column",
+      "transform": "toNum",
+      "aliases": [
+        "Annual Revenue",
+        "annual_revenue"
+      ],
+      "matched_header": "Annual Revenue",
+      "status": "matched"
+    },
+    {
+      "target": "total_funding",
+      "destination": "postgres_column",
+      "transform": "toNum",
+      "aliases": [
+        "Total Funding",
+        "total_funding"
+      ],
+      "matched_header": "Total Funding",
+      "status": "matched"
+    },
+    {
+      "target": "latest_funding",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Latest Funding",
+        "latest_funding"
+      ],
+      "matched_header": "Latest Funding",
+      "status": "matched"
+    },
+    {
+      "target": "latest_funding_amount",
+      "destination": "postgres_column",
+      "transform": "toNum",
+      "aliases": [
+        "Latest Funding Amount",
+        "latest_funding_amount"
+      ],
+      "matched_header": "Latest Funding Amount",
+      "status": "matched"
+    },
+    {
+      "target": "last_raised_at",
+      "destination": "postgres_column",
+      "transform": "toTs",
+      "aliases": [
+        "Last Raised At",
+        "last_raised_at"
+      ],
+      "matched_header": "Last Raised At",
+      "status": "matched"
+    },
+    {
+      "target": "subsidiary_of",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Subsidiary of",
+        "subsidiary_of"
+      ],
+      "matched_header": "Subsidiary of",
+      "status": "matched"
+    },
+    {
+      "target": "email_sent",
+      "destination": "postgres_column",
+      "transform": "toBool",
+      "aliases": [
+        "Email Sent",
+        "email_sent"
+      ],
+      "matched_header": "Email Sent",
+      "status": "matched"
+    },
+    {
+      "target": "email_open",
+      "destination": "postgres_column",
+      "transform": "toBool",
+      "aliases": [
+        "Email Open",
+        "email_open"
+      ],
+      "matched_header": "Email Open",
+      "status": "matched"
+    },
+    {
+      "target": "email_bounced",
+      "destination": "postgres_column",
+      "transform": "toBool",
+      "aliases": [
+        "Email Bounced",
+        "email_bounced"
+      ],
+      "matched_header": "Email Bounced",
+      "status": "matched"
+    },
+    {
+      "target": "replied",
+      "destination": "postgres_column",
+      "transform": "toBool",
+      "aliases": [
+        "Replied",
+        "replied"
+      ],
+      "matched_header": "Replied",
+      "status": "matched"
+    },
+    {
+      "target": "demoed",
+      "destination": "postgres_column",
+      "transform": "toBool",
+      "aliases": [
+        "Demoed",
+        "demoed"
+      ],
+      "matched_header": "Demoed",
+      "status": "matched"
+    },
+    {
+      "target": "number_of_retail_locations",
+      "destination": "postgres_column",
+      "transform": "toInt",
+      "aliases": [
+        "Number of Retail Locations",
+        "number_of_retail_locations"
+      ],
+      "matched_header": "Number of Retail Locations",
+      "status": "matched"
+    },
+    {
+      "target": "secondary_email",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Secondary Email",
+        "secondary_email"
+      ],
+      "matched_header": "Secondary Email",
+      "status": "matched"
+    },
+    {
+      "target": "secondary_email_source",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Secondary Email Source",
+        "secondary_email_source"
+      ],
+      "matched_header": "Secondary Email Source",
+      "status": "matched"
+    },
+    {
+      "target": "secondary_email_status",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Secondary Email Status",
+        "secondary_email_status"
+      ],
+      "matched_header": "Secondary Email Status",
+      "status": "matched"
+    },
+    {
+      "target": "secondary_email_verification_source",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Secondary Email Verification Source",
+        "secondary_email_verification_source"
+      ],
+      "matched_header": "Secondary Email Verification Source",
+      "status": "matched"
+    },
+    {
+      "target": "tertiary_email",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Tertiary Email",
+        "tertiary_email"
+      ],
+      "matched_header": "Tertiary Email",
+      "status": "matched"
+    },
+    {
+      "target": "tertiary_email_source",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Tertiary Email Source",
+        "tertiary_email_source"
+      ],
+      "matched_header": "Tertiary Email Source",
+      "status": "matched"
+    },
+    {
+      "target": "tertiary_email_status",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Tertiary Email Status",
+        "tertiary_email_status"
+      ],
+      "matched_header": "Tertiary Email Status",
+      "status": "matched"
+    },
+    {
+      "target": "tertiary_email_verification_source",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Tertiary Email Verification Source",
+        "tertiary_email_verification_source"
+      ],
+      "matched_header": "Tertiary Email Verification Source",
+      "status": "matched"
+    },
+    {
+      "target": "primary_intent_topic",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Primary Intent Topic",
+        "primary_intent_topic"
+      ],
+      "matched_header": "Primary Intent Topic",
+      "status": "matched"
+    },
+    {
+      "target": "primary_intent_score",
+      "destination": "postgres_column",
+      "transform": "toNum",
+      "aliases": [
+        "Primary Intent Score",
+        "primary_intent_score"
+      ],
+      "matched_header": "Primary Intent Score",
+      "status": "matched"
+    },
+    {
+      "target": "secondary_intent_topic",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Secondary Intent Topic",
+        "secondary_intent_topic"
+      ],
+      "matched_header": "Secondary Intent Topic",
+      "status": "matched"
+    },
+    {
+      "target": "secondary_intent_score",
+      "destination": "postgres_column",
+      "transform": "toNum",
+      "aliases": [
+        "Secondary Intent Score",
+        "secondary_intent_score"
+      ],
+      "matched_header": "Secondary Intent Score",
+      "status": "matched"
+    },
+    {
+      "target": "qualify_contact",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Qualify Contact",
+        "qualify_contact"
+      ],
+      "matched_header": "Qualify Contact",
+      "status": "matched"
+    },
+    {
+      "target": "tags",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "Tags",
+        "tags"
+      ],
+      "matched_header": "Tags",
+      "status": "matched"
+    },
+    {
+      "target": "source_sheet",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "source_sheet"
+      ],
+      "matched_header": "source_sheet",
+      "status": "matched"
+    },
+    {
+      "target": "source_segment",
+      "destination": "postgres_column",
+      "transform": null,
+      "aliases": [
+        "source_segment"
+      ],
+      "matched_header": "source_segment",
+      "status": "matched"
+    }
+  ]
+}

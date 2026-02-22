@@ -1,0 +1,292 @@
+{
+  "csv_path": "cold-outreach-prep/ghl/cold-outreach-all.dedup-email.ghl.csv",
+  "workflow": "LT - Cold Outreach CSV -> GHL Import (DryRun, Staged) :: Import Contacts + Tags",
+  "workflow_id": "T28iLcm4Hszo19MG",
+  "header_count": 25,
+  "matched_field_count": 22,
+  "missing_field_count": 0,
+  "unmatched_headers": [],
+  "record_rule": {
+    "type": "at_least_one_of",
+    "targets": [
+      "email",
+      "phone"
+    ],
+    "per_target": [
+      {
+        "target": "email",
+        "present_in_headers": true
+      },
+      {
+        "target": "phone",
+        "present_in_headers": true
+      }
+    ],
+    "pass": true
+  },
+  "fields": [
+    {
+      "target": "firstName",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "First Name",
+        "first_name",
+        "firstName"
+      ],
+      "matched_header": "First Name",
+      "status": "matched"
+    },
+    {
+      "target": "lastName",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "Last Name",
+        "last_name",
+        "lastName"
+      ],
+      "matched_header": "Last Name",
+      "status": "matched"
+    },
+    {
+      "target": "email",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "Email",
+        "email"
+      ],
+      "matched_header": "Email",
+      "status": "matched"
+    },
+    {
+      "target": "phone",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "Phone",
+        "phone",
+        "Mobile Phone",
+        "Corporate Phone",
+        "Work Direct Phone",
+        "Home Phone",
+        "Other Phone"
+      ],
+      "matched_header": "Phone",
+      "status": "matched"
+    },
+    {
+      "target": "companyName",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "Company Name",
+        "company_name",
+        "companyName"
+      ],
+      "matched_header": "Company Name",
+      "status": "matched"
+    },
+    {
+      "target": "address1",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "Address",
+        "address1",
+        "Company Address",
+        "company_address"
+      ],
+      "matched_header": "Company Address",
+      "status": "matched"
+    },
+    {
+      "target": "website",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "Website",
+        "website"
+      ],
+      "matched_header": "Website",
+      "status": "matched"
+    },
+    {
+      "target": "city",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "City",
+        "city",
+        "Company City",
+        "company_city"
+      ],
+      "matched_header": "City",
+      "status": "matched"
+    },
+    {
+      "target": "state",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "State",
+        "state",
+        "Company State",
+        "company_state"
+      ],
+      "matched_header": "State",
+      "status": "matched"
+    },
+    {
+      "target": "country",
+      "destination": "ghl_standard",
+      "transform": null,
+      "aliases": [
+        "Country",
+        "country",
+        "Company Country",
+        "company_country"
+      ],
+      "matched_header": "Country",
+      "status": "matched"
+    },
+    {
+      "target": "tags",
+      "destination": "ghl_tags",
+      "transform": null,
+      "aliases": [
+        "Tags",
+        "tags"
+      ],
+      "matched_header": "Tags",
+      "status": "matched"
+    },
+    {
+      "target": "Title",
+      "destination": "ghl_custom",
+      "transform": null,
+      "aliases": [
+        "Title",
+        "title"
+      ],
+      "matched_header": "Title",
+      "status": "matched"
+    },
+    {
+      "target": "Company Phone",
+      "destination": "ghl_custom",
+      "transform": null,
+      "aliases": [
+        "Company Phone",
+        "company_phone"
+      ],
+      "matched_header": "Company Phone",
+      "status": "matched"
+    },
+    {
+      "target": "Apollo Person LinkedIn URL",
+      "destination": "ghl_custom",
+      "transform": null,
+      "aliases": [
+        "Apollo Person LinkedIn URL",
+        "Person Linkedin Url",
+        "person_linkedin_url"
+      ],
+      "matched_header": "Person Linkedin Url",
+      "status": "matched"
+    },
+    {
+      "target": "Apollo Company LinkedIn URL",
+      "destination": "ghl_custom",
+      "transform": null,
+      "aliases": [
+        "Apollo Company LinkedIn URL",
+        "Company Linkedin Url",
+        "company_linkedin_url"
+      ],
+      "matched_header": "Company Linkedin Url",
+      "status": "matched"
+    },
+    {
+      "target": "Apollo Facebook URL",
+      "destination": "ghl_custom",
+      "transform": null,
+      "aliases": [
+        "Apollo Facebook URL",
+        "Facebook Url",
+        "facebook_url"
+      ],
+      "matched_header": "Facebook Url",
+      "status": "matched"
+    },
+    {
+      "target": "Apollo Twitter URL",
+      "destination": "ghl_custom",
+      "transform": null,
+      "aliases": [
+        "Apollo Twitter URL",
+        "Twitter Url",
+        "twitter_url"
+      ],
+      "matched_header": "Twitter Url",
+      "status": "matched"
+    },
+    {
+      "target": "Apollo Industry",
+      "destination": "ghl_custom",
+      "transform": null,
+      "aliases": [
+        "Apollo Industry",
+        "Industry",
+        "industry"
+      ],
+      "matched_header": "Industry",
+      "status": "matched"
+    },
+    {
+      "target": "Apollo Company Employees",
+      "destination": "ghl_custom",
+      "transform": "toNum",
+      "aliases": [
+        "Apollo Company Employees",
+        "# Employees",
+        "employees_count"
+      ],
+      "matched_header": "# Employees",
+      "status": "matched"
+    },
+    {
+      "target": "Apollo Annual Revenue",
+      "destination": "ghl_custom",
+      "transform": "toNum",
+      "aliases": [
+        "Apollo Annual Revenue",
+        "Annual Revenue",
+        "annual_revenue"
+      ],
+      "matched_header": "Annual Revenue",
+      "status": "matched"
+    },
+    {
+      "target": "source_sheet",
+      "destination": "workflow_meta_only",
+      "transform": null,
+      "aliases": [
+        "source_sheet"
+      ],
+      "matched_header": "source_sheet",
+      "status": "matched"
+    },
+    {
+      "target": "source_segment",
+      "destination": "workflow_meta_only",
+      "transform": null,
+      "aliases": [
+        "source_segment"
+      ],
+      "matched_header": "source_segment",
+      "status": "matched"
+    }
+  ]
+}

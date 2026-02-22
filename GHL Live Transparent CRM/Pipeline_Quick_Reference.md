@@ -52,3 +52,16 @@
 - Build/verification pending: `Meta Traffic`, `Meta Remarketing`, `SMS`, `Website`
 - Master verification pending: all `Warm  ...` tags included in trigger set; booked handoff and sequence stop rules validated
 - Re-verify current status in `AGENTS.md` and GHL UI before operational changes.
+
+## Cannabis Ads Cold-Outreach Quick Rules (Live)
+- Enrollment path: `cold-outreach` contacts -> n8n sender dispatcher -> `Enrollment Queue - Cannabis Ads` -> GHL A/B router.
+- Sender in emails must stay dynamic:
+- `From Email = {{contact.marketing_sender_email}}`
+- Dispatch window:
+- `Mon-Sat`, `8:00 AM ET` to `5:00 PM PT`
+- Sundays are summary-only (no dispatch).
+- Contact local-hour rule:
+- only dispatch when contact local time is `8:00 AM-4:59 PM`.
+- Sender caps:
+- Week 1 `50/day`, Week 2 `75/day`, Week 3+ `100/day` per sender.
+- Cap is total outbound load per sender/day (in-flight + newly released).

@@ -206,7 +206,7 @@
 - Thank You Page
 
 ### Funnel Artifacts Added
-- Funnel content plan document: `Transparent_eCom_Funnel_Plan.doc`
+- Funnel content plan document: `Transparent_eCom_Funnel_Plan.docx`
 - Website issues backlog for later fixes: `WEBSITE_ISSUES_AUDIT_2026-02-16.md`
 
 ### Funnel Source Attribution Rules (Locked)
@@ -329,11 +329,116 @@
 - keep both inactive router workflows for 7 days as rollback safety
 - then delete both if no dependency appears
 
+## Session Notes (2026-02-20)
+- Cold outreach workbook prep completed from `Cold-outreach contacts.xlsx`.
+- Generated import artifacts and reports under:
+- `cold-outreach-prep/ghl/`
+- `cold-outreach-prep/postgres/`
+- `cold-outreach-prep/reports/`
+- Primary import files:
+- `cold-outreach-prep/ghl/cold-outreach-all.dedup-email.ghl.csv`
+- `cold-outreach-prep/postgres/cold-outreach-all.dedup-email.workflow-input.csv`
+- Generated runbook/checklist:
+- `cold-outreach-prep/reports/GHL-import-mapping-checklist.md`
+- `cold-outreach-prep/reports/n8n-staged-workflows-runbook.md`
+- Staged n8n workflows created:
+- `LT - Cold Outreach CSV -> Postgres Ingest (Staged)` (`kVCTmy1m8fEyP6Q7`)
+- `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` (`T28iLcm4Hszo19MG`)
+- Webhook paths:
+- `/webhook/lt-cold-outreach-postgres-intake`
+- `/webhook/lt-cold-outreach-ghl-import`
+- Current workflow state:
+- Both workflows are currently published/active (re-verify before next run).
+- Dry-run execution attempt from this Windows shell failed at transport layer:
+- `Invoke-RestMethod`: connection closed on receive
+- `curl.exe` (schannel): `SEC_E_NO_CREDENTIALS`
+- Conclusion:
+- Webhook triggering from this Windows shell is currently unreliable due local TLS/schannel constraints.
+- Switching execution to WSL Ubuntu is recommended for webhook-trigger testing and run control.
+- Follow-up mapping/workflow updates completed (same day):
+- Updated live staged GHL import workflow `T28iLcm4Hszo19MG` (`LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)`):
+- `Import Contacts + Tags` now maps canonical contact fields + Apollo custom fields + mapped extras from the mapping spec.
+- Removed `$env` dependency in mapping logic that caused prior dry-run failure.
+- Added `Company Address` -> `address1` mapping.
+- Added fallback aliases for `Company City`/`Company State`/`Company Country` -> `city`/`state`/`country`.
+- Updated reusable mapping spec:
+- `cold-outreach-prep/mapping/apollo_csv_mappings.json`
+- Updated reusable validator behavior:
+- `cold-outreach-prep/scripts/validate_apollo_csv_mapping.py`
+- Validator now treats alias-covered headers as matched coverage (prevents false unmatched-header reporting for synonym columns).
+- Regenerated validation reports after mapping/validator updates.
+- n8n API access retest (same day):
+- Verified that API access works when key is sent via header `X-N8N-API-KEY` (not Bearer auth).
+- Current working key fingerprint for this session: ends with `a5ho` (store/use full key only in secure local config, not repo files).
+- Verified endpoints with `X-N8N-API-KEY`:
+- `GET /api/v1/workflows/kVCTmy1m8fEyP6Q7` -> `200`
+- `GET /api/v1/executions?includeData=false&workflowId=kVCTmy1m8fEyP6Q7&limit=2` -> `200`
+- `GET /api/v1/workflows/T28iLcm4Hszo19MG` -> `200`
+- `GET /api/v1/executions?includeData=false&workflowId=T28iLcm4Hszo19MG&limit=2` -> `200`
+- Bearer mode (`Authorization: Bearer <key>`) returns `401` with message `'X-N8N-API-KEY' header required`.
+- Reusable test command pattern:
+- `curl -sS -H "X-N8N-API-KEY: <N8N_API_KEY>" "https://automations.livetransparent.com/api/v1/workflows/<WORKFLOW_ID>"`
+- Cannabis Ads sender-routing implementation decisions (same day):
+- Canonical sender release control moved to n8n dispatcher workflow (not manual GHL-only release).
+- New GHL field created for sender lock/routing: `marketing_sender_email`.
+- Email actions in Cannabis Ads workflow are being configured to use dynamic sender:
+- `From Email = {{contact.marketing_sender_email}}`
+- Sender warm-up policy locked:
+- Week 1 `50/day` per sender, Week 2 `75/day` per sender, Week 3+ `100/day` per sender.
+- Quota interpretation locked:
+- per-sender cap is total outbound emails/day (includes in-flight sequence sends + new enrollments), not just new contacts added that day.
+- Current sender pool: one active sender; add additional senders later after domain + sender verification.
+- Sender assignment timing locked:
+- do not set `marketing_sender_email` at import time for backlog contacts.
+- set `marketing_sender_email` immediately before enrollment/queue release so distribution reflects currently active verified senders.
+- Current verified sender status (as of `2026-02-20`):
+- `cameron@livetransparent.com` verified in GHL.
+- Added implementation runbook:
+- `GHL Live Transparent CRM/Cannabis_Ads_Sender_Routing_Runbook.md`
+- Updated checklist artifact:
+- `ghl create sequence plan/ab-sequence-enrollment-checklist.md`
+- New n8n staged automation created for sender-capped release:
+- `LT - Cold Outreach Sender Release Dispatcher (Staged)` (`NTpQnMrpjzusPXHX`)
+- Purpose:
+- assign `marketing_sender_email` at release time (not import time), apply `Enrollment Queue - Cannabis Ads`, and log releases in Postgres table `ColdOutreach_Release_Log`.
+- Current live status update (`2026-02-21`):
+- `NTpQnMrpjzusPXHX` is active/live, `defaultDryRun=false`, hourly trigger.
+- Dispatch window gate: `Mon-Sat`, `8:00 AM ET` to `5:00 PM PT`.
+- Sunday behavior: summary-only execution; no contact dispatch.
+- Per-contact gate: dispatch only during contact local `8:00 AM-4:59 PM`.
+- Timezone resolution order:
+- use contact timezone when available
+- fallback from `state/country` (`Apollo_Contacts` fields including company fallback columns)
+- If contact missing/unknown timezone, contact is deferred and retried later (not logged as released).
+- Candidate scope:
+- source table `Apollo_Contacts`
+- requires email + `cold-outreach` tag
+- excludes contacts already present in `ColdOutreach_Release_Log`
+- Verified live release test (`2026-02-21`):
+- controlled live run with 10 contacts completed successfully (`queued=10`, `errors=0`)
+- sender field set successfully using GHL `customFields` update payload
+- queue routing validated downstream in GHL sequence workflows
+- Live GHL import test completed (`2026-02-20`):
+- Triggered `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` (`T28iLcm4Hszo19MG`) with `dryRun=false` using 10-row batch from:
+- `cold-outreach-prep/ghl/cold-outreach-10_100m.ghl.csv`
+- Result:
+- `sourceRecords=10`, `imported=10`, `errors=0`, `missingCustomFields=[]`.
+- Artifacts:
+- `cold-outreach-prep/reports/live-run-ghl-10-request-20260220T095512Z.json`
+- `cold-outreach-prep/reports/live-run-ghl-10-response-20260220T095512Z.json`
+- `cold-outreach-prep/reports/live-run-ghl-10-response-raw-20260220T095512Z.txt`
+
+## WSL Transition Plan (Historical - Completed)
+This block is preserved as execution history. Current operational state is now live and verified:
+- `kVCTmy1m8fEyP6Q7` active (Postgres ingest webhook)
+- `T28iLcm4Hszo19MG` active (GHL import webhook)
+- `NTpQnMrpjzusPXHX` active/live (sender release dispatcher)
+
 ## LLM Operating Constraints
 You are a code-first, automation-focused assistant under strict constraints.
 
 ### RULES
-- Follow this prompt and AGENTS.md exactly. AGENTS.md is authoritative.
+- Follow AGENTS.md for repo-specific rules. If AGENTS.md conflicts with higher-priority runtime/system instructions, follow the higher-priority instructions and flag the conflict.
 - If instructions conflict or context is missing, STOP and ask.
 - Do NOT guess, invent, or assume.
 - Preserve existing behavior, schemas, payloads, and signatures unless explicitly told otherwise.

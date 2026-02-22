@@ -1,0 +1,141 @@
+{
+  "name": "LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-cold-outreach-ghl-import",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook_in",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        260,
+        300
+      ],
+      "webhookId": "lt-cold-outreach-ghl-import"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "value": "Zwz4relUXVPxx8uohnjV",
+              "type": "string"
+            },
+            {
+              "id": "api_base_url",
+              "name": "apiBaseUrl",
+              "value": "https://services.leadconnectorhq.com",
+              "type": "string"
+            },
+            {
+              "id": "api_key",
+              "name": "apiKey",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "default_tag",
+              "name": "defaultTag",
+              "value": "cold-outreach",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst source = (input.body && typeof input.body === 'object') ? input.body : input;\nconst cfg = $item(0).$node['Config'].json || {};\n\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [];\n  let cell = '';\n  let inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    const next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { cell += '\"'; i++; }\n      else if (ch === '\"') inQuotes = false;\n      else cell += ch;\n    } else {\n      if (ch === '\"') inQuotes = true;\n      else if (ch === ',') { row.push(cell); cell = ''; }\n      else if (ch === '\\n') { row.push(cell); rows.push(row); row = []; cell = ''; }\n      else if (ch === '\\r') { }\n      else cell += ch;\n    }\n  }\n  if (cell.length || row.length) { row.push(cell); rows.push(row); }\n  return rows;\n}\n\nfunction rowsToObjects(rows) {\n  if (!rows.length) return [];\n  const headers = rows[0].map((h) => String(h || '').trim());\n  const out = [];\n  for (let i = 1; i < rows.length; i++) {\n    const r = rows[i];\n    const obj = {};\n    headers.forEach((h, idx) => { if (h) obj[h] = r[idx] ?? ''; });\n    const hasAny = Object.values(obj).some((v) => String(v || '').trim() !== '');\n    if (hasAny) out.push(obj);\n  }\n  return out;\n}\n\nfunction nk(s) {\n  return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');\n}\n\nfunction pick(obj, aliases) {\n  const wanted = new Set((aliases || []).map(nk));\n  for (const [k, v] of Object.entries(obj || {})) {\n    if (wanted.has(nk(k)) && String(v ?? '').trim() !== '') return String(v).trim();\n  }\n  return '';\n}\n\nfunction toNum(v) {\n  if (v === null || v === undefined || v === '') return null;\n  const n = Number(String(v).replace(/[^0-9.-]/g, ''));\n  return Number.isFinite(n) ? n : null;\n}\n\nfunction toDate(v) {\n  if (!v) return null;\n  const d = new Date(v);\n  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);\n}\n\nfunction parseTags(tagStr, fallbackTag) {\n  const src = String(tagStr || '').trim();\n  const raw = src ? src : String(fallbackTag || '');\n  return raw.split(',').map((t) => t.trim()).filter((t) => t).filter((v, i, a) => a.indexOf(v) === i);\n}\n\nfunction getArrayPayload(obj) {\n  if (Array.isArray(obj)) return obj;\n  if (Array.isArray(obj?.customFields)) return obj.customFields;\n  if (Array.isArray(obj?.data?.customFields)) return obj.data.customFields;\n  if (Array.isArray(obj?.data)) return obj.data;\n  return [];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nasync function apiRequest({ method, baseUrl, path, headers, body }) {\n  const options = {\n    method,\n    url: `${String(baseUrl).replace(/\\/$/, '')}${path}`,\n    headers,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, status: 200, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n      requestBody: body,\n    };\n  }\n}\n\nlet records = [];\nif (Array.isArray(source.records)) {\n  records = source.records;\n} else if (typeof source.csvText === 'string' && source.csvText.trim() !== '') {\n  records = rowsToObjects(parseCsv(source.csvText));\n}\nif (!records.length) throw new Error('Provide body.records (array) or body.csvText (CSV string)');\n\nconst dryRun = (source.dryRun === undefined || source.dryRun === null) ? !!cfg.defaultDryRun : !!source.dryRun;\nconst locationId = String(source.locationId || cfg.locationId || '').trim();\nconst apiBaseUrl = String(source.apiBaseUrl || cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').trim();\nconst apiKey = String(source.apiKey || cfg.apiKey || '').trim();\nconst defaultTag = String(source.defaultTag || cfg.defaultTag || 'cold-outreach').trim();\n\nif (!locationId) throw new Error('Missing locationId');\nif (!dryRun && !apiKey) throw new Error('Missing apiKey (provide body.apiKey for live run)');\n\nconst authHeaders = {\n  Authorization: `Bearer ${apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nconst customFieldSpecs = [\n  { name: 'Title', aliases: ['Title', 'title'] },\n  { name: 'Company Name for Emails', aliases: ['Company Name for Emails', 'company_name_for_emails'] },\n  { name: 'Corporate Phone', aliases: ['Corporate Phone', 'corporate_phone'] },\n  { name: 'Company Phone', aliases: ['Company Phone', 'company_phone'] },\n  { name: 'Lists', aliases: ['Lists', 'lists'] },\n  { name: 'Batch_Upload', aliases: ['Batch_Upload', 'batch_upload'] },\n  { name: 'Apollo Contact Id', aliases: ['Apollo Contact Id', 'apollo_contact_id'] },\n  { name: 'Apollo Account Id', aliases: ['Apollo Account Id', 'apollo_account_id'] },\n  { name: 'Apollo Email Status', aliases: ['Apollo Email Status', 'Email Status', 'email_status'] },\n  { name: 'Apollo Primary Email Source', aliases: ['Apollo Primary Email Source', 'Primary Email Source', 'primary_email_source'] },\n  { name: 'Apollo Primary Email Verification Source', aliases: ['Apollo Primary Email Verification Source', 'Primary Email Verification Source', 'primary_email_verification_source'] },\n  { name: 'Apollo Email Confidence', aliases: ['Apollo Email Confidence', 'Email Confidence', 'email_confidence'], transform: 'num' },\n  { name: 'Apollo Primary Email Catch-all Status', aliases: ['Apollo Primary Email Catch-all Status', 'Primary Email Catch-all Status', 'primary_email_catch_all_status'] },\n  { name: 'Apollo Primary Email Last Verified At', aliases: ['Apollo Primary Email Last Verified At', 'Primary Email Last Verified At', 'primary_email_last_verified_at'], transform: 'date' },\n  { name: 'Apollo Seniority', aliases: ['Apollo Seniority', 'Seniority', 'seniority'] },\n  { name: 'Apollo Departments', aliases: ['Apollo Departments', 'Departments', 'departments'] },\n  { name: 'Apollo Sub Departments', aliases: ['Apollo Sub Departments', 'Sub Departments', 'sub_departments'] },\n  { name: 'Apollo Company Employees', aliases: ['Apollo Company Employees', '# Employees', 'employees_count'], transform: 'num' },\n  { name: 'Apollo Industry', aliases: ['Apollo Industry', 'Industry', 'industry'] },\n  { name: 'Apollo Keywords', aliases: ['Apollo Keywords', 'Keywords', 'keywords'] },\n  { name: 'Apollo Person LinkedIn URL', aliases: ['Apollo Person LinkedIn URL', 'Person Linkedin Url', 'person_linkedin_url'] },\n  { name: 'Apollo Company LinkedIn URL', aliases: ['Apollo Company LinkedIn URL', 'Company Linkedin Url', 'company_linkedin_url'] },\n  { name: 'Apollo Facebook URL', aliases: ['Apollo Facebook URL', 'Facebook Url', 'facebook_url'] },\n  { name: 'Apollo Twitter URL', aliases: ['Apollo Twitter URL', 'Twitter Url', 'twitter_url'] },\n  { name: 'Apollo Technologies', aliases: ['Apollo Technologies', 'Technologies', 'technologies'] },\n  { name: 'Apollo Annual Revenue', aliases: ['Apollo Annual Revenue', 'Annual Revenue', 'annual_revenue'], transform: 'num' },\n  { name: 'Apollo Total Funding', aliases: ['Apollo Total Funding', 'Total Funding', 'total_funding'], transform: 'num' },\n  { name: 'Apollo Latest Funding', aliases: ['Apollo Latest Funding', 'Latest Funding', 'latest_funding'] },\n  { name: 'Apollo Latest Funding Amount', aliases: ['Apollo Latest Funding Amount', 'Latest Funding Amount', 'latest_funding_amount'], transform: 'num' },\n  { name: 'Apollo Last Raised At', aliases: ['Apollo Last Raised At', 'Last Raised At', 'last_raised_at'], transform: 'date' },\n  { name: 'Apollo Subsidiary Of', aliases: ['Apollo Subsidiary Of', 'Subsidiary of', 'subsidiary_of'] },\n  { name: 'Apollo Secondary Email', aliases: ['Apollo Secondary Email', 'Secondary Email', 'secondary_email'] },\n  { name: 'Apollo Secondary Email Source', aliases: ['Apollo Secondary Email Source', 'Secondary Email Source', 'secondary_email_source'] },\n  { name: 'Apollo Secondary Email Status', aliases: ['Apollo Secondary Email Status', 'Secondary Email Status', 'secondary_email_status'] },\n  { name: 'Apollo Secondary Email Verification Source', aliases: ['Apollo Secondary Email Verification Source', 'Secondary Email Verification Source', 'secondary_email_verification_source'] },\n  { name: 'Apollo Tertiary Email', aliases: ['Apollo Tertiary Email', 'Tertiary Email', 'tertiary_email'] },\n  { name: 'Apollo Tertiary Email Source', aliases: ['Apollo Tertiary Email Source', 'Tertiary Email Source', 'tertiary_email_source'] },\n  { name: 'Apollo Tertiary Email Status', aliases: ['Apollo Tertiary Email Status', 'Tertiary Email Status', 'tertiary_email_status'] },\n  { name: 'Apollo Tertiary Email Verification Source', aliases: ['Apollo Tertiary Email Verification Source', 'Tertiary Email Verification Source', 'tertiary_email_verification_source'] },\n  { name: 'Apollo Primary Intent Topic', aliases: ['Apollo Primary Intent Topic', 'Primary Intent Topic', 'primary_intent_topic'] },\n  { name: 'Apollo Primary Intent Score', aliases: ['Apollo Primary Intent Score', 'Primary Intent Score', 'primary_intent_score'], transform: 'num' },\n  { name: 'Apollo Secondary Intent Topic', aliases: ['Apollo Secondary Intent Topic', 'Secondary Intent Topic', 'secondary_intent_topic'] },\n  { name: 'Apollo Secondary Intent Score', aliases: ['Apollo Secondary Intent Score', 'Secondary Intent Score', 'secondary_intent_score'], transform: 'num' },\n  { name: 'Apollo Qualify Contact', aliases: ['Apollo Qualify Contact', 'Qualify Contact', 'qualify_contact'] },\n];\n\nlet fieldByName = new Map();\nlet missingCustomFields = [];\n\nif (apiKey) {\n  const cfRes = await apiRequest.call(this, {\n    method: 'GET',\n    baseUrl: apiBaseUrl,\n    path: `/locations/${locationId}/customFields?model=contact`,\n    headers: authHeaders,\n  });\n  if (!cfRes.ok) throw new Error(`Failed to fetch contact custom fields: ${cfRes.status} ${JSON.stringify(cfRes.data)}`);\n  const customFields = getArrayPayload(cfRes.data);\n  fieldByName = new Map(customFields.map((f) => [String(f?.name || '').trim(), f]));\n  missingCustomFields = customFieldSpecs.filter((f) => !fieldByName.get(f.name)?.id).map((f) => f.name);\n  if (!dryRun && missingCustomFields.length) {\n    throw new Error(`Missing required GHL custom fields: ${missingCustomFields.join(', ')}`);\n  }\n}\n\nconst results = [];\nfor (const rec of records) {\n  const firstName = pick(rec, ['First Name', 'first_name', 'firstName']);\n  const lastName = pick(rec, ['Last Name', 'last_name', 'lastName']);\n  const email = pick(rec, ['Email', 'email']);\n  const phone = pick(rec, ['Phone', 'phone', 'Mobile Phone', 'Corporate Phone', 'Work Direct Phone', 'Home Phone', 'Other Phone']);\n  const companyName = pick(rec, ['Company Name', 'company_name', 'companyName']);\n  const address1 = pick(rec, ['Address', 'address1', 'Company Address', 'company_address']);\n  const website = pick(rec, ['Website', 'website']);\n  const city = pick(rec, ['City', 'city', 'Company City', 'company_city']);\n  const state = pick(rec, ['State', 'state', 'Company State', 'company_state']);\n  const country = pick(rec, ['Country', 'country', 'Company Country', 'company_country']);\n  const tags = parseTags(pick(rec, ['Tags', 'tags']), defaultTag);\n\n  if (!email && !phone) {\n    results.push({ status: 'skipped', reason: 'missing email and phone', firstName, lastName });\n    continue;\n  }\n\n  const customValuesByName = {};\n  for (const spec of customFieldSpecs) {\n    const raw = pick(rec, spec.aliases);\n    if (!raw) continue;\n    let value = raw;\n    if (spec.transform === 'num') {\n      value = toNum(raw);\n      if (value === null) continue;\n    }\n    if (spec.transform === 'date') {\n      value = toDate(raw);\n      if (!value) continue;\n    }\n    customValuesByName[spec.name] = value;\n  }\n\n  if (dryRun) {\n    results.push({\n      status: 'planned',\n      email,\n      phone,\n      firstName,\n      lastName,\n      companyName,\n      tags,\n      standardFieldsPlanned: {\n        firstName: !!firstName,\n        lastName: !!lastName,\n        email: !!email,\n        phone: !!phone,\n        companyName: !!companyName,\n        address1: !!address1,\n        website: !!website,\n        city: !!city,\n        state: !!state,\n        country: !!country,\n      },\n      customFieldsPlanned: Object.keys(customValuesByName),\n    });\n    continue;\n  }\n\n  const upsertBody = {\n    locationId,\n    firstName: firstName || undefined,\n    lastName: lastName || undefined,\n    email: email || undefined,\n    phone: phone || undefined,\n    companyName: companyName || undefined,\n    address1: address1 || undefined,\n    website: website || undefined,\n    city: city || undefined,\n    state: state || undefined,\n    country: country || undefined,\n  };\n  Object.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\n  const upsertRes = await apiRequest.call(this, {\n    method: 'POST',\n    baseUrl: apiBaseUrl,\n    path: '/contacts/upsert',\n    headers: authHeaders,\n    body: upsertBody,\n  });\n  if (!upsertRes.ok) {\n    results.push({ status: 'error', step: 'upsert', email, phone, details: upsertRes.data });\n    continue;\n  }\n\n  const contactId = upsertRes.data?.contact?.id || upsertRes.data?.id || upsertRes.data?.contactId;\n  if (!contactId) {\n    results.push({ status: 'error', step: 'resolve_contact_id', email, phone, details: upsertRes.data });\n    continue;\n  }\n\n  const updateEntries = [];\n  for (const [name, value] of Object.entries(customValuesByName)) {\n    const id = fieldByName.get(name)?.id;\n    if (id) updateEntries.push({ id, value });\n  }\n\n  if (updateEntries.length) {\n    const customFieldObject = Object.fromEntries(updateEntries.map((e) => [e.id, e.value]));\n    const stampBodies = [\n      { locationId, customField: customFieldObject },\n      { customField: customFieldObject },\n      { locationId, customFields: updateEntries.map((e) => ({ id: e.id, value: e.value })) },\n      { customFields: updateEntries.map((e) => ({ id: e.id, value: e.value })) },\n      { locationId, customFields: updateEntries.map((e) => ({ id: e.id, field_value: e.value })) },\n      { customFields: updateEntries.map((e) => ({ id: e.id, field_value: e.value })) },\n    ];\n\n    let stampOk = false;\n    let stampErr = null;\n    for (const body of stampBodies) {\n      const sr = await apiRequest.call(this, {\n        method: 'PUT',\n        baseUrl: apiBaseUrl,\n        path: `/contacts/${contactId}`,\n        headers: authHeaders,\n        body,\n      });\n      if (sr.ok) { stampOk = true; break; }\n      stampErr = sr;\n    }\n\n    if (!stampOk) {\n      results.push({ status: 'error', step: 'custom_field_update', contactId, email, details: stampErr?.data || stampErr });\n      continue;\n    }\n  }\n\n  if (tags.length) {\n    const tagsResult = await apiRequest.call(this, {\n      method: 'POST',\n      baseUrl: apiBaseUrl,\n      path: `/contacts/${contactId}/tags`,\n      headers: authHeaders,\n      body: { tags },\n    });\n    if (!tagsResult.ok) {\n      results.push({ status: 'error', step: 'tag_add', contactId, email, tags, details: tagsResult.data });\n      continue;\n    }\n  }\n\n  results.push({ status: 'imported', contactId, email, phone, tagsAdded: tags.length, customFieldsSet: updateEntries.length });\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun,\n    locationId,\n    sourceRecords: records.length,\n    imported: results.filter((r) => r.status === 'imported').length,\n    planned: results.filter((r) => r.status === 'planned').length,\n    skipped: results.filter((r) => r.status === 'skipped').length,\n    errors: results.filter((r) => r.status === 'error').length,\n    missingCustomFields,\n    results: results.slice(0, 200),\n    note: dryRun\n      ? 'No API writes executed. Provide body.apiKey if you want custom-field existence checks during dry-run.'\n      : 'Live run executed.',\n  },\n}];\n\n"
+      },
+      "id": "import_contacts",
+      "name": "Import Contacts + Tags",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1000,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Import Contacts + Tags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Import Contacts + Tags": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  }
+}
