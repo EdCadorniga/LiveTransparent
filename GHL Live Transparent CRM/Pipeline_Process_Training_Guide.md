@@ -243,7 +243,7 @@ This process is separate from warm lead stage movement and is controlled by auto
 - Do not overwrite `marketing_sender_email` mid-sequence unless intentional.
 - Do not treat sender cap as \"new contacts/day only\".
 
-## 12) Warm Channel Entry Status (Last Known 2026-02-17)
+## 12) Warm Channel Entry Status (Last Known 2026-02-24)
 Use this status when training users on what should currently fire automatically.
 
 ### Active/Configured in GHL UI
@@ -253,6 +253,8 @@ Use this status when training users on what should currently fire automatically.
 - `WL - Micro - Meta Lead Form`
 - `WL - Micro - Email Inbound`
 - `WL - Micro - Email Outbound`
+- `WL - Micro - SMS`
+- `WL - Micro - Referral`
 
 ### Built but Not Trigger-Ready
 - `WL - Micro - Instagram`: actions configured, trigger pending Instagram page connection.
@@ -264,7 +266,7 @@ Use this status when training users on what should currently fire automatically.
   - micro workflow trigger: `Contact Tag Added` on `Referral - Intake`
   - workflow adds `Warm  Referral`, sets source/UTM metadata, then removes `Referral - Intake` at end.
 
-## 13) Warm Automation Coverage Checklist (Last Known 2026-02-17)
+## 13) Warm Automation Coverage Checklist (Last Known 2026-02-24)
 Use this list during onboarding to avoid assuming all channel triggers are already active.
 
 ### Configured
@@ -274,16 +276,16 @@ Use this list during onboarding to avoid assuming all channel triggers are alrea
 - `WL - Micro - Meta Lead Form`
 - `WL - Micro - Email Inbound`
 - `WL - Micro - Email Outbound`
+- `WL - Micro - SMS`
+- `WL - Micro - Referral`
 
 ### Pending Trigger Connection
 - `WL - Micro - Instagram`
 - `WL - Micro - Facebook`
 
 ### Build/Verification Pending
-- `WL - Micro - Referral` final trigger + cleanup verification (`Referral - Intake` add/remove flow)
 - `WL - Micro - Meta Traffic`
 - `WL - Micro - Meta Remarketing`
-- `WL - Micro - SMS`
 - `WL - Micro - Website`
 
 ### Master Routing Verification Pending

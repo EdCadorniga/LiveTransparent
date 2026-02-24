@@ -153,6 +153,7 @@
 - Plan doc: `GHL Live Transparent CRM/Warm_Lead_Conflict_Safe_Implementation_Spec.md`
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
+- GHL webhook sender checklist: `GHL Live Transparent CRM/GHL_Intake_Webhook_Sender_Automations_Checklist.md`
 - AI agent process: `GHL Live Transparent CRM/AI_Agent_Knowledgebase_Setup_Process.md`
 - BookStack deploy guide: `bookstack/README.md`
 
@@ -183,10 +184,8 @@
 - Pending / revisit required:
 - `WL - Micro - Instagram`: connect trigger after Instagram pages are selected.
 - `WL - Micro - Facebook` (Messenger): deferred until Facebook pages are connected.
-- `WL - Micro - Referral`: finish/verify trigger on tag added `Referral - Intake`, then remove intake tag at workflow end.
 - `WL - Micro - Meta Traffic`: build/verify trigger and warm tag flow.
 - `WL - Micro - Meta Remarketing`: build/verify trigger and warm tag flow.
-- `WL - Micro - SMS`: build/verify trigger and warm tag flow.
 - `WL - Micro - Website`: build/verify trigger and warm tag flow.
 - Verify `WL - Master Warm Intake and Routing` trigger list includes every warm tag, including `Warm Meta Remarketing`.
 - Verify opportunity routing handoff automation for `Sales Outreach: Booked` -> `Sales: Discovery Scheduled`.
@@ -194,6 +193,23 @@
 - Validate/test active n8n warm intake tag webhooks; set `defaultDryRun=false` (or pass `dryRun=false`) only when ready for live intake tag writes.
 - Restart Codex/MCP session after updating `N8N_WEBHOOK_USERNAME` and `N8N_WEBHOOK_PASSWORD` in `~/.codex/config.toml` so `run_webhook` can execute authenticated tests.
 - End-to-end tests are pending (no production contacts yet).
+
+### n8n Intake Runtime Status (Verified `2026-02-24` via `n8n-lt`)
+- Website intake webhooks (active):
+- `Website Lead Intake from Hero form` (`RTV5jUiTt05lad07`) path `lt-form-demo-intake`, `defaultDryRun=false`.
+- `Website Lead Intake from Footer Form` (`RSfLF7LU0rDC4jAI`) path `lt-form-footer-intake`, `defaultDryRun=false`.
+- Warm intake tagging webhooks (active, dry-run by default):
+- `GHL Warm Intake - Add Intake Tag (Webhook)` (`OowP3sAd8c9paSKf`) path `lt-warm-intake-tag`, `defaultDryRun=true`.
+- `GHL Warm Intake - Email Inbound Tag (Webhook)` (`SmMf8QIfysuxQJbG`) path `lt-warm-intake-email-inbound`, `defaultDryRun=true`.
+- `GHL Warm Intake - Email Outbound Tag (Webhook)` (`J4B0n0QeSeOeqAci`) path `lt-warm-intake-email-outbound`, `defaultDryRun=true`.
+- `GHL Warm Intake - SMS Tag (Webhook)` (`5nYzp9DgQUopzWhR`) path `lt-warm-intake-sms`, `defaultDryRun=true`.
+- `GHL Warm Intake - Referral Tag (Webhook)` (`6lp8sIS3YMB1t9Ri`) path `lt-warm-intake-referral`, `defaultDryRun=true`.
+- Apollo enrichment intake:
+- `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) is active.
+- `GHL Apollo Enrichment - Webhook Intake` (`HQaHuLZbtKCSaKqE`) is archived/inactive (left-behind predecessor).
+- Intake wiring note:
+- GHL sender automations are confirmed live for `Email Inbound`, `Email Outbound`, `SMS`, and `Referral`; these intake endpoints are now receiving webhook traffic.
+- Keep `dryRun` as boolean `false` in GHL webhook payloads for live writes (not string `"false"`).
 
 ## Funnel Workstream Status (Current)
 - Workstream started on `2026-02-16`.
@@ -305,8 +321,9 @@
 - `lt-form-demo-intake`
 - `lt-form-footer-intake`
 - Both workflows remain active.
-- Current dry-run behavior remains in place:
-- `defaultDryRun=true` unless request payload passes `dryRun=false`.
+- Current dry-run behavior (verified `2026-02-24`):
+- Website intake workflows use `defaultDryRun=false` (live by default).
+- Warm intake tag webhooks remain `defaultDryRun=true` unless request payload passes `dryRun=false`.
 - A/B enrollment routing decision finalized:
 - Canonical splitter is now **GHL Randomizer** inside GHL workflow `WL - Seq Enrollment Router - Cannabis Ads`.
 - n8n router workflows are retained only as inactive rollback artifacts:
@@ -321,13 +338,18 @@
 - identify stale/duplicate workflows for archive or cleanup plan
 - Review and expand other intake flows in n8n beyond hero/footer website forms:
 - funnel intake webhook flow
-- referral intake flow
-- email inbound/outbound intake tagging flows
-- SMS intake tagging flow
 - ensure each intake path can reliably add enrollment tag(s) for the sequence router
 - Archive then remove obsolete n8n sequence routers after hold window:
 - keep both inactive router workflows for 7 days as rollback safety
 - then delete both if no dependency appears
+
+## Session Notes (2026-02-24)
+- Intake webhook sender wiring completed and validated:
+- `WL - Micro - Email Inbound` -> `lt-warm-intake-email-inbound`
+- `WL - Micro - Email Outbound` -> `lt-warm-intake-email-outbound`
+- `WL - Micro - SMS` -> `lt-warm-intake-sms`
+- `WL - Micro - Referral` -> `lt-warm-intake-referral`
+- Production confirmation: inbound, outbound, sms, and referral intake flows are working.
 
 ## Session Notes (2026-02-20)
 - Cold outreach workbook prep completed from `Cold-outreach contacts.xlsx`.

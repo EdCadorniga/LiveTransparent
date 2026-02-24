@@ -45,11 +45,11 @@
 4. Close stale opportunities to correct terminal stage (`Unresponsive` or `Closed Lost`).
 5. Verify no opportunity is left without owner or next action.
 
-## Warm Entry Channels (Last Known Rollout 2026-02-17)
-- Active/Configured in GHL UI: `LinkedIn`, `LinkedIn DM`, `LinkedIn Lead Form`, `Meta Lead Form`, `Email Inbound`, `Email Outbound`
+## Warm Entry Channels (Last Known Rollout 2026-02-24)
+- Active/Configured in GHL UI: `LinkedIn`, `LinkedIn DM`, `LinkedIn Lead Form`, `Meta Lead Form`, `Email Inbound`, `Email Outbound`, `SMS`, `Referral`
 - Pending channel connection: `Instagram`, `Facebook Messenger`
 - Referral intake trigger: add tag `Referral - Intake` (workflow converts to `Warm  Referral` and removes intake tag at end)
-- Build/verification pending: `Meta Traffic`, `Meta Remarketing`, `SMS`, `Website`
+- Build/verification pending: `Meta Traffic`, `Meta Remarketing`, `Website`
 - Master verification pending: all `Warm  ...` tags included in trigger set; booked handoff and sequence stop rules validated
 - Re-verify current status in `AGENTS.md` and GHL UI before operational changes.
 
