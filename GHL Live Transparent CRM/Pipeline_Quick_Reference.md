@@ -65,3 +65,18 @@
 - Sender caps:
 - Week 1 `50/day`, Week 2 `75/day`, Week 3+ `100/day` per sender.
 - Cap is total outbound load per sender/day (in-flight + newly released).
+
+## Apollo Phone Enrichment Quick Rules (Live)
+- Trigger from GHL field: `Enrich Phone via Apollo` (`contact.enrich_phone_via_apollo`).
+- Runtime status field: `Apollo Phone Enrichment Status` (`contact.apollo_phone_enrichment_status`).
+- Timestamp field: `Apollo Phone Enriched At` (`contact.apollo_phone_enriched_at`) written as `YYYY-MM-DD`.
+- Status meanings:
+- `queued`: request in progress
+- `enriched`: profile/phone update completed
+- `no_match`: no usable Apollo match/phone found
+- `error`: workflow/API failure
+- On successful enrich, guardrail fields are set:
+- `Contact already Enriched` = `Yes`
+- `Enrich via Apollo` = `No`
+- `Enrich Phone via Apollo` = `No`
+- Phone extraction checks person, organization, and nested `person.contact.phone_numbers`.

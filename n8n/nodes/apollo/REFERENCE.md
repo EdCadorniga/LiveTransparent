@@ -1,6 +1,6 @@
-# Apollo Node Reference (Workflow Test)
+# Apollo Node Reference (Historical Workflow)
 
-This reference tracks the 10 Apollo.io HTTP Request nodes added to n8n workflow `Workflow Test` (`X2QOdM9xh2rFokps86sGQ`).
+This reference tracks the 10 Apollo.io HTTP Request nodes that were added to n8n workflow `Workflow Test` (`X2QOdM9xh2rFokps86sGQ`), which was deleted during archived-workflow cleanup on `2026-02-26`.
 
 ## Runtime Notes
 - n8n version observed: `2.7.4` (self-hosted LiveTransparent instance)

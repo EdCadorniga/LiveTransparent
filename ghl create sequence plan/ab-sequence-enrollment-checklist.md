@@ -32,9 +32,9 @@ Last updated: `2026-02-21`
 
 ## 4) Enrollment Routing (A/B Split)
 - [x] Decision locked: use **GHL Randomizer** for 50/50 split (not n8n hash router).
-- [x] n8n router workflows retired from active use (kept inactive as rollback only):
-- [x] `WL - Seq Enrollment Router - Cannabis Ads (Workflow IDs Live)` (`UJnHFPxSdTcsK9iW`) - inactive
-- [x] `WL - Seq Enrollment Router - Cannabis Ads` (`L5Cpe7ZdUgauQcF7`) - inactive
+- [x] n8n router workflows retired from active use (deleted after rollback hold window on `2026-02-26`):
+- [x] `WL - Seq Enrollment Router - Cannabis Ads (Workflow IDs Live)` (`UJnHFPxSdTcsK9iW`) - deleted
+- [x] `WL - Seq Enrollment Router - Cannabis Ads` (`L5Cpe7ZdUgauQcF7`) - deleted
 - [ ] Build/verify GHL workflow `WL - Seq Enrollment Router - Cannabis Ads`.
 - [ ] Entry filter/guard checks:
 - [ ] Has `Enrollment Queue - Cannabis Ads`

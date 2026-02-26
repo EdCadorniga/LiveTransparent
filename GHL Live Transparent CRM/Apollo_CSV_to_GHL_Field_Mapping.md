@@ -4,11 +4,13 @@
 This document defines the canonical mapping from Apollo CSV export headers to GHL contact fields/custom fields for the Live Transparent sub-account.
 
 - Location ID: `Zwz4relUXVPxx8uohnjV`
-- Updated: `2026-02-20`
+- Updated: `2026-02-26`
 - Source CSV: `Exported Apollo Contacts who have opened an email at least once - Contacts who have opened an email (2).csv`
 - Related workflows:
-  - `zsaUaazamrkg1M47` (`GHL Import - Apollo Sheet Opened Email`)
+  - `zsaUaazamrkg1M47` (`GHL Import - Apollo Sheet Opened Email`) - deleted on `2026-02-26` during archived-workflow cleanup
   - `WmKAhG7mIaXonNsh` (`GHL Apollo Enrichment - Webhook Intake (Sheet First)`)
+  - `WuxgTa0EEL1mb2SA` (`GHL Apollo Enrichment - Phone Webhook Intake (Staged)`)
+  - `YaWizRnw7XmkcvZH` (`GHL Apollo Phone Enrichment - Callback Handler`)
   - `T28iLcm4Hszo19MG` (`LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)`)
 
 ## Recent Update (`2026-02-20`)
@@ -99,3 +101,26 @@ Use the renamed `Apollo ...` headers in CSV/Sheet for stable matching.
 - Keep header names exact to avoid mapping drift.
 - `WmKAhG7mIaXonNsh` now supports both old and new header naming, but this document is the canonical standard.
 - Company-level normalization (single company record for many contacts) is deferred to a later company import phase.
+
+## Live Enrichment Runtime Notes (`2026-02-26`)
+These are non-CSV runtime mapping rules used by the Apollo enrichment workflows.
+
+- GHL phone updates:
+- Standard field `phone` is updated when a normalized candidate is found.
+- Candidate source priority includes person, organization, and nested `person.contact.phone_numbers` payloads.
+
+- Phone enrichment status fields:
+- `Apollo Phone Enrichment Status` (`contact.apollo_phone_enrichment_status`) -> `queued` / `enriched` / `no_match` / `error`
+- `Apollo Phone Enriched At` (`contact.apollo_phone_enriched_at`) -> `YYYY-MM-DD`
+
+- Guardrail field updates on successful enrichment:
+- `Contact already Enriched` -> `Yes`
+- `Enrich via Apollo` -> `No`
+- `Enrich Phone via Apollo` -> `No`
+
+- Additional runtime mappings:
+- `Title` custom field is populated from Apollo person title when present.
+- TEXT custom fields are trimmed and DATE fields normalized to reduce GHL update failures.
+
+- Postgres upsert behavior:
+- `Apollo_Contacts` now includes top-level `phone` in addition to `ingest_record`.

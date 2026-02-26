@@ -133,23 +133,22 @@
 8. Optional later phase: connect GHL AI Agent to knowledgebase content after routing tests pass and licensing is approved.
 
 ## Existing Setup Artifacts
-- n8n workflow `GHL Warm Lead Setup - Fields and Tags`
-- n8n workflow `GHL Warm Pipelines - Validate and Map IDs`
-- n8n workflow `GHL Warm Lead Setup - UTM and Routing Fields`
-- n8n workflow `GHL Warm Lead Fields - Duplicate Cleanup`
-- n8n workflow `WF - Warm Channel Micro Entry` (inactive, dryRun=true)
-- n8n workflow `WF - Master Warm Intake and Routing` (inactive, dryRun=true)
-- n8n workflow `GHL Apollo Enrichment - Webhook Intake`
-- n8n workflow `LT Error Notify - Apollo Enrichment Workflow`
-- n8n workflow `GHL Apollo Enrichment - Webhook Intake (Sheet First)`
-- n8n workflow `Apollo Contacts -> Postgres Ingest`
-- n8n workflow `GHL Ensure Batch_Upload Field`
-- n8n workflow `GHL Import - Apollo Sheet Opened Email`
-- n8n workflow `GHL Warm Intake - Add Intake Tag (Webhook)` (active as of `2026-02-16`; confirm dryRun/defaultDryRun before live writes)
-- n8n workflow `GHL Warm Intake - Email Inbound Tag (Webhook)` (active as of `2026-02-16`; confirm dryRun/defaultDryRun before live writes)
-- n8n workflow `GHL Warm Intake - Email Outbound Tag (Webhook)` (active as of `2026-02-16`; confirm dryRun/defaultDryRun before live writes)
-- n8n workflow `GHL Warm Intake - SMS Tag (Webhook)` (active as of `2026-02-16`; confirm dryRun/defaultDryRun before live writes)
-- n8n workflow `GHL Warm Intake - Referral Tag (Webhook)` (active as of `2026-02-16`; confirm dryRun/defaultDryRun before live writes)
+- n8n workflow `GHL Warm Intake - Add Intake Tag (Webhook)` (`OowP3sAd8c9paSKf`) - active.
+- n8n workflow `GHL Warm Intake - Email Inbound Tag (Webhook)` (`SmMf8QIfysuxQJbG`) - active.
+- n8n workflow `GHL Warm Intake - Email Outbound Tag (Webhook)` (`J4B0n0QeSeOeqAci`) - active.
+- n8n workflow `GHL Warm Intake - SMS Tag (Webhook)` (`5nYzp9DgQUopzWhR`) - active.
+- n8n workflow `GHL Warm Intake - Referral Tag (Webhook)` (`6lp8sIS3YMB1t9Ri`) - active.
+- n8n workflow `Website Lead Intake from Hero form` (`RTV5jUiTt05lad07`) - active.
+- n8n workflow `Website Lead Intake from Footer Form` (`RSfLF7LU0rDC4jAI`) - active.
+- n8n workflow `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) - active.
+- n8n workflow `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) - active.
+- n8n workflow `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) - active.
+- n8n workflow `LT - Cold Outreach CSV -> Postgres Ingest (Staged)` (`kVCTmy1m8fEyP6Q7`) - active.
+- n8n workflow `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` (`T28iLcm4Hszo19MG`) - active.
+- n8n workflow `LT - Cold Outreach Sender Release Dispatcher (Staged)` (`NTpQnMrpjzusPXHX`) - active.
+- n8n workflow `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`) - active.
+- n8n workflow `WL - Webhook to Slack Channel - Website Visitor` (`8USvJkRlKzbj6Fu1`) - active.
+- n8n workflow `WL - Webhook to Slack Channel - Form Submission` (`FQE90HDUilFVdASY`) - active.
 - Plan doc: `GHL Live Transparent CRM/Warm_Lead_Conflict_Safe_Implementation_Spec.md`
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
@@ -161,6 +160,10 @@
 - Warm fields: complete.
 - UTM first/last-touch fields: complete.
 - LT routing metadata fields: complete.
+- Apollo enrichment controls/flags:
+- `contact.enrich_phone_via_apollo` (`Enrich Phone via Apollo`) is dropdown `Yes/No` trigger control.
+- `contact.apollo_phone_enrichment_status` (`Apollo Phone Enrichment Status`) is dropdown status control (`queued`, `enriched`, `no_match`, `error`).
+- `contact.apollo_phone_enriched_at` (`Apollo Phone Enriched At`) is currently written as `DATE` (`YYYY-MM-DD`) by workflow logic.
 - Duplicate UTM/LT fields were created during initial run and cleaned up; one canonical field per name now exists.
 - `Warm Date` is canonically `DATE` by design (no Date/Time migration planned).
 
@@ -194,7 +197,7 @@
 - Restart Codex/MCP session after updating `N8N_WEBHOOK_USERNAME` and `N8N_WEBHOOK_PASSWORD` in `~/.codex/config.toml` so `run_webhook` can execute authenticated tests.
 - End-to-end tests are pending (no production contacts yet).
 
-### n8n Intake Runtime Status (Verified `2026-02-24` via `n8n-lt`)
+### n8n Intake Runtime Status (Verified `2026-02-26` via `n8n-lt`)
 - Website intake webhooks (active):
 - `Website Lead Intake from Hero form` (`RTV5jUiTt05lad07`) path `lt-form-demo-intake`, `defaultDryRun=false`.
 - `Website Lead Intake from Footer Form` (`RSfLF7LU0rDC4jAI`) path `lt-form-footer-intake`, `defaultDryRun=false`.
@@ -206,7 +209,15 @@
 - `GHL Warm Intake - Referral Tag (Webhook)` (`6lp8sIS3YMB1t9Ri`) path `lt-warm-intake-referral`, `defaultDryRun=true`.
 - Apollo enrichment intake:
 - `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) is active.
-- `GHL Apollo Enrichment - Webhook Intake` (`HQaHuLZbtKCSaKqE`) is archived/inactive (left-behind predecessor).
+- `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) is active.
+- `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) is active.
+- `GHL Apollo Enrichment - Webhook Intake` (`HQaHuLZbtKCSaKqE`) was deleted on `2026-02-26` during archived-workflow cleanup.
+- Phone enrichment paths:
+- intake path: `ghl-apollo-phone-enrichment-intake-v2`
+- callback path: `ghl-apollo-phone-enrichment-callback-v1`
+- Sheet-first enrichment path: `ghl-apollo-enrichment-intake-sheet-first-v3`
+- Apollo profile + phone parsing now includes person, organization, and nested `person.contact.phone_numbers` sources.
+- `Apollo_Contacts` upsert now includes top-level `phone` plus `ingest_record` payload.
 - Intake wiring note:
 - GHL sender automations are confirmed live for `Email Inbound`, `Email Outbound`, `SMS`, and `Referral`; these intake endpoints are now receiving webhook traffic.
 - Keep `dryRun` as boolean `false` in GHL webhook payloads for live writes (not string `"false"`).
@@ -326,9 +337,9 @@
 - Warm intake tag webhooks remain `defaultDryRun=true` unless request payload passes `dryRun=false`.
 - A/B enrollment routing decision finalized:
 - Canonical splitter is now **GHL Randomizer** inside GHL workflow `WL - Seq Enrollment Router - Cannabis Ads`.
-- n8n router workflows are retained only as inactive rollback artifacts:
-- `WL - Seq Enrollment Router - Cannabis Ads (Workflow IDs Live)` (`UJnHFPxSdTcsK9iW`) - inactive
-- `WL - Seq Enrollment Router - Cannabis Ads` (`L5Cpe7ZdUgauQcF7`) - inactive
+- n8n router rollback workflows were deleted on `2026-02-26` after hold window completion:
+- `WL - Seq Enrollment Router - Cannabis Ads (Workflow IDs Live)` (`UJnHFPxSdTcsK9iW`) - deleted
+- `WL - Seq Enrollment Router - Cannabis Ads` (`L5Cpe7ZdUgauQcF7`) - deleted
 
 ## Next Steps (Queued)
 - Run a full review pass of all existing n8n workflows that were previously left behind:
@@ -339,9 +350,33 @@
 - Review and expand other intake flows in n8n beyond hero/footer website forms:
 - funnel intake webhook flow
 - ensure each intake path can reliably add enrollment tag(s) for the sequence router
-- Archive then remove obsolete n8n sequence routers after hold window:
-- keep both inactive router workflows for 7 days as rollback safety
-- then delete both if no dependency appears
+- Sequence router rollback cleanup completed on `2026-02-26` (obsolete router workflows deleted).
+
+## Session Notes (2026-02-26)
+- Archived/inactive n8n workflow cleanup completed via `n8n-lt`.
+- Deleted `21` inactive workflows from the live instance.
+- Post-cleanup n8n runtime state: `14` workflows total, all active.
+- Deleted router rollback workflows:
+- `WL - Seq Enrollment Router - Cannabis Ads (Workflow IDs Live)` (`UJnHFPxSdTcsK9iW`)
+- `WL - Seq Enrollment Router - Cannabis Ads` (`L5Cpe7ZdUgauQcF7`)
+- Apollo phone enrichment implementation completed and verified live:
+- Activated `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) and `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`).
+- Updated `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) with matching phone parsing/update behavior.
+- Added guarded webhook key validation in intake/callback handling.
+- Added GHL custom field writes for:
+- `Apollo Phone Enrichment Status` (`queued`/`enriched`/`no_match`/`error`)
+- `Apollo Phone Enriched At` (`YYYY-MM-DD`)
+- `Contact already Enriched` -> `Yes`
+- `Enrich via Apollo` -> `No`
+- `Enrich Phone via Apollo` -> `No`
+- Added `Title` mapping from Apollo into GHL `Title` custom field.
+- Added GHL custom field value normalization:
+- `TEXT` fields trimmed to avoid 422 payload-length failures
+- `DATE` fields normalized to `YYYY-MM-DD`
+- Added Postgres `Apollo_Contacts.phone` support in both intake workflows:
+- table DDL `ADD COLUMN IF NOT EXISTS phone TEXT`
+- upsert writes `phone = normalizedPhone`
+- Added sheet row output fields for callback/debug visibility including callback URL used.
 
 ## Session Notes (2026-02-24)
 - Intake webhook sender wiring completed and validated:

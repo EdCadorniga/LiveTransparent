@@ -293,3 +293,38 @@ Use this list during onboarding to avoid assuming all channel triggers are alrea
 - Confirm booked handoff path from `Sales Outreach` -> `Sales` is active.
 - Confirm outreach/nurture sequences stop on booked/closed outcomes.
 - Re-verify current status in `AGENTS.md` and GHL UI before rollout decisions.
+
+## 14) Apollo Phone Enrichment Operations (Current)
+This section is for training users who trigger Apollo phone/profile enrichment from GHL.
+
+### A) Trigger and Control Fields
+- Trigger/control field: `Enrich Phone via Apollo` (`contact.enrich_phone_via_apollo`)
+- Status field: `Apollo Phone Enrichment Status` (`contact.apollo_phone_enrichment_status`)
+- Timestamp field: `Apollo Phone Enriched At` (`contact.apollo_phone_enriched_at`)
+
+### B) Status Values Used
+- `queued`: request accepted and processing
+- `enriched`: enrichment completed and phone/profile updates were applied
+- `no_match`: Apollo returned no matching person/usable phone
+- `error`: API/runtime error occurred during enrichment
+
+### C) What Gets Updated in GHL
+- Standard contact fields (when present): `phone`, `firstName`, `lastName`, `email`, `companyName`, `city`, `state`, `country`
+- Apollo custom fields: profile fields plus `Title`
+- Guardrail fields on successful enrich runs:
+- `Contact already Enriched` -> `Yes`
+- `Enrich via Apollo` -> `No`
+- `Enrich Phone via Apollo` -> `No`
+
+### D) Phone Source Priority (Apollo Payload)
+- Person-level phone candidates
+- Organization-level phone candidates
+- Nested `person.contact.phone_numbers` / `person.contact.sanitized_phone` candidates
+- First valid normalized candidate is written to GHL and persisted to Postgres `Apollo_Contacts.phone`
+
+### E) Common Troubleshooting Checks
+1. Confirm `Apollo Phone Enrichment Status` moved off `queued`.
+2. If `no_match`, inspect workflow execution payload for match result and phone candidate sources.
+3. If phone is present in payload but not in GHL, inspect update request body used and field-level constraints.
+4. Verify timestamp format in custom field is `YYYY-MM-DD`.
+5. Re-verify workflow active state and webhook paths in `AGENTS.md` before escalation.

@@ -168,7 +168,7 @@ Store logs in n8n execution data and optionally post summary note to contact tim
 ## 16) Implementation Progress (Completed)
 Date completed: 2026-02-12
 
-Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n workflow `GHL Warm Lead Setup - Fields and Tags` (`BYvEuUMUQFlXoxRj`).
+Completed in GHL sub-account `Live Transparent` (`Zwz4relUXVPxx8uohnjV`) via n8n workflow `GHL Warm Lead Setup - Fields and Tags` (`BYvEuUMUQFlXoxRj`) (historical; deleted on `2026-02-26` during archived-workflow cleanup).
 
 ### Contact Custom Fields Created
 - `Lead Temperature` (`h7AEoiSE81GCNxI7dlTS`) - `DROPDOWN_SINGLE`
