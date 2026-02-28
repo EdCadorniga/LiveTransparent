@@ -1,6 +1,8 @@
 services:
   n8n:
-    image: 'n8nio/n8n:2.9.4'
+    build:
+      context: .
+      dockerfile: Dockerfile.n8n
     restart: unless-stopped
     labels:
       - 'traefik.enable=true'
