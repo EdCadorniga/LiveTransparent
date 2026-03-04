@@ -70,13 +70,18 @@
 - Trigger from GHL field: `Enrich Phone via Apollo` (`contact.enrich_phone_via_apollo`).
 - Runtime status field: `Apollo Phone Enrichment Status` (`contact.apollo_phone_enrichment_status`).
 - Timestamp field: `Apollo Phone Enriched At` (`contact.apollo_phone_enriched_at`) written as `YYYY-MM-DD`.
+- Runtime paths:
+- intake `ghl-apollo-phone-enrichment-intake-v3`
+- callback `ghl-apollo-phone-enrichment-callback-v4`
 - Status meanings:
-- `queued`: request in progress
+- `queued`: Apollo matched a person and callback is still pending
 - `enriched`: profile/phone update completed
-- `no_match`: no usable Apollo match/phone found
-- `error`: workflow/API failure
+- `no_match`: no usable direct phone was available after intake/callback handling
+- `error`: workflow/API failure or duplicate-phone block
 - On successful enrich, guardrail fields are set:
 - `Contact already Enriched` = `Yes`
 - `Enrich via Apollo` = `No`
 - `Enrich Phone via Apollo` = `No`
-- Phone extraction checks person, organization, and nested `person.contact.phone_numbers`.
+- `Apollo Contact Id` is only written on successful phone enrichment and should align to Apollo `contact.id` when present.
+- Phone extraction now prioritizes person-level direct phone sources and callback payloads.
+- Any candidate matching existing `Corporate Phone` or `Company Phone` is treated as a company/trunkline number and ignored for direct phone writes.

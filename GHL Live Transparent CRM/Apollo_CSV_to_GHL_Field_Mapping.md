@@ -4,13 +4,13 @@
 This document defines the canonical mapping from Apollo CSV export headers to GHL contact fields/custom fields for the Live Transparent sub-account.
 
 - Location ID: `Zwz4relUXVPxx8uohnjV`
-- Updated: `2026-02-26`
+- Updated: `2026-03-04`
 - Source CSV: `Exported Apollo Contacts who have opened an email at least once - Contacts who have opened an email (2).csv`
 - Related workflows:
   - `zsaUaazamrkg1M47` (`GHL Import - Apollo Sheet Opened Email`) - deleted on `2026-02-26` during archived-workflow cleanup
   - `WmKAhG7mIaXonNsh` (`GHL Apollo Enrichment - Webhook Intake (Sheet First)`)
   - `WuxgTa0EEL1mb2SA` (`GHL Apollo Enrichment - Phone Webhook Intake (Staged)`)
-  - `YaWizRnw7XmkcvZH` (`GHL Apollo Phone Enrichment - Callback Handler`)
+  - `U7c6byTLXAMgcS75` (`GHL Apollo Phone Enrichment - Callback Handler V4`)
   - `T28iLcm4Hszo19MG` (`LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)`)
 
 ## Recent Update (`2026-02-20`)
@@ -102,12 +102,21 @@ Use the renamed `Apollo ...` headers in CSV/Sheet for stable matching.
 - `WmKAhG7mIaXonNsh` now supports both old and new header naming, but this document is the canonical standard.
 - Company-level normalization (single company record for many contacts) is deferred to a later company import phase.
 
-## Live Enrichment Runtime Notes (`2026-02-26`)
+## Live Enrichment Runtime Notes (`2026-03-04`)
 These are non-CSV runtime mapping rules used by the Apollo enrichment workflows.
 
 - GHL phone updates:
 - Standard field `phone` is updated when a normalized candidate is found.
-- Candidate source priority includes person, organization, and nested `person.contact.phone_numbers` payloads.
+- Phone enrichment intake is callback-driven for direct phone reveal:
+- intake path `ghl-apollo-phone-enrichment-intake-v3`
+- callback path `ghl-apollo-phone-enrichment-callback-v4`
+- intake leaves contacts in `queued` with reason `awaiting_callback` when Apollo returns a matched person but no acceptable direct phone synchronously.
+
+- Candidate source priority:
+- intake prioritizes person-level direct phone sources and nested `person.contact.phone_numbers` / `person.phone_numbers`.
+- callback V4 parses Apollo webhook payloads from `body.people[0]`, `body.data.people[0]`, or `body.person`.
+- organization/company phone sources are stored as company metadata but are not used as direct phone candidates in the callback-driven phone workflow.
+- any candidate matching existing GHL `Corporate Phone` or `Company Phone` is discarded before phone write/update.
 
 - Phone enrichment status fields:
 - `Apollo Phone Enrichment Status` (`contact.apollo_phone_enrichment_status`) -> `queued` / `enriched` / `no_match` / `error`
@@ -117,10 +126,12 @@ These are non-CSV runtime mapping rules used by the Apollo enrichment workflows.
 - `Contact already Enriched` -> `Yes`
 - `Enrich via Apollo` -> `No`
 - `Enrich Phone via Apollo` -> `No`
+- `Apollo Contact Id` is written only on successful phone enrichment and prefers Apollo `contact.id` when available, otherwise falls back to `person.id`.
 
 - Additional runtime mappings:
 - `Title` custom field is populated from Apollo person title when present.
 - TEXT custom fields are trimmed and DATE fields normalized to reduce GHL update failures.
+- intake appends debugging output to the `Enriched Contacts` Google Sheet, including `enrichment_status`, `enrichment_reason`, `apollo_error_status`, `apollo_error`, `duplicate_phone_conflict`, `normalized_phone`, `found_phone`, `update_request_body_used`, and `raw_result`.
 
 - Postgres upsert behavior:
 - `Apollo_Contacts` now includes top-level `phone` in addition to `ingest_record`.

@@ -142,7 +142,7 @@
 - n8n workflow `Website Lead Intake from Footer Form` (`RSfLF7LU0rDC4jAI`) - active.
 - n8n workflow `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) - active.
 - n8n workflow `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) - active.
-- n8n workflow `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) - active.
+- n8n workflow `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) - active.
 - n8n workflow `LT - Cold Outreach CSV -> Postgres Ingest (Staged)` (`kVCTmy1m8fEyP6Q7`) - active.
 - n8n workflow `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` (`T28iLcm4Hszo19MG`) - active.
 - n8n workflow `LT - Cold Outreach Sender Release Dispatcher (Staged)` (`NTpQnMrpjzusPXHX`) - active.
@@ -164,6 +164,8 @@
 - `contact.enrich_phone_via_apollo` (`Enrich Phone via Apollo`) is dropdown `Yes/No` trigger control.
 - `contact.apollo_phone_enrichment_status` (`Apollo Phone Enrichment Status`) is dropdown status control (`queued`, `enriched`, `no_match`, `error`).
 - `contact.apollo_phone_enriched_at` (`Apollo Phone Enriched At`) is currently written as `DATE` (`YYYY-MM-DD`) by workflow logic.
+- `contact.apollo_contact_id` (`Apollo Contact Id`) is now only written on successful phone enrichment and prefers Apollo `contact.id` when available.
+- `Corporate Phone` and `Company Phone` remain company/trunkline metadata only and are explicitly excluded from direct phone writes.
 - Duplicate UTM/LT fields were created during initial run and cleaned up; one canonical field per name now exists.
 - `Warm Date` is canonically `DATE` by design (no Date/Time migration planned).
 
@@ -210,14 +212,19 @@
 - Apollo enrichment intake:
 - `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) is active.
 - `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) is active.
-- `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) is active.
+- `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) is active.
+- Legacy callback workflow `YaWizRnw7XmkcvZH` should be treated as superseded by V4 for production callback handling.
 - `GHL Apollo Enrichment - Webhook Intake` (`HQaHuLZbtKCSaKqE`) was deleted on `2026-02-26` during archived-workflow cleanup.
 - Phone enrichment paths:
-- intake path: `ghl-apollo-phone-enrichment-intake-v2`
-- callback path: `ghl-apollo-phone-enrichment-callback-v1`
+- intake path: `ghl-apollo-phone-enrichment-intake-v3`
+- callback path: `ghl-apollo-phone-enrichment-callback-v4`
 - Sheet-first enrichment path: `ghl-apollo-enrichment-intake-sheet-first-v3`
-- Apollo profile + phone parsing now includes person, organization, and nested `person.contact.phone_numbers` sources.
+- Apollo phone workflow is callback-driven:
+- intake requests Apollo match + phone reveal and leaves contacts in `queued` with reason `awaiting_callback` when no acceptable direct phone is returned synchronously.
+- callback V4 processes Apollo webhook payloads from `body.people[0]`, `body.data.people[0]`, or `body.person`.
+- Apollo profile + phone parsing now prioritizes person-level direct phone sources and filters out company/trunkline values from `Corporate Phone` and `Company Phone`.
 - `Apollo_Contacts` upsert now includes top-level `phone` plus `ingest_record` payload.
+- Intake appends diagnostic columns to the `Enriched Contacts` Google Sheet, including `enrichment_status`, `enrichment_reason`, `apollo_error_status`, `apollo_error`, `duplicate_phone_conflict`, `normalized_phone`, `found_phone`, `update_request_body_used`, and `raw_result`.
 - Intake wiring note:
 - GHL sender automations are confirmed live for `Email Inbound`, `Email Outbound`, `SMS`, and `Referral`; these intake endpoints are now receiving webhook traffic.
 - Keep `dryRun` as boolean `false` in GHL webhook payloads for live writes (not string `"false"`).
@@ -360,7 +367,7 @@
 - `WL - Seq Enrollment Router - Cannabis Ads (Workflow IDs Live)` (`UJnHFPxSdTcsK9iW`)
 - `WL - Seq Enrollment Router - Cannabis Ads` (`L5Cpe7ZdUgauQcF7`)
 - Apollo phone enrichment implementation completed and verified live:
-- Activated `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) and `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`).
+- Activated `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) and initial callback handler `YaWizRnw7XmkcvZH`.
 - Updated `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) with matching phone parsing/update behavior.
 - Added guarded webhook key validation in intake/callback handling.
 - Added GHL custom field writes for:
@@ -377,6 +384,24 @@
 - table DDL `ADD COLUMN IF NOT EXISTS phone TEXT`
 - upsert writes `phone = normalizedPhone`
 - Added sheet row output fields for callback/debug visibility including callback URL used.
+
+## Session Notes (2026-03-04)
+- Apollo phone enrichment callback registration issue was resolved by creating a fresh production callback workflow with a registered webhook node:
+- `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`)
+- Production callback path is now `ghl-apollo-phone-enrichment-callback-v4`.
+- Production intake path remains `ghl-apollo-phone-enrichment-intake-v3`.
+- Intake workflow now:
+- leaves matched contacts in `queued` with reason `awaiting_callback` when Apollo does not return an acceptable direct phone synchronously
+- ignores Apollo phone candidates that match existing `Corporate Phone` or `Company Phone`
+- does not write `Apollo Contact Id` until a successful phone enrichment occurs
+- appends detailed diagnostics to the `Enriched Contacts` sheet for each run
+- Callback V4 now:
+- parses Apollo native webhook payload shapes from `people[]` and `person`
+- writes `Apollo Contact Id` using Apollo `contact.id` when available, falling back to `person.id`
+- only finalizes `enriched` when a real direct phone is written
+- Live rerun results after callback fix:
+- previously stale `queued` contacts were largely resolved through reruns once callback V4 was active
+- current queued contacts should be treated as active Apollo callback waits rather than stale webhook-registration failures unless age indicates otherwise
 
 ## Session Notes (2026-02-24)
 - Intake webhook sender wiring completed and validated:
