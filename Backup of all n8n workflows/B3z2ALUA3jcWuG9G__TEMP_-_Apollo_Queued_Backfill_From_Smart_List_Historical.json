@@ -1,0 +1,176 @@
+{
+  "updatedAt": "2026-03-04T00:47:27.497Z",
+  "createdAt": "2026-03-03T14:52:52.274Z",
+  "id": "B3z2ALUA3jcWuG9G",
+  "name": "TEMP - Apollo Queued Backfill From Smart List (Historical)",
+  "description": null,
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "value": "Zwz4relUXVPxx8uohnjV",
+              "type": "string"
+            },
+            {
+              "id": "ghl_api_base_url",
+              "name": "ghlApiBaseUrl",
+              "value": "https://services.leadconnectorhq.com",
+              "type": "string"
+            },
+            {
+              "id": "ghl_api_key",
+              "name": "ghlApiKey",
+              "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28",
+              "type": "string"
+            },
+            {
+              "id": "smart_list_id",
+              "name": "smartListId",
+              "value": "td8HJtP6fGGIrxngoT1W",
+              "type": "string"
+            },
+            {
+              "id": "smart_list_token",
+              "name": "smartListToken",
+              "value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjJhYWM0MWY3NTA4OGZlOGUwOWEwN2Q0NDRjZmQ2YjhjZTQ4MTJhMzEiLCJ0eXAiOiJKV1QifQ.eyJ1c2VyX2lkIjoiZ2VQSWV1SE9Fc0FpUFZBMW1mT1IiLCJjb21wYW55X2lkIjoiN3ZNbW00YXQ1T3JqUXBsUk4zRU8iLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWdlbmN5IiwibG9jYXRpb25zIjpbIlp3ejRyZWxVWFZQeHg4dW9obmpWIl0sInZlcnNpb24iOjIsInBlcm1pc3Npb25zIjp7IndvcmtmbG93c19lbmFibGVkIjp0cnVlLCJ3b3JrZmxvd3NfcmVhZF9vbmx5IjpmYWxzZX0sImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9oaWdobGV2ZWwtYmFja2VuZCIsImF1ZCI6ImhpZ2hsZXZlbC1iYWNrZW5kIiwiYXV0aF90aW1lIjoxNzcyNTQ4OTgwLCJzdWIiOiJnZVBJZXVIT0VzQWlQVkExbWZPUiIsImlhdCI6MTc3MjU0ODk4MCwiZXhwIjoxNzcyNTUyNTgwLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImN1c3RvbSJ9fQ.E-JcDizl6WTEAv7jwP1zg8OwVi4u9-qDPcFVDbBxBRIX-7COESc1r15vgPy6qqBKjfyCALUJAdYRzCeisiFMEbFNOYkhosA8l06Y1_CmnhSRcMaj162jGTnKgiZbpNltrWBGgHMcDLO4-ldtfgb0dxuRZY0EKdMcXvkwY24BV1W-ePeMCoF8quo6yGUdkboJwZxHsqZwh_S7fP6juO_Ymn20t8qGNwpJEbFO9mTRXa-KyIQHuT7yYKIeI8q_I-Rbwxc55Gj5JqW8CQAhDIeJGvPP1GB9XTh4i5wnt6C_VkL6y5-dV2WIFl8nQKoCw3DtM-PGIMh-vDL3zvX7brlPxg",
+              "type": "string"
+            },
+            {
+              "id": "page_limit",
+              "name": "pageLimit",
+              "value": "100",
+              "type": "string"
+            },
+            {
+              "id": "max_pages",
+              "name": "maxPages",
+              "value": "20",
+              "type": "string"
+            },
+            {
+              "id": "n8n_api_base_url",
+              "name": "n8nApiBaseUrl",
+              "value": "https://automations.livetransparent.com/api/v1",
+              "type": "string"
+            },
+            {
+              "id": "n8n_api_key",
+              "name": "n8nApiKey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NjFmYjY1NS1iMTc2LTRkNjMtYTRlZC0zY2M2NmUyNzk2NDIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiZjFhN2MzOWYtZDlhNy00Yjk4LWI0MGQtNmFmZjA3YTI3YmQzIiwiaWF0IjoxNzcwODEyMzUwLCJleHAiOjE3Nzg0ODI4MDB9.Yq8_78qWsz0E8xQRZQccjFGfM2gpONKBOHoLOE5nnVs",
+              "type": "string"
+            },
+            {
+              "id": "source_workflow_id",
+              "name": "sourceWorkflowId",
+              "value": "WuxgTa0EEL1mb2SA",
+              "type": "string"
+            },
+            {
+              "id": "execution_limit",
+              "name": "executionLimit",
+              "value": "250",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $json || {};\n\nfunction str(v) { const s = String(v ?? '').trim(); return s || null; }\nfunction normalizePhone(phoneRaw, countryHint) {\n  const raw = str(phoneRaw);\n  if (!raw) return null;\n  const keepPlus = raw.startsWith('+');\n  let digits = raw.replace(/\\D+/g, '');\n  if (!digits) return null;\n  if (keepPlus) return `+${digits}`;\n  if (digits.length === 10 && String(countryHint || '').toUpperCase() === 'US') return `+1${digits}`;\n  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;\n  return `+${digits}`;\n}\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ method, url, headers, body, json = true }) {\n  const options = { method, url, headers, json };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nconst smartHeaders = {\n  'token-id': cfg.smartListToken,\n  'Version': '2021-07-28',\n  'source': 'WEB_USER',\n  'channel': 'APP',\n  'Accept': 'application/json',\n  'Content-Type': 'application/json',\n  'User-Agent': 'Mozilla/5.0',\n};\nconst ghlHeaders = {\n  Authorization: `Bearer ${cfg.ghlApiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\nconst n8nHeaders = {\n  'X-N8N-API-KEY': cfg.n8nApiKey,\n  Accept: 'application/json',\n  'User-Agent': 'Mozilla/5.0',\n};\n\nasync function getSmartListDefinition() {\n  return await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.ghlApiBaseUrl}/contacts/smartlist/${encodeURIComponent(cfg.smartListId)}?transform=true`,\n    headers: smartHeaders,\n  });\n}\n\nasync function getQueuedContacts() {\n  const defRes = await getSmartListDefinition.call(this);\n  if (!defRes.ok) throw new Error(`Failed to fetch smart list definition: ${JSON.stringify(defRes.data)}`);\n  const smartList = defRes.data?.smartList || {};\n  const filters = smartList?.filterSpecs?.filters || [];\n  const sort = smartList?.sortSpecs || [];\n  const pageLimit = Number(cfg.pageLimit || 100);\n  const maxPages = Number(cfg.maxPages || 20);\n  const contacts = [];\n  let page = 1;\n  while (page <= maxPages) {\n    const res = await apiRequest.call(this, {\n      method: 'POST',\n      url: `${cfg.ghlApiBaseUrl}/contacts/search/2`,\n      headers: smartHeaders,\n      body: {\n        filters,\n        locationId: cfg.locationId,\n        page,\n        pageLimit,\n        sort,\n      },\n    });\n    if (!res.ok) throw new Error(`Failed to fetch queued contacts page ${page}: ${JSON.stringify(res.data)}`);\n    const batch = Array.isArray(res.data?.contacts) ? res.data.contacts : [];\n    contacts.push(...batch);\n    if (batch.length < pageLimit) break;\n    page += 1;\n  }\n  return contacts;\n}\n\nfunction extractNodeJson(execution) {\n  const runData = execution?.data?.resultData?.runData || {};\n  const names = ['Apollo Phone + Profile Enrichment -> Update GHL', 'Finalize Response'];\n  for (const name of names) {\n    const json = runData?.[name]?.[0]?.data?.main?.[0]?.[0]?.json;\n    if (json && typeof json === 'object') return json;\n  }\n  return null;\n}\n\nasync function buildExecutionMap(targetContactIds) {\n  const execRes = await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.n8nApiBaseUrl}/executions?workflowId=${encodeURIComponent(cfg.sourceWorkflowId)}&limit=${encodeURIComponent(String(cfg.executionLimit || 250))}`,\n    headers: n8nHeaders,\n  });\n  if (!execRes.ok) throw new Error(`Failed to list source executions: ${JSON.stringify(execRes.data)}`);\n  const executions = Array.isArray(execRes.data?.data) ? execRes.data.data : [];\n  const map = new Map();\n  for (const exec of executions) {\n    if (map.size >= targetContactIds.size) break;\n    const detailRes = await apiRequest.call(this, {\n      method: 'GET',\n      url: `${cfg.n8nApiBaseUrl}/executions/${encodeURIComponent(exec.id)}?includeData=true`,\n      headers: n8nHeaders,\n    });\n    if (!detailRes.ok) continue;\n    const nodeJson = extractNodeJson(detailRes.data);\n    const contactId = str(nodeJson?.contactId);\n    if (!contactId || !targetContactIds.has(contactId) || map.has(contactId)) continue;\n    map.set(contactId, { executionId: exec.id, data: nodeJson });\n  }\n  return map;\n}\n\nasync function getContact(contactId) {\n  const res = await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}`,\n    headers: ghlHeaders,\n  });\n  if (!res.ok) throw new Error(`Failed to fetch contact ${contactId}: ${JSON.stringify(res.data)}`);\n  return res.data?.contact || res.data || {};\n}\n\nasync function getCustomFields() {\n  const res = await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.ghlApiBaseUrl}/locations/${encodeURIComponent(cfg.locationId)}/customFields?model=contact`,\n    headers: ghlHeaders,\n  });\n  if (!res.ok) throw new Error(`Failed to fetch custom fields: ${JSON.stringify(res.data)}`);\n  const customFields = Array.isArray(res.data?.customFields)\n    ? res.data.customFields\n    : Array.isArray(res.data?.data?.customFields)\n      ? res.data.data.customFields\n      : Array.isArray(res.data?.data)\n        ? res.data.data\n        : [];\n  return new Map(customFields.map((f) => [String(f.name || '').trim(), f]));\n}\n\nfunction cf(fieldByName, name, value) {\n  if (value === null || value === undefined || String(value).trim() === '') return null;\n  const f = fieldByName.get(name);\n  if (!f?.id) return null;\n  let normalized = value;\n  if (f.dataType === 'TEXT' && typeof normalized === 'string' && normalized.length > 255) normalized = normalized.slice(0, 255);\n  if (f.dataType === 'DATE' && typeof normalized === 'string') {\n    const d = new Date(normalized);\n    if (!Number.isNaN(d.getTime())) normalized = d.toISOString().slice(0, 10);\n  }\n  return { id: f.id, value: normalized };\n}\n\nfunction customUpdatesFromHistorical(history) {\n  const body = history?.updateRequestBodyUsed || history?.updateAttempts?.find((a) => a?.body)?.body || {};\n  if (body.customField && typeof body.customField === 'object') {\n    return Object.entries(body.customField).map(([id, value]) => ({ id, value }));\n  }\n  if (Array.isArray(body.customFields)) {\n    return body.customFields.map((item) => ({ id: item.id, value: item.value ?? item.field_value ?? null })).filter((i) => i.id);\n  }\n  return [];\n}\n\nfunction standardFromHistorical(history) {\n  const body = history?.updateRequestBodyUsed || history?.updateAttempts?.find((a) => a?.body)?.body || {};\n  const standard = { ...body };\n  delete standard.locationId;\n  delete standard.customField;\n  delete standard.customFields;\n  return standard;\n}\n\nfunction findDuplicatePhoneConflict(...attemptGroups) {\n  for (const group of attemptGroups) {\n    for (const attempt of group || []) {\n      const resp = attempt?.response || {};\n      if (resp?.message === 'This location does not allow duplicated contacts.' && resp?.meta?.matchingField === 'phone') {\n        return { contactId: resp?.meta?.contactId || null, contactName: resp?.meta?.contactName || null, matchingField: resp?.meta?.matchingField || null };\n      }\n    }\n  }\n  return null;\n}\n\nasync function updateContactWithFallback(contactId, standard, customFieldUpdates) {\n  const standardClean = Object.fromEntries(Object.entries(standard || {}).filter(([,v]) => v !== null && v !== undefined && String(v).trim() !== ''));\n  const customFieldObject = Object.fromEntries((customFieldUpdates || []).map((u) => [u.id, u.value]));\n  const customFieldArray = (customFieldUpdates || []).map((u) => ({ id: u.id, value: u.value }));\n  const customFieldArrayFieldValue = (customFieldUpdates || []).map((u) => ({ id: u.id, field_value: u.value }));\n  const bodies = [\n    { ...standardClean, locationId: cfg.locationId, customField: customFieldObject },\n    { ...standardClean, customField: customFieldObject },\n    { ...standardClean, locationId: cfg.locationId, customFields: customFieldArray },\n    { ...standardClean, customFields: customFieldArray },\n    { ...standardClean, locationId: cfg.locationId, customFields: customFieldArrayFieldValue },\n    { ...standardClean, customFields: customFieldArrayFieldValue },\n    { ...standardClean, locationId: cfg.locationId },\n  ];\n  const attempts = [];\n  for (const body of bodies) {\n    const res = await apiRequest.call(this, {\n      method: 'PUT',\n      url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}`,\n      headers: ghlHeaders,\n      body,\n    });\n    if (res.ok) return { ok: true, bodyUsed: body };\n    attempts.push({ body, status: res.status, response: res.data });\n  }\n  return { ok: false, updateAttempts: attempts };\n}\n\nasync function searchDuplicatePhone(contactId, normalizedPhone, countryHint) {\n  const res = await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.ghlApiBaseUrl}/contacts/?locationId=${encodeURIComponent(cfg.locationId)}&query=${encodeURIComponent(normalizedPhone)}&limit=5`,\n    headers: ghlHeaders,\n  });\n  if (!res.ok) return null;\n  const possible = Array.isArray(res.data?.contacts) ? res.data.contacts : Array.isArray(res.data?.data?.contacts) ? res.data.data.contacts : [];\n  const match = possible.find((c) => c?.id && c.id !== contactId && normalizePhone(c.phone, c.country || countryHint || null) === normalizedPhone);\n  return match ? { contactId: match.id, contactName: match.contactName || [match.firstName, match.lastName].filter(Boolean).join(' ') || null, matchingField: 'phone' } : null;\n}\n\nasync function applyStatus(fieldByName, contactId, status, enrichedDate = null) {\n  const updates = [];\n  if (status === 'enriched') {\n    updates.push(cf(fieldByName, 'Apollo Phone Enrichment Status', 'enriched'));\n    updates.push(cf(fieldByName, 'Apollo Phone Enriched At', enrichedDate || new Date().toISOString().slice(0, 10)));\n    updates.push(cf(fieldByName, 'Contact already Enriched', 'Yes'));\n    updates.push(cf(fieldByName, 'Enrich via Apollo', 'No'));\n    updates.push(cf(fieldByName, 'Enrich Phone via Apollo', 'No'));\n  } else if (status === 'no_match') {\n    updates.push(cf(fieldByName, 'Apollo Phone Enrichment Status', 'no_match'));\n    updates.push(cf(fieldByName, 'Enrich Phone via Apollo', 'No'));\n  } else if (status === 'error') {\n    updates.push(cf(fieldByName, 'Apollo Phone Enrichment Status', 'error'));\n    updates.push(cf(fieldByName, 'Enrich Phone via Apollo', 'No'));\n  }\n  const filtered = updates.filter(Boolean);\n  if (!filtered.length) return { ok: true, skipped: true };\n  return await updateContactWithFallback.call(this, contactId, {}, filtered);\n}\n\nconst queuedContacts = await getQueuedContacts.call(this);\nconst targetIds = new Set(queuedContacts.map((c) => c.id).filter(Boolean));\nconst executionMap = await buildExecutionMap.call(this, targetIds);\nconst fieldByName = await getCustomFields.call(this);\nconst results = [];\n\nfor (const queued of queuedContacts) {\n  const contactId = queued.id;\n  const historicalWrapper = executionMap.get(contactId);\n  const historical = historicalWrapper?.data;\n  if (!historical) {\n    results.push({ contactId, contactName: queued.contactName || null, outcome: 'missing_history' });\n    continue;\n  }\n  const liveContact = await getContact.call(this, contactId);\n  const historyBody = historical?.updateRequestBodyUsed || historical?.updateAttempts?.find((a) => a?.body)?.body || {};\n  const historicalPhone = normalizePhone(historyBody.phone || historical?.normalizedPhone || historical?.ingestRecord?.company_phone || null, liveContact.country || queued.country || null);\n  const existingPhone = normalizePhone(liveContact.phone || null, liveContact.country || queued.country || null);\n\n  if (existingPhone) {\n    const enrichedDate = (historyBody.customField && historyBody.customField.kovIoEY13dW0mSuhfMPv) || null;\n    const upd = await applyStatus.call(this, fieldByName, contactId, 'enriched', enrichedDate);\n    results.push({ contactId, contactName: queued.contactName || null, executionId: historicalWrapper.executionId, outcome: upd.ok ? 'status_enriched_from_existing_phone' : 'status_update_failed', existingPhone });\n    continue;\n  }\n\n  if (!historicalPhone) {\n    const upd = await applyStatus.call(this, fieldByName, contactId, 'no_match');\n    results.push({ contactId, contactName: queued.contactName || null, executionId: historicalWrapper.executionId, outcome: upd.ok ? 'marked_no_match_from_history' : 'status_update_failed' });\n    continue;\n  }\n\n  const duplicate = await searchDuplicatePhone.call(this, contactId, historicalPhone, liveContact.country || queued.country || null);\n  if (duplicate) {\n    const upd = await applyStatus.call(this, fieldByName, contactId, 'error');\n    results.push({ contactId, contactName: queued.contactName || null, executionId: historicalWrapper.executionId, outcome: upd.ok ? 'marked_error_duplicate_phone' : 'status_update_failed', normalizedPhone: historicalPhone, duplicatePhoneConflict: duplicate });\n    continue;\n  }\n\n  const standard = standardFromHistorical(historical);\n  const customFieldUpdates = customUpdatesFromHistorical(historical);\n  const upd = await updateContactWithFallback.call(this, contactId, standard, customFieldUpdates);\n  if (upd.ok) {\n    results.push({ contactId, contactName: queued.contactName || null, executionId: historicalWrapper.executionId, outcome: 'replayed_historical_update', normalizedPhone: historicalPhone });\n    continue;\n  }\n\n  const duplicateConflict = findDuplicatePhoneConflict(upd.updateAttempts);\n  if (duplicateConflict) {\n    await applyStatus.call(this, fieldByName, contactId, 'error');\n    results.push({ contactId, contactName: queued.contactName || null, executionId: historicalWrapper.executionId, outcome: 'marked_error_duplicate_phone_after_replay', normalizedPhone: historicalPhone, duplicatePhoneConflict: duplicateConflict });\n    continue;\n  }\n\n  results.push({ contactId, contactName: queued.contactName || null, executionId: historicalWrapper.executionId, outcome: 'replay_failed', normalizedPhone: historicalPhone, attempts: upd.updateAttempts });\n}\n\nconst summary = results.reduce((acc, item) => {\n  acc.total += 1;\n  acc[item.outcome] = (acc[item.outcome] || 0) + 1;\n  return acc;\n}, { total: 0 });\n\nreturn [{ json: { summary, results, tokenExpiresAt: '2026-03-03T15:43:00Z', note: 'This temporary workflow depends on the embedded GHL browser token for smart-list access. Refresh the token in the Config node if it expires before the run.' } }];"
+      },
+      "id": "backfill-code",
+      "name": "Replay Historical Queued Contacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Replay Historical Queued Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "357512ab-87ba-4fd0-8752-c1193e5353c9",
+  "activeVersionId": null,
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-03T14:52:52.274Z",
+      "createdAt": "2026-03-03T14:52:52.274Z",
+      "role": "workflow:owner",
+      "workflowId": "B3z2ALUA3jcWuG9G",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

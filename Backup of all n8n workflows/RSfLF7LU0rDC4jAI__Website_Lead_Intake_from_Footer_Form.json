@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-17T15:03:20.502Z",
+  "updatedAt": "2026-02-20T05:29:04.976Z",
   "createdAt": "2026-02-17T15:03:20.502Z",
   "id": "RSfLF7LU0rDC4jAI",
   "name": "Website Lead Intake from Footer Form",
@@ -11,7 +11,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "lt-form-footer-intake",
-        "responseMode": "lastNode",
+        "responseMode": "onReceived",
         "options": {}
       },
       "id": "webhook_in",
@@ -19,9 +19,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        260,
-        300
-      ]
+        272,
+        304
+      ],
+      "webhookId": "90389274-4329-43c2-b33f-59705edf4c39"
     },
     {
       "parameters": {
@@ -48,7 +49,7 @@
             {
               "id": "default_dry_run",
               "name": "defaultDryRun",
-              "value": true,
+              "value": false,
               "type": "boolean"
             },
             {
@@ -84,21 +85,21 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        500,
-        300
+        512,
+        304
       ]
     },
     {
       "parameters": {
-        "jsCode": "const src = $json || {};\nconst body = (src.body && typeof src.body === 'object') ? src.body : src;\nconst headers = src.headers || {};\n\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  defaultDryRun: !!src.defaultDryRun,\n  helpFieldKey: String(src.helpFieldKey || 'contact.how_can_we_help'),\n  helpFieldId: String(src.helpFieldId || ''),\n  authHeaderName: String(src.authHeaderName || 'x-intake-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n};\n\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid intake auth header' } }];\n}\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction splitFullName(fullName) {\n  const raw = clean(fullName).replace(/\\s+/g, ' ');\n  if (!raw) return { firstName: '', lastName: '' };\n  const parts = raw.split(' ');\n  if (parts.length === 1) return { firstName: parts[0], lastName: '' };\n  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };\n}\n\nconst fullName = clean(body.full_name || body.fullName || body.name || body['First & Last Name']);\nconst { firstName, lastName } = splitFullName(fullName);\nconst email = clean(body.email);\nconst phone = clean(body.phone || body.mobile || body.phone_number);\nconst website = clean(body.website || body.company_website || body.companyWebsite || body.url);\nconst howCanWeHelp = clean(body.message || body.how_can_we_help || body.howCanWeHelp || body['How can we help?']);\nlet contactId = clean(body.contactId || body.contact_id || body.id);\n\nif (!contactId && !email && !phone) {\n  return [{\n    json: {\n      ok: false,\n      error: 'missing_identity',\n      message: 'Provide contactId or at least email/phone in payload.',\n      expected: ['contactId', 'email', 'phone'],\n    },\n  }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = {\n    method,\n    url: `${cfg.apiBaseUrl}${path}`,\n    headers: headersGhl,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n      requestBody: body,\n    };\n  }\n}\n\nconst upsertBody = {\n  locationId: cfg.locationId,\n  email: email || undefined,\n  phone: phone || undefined,\n  firstName: firstName || undefined,\n  lastName: lastName || undefined,\n  website: website || undefined,\n};\nObject.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\nif (!contactId) {\n  const upsertRes = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsertRes.ok) {\n    return [{ json: { ok: false, error: 'upsert_failed', details: upsertRes.data, requestBody: upsertBody } }];\n  }\n  contactId = upsertRes.data?.contact?.id || upsertRes.data?.id || upsertRes.data?.contactId || '';\n  if (!contactId) {\n    return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsertRes.data } }];\n  }\n}\n\nif (dryRun) {\n  return [{\n    json: {\n      ok: true,\n      dryRun: true,\n      action: 'would_upsert_contact_and_update_help_field',\n      contactId,\n      mapped: {\n        full_name: fullName,\n        first_name: firstName,\n        last_name: lastName,\n        email,\n        website,\n        how_can_we_help: howCanWeHelp,\n      },\n      helpField: { id: cfg.helpFieldId, key: cfg.helpFieldKey },\n    },\n  }];\n}\n\nconst updateBodies = [\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, field_value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldId || cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n].map((b) => {\n  const cleanObj = { ...b };\n  Object.keys(cleanObj).forEach((k) => cleanObj[k] === undefined && delete cleanObj[k]);\n  return cleanObj;\n}).filter((b) => Object.keys(b).length > 0);\n\nlet updateOk = null;\nlet lastErr = null;\nfor (const bodyTry of updateBodies) {\n  const r = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${contactId}`, body: bodyTry });\n  if (r.ok) {\n    updateOk = { bodyUsed: bodyTry, response: r.data };\n    break;\n  }\n  lastErr = r;\n}\n\nif (!updateOk) {\n  return [{\n    json: {\n      ok: false,\n      error: 'contact_update_failed',\n      contactId,\n      attemptedBodies: updateBodies,\n      details: lastErr?.data || lastErr,\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun: false,\n    action: 'contact_updated',\n    contactId,\n    mapped: {\n      first_name: firstName,\n      last_name: lastName,\n      website,\n      how_can_we_help: howCanWeHelp,\n    },\n    updateRequestBodyUsed: updateOk.bodyUsed,\n  },\n}];"
+        "jsCode": "const current = $json || {};\nconst webhook = $items('Webhook Intake', 0, 0)?.[0]?.json || {};\nconst src = { ...webhook, ...current };\nconst body = (src.body && typeof src.body === 'object') ? src.body : src;\nconst headers = src.headers || {};\n\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  defaultDryRun: !!src.defaultDryRun,\n  helpFieldKey: String(src.helpFieldKey || 'contact.how_can_we_help'),\n  helpFieldId: String(src.helpFieldId || ''),\n  authHeaderName: String(src.authHeaderName || 'x-intake-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n};\n\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid intake auth header' } }];\n}\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction splitFullName(fullName) {\n  const raw = clean(fullName).replace(/\\s+/g, ' ');\n  if (!raw) return { firstName: '', lastName: '' };\n  const parts = raw.split(' ');\n  if (parts.length === 1) return { firstName: parts[0], lastName: '' };\n  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };\n}\n\nconst fullName = clean(body.full_name || body.fullName || body.name || body['First & Last Name']);\nconst { firstName, lastName } = splitFullName(fullName);\nconst email = clean(body.email);\nconst phone = clean(body.phone || body.mobile || body.phone_number);\nconst website = clean(body.website || body.company_website || body.companyWebsite || body.url);\nconst howCanWeHelp = clean(body.message || body.how_can_we_help || body.howCanWeHelp || body['How can we help?']);\nlet contactId = clean(body.contactId || body.contact_id || body.id);\n\nconst asciiOnlyFields = {\n  full_name: fullName,\n  email,\n  phone,\n  website,\n  how_can_we_help: howCanWeHelp,\n};\n\nconst nonAsciiFields = Object.entries(asciiOnlyFields)\n  .filter(([, value]) => value && /[^\\x00-\\x7F]/.test(value))\n  .map(([field]) => field);\n\nif (nonAsciiFields.length) {\n  return [{\n    json: {\n      ok: false,\n      error: 'non_english_characters_not_allowed',\n      message: 'Only English (ASCII) characters are allowed.',\n      fields: nonAsciiFields,\n    },\n  }];\n}\n\nconst honeypot = clean(body.submit || body.company || body.fax || body.hp_field || '');\nconst messageLower = howCanWeHelp.toLowerCase();\nconst emailDomain = (email.split('@')[1] || '').toLowerCase();\nconst spamScores = [];\n\nif (honeypot) spamScores.push({ reason: 'honeypot_field_filled', score: 3 });\nif (/<[^>]*>/.test(howCanWeHelp)) spamScores.push({ reason: 'html_in_message', score: 2 });\n\nif (/\\.ru$|\\.su$|\\.\\u0440\\u0444$/i.test(emailDomain)) spamScores.push({ reason: 'blocked_email_tld', score: 2 });\nif (/\\.ru(\\/|$)|\\.su(\\/|$)|\\.\\u0440\\u0444(\\/|$)/i.test(website)) spamScores.push({ reason: 'blocked_website_tld', score: 2 });\nif (/[A-Za-z0-9]+_[A-Za-z0-9]+/.test(fullName)) spamScores.push({ reason: 'suspicious_name_pattern', score: 1 });\nif (howCanWeHelp.length > 600) spamScores.push({ reason: 'message_too_long', score: 1 });\n\nconst spamKeywords = [\n  'seo',\n  'backlink',\n  'casino',\n  'viagra',\n  'crypto',\n  'buy now',\n  'cheap',\n  '\\u043a\\u0443\\u043f\\u0438\\u0442\\u044c',\n  '\\u043d\\u0435\\u0434\\u043e\\u0440\\u043e\\u0433\\u043e',\n  '\\u0446\\u0435\\u043d\\u044b',\n];\nif (spamKeywords.some((k) => messageLower.includes(k))) spamScores.push({ reason: 'spam_keyword', score: 2 });\n\nconst spamScore = spamScores.reduce((sum, item) => sum + item.score, 0);\nif (spamScore >= 3) {\n  return [{\n    json: {\n      ok: false,\n      error: 'spam_rejected',\n      message: 'Submission rejected by spam filter.',\n      reasons: spamScores.map((s) => s.reason),\n      score: spamScore,\n    },\n  }];\n}\n\nif (!contactId && !email && !phone) {\n  return [{\n    json: {\n      ok: false,\n      error: 'missing_identity',\n      message: 'Provide contactId or at least email/phone in payload.',\n      expected: ['contactId', 'email', 'phone'],\n    },\n  }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = {\n    method,\n    url: `${cfg.apiBaseUrl}${path}`,\n    headers: headersGhl,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n      requestBody: body,\n    };\n  }\n}\n\nconst upsertBody = {\n  locationId: cfg.locationId,\n  email: email || undefined,\n  phone: phone || undefined,\n  firstName: firstName || undefined,\n  lastName: lastName || undefined,\n  website: website || undefined,\n};\nObject.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\nif (!contactId) {\n  const upsertRes = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsertRes.ok) {\n    return [{ json: { ok: false, error: 'upsert_failed', details: upsertRes.data, requestBody: upsertBody } }];\n  }\n  contactId = upsertRes.data?.contact?.id || upsertRes.data?.id || upsertRes.data?.contactId || '';\n  if (!contactId) {\n    return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsertRes.data } }];\n  }\n}\n\nif (dryRun) {\n  return [{\n    json: {\n      ok: true,\n      dryRun: true,\n      action: 'would_upsert_contact_update_and_tag',\n      contactId,\n      mapped: {\n        full_name: fullName,\n        first_name: firstName,\n        last_name: lastName,\n        email,\n        website,\n        how_can_we_help: howCanWeHelp,\n      },\n      tagsWouldAdd: ['Warm Website', 'Enrollment Queue - Cannabis Ads'],\n      helpField: { id: cfg.helpFieldId, key: cfg.helpFieldKey },\n    },\n  }];\n}\n\nconst updateBodies = [\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, field_value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldId || cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n].map((b) => {\n  const cleanObj = { ...b };\n  Object.keys(cleanObj).forEach((k) => cleanObj[k] === undefined && delete cleanObj[k]);\n  return cleanObj;\n}).filter((b) => Object.keys(b).length > 0);\n\nlet updateOk = null;\nlet lastErr = null;\nfor (const bodyTry of updateBodies) {\n  const r = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${contactId}`, body: bodyTry });\n  if (r.ok) {\n    updateOk = { bodyUsed: bodyTry, response: r.data };\n    break;\n  }\n  lastErr = r;\n}\n\nif (!updateOk) {\n  return [{\n    json: {\n      ok: false,\n      error: 'contact_update_failed',\n      contactId,\n      attemptedBodies: updateBodies,\n      details: lastErr?.data || lastErr,\n    },\n  }];\n}\n\nconst tagsRes = await apiRequest.call(this, {\n  method: 'POST',\n  path: `/contacts/${contactId}/tags`,\n  body: { tags: ['Warm Website', 'Enrollment Queue - Cannabis Ads'] },\n});\n\nif (!tagsRes.ok) {\n  return [{\n    json: {\n      ok: false,\n      error: 'contact_tagging_failed',\n      contactId,\n      details: tagsRes.data,\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun: false,\n    action: 'contact_updated_and_tagged',\n    contactId,\n    mapped: {\n      first_name: firstName,\n      last_name: lastName,\n      website,\n      how_can_we_help: howCanWeHelp,\n    },\n    tagsAdded: ['Warm Website', 'Enrollment Queue - Cannabis Ads'],\n    updateRequestBodyUsed: updateOk.bodyUsed,\n  },\n}];"
       },
       "id": "apply_mapping",
       "name": "Map + Upsert + Update Contact",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        760,
-        300
+        768,
+        304
       ]
     }
   ],
@@ -134,14 +135,14 @@
     "executionTimeout": 3600,
     "timezone": "UTC",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": true
   },
   "staticData": null,
   "meta": null,
-  "pinData": null,
-  "versionId": "b8bb0030-1345-4276-a97d-9560b5e7265e",
-  "activeVersionId": "b8bb0030-1345-4276-a97d-9560b5e7265e",
-  "versionCounter": 3,
+  "pinData": {},
+  "versionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
+  "activeVersionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
+  "versionCounter": 32,
   "triggerCount": 1,
   "shared": [
     {
@@ -158,58 +159,22 @@
         "type": "personal",
         "icon": null,
         "description": null,
-        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642",
-        "projectRelations": [
-          {
-            "updatedAt": "2026-02-11T08:02:27.672Z",
-            "createdAt": "2026-02-11T08:02:27.672Z",
-            "userId": "861fb655-b176-4d63-a4ed-3cc66e279642",
-            "projectId": "4Vzf1F1ukTvP58LF",
-            "user": {
-              "updatedAt": "2026-02-17T11:36:05.615Z",
-              "createdAt": "2026-02-11T08:02:26.709Z",
-              "id": "861fb655-b176-4d63-a4ed-3cc66e279642",
-              "email": "ed@livetransparent.com",
-              "firstName": "Ed",
-              "lastName": "cadorniga",
-              "personalizationAnswers": {
-                "version": "v4",
-                "personalization_survey_submitted_at": "2026-02-11T00:23:58.932Z",
-                "personalization_survey_n8n_version": "2.6.4",
-                "automationGoalDevops": [],
-                "companyIndustryExtended": [
-                  "marketing-industry"
-                ],
-                "companySize": "<20",
-                "companyType": "other",
-                "role": "devops",
-                "reportedSource": "youtube"
-              },
-              "settings": {
-                "userActivated": false
-              },
-              "disabled": false,
-              "mfaEnabled": false,
-              "lastActiveAt": "2026-02-17",
-              "isPending": false
-            }
-          }
-        ]
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }
     }
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-02-17T15:09:20.314Z",
-    "createdAt": "2026-02-17T15:03:20.540Z",
-    "versionId": "b8bb0030-1345-4276-a97d-9560b5e7265e",
+    "updatedAt": "2026-02-18T16:28:59.956Z",
+    "createdAt": "2026-02-18T16:28:59.956Z",
+    "versionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
     "workflowId": "RSfLF7LU0rDC4jAI",
     "nodes": [
       {
         "parameters": {
           "httpMethod": "POST",
           "path": "lt-form-footer-intake",
-          "responseMode": "lastNode",
+          "responseMode": "onReceived",
           "options": {}
         },
         "id": "webhook_in",
@@ -217,9 +182,10 @@
         "type": "n8n-nodes-base.webhook",
         "typeVersion": 2,
         "position": [
-          260,
-          300
-        ]
+          272,
+          304
+        ],
+        "webhookId": "90389274-4329-43c2-b33f-59705edf4c39"
       },
       {
         "parameters": {
@@ -246,7 +212,7 @@
               {
                 "id": "default_dry_run",
                 "name": "defaultDryRun",
-                "value": true,
+                "value": false,
                 "type": "boolean"
               },
               {
@@ -282,21 +248,21 @@
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
         "position": [
-          500,
-          300
+          512,
+          304
         ]
       },
       {
         "parameters": {
-          "jsCode": "const src = $json || {};\nconst body = (src.body && typeof src.body === 'object') ? src.body : src;\nconst headers = src.headers || {};\n\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  defaultDryRun: !!src.defaultDryRun,\n  helpFieldKey: String(src.helpFieldKey || 'contact.how_can_we_help'),\n  helpFieldId: String(src.helpFieldId || ''),\n  authHeaderName: String(src.authHeaderName || 'x-intake-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n};\n\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid intake auth header' } }];\n}\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction splitFullName(fullName) {\n  const raw = clean(fullName).replace(/\\s+/g, ' ');\n  if (!raw) return { firstName: '', lastName: '' };\n  const parts = raw.split(' ');\n  if (parts.length === 1) return { firstName: parts[0], lastName: '' };\n  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };\n}\n\nconst fullName = clean(body.full_name || body.fullName || body.name || body['First & Last Name']);\nconst { firstName, lastName } = splitFullName(fullName);\nconst email = clean(body.email);\nconst phone = clean(body.phone || body.mobile || body.phone_number);\nconst website = clean(body.website || body.company_website || body.companyWebsite || body.url);\nconst howCanWeHelp = clean(body.message || body.how_can_we_help || body.howCanWeHelp || body['How can we help?']);\nlet contactId = clean(body.contactId || body.contact_id || body.id);\n\nif (!contactId && !email && !phone) {\n  return [{\n    json: {\n      ok: false,\n      error: 'missing_identity',\n      message: 'Provide contactId or at least email/phone in payload.',\n      expected: ['contactId', 'email', 'phone'],\n    },\n  }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = {\n    method,\n    url: `${cfg.apiBaseUrl}${path}`,\n    headers: headersGhl,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n      requestBody: body,\n    };\n  }\n}\n\nconst upsertBody = {\n  locationId: cfg.locationId,\n  email: email || undefined,\n  phone: phone || undefined,\n  firstName: firstName || undefined,\n  lastName: lastName || undefined,\n  website: website || undefined,\n};\nObject.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\nif (!contactId) {\n  const upsertRes = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsertRes.ok) {\n    return [{ json: { ok: false, error: 'upsert_failed', details: upsertRes.data, requestBody: upsertBody } }];\n  }\n  contactId = upsertRes.data?.contact?.id || upsertRes.data?.id || upsertRes.data?.contactId || '';\n  if (!contactId) {\n    return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsertRes.data } }];\n  }\n}\n\nif (dryRun) {\n  return [{\n    json: {\n      ok: true,\n      dryRun: true,\n      action: 'would_upsert_contact_and_update_help_field',\n      contactId,\n      mapped: {\n        full_name: fullName,\n        first_name: firstName,\n        last_name: lastName,\n        email,\n        website,\n        how_can_we_help: howCanWeHelp,\n      },\n      helpField: { id: cfg.helpFieldId, key: cfg.helpFieldKey },\n    },\n  }];\n}\n\nconst updateBodies = [\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, field_value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldId || cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n].map((b) => {\n  const cleanObj = { ...b };\n  Object.keys(cleanObj).forEach((k) => cleanObj[k] === undefined && delete cleanObj[k]);\n  return cleanObj;\n}).filter((b) => Object.keys(b).length > 0);\n\nlet updateOk = null;\nlet lastErr = null;\nfor (const bodyTry of updateBodies) {\n  const r = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${contactId}`, body: bodyTry });\n  if (r.ok) {\n    updateOk = { bodyUsed: bodyTry, response: r.data };\n    break;\n  }\n  lastErr = r;\n}\n\nif (!updateOk) {\n  return [{\n    json: {\n      ok: false,\n      error: 'contact_update_failed',\n      contactId,\n      attemptedBodies: updateBodies,\n      details: lastErr?.data || lastErr,\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun: false,\n    action: 'contact_updated',\n    contactId,\n    mapped: {\n      first_name: firstName,\n      last_name: lastName,\n      website,\n      how_can_we_help: howCanWeHelp,\n    },\n    updateRequestBodyUsed: updateOk.bodyUsed,\n  },\n}];"
+          "jsCode": "const current = $json || {};\nconst webhook = $items('Webhook Intake', 0, 0)?.[0]?.json || {};\nconst src = { ...webhook, ...current };\nconst body = (src.body && typeof src.body === 'object') ? src.body : src;\nconst headers = src.headers || {};\n\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  defaultDryRun: !!src.defaultDryRun,\n  helpFieldKey: String(src.helpFieldKey || 'contact.how_can_we_help'),\n  helpFieldId: String(src.helpFieldId || ''),\n  authHeaderName: String(src.authHeaderName || 'x-intake-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n};\n\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid intake auth header' } }];\n}\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction splitFullName(fullName) {\n  const raw = clean(fullName).replace(/\\s+/g, ' ');\n  if (!raw) return { firstName: '', lastName: '' };\n  const parts = raw.split(' ');\n  if (parts.length === 1) return { firstName: parts[0], lastName: '' };\n  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };\n}\n\nconst fullName = clean(body.full_name || body.fullName || body.name || body['First & Last Name']);\nconst { firstName, lastName } = splitFullName(fullName);\nconst email = clean(body.email);\nconst phone = clean(body.phone || body.mobile || body.phone_number);\nconst website = clean(body.website || body.company_website || body.companyWebsite || body.url);\nconst howCanWeHelp = clean(body.message || body.how_can_we_help || body.howCanWeHelp || body['How can we help?']);\nlet contactId = clean(body.contactId || body.contact_id || body.id);\n\nconst asciiOnlyFields = {\n  full_name: fullName,\n  email,\n  phone,\n  website,\n  how_can_we_help: howCanWeHelp,\n};\n\nconst nonAsciiFields = Object.entries(asciiOnlyFields)\n  .filter(([, value]) => value && /[^\\x00-\\x7F]/.test(value))\n  .map(([field]) => field);\n\nif (nonAsciiFields.length) {\n  return [{\n    json: {\n      ok: false,\n      error: 'non_english_characters_not_allowed',\n      message: 'Only English (ASCII) characters are allowed.',\n      fields: nonAsciiFields,\n    },\n  }];\n}\n\nconst honeypot = clean(body.submit || body.company || body.fax || body.hp_field || '');\nconst messageLower = howCanWeHelp.toLowerCase();\nconst emailDomain = (email.split('@')[1] || '').toLowerCase();\nconst spamScores = [];\n\nif (honeypot) spamScores.push({ reason: 'honeypot_field_filled', score: 3 });\nif (/<[^>]*>/.test(howCanWeHelp)) spamScores.push({ reason: 'html_in_message', score: 2 });\n\nif (/\\.ru$|\\.su$|\\.\\u0440\\u0444$/i.test(emailDomain)) spamScores.push({ reason: 'blocked_email_tld', score: 2 });\nif (/\\.ru(\\/|$)|\\.su(\\/|$)|\\.\\u0440\\u0444(\\/|$)/i.test(website)) spamScores.push({ reason: 'blocked_website_tld', score: 2 });\nif (/[A-Za-z0-9]+_[A-Za-z0-9]+/.test(fullName)) spamScores.push({ reason: 'suspicious_name_pattern', score: 1 });\nif (howCanWeHelp.length > 600) spamScores.push({ reason: 'message_too_long', score: 1 });\n\nconst spamKeywords = [\n  'seo',\n  'backlink',\n  'casino',\n  'viagra',\n  'crypto',\n  'buy now',\n  'cheap',\n  '\\u043a\\u0443\\u043f\\u0438\\u0442\\u044c',\n  '\\u043d\\u0435\\u0434\\u043e\\u0440\\u043e\\u0433\\u043e',\n  '\\u0446\\u0435\\u043d\\u044b',\n];\nif (spamKeywords.some((k) => messageLower.includes(k))) spamScores.push({ reason: 'spam_keyword', score: 2 });\n\nconst spamScore = spamScores.reduce((sum, item) => sum + item.score, 0);\nif (spamScore >= 3) {\n  return [{\n    json: {\n      ok: false,\n      error: 'spam_rejected',\n      message: 'Submission rejected by spam filter.',\n      reasons: spamScores.map((s) => s.reason),\n      score: spamScore,\n    },\n  }];\n}\n\nif (!contactId && !email && !phone) {\n  return [{\n    json: {\n      ok: false,\n      error: 'missing_identity',\n      message: 'Provide contactId or at least email/phone in payload.',\n      expected: ['contactId', 'email', 'phone'],\n    },\n  }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = {\n    method,\n    url: `${cfg.apiBaseUrl}${path}`,\n    headers: headersGhl,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n      requestBody: body,\n    };\n  }\n}\n\nconst upsertBody = {\n  locationId: cfg.locationId,\n  email: email || undefined,\n  phone: phone || undefined,\n  firstName: firstName || undefined,\n  lastName: lastName || undefined,\n  website: website || undefined,\n};\nObject.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\nif (!contactId) {\n  const upsertRes = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsertRes.ok) {\n    return [{ json: { ok: false, error: 'upsert_failed', details: upsertRes.data, requestBody: upsertBody } }];\n  }\n  contactId = upsertRes.data?.contact?.id || upsertRes.data?.id || upsertRes.data?.contactId || '';\n  if (!contactId) {\n    return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsertRes.data } }];\n  }\n}\n\nif (dryRun) {\n  return [{\n    json: {\n      ok: true,\n      dryRun: true,\n      action: 'would_upsert_contact_update_and_tag',\n      contactId,\n      mapped: {\n        full_name: fullName,\n        first_name: firstName,\n        last_name: lastName,\n        email,\n        website,\n        how_can_we_help: howCanWeHelp,\n      },\n      tagsWouldAdd: ['Warm Website', 'Enrollment Queue - Cannabis Ads'],\n      helpField: { id: cfg.helpFieldId, key: cfg.helpFieldKey },\n    },\n  }];\n}\n\nconst updateBodies = [\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customFields: cfg.helpFieldId && howCanWeHelp ? [{ id: cfg.helpFieldId, field_value: howCanWeHelp }] : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldId || cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n  {\n    website: website || undefined,\n    customField: howCanWeHelp ? { [cfg.helpFieldKey]: howCanWeHelp } : undefined,\n  },\n].map((b) => {\n  const cleanObj = { ...b };\n  Object.keys(cleanObj).forEach((k) => cleanObj[k] === undefined && delete cleanObj[k]);\n  return cleanObj;\n}).filter((b) => Object.keys(b).length > 0);\n\nlet updateOk = null;\nlet lastErr = null;\nfor (const bodyTry of updateBodies) {\n  const r = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${contactId}`, body: bodyTry });\n  if (r.ok) {\n    updateOk = { bodyUsed: bodyTry, response: r.data };\n    break;\n  }\n  lastErr = r;\n}\n\nif (!updateOk) {\n  return [{\n    json: {\n      ok: false,\n      error: 'contact_update_failed',\n      contactId,\n      attemptedBodies: updateBodies,\n      details: lastErr?.data || lastErr,\n    },\n  }];\n}\n\nconst tagsRes = await apiRequest.call(this, {\n  method: 'POST',\n  path: `/contacts/${contactId}/tags`,\n  body: { tags: ['Warm Website', 'Enrollment Queue - Cannabis Ads'] },\n});\n\nif (!tagsRes.ok) {\n  return [{\n    json: {\n      ok: false,\n      error: 'contact_tagging_failed',\n      contactId,\n      details: tagsRes.data,\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun: false,\n    action: 'contact_updated_and_tagged',\n    contactId,\n    mapped: {\n      first_name: firstName,\n      last_name: lastName,\n      website,\n      how_can_we_help: howCanWeHelp,\n    },\n    tagsAdded: ['Warm Website', 'Enrollment Queue - Cannabis Ads'],\n    updateRequestBodyUsed: updateOk.bodyUsed,\n  },\n}];"
         },
         "id": "apply_mapping",
         "name": "Map + Upsert + Update Contact",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          760,
-          300
+          768,
+          304
         ]
       }
     ],
@@ -325,15 +291,23 @@
       }
     },
     "authors": "Ed cadorniga",
-    "name": "Version b8bb0030",
-    "description": "",
+    "name": null,
+    "description": null,
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-02-17T15:09:20.309Z",
-        "id": 16,
+        "createdAt": "2026-02-18T16:29:00.160Z",
+        "id": 37,
         "workflowId": "RSfLF7LU0rDC4jAI",
-        "versionId": "b8bb0030-1345-4276-a97d-9560b5e7265e",
+        "versionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-02-20T05:29:05.086Z",
+        "id": 67,
+        "workflowId": "RSfLF7LU0rDC4jAI",
+        "versionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }

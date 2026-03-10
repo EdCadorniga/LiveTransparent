@@ -228,6 +228,9 @@ This process is separate from warm lead stage movement and is controlled by auto
 - `8:00 AM ET` to `5:00 PM PT`
 - Sundays: summary-only runs, no dispatch.
 - Additional contact-local gate: contact local `8:00 AM-4:59 PM` required.
+- Timezone resolution order:
+- use explicit contact timezone field when available
+- fallback from state/country values (supports full US state names and CA province names, plus code formats)
 
 ### D) What Users Should Do in GHL
 - Verify sender emails under `Marketing > Emails > Settings > Verified sender emails`.
@@ -237,11 +240,13 @@ This process is separate from warm lead stage movement and is controlled by auto
 - `Enrollment Queue - Cannabis Ads`
 - `Seq Enrolled - Cannabis Ads`
 - `Seq Variant A` / `Seq Variant B`
+- If dispatcher is creating new contacts, expect a built-in `200ms` upsert throttle to reduce API rate-limit errors.
 
 ### E) What Users Should Not Do
 - Do not manually bulk-add `Enrollment Queue - Cannabis Ads` without sender field populated.
 - Do not overwrite `marketing_sender_email` mid-sequence unless intentional.
 - Do not treat sender cap as \"new contacts/day only\".
+- Do not manually log or force-release failed upsert rows; they are intentionally retried on future dispatcher runs.
 
 ## 12) Warm Channel Entry Status (Last Known 2026-02-24)
 Use this status when training users on what should currently fire automatically.
@@ -333,3 +338,38 @@ This section is for training users who trigger Apollo phone/profile enrichment f
 5. If phone is present in callback payload but not in GHL, inspect `update_request_body_used` and field-level constraints.
 6. Verify timestamp format in custom field is `YYYY-MM-DD`.
 7. Re-verify workflow active state and webhook paths in `AGENTS.md` before escalation.
+
+## 15) RB2B Website Visitor Intake (Current)
+This process handles anonymous website-visitor enrichment events sent from RB2B and converts them into actionable follow-up.
+
+### A) Runtime and Trigger
+- n8n workflow: `rb2b leads` (`3kjsIUeoEQFx26cC`)
+- Trigger path: `/webhook/rb2b_leads_v2`
+
+### B) Contact Resolution and Update Rules
+- Match order in GHL:
+1. duplicate lookup by email
+2. fallback exact full-name match
+- If existing contact is found: update contact fields.
+- If no contact is found: upsert/create contact.
+
+### C) Tagging Rules
+- Always append these tags in GHL:
+- `rb2b_website_visitor`
+- `mql`
+- Tagging is additive; existing tags must not be overwritten.
+
+### D) Postgres Persistence
+- Table: `RB2B_Leads`
+- Upsert key: `lead_key` (email-based when available, otherwise name+company fallback key)
+- Existing row is updated on conflict.
+
+### E) Follow-Up Task Rule
+- Create one task on processed contact:
+- Title: `New RB2B contact - Call`
+- Assigned user: Kevin (`7s3brzxGF4WSiz95DPkF`)
+
+### F) Troubleshooting
+1. If task node returns `Cannot POST /contacts//tasks`, verify task node URL references `ghl_contact_id` from `Prepare + Upsert GHL Contact`.
+2. If contact write fails in code node, verify `Config` node still passes `locationId`, `apiBaseUrl`, `apiKey`, and `rb2bTag`.
+3. If row upsert fails with null key, verify `lead_key` is present before Postgres node execution.

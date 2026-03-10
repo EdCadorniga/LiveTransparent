@@ -1,6 +1,6 @@
 # Cannabis Ads Sequence Enrollment (A/B 50-50) - Implementation Checklist
 
-Last updated: `2026-02-21`
+Last updated: `2026-03-08`
 
 ## 1) GHL Contact Fields
 - [x] Create `Email Campaign` (Single line text).
@@ -89,6 +89,9 @@ Last updated: `2026-02-21`
 - [x] Global dispatch window: `Mon-Sat`, `8:00 AM ET` to `5:00 PM PT`.
 - [x] Sunday policy: summary-only execution, no dispatch.
 - [x] Per-contact local-hour gate enabled (`8:00 AM-4:59 PM`, timezone then state/country fallback).
+- [x] Timezone fallback mapping now supports full US state names and full CA province names (in addition to code-based values).
+- [x] Upsert throttling enabled: `200ms` delay before each `/contacts/upsert` call.
+- [x] Retry model confirmed: deferred/failed contacts are retried next dispatcher runs because only `queued` rows are logged to `ColdOutreach_Release_Log`.
 - [x] Per-sender allowance formula in automation:
 - [x] `remaining = cap - in_flight_sends_today - safety_buffer`
 - [x] Safety buffer applied: `max(10% of cap, 5)`.

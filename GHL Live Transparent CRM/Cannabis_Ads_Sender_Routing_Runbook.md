@@ -1,6 +1,6 @@
 # Cannabis Ads Sender Routing Runbook (GHL + n8n Dispatcher)
 
-Last updated: `2026-02-21`
+Last updated: `2026-03-08`
 Location: `Live Transparent` (`Zwz4relUXVPxx8uohnjV`)
 
 ## Purpose
@@ -86,15 +86,16 @@ Dispatcher workflow runs hourly and handles release automatically:
 3. Enforce per-contact local-hour gate:
 - local `8:00 AM-4:59 PM`
 - timezone from contact timezone field if present, otherwise state/country fallback
+  - fallback supports full US state names and full CA province names (plus code formats)
 4. Compute sender remaining capacity:
 - `remaining = cap_by_week - in_flight_due_today - safety_buffer`
 5. Deterministically assign sender and process contact:
 - find existing contact in GHL by email
-- if missing, upsert/create in GHL
+- if missing, upsert/create in GHL (with `200ms` delay before each upsert call)
 - set `marketing_sender_email`
 - add `Enrollment Queue - Cannabis Ads`
 - write release log row
-6. Deferred contacts (no capacity, outside local hours, missing timezone) are retried on future runs.
+6. Deferred/failed contacts are retried on future runs because only `queued` rows are written to `ColdOutreach_Release_Log`.
 
 ## Capacity Accounting Rule (Critical)
 - Do not treat daily cap as \"new contacts allowed\".
@@ -136,3 +137,8 @@ Dispatcher workflow runs hourly and handles release automatically:
 - If dynamic `From Email` is not honored by GHL in live tests:
 1. Fall back to sender-specific cloned A/B workflows.
 2. Route by sender first, then A/B within sender.
+
+- If upsert errors show `429`:
+1. Do not force-manual requeue in the same run.
+2. Keep dispatcher active; failed rows will retry next cycle automatically.
+3. If needed, increase throttling/backoff in dispatcher code.

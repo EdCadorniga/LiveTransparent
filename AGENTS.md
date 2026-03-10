@@ -52,6 +52,8 @@
 - `ghl create sequence plan/email-templates-cannabis-ads/Order B/`: Ordered HTML package for B path upload/copy.
 - `Email Sequence.docx`: Source sequence copy used to rebuild HTML templates.
 - `Backup of all n8n workflows/`: Full-instance n8n workflow JSON backups (one file per workflow) plus export `manifest.json`.
+  - Latest full refresh: `2026-03-08`, `21` workflows exported, `0` failures.
+- `GHL Live Transparent CRM/RB2B_Website_Visitor_Intake_Workflow.md`: Technical runbook for RB2B webhook intake, GHL reconciliation/tagging, Postgres upsert, and Kevin follow-up task creation.
 
 ## Reference Docs Convention
 - Keep service reference files under `n8n/nodes/<service>/REFERENCE.md`.
@@ -149,6 +151,7 @@
 - n8n workflow `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Website Visitor` (`8USvJkRlKzbj6Fu1`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Form Submission` (`FQE90HDUilFVdASY`) - active.
+- n8n workflow `rb2b leads` (`3kjsIUeoEQFx26cC`) - active.
 - Plan doc: `GHL Live Transparent CRM/Warm_Lead_Conflict_Safe_Implementation_Spec.md`
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
@@ -402,6 +405,40 @@
 - Live rerun results after callback fix:
 - previously stale `queued` contacts were largely resolved through reruns once callback V4 was active
 - current queued contacts should be treated as active Apollo callback waits rather than stale webhook-registration failures unless age indicates otherwise
+
+## Session Notes (2026-03-08)
+- `LT - Cold Outreach Sender Release Dispatcher (Staged)` (`NTpQnMrpjzusPXHX`) was updated and re-verified live.
+- Dispatcher now enforces contact-local hour gating using:
+  - explicit `contact_timezone` / `timezone` when valid
+  - fallback mapping from full US state names and CA province names (plus code-based values)
+- `Fetch Cold Candidates` now surfaces timezone candidates via:
+  - `row_to_json(a)->>'timezone'`
+  - `row_to_json(a)->>'contact_timezone'`
+- Added throttling guard for GHL upserts:
+  - `200ms` delay before each upsert call (`/contacts/upsert`)
+- Retry behavior remains unchanged by design:
+  - failed/deferred contacts are not written to `ColdOutreach_Release_Log`
+  - they are retried on later dispatcher runs
+- Execution validation snapshots:
+  - `1371`: timezone resolution fixed (`deferredMissingTimezone=0`), `queued=77`, `error_upsert=11` (`429`)
+  - `1415`: `queued=11`, `deferred_no_capacity=425`, `errors=0`, upsert attempts `0`
+- n8n backup refresh completed:
+  - `Backup of all n8n workflows/manifest.json` now reflects `21` live workflows with `0` failed exports.
+
+## Session Notes (2026-03-10)
+- n8n workflow `rb2b leads` (`3kjsIUeoEQFx26cC`) was implemented and stabilized for production.
+- Webhook: `/webhook/rb2b_leads_v2`.
+- Workflow behavior now includes:
+  - GHL contact reconciliation by email first, then exact full-name fallback.
+  - Contact update or upsert in GHL.
+  - Tag append (non-destructive): `rb2b_website_visitor`, `mql`.
+  - Postgres upsert into `RB2B_Leads` keyed by `lead_key`.
+  - Follow-up task creation: `New RB2B contact - Call`, assigned to Kevin (`7s3brzxGF4WSiz95DPkF`).
+- Runtime fixes applied during stabilization:
+  - removed direct `$env` dependency in Code node (moved to Set `Config` node inputs).
+  - switched HTTP helper to `$httpRequest`/`this.helpers.httpRequest` fallback pattern.
+  - corrected task node contact-id reference to avoid empty `/contacts//tasks` path.
+  - reconnected `Ensure RB2B Leads Table` so it is not orphaned in graph.
 
 ## Session Notes (2026-02-24)
 - Intake webhook sender wiring completed and validated:

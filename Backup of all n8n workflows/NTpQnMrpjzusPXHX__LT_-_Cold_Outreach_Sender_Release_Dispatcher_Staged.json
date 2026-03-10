@@ -1,0 +1,809 @@
+{
+  "updatedAt": "2026-03-07T20:45:32.691Z",
+  "createdAt": "2026-02-20T09:28:35.191Z",
+  "id": "NTpQnMrpjzusPXHX",
+  "name": "LT - Cold Outreach Sender Release Dispatcher (Staged)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "base",
+              "name": "apiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "apikey",
+              "name": "apiKey",
+              "type": "string",
+              "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28"
+            },
+            {
+              "id": "dry",
+              "name": "defaultDryRun",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "tag",
+              "name": "queueTag",
+              "type": "string",
+              "value": "Enrollment Queue - Cannabis Ads"
+            },
+            {
+              "id": "field",
+              "name": "senderFieldName",
+              "type": "string",
+              "value": "marketing_sender_email"
+            },
+            {
+              "id": "limit",
+              "name": "candidateLimit",
+              "type": "number",
+              "value": 500
+            },
+            {
+              "id": "pct",
+              "name": "safetyBufferPct",
+              "type": "number",
+              "value": 0.1
+            },
+            {
+              "id": "min",
+              "name": "minSafetyBuffer",
+              "type": "number",
+              "value": 5
+            },
+            {
+              "id": "week",
+              "name": "warmupWeekOverride",
+              "type": "number",
+              "value": 2
+            },
+            {
+              "id": "senders",
+              "name": "sendersJson",
+              "type": "string",
+              "value": "[{\"email\":\"cameron@livetransparent.com\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.co\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.agency\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.org\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100}]"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS \"ColdOutreach_Release_Log\" ( id BIGSERIAL PRIMARY KEY, apollo_row_id BIGINT UNIQUE, contact_email TEXT, ghl_contact_id TEXT, sender_email TEXT NOT NULL, release_date DATE NOT NULL DEFAULT CURRENT_DATE, release_ts TIMESTAMPTZ NOT NULL DEFAULT NOW(), status TEXT NOT NULL DEFAULT 'queued', run_id TEXT ); CREATE INDEX IF NOT EXISTS cold_outreach_release_log_idx_sender_date ON \"ColdOutreach_Release_Log\" (sender_email, release_date);",
+        "options": {}
+      },
+      "id": "ensure",
+      "name": "Ensure Release Log Table",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT a.id AS apollo_row_id, a.first_name, a.last_name, a.email, COALESCE(NULLIF(a.mobile_phone,''), NULLIF(a.corporate_phone,''), NULLIF(a.work_direct_phone,''), NULLIF(a.home_phone,''), NULLIF(a.other_phone,'')) AS phone, a.company_name, a.city, a.state, a.country, a.company_city, a.company_state, a.company_country, row_to_json(a)->>'timezone' AS timezone, row_to_json(a)->>'contact_timezone' AS contact_timezone, a.tags FROM \"Apollo_Contacts\" a WHERE COALESCE(a.email,'') <> '' AND COALESCE(a.tags,'') ILIKE '%cold-outreach%' AND NOT EXISTS (SELECT 1 FROM \"ColdOutreach_Release_Log\" r WHERE r.apollo_row_id = a.id) ORDER BY a.id ASC LIMIT {{$item(0).$node[\"Config\"].json.candidateLimit}};",
+        "options": {}
+      },
+      "id": "fetch",
+      "name": "Fetch Cold Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT sender_email, due_today FROM (\n  SELECT sender_email, COUNT(*)::int AS due_today\n  FROM \"ColdOutreach_Release_Log\"\n  WHERE release_date IN (CURRENT_DATE, CURRENT_DATE - INTERVAL '2 day', CURRENT_DATE - INTERVAL '4 day', CURRENT_DATE - INTERVAL '7 day', CURRENT_DATE - INTERVAL '11 day')\n  GROUP BY sender_email\n  UNION ALL\n  SELECT '__none__'::text AS sender_email, 0::int AS due_today\n) x;",
+        "options": {}
+      },
+      "id": "inflight",
+      "name": "Estimate InFlight Due Today",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $item(0).$node['Config'].json || {};\nconst dryRun = !!cfg.defaultDryRun;\nconst locationId = String(cfg.locationId || '').trim();\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst queueTag = String(cfg.queueTag || 'Enrollment Queue - Cannabis Ads').trim();\nconst senderFieldName = String(cfg.senderFieldName || 'marketing_sender_email').trim();\nconst warmupWeek = Math.max(1, Math.trunc(Number(cfg.warmupWeekOverride || 1)));\n\nif (!locationId) throw new Error('Missing locationId');\nif (!dryRun && !apiKey) throw new Error('Missing apiKey in live mode');\n\nconst nowEt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));\nconst nowPt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));\nconst etHour = nowEt.getHours();\nconst ptHour = nowPt.getHours();\nconst isSundayEt = nowEt.getDay() === 0;\nconst withinDispatchWindow = !isSundayEt && etHour >= 8 && ptHour < 17;\n\nlet senders = [];\ntry {\n  senders = JSON.parse(String(cfg.sendersJson || '[]'));\n} catch {\n  throw new Error('Invalid sendersJson');\n}\n\nsenders = senders\n  .filter((s) => s && s.active !== false && s.email)\n  .map((s) => ({\n    email: String(s.email).toLowerCase().trim(),\n    weight: Math.max(1, Math.trunc(Number(s.weight || 1))),\n    cap:\n      warmupWeek <= 1\n        ? Number(s.capWeek1 || 50)\n        : warmupWeek === 2\n          ? Number(s.capWeek2 || 75)\n          : Number(s.capWeek3 || 100),\n  }));\nif (!senders.length) throw new Error('No active senders');\n\nconst candidates = $items('Fetch Cold Candidates').map((i) => i.json || {});\nconst inflight = $items('Estimate InFlight Due Today').map((i) => i.json || {});\nconst backlogTotal = Number($items('Count Unreleased Candidates')[0]?.json?.total_unreleased || 0);\n\nconst inflightMap = new Map(\n  inflight.map((r) => [String(r.sender_email || '').toLowerCase(), Number(r.due_today || 0)]),\n);\n\nconst minSafety = Math.max(1, Math.trunc(Number(cfg.minSafetyBuffer || 5)));\nconst pctSafety = Number(cfg.safetyBufferPct || 0.1);\nfor (const s of senders) {\n  const safety = Math.max(minSafety, Math.round(s.cap * pctSafety));\n  s.remaining = Math.max(0, s.cap - Number(inflightMap.get(s.email) || 0) - safety);\n  s.safetyBuffer = safety;\n  s.inFlightDueToday = Number(inflightMap.get(s.email) || 0);\n}\n\nconst ring = [];\nfor (const s of senders) for (let i = 0; i < s.weight; i++) ring.push(s.email);\n\nfunction hashString(str) {\n  let h = 0;\n  const s = String(str || '');\n  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;\n  return Math.abs(h);\n}\n\nfunction pickSenderForCandidate(seedRaw) {\n  if (!ring.length) return '';\n  const seed = Math.abs(Number(seedRaw || 0)) || 0;\n  const start = seed % ring.length;\n  for (let i = 0; i < ring.length; i++) {\n    const email = ring[(start + i) % ring.length];\n    const sender = senders.find((x) => x.email === email);\n    if (sender && sender.remaining > 0) {\n      sender.remaining -= 1;\n      return sender.email;\n    }\n  }\n  return '';\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headers = {\n  Authorization: `Bearer ${apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nfunction sleep(ms) {\n  return new Promise((resolve) => setTimeout(resolve, ms));\n}\n\nasync function apiRequest(method, path, body) {\n  const options = { method, url: `${apiBaseUrl}${path}`, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return { ok: false, data: err?.response?.body || err?.message || err };\n  }\n}\n\nfunction isValidTimeZone(tz) {\n  try {\n    new Intl.DateTimeFormat('en-US', { timeZone: tz });\n    return true;\n  } catch {\n    return false;\n  }\n}\n\nconst usStateToTz = {\n  AL: 'America/Chicago', AK: 'America/Anchorage', AZ: 'America/Phoenix', AR: 'America/Chicago',\n  CA: 'America/Los_Angeles', CO: 'America/Denver', CT: 'America/New_York', DE: 'America/New_York',\n  FL: 'America/New_York', GA: 'America/New_York', HI: 'Pacific/Honolulu', ID: 'America/Denver',\n  IL: 'America/Chicago', IN: 'America/Indiana/Indianapolis', IA: 'America/Chicago', KS: 'America/Chicago',\n  KY: 'America/New_York', LA: 'America/Chicago', ME: 'America/New_York', MD: 'America/New_York',\n  MA: 'America/New_York', MI: 'America/New_York', MN: 'America/Chicago', MS: 'America/Chicago',\n  MO: 'America/Chicago', MT: 'America/Denver', NE: 'America/Chicago', NV: 'America/Los_Angeles',\n  NH: 'America/New_York', NJ: 'America/New_York', NM: 'America/Denver', NY: 'America/New_York',\n  NC: 'America/New_York', ND: 'America/Chicago', OH: 'America/New_York', OK: 'America/Chicago',\n  OR: 'America/Los_Angeles', PA: 'America/New_York', RI: 'America/New_York', SC: 'America/New_York',\n  SD: 'America/Chicago', TN: 'America/Chicago', TX: 'America/Chicago', UT: 'America/Denver',\n  VT: 'America/New_York', VA: 'America/New_York', WA: 'America/Los_Angeles', WV: 'America/New_York',\n  WI: 'America/Chicago', WY: 'America/Denver', DC: 'America/New_York'\n};\n\nconst usStateNameToCode = {\n  ALABAMA:'AL', ALASKA:'AK', ARIZONA:'AZ', ARKANSAS:'AR', CALIFORNIA:'CA', COLORADO:'CO', CONNECTICUT:'CT', DELAWARE:'DE',\n  FLORIDA:'FL', GEORGIA:'GA', HAWAII:'HI', IDAHO:'ID', ILLINOIS:'IL', INDIANA:'IN', IOWA:'IA', KANSAS:'KS', KENTUCKY:'KY',\n  LOUISIANA:'LA', MAINE:'ME', MARYLAND:'MD', MASSACHUSETTS:'MA', MICHIGAN:'MI', MINNESOTA:'MN', MISSISSIPPI:'MS', MISSOURI:'MO',\n  MONTANA:'MT', NEBRASKA:'NE', NEVADA:'NV', 'NEW HAMPSHIRE':'NH', 'NEW JERSEY':'NJ', 'NEW MEXICO':'NM', 'NEW YORK':'NY',\n  'NORTH CAROLINA':'NC', 'NORTH DAKOTA':'ND', OHIO:'OH', OKLAHOMA:'OK', OREGON:'OR', PENNSYLVANIA:'PA', 'RHODE ISLAND':'RI',\n  'SOUTH CAROLINA':'SC', 'SOUTH DAKOTA':'SD', TENNESSEE:'TN', TEXAS:'TX', UTAH:'UT', VERMONT:'VT', VIRGINIA:'VA', WASHINGTON:'WA',\n  'WEST VIRGINIA':'WV', WISCONSIN:'WI', WYOMING:'WY', 'DISTRICT OF COLUMBIA':'DC'\n};\n\nconst caProvinceToTz = {\n  AB: 'America/Edmonton', BC: 'America/Vancouver', MB: 'America/Winnipeg', NB: 'America/Moncton',\n  NL: 'America/St_Johns', NS: 'America/Halifax', NT: 'America/Yellowknife', NU: 'America/Iqaluit',\n  ON: 'America/Toronto', PE: 'America/Halifax', QC: 'America/Toronto', SK: 'America/Regina', YT: 'America/Whitehorse'\n};\n\nconst caProvinceNameToCode = {\n  ALBERTA:'AB', 'BRITISH COLUMBIA':'BC', MANITOBA:'MB', 'NEW BRUNSWICK':'NB', NEWFOUNDLAND:'NL',\n  'NEWFOUNDLAND AND LABRADOR':'NL', 'NOVA SCOTIA':'NS', 'NORTHWEST TERRITORIES':'NT', NUNAVUT:'NU',\n  ONTARIO:'ON', 'PRINCE EDWARD ISLAND':'PE', QUEBEC:'QC', SASKATCHEWAN:'SK', YUKON:'YT'\n};\n\nfunction norm(v) {\n  return String(v || '').trim();\n}\n\nfunction normState(v) {\n  return norm(v).toUpperCase().replace(/\\./g, '').replace(/\\s+/g, ' ');\n}\n\nfunction normCountry(v) {\n  return norm(v).toUpperCase().replace(/\\./g, '').replace(/\\s+/g, ' ');\n}\n\nfunction resolveContactTimezone(c) {\n  const explicitTz = norm(c.contact_timezone) || norm(c.timezone);\n  if (explicitTz && isValidTimeZone(explicitTz)) return explicitTz;\n\n  const stateNorm = normState(norm(c.state) || norm(c.company_state));\n  const countryNorm = normCountry(norm(c.country) || norm(c.company_country));\n\n  const usCodes = new Set(['US', 'USA', 'UNITED STATES', 'UNITED STATES OF AMERICA']);\n  const caCodes = new Set(['CA', 'CAN', 'CANADA']);\n\n  let stateCode = stateNorm;\n  if (stateCode.length > 2) {\n    stateCode = usStateNameToCode[stateCode] || caProvinceNameToCode[stateCode] || stateCode;\n  }\n\n  if (!countryNorm || usCodes.has(countryNorm)) {\n    if (usStateToTz[stateCode]) return usStateToTz[stateCode];\n  }\n\n  if (caCodes.has(countryNorm)) {\n    if (caProvinceToTz[stateCode]) return caProvinceToTz[stateCode];\n  }\n\n  if (usStateToTz[stateCode]) return usStateToTz[stateCode];\n  if (caProvinceToTz[stateCode]) return caProvinceToTz[stateCode];\n\n  return '';\n}\n\nlet senderFieldId = '';\nif (!dryRun) {\n  const cf = await apiRequest.call(this, 'GET', `/locations/${locationId}/customFields?model=contact`);\n  if (!cf.ok) throw new Error(`Failed custom fields lookup: ${JSON.stringify(cf.data)}`);\n  const arr = Array.isArray(cf.data?.customFields)\n    ? cf.data.customFields\n    : Array.isArray(cf.data?.data?.customFields)\n      ? cf.data.data.customFields\n      : Array.isArray(cf.data?.data)\n        ? cf.data.data\n        : [];\n  senderFieldId = arr.find((f) => String(f?.name || '').trim() === senderFieldName)?.id || '';\n  if (!senderFieldId) throw new Error(`Missing GHL field: ${senderFieldName}`);\n}\n\nconst runId = `${new Date().toISOString()}__sender_release`;\nconst out = [];\n\nif (!withinDispatchWindow) {\n  out.push({\n    json: {\n      status: 'summary',\n      summary: {\n        ok: true,\n        dryRun,\n        runId,\n        warmupWeek,\n        windowOpen: false,\n        windowLabel: 'Mon-Sat, 8:00 AM ET to 5:00 PM PT',\n        sundayBlocked: isSundayEt,\n        currentEtHour: etHour,\n        currentPtHour: ptHour,\n        candidates: 0,\n        totalUnreleased: backlogTotal,\n        backlogBeyondBatch: backlogTotal,\n        planned: 0,\n        queued: 0,\n        deferred: 0,\n        deferredOutsideBusinessHours: 0,\n        deferredMissingTimezone: 0,\n        errors: 0,\n        warnings: [isSundayEt ? 'SUNDAY_BLOCKED: no dispatch on Sundays.' : 'DISPATCH_WINDOW_CLOSED: no contacts dispatched outside Mon-Sat 8:00 AM ET to 5:00 PM PT.'],\n        senders: senders.map((s) => ({\n          email: s.email,\n          cap: s.cap,\n          inFlightDueToday: s.inFlightDueToday,\n          safetyBuffer: s.safetyBuffer,\n          remainingAfterPlan: s.remaining,\n        })),\n      },\n    },\n  });\n  return out;\n}\n\nfor (const c of candidates) {\n  const rowId = Number(c.apollo_row_id || 0);\n  const email = String(c.email || '').trim();\n\n  if (!email) {\n    out.push({ json: { status: 'skipped_missing_email', apollo_row_id: c.apollo_row_id } });\n    continue;\n  }\n\n  const contactTz = resolveContactTimezone(c);\n  if (!contactTz) {\n    out.push({ json: { status: 'deferred_missing_timezone', apollo_row_id: rowId || null, email } });\n    continue;\n  }\n\n  const localNow = new Date(new Date().toLocaleString('en-US', { timeZone: contactTz }));\n  const localHour = localNow.getHours();\n  if (localHour < 8 || localHour >= 17) {\n    out.push({ json: { status: 'deferred_outside_business_hours', apollo_row_id: rowId || null, email, timezone: contactTz, localHour } });\n    continue;\n  }\n\n  const sender = pickSenderForCandidate(rowId || hashString(email));\n  if (!sender) {\n    out.push({ json: { status: 'deferred_no_capacity', apollo_row_id: c.apollo_row_id, email } });\n    continue;\n  }\n\n  if (dryRun) {\n    out.push({\n      json: {\n        status: 'planned',\n        apollo_row_id: c.apollo_row_id,\n        email,\n        sender_email: sender,\n        timezone: contactTz,\n        run_id: runId,\n      },\n    });\n    continue;\n  }\n\n  let contactId = '';\n  let contactSource = '';\n\n  const dup = await apiRequest.call(\n    this,\n    'GET',\n    `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}`,\n  );\n\n  if (dup.ok && dup.data?.contact?.id) {\n    contactId = String(dup.data.contact.id);\n    contactSource = 'existing';\n  }\n\n  if (!contactId) {\n    await sleep(200);\n    const upsert = await apiRequest.call(this, 'POST', '/contacts/upsert', {\n      locationId,\n      email,\n      firstName: c.first_name || undefined,\n      lastName: c.last_name || undefined,\n      phone: c.phone || undefined,\n      companyName: c.company_name || undefined,\n    });\n    if (!upsert.ok) {\n      out.push({ json: { status: 'error_upsert', apollo_row_id: rowId || null, email, sender_email: sender, details: upsert.data } });\n      continue;\n    }\n    contactId = String(upsert.data?.contact?.id || upsert.data?.id || upsert.data?.contactId || '');\n    contactSource = 'upsert';\n  }\n\n  if (!contactId) {\n    out.push({ json: { status: 'error_contact_id', apollo_row_id: rowId || null, email, sender_email: sender, details: dup.data } });\n    continue;\n  }\n\n  const setField = await apiRequest.call(this, 'PUT', `/contacts/${contactId}`, {\n    customFields: [{ id: senderFieldId, value: sender }],\n  });\n\n  if (!setField.ok) {\n    out.push({ json: { status: 'error_set_sender', apollo_row_id: rowId || null, email, sender_email: sender, contact_id: contactId, details: setField.data } });\n    continue;\n  }\n\n  const tag = await apiRequest.call(this, 'POST', `/contacts/${contactId}/tags`, { tags: [queueTag] });\n  if (!tag.ok) {\n    out.push({ json: { status: 'error_add_queue_tag', apollo_row_id: rowId || null, email, sender_email: sender, contact_id: contactId, details: tag.data } });\n    continue;\n  }\n\n  out.push({\n    json: {\n      status: 'queued',\n      apollo_row_id: rowId || null,\n      email,\n      sender_email: sender,\n      contact_id: contactId,\n      contact_source: contactSource,\n      timezone: contactTz,\n      run_id: runId,\n    },\n  });\n}\n\nconst warnings = [];\nif (dryRun) warnings.push('DRY_RUN_ACTIVE: no GHL writes or release log inserts are executed.');\nif (!apiKey) warnings.push('GHL_API_KEY_EMPTY: apiKey is blank in Config/env.');\nwarnings.push('Deferred contacts are retried automatically on next run because they are not inserted into release log.');\n\nout.push({\n  json: {\n    status: 'summary',\n    summary: {\n      ok: true,\n      dryRun,\n      runId,\n      warmupWeek,\n      windowOpen: true,\n      windowLabel: 'Mon-Sat, 8:00 AM ET to 5:00 PM PT',\n      sundayBlocked: isSundayEt,\n      currentEtHour: etHour,\n      currentPtHour: ptHour,\n      candidates: candidates.length,\n      totalUnreleased: backlogTotal,\n      backlogBeyondBatch: Math.max(0, backlogTotal - candidates.length),\n      planned: out.filter((x) => x.json.status === 'planned').length,\n      queued: out.filter((x) => x.json.status === 'queued').length,\n      deferred: out.filter((x) => String(x.json.status || '').startsWith('deferred_')).length,\n      deferredOutsideBusinessHours: out.filter((x) => x.json.status === 'deferred_outside_business_hours').length,\n      deferredMissingTimezone: out.filter((x) => x.json.status === 'deferred_missing_timezone').length,\n      errors: out.filter((x) => String(x.json.status || '').startsWith('error_')).length,\n      warnings,\n      senders: senders.map((s) => ({\n        email: s.email,\n        cap: s.cap,\n        inFlightDueToday: s.inFlightDueToday,\n        safetyBuffer: s.safetyBuffer,\n        remainingAfterPlan: s.remaining,\n      })),\n    },\n  },\n});\n\nreturn out;\n"
+      },
+      "id": "dispatch",
+      "name": "Dispatch + Queue (DryRun Safe)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO \"ColdOutreach_Release_Log\" (apollo_row_id, contact_email, ghl_contact_id, sender_email, release_date, release_ts, status, run_id) VALUES ($1,$2,$3,$4,CURRENT_DATE,NOW(),'queued',$5) ON CONFLICT (apollo_row_id) DO NOTHING;",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{ [ $json.apollo_row_id, $json.email || null, $json.contact_id || null, $json.sender_email || null, $json.run_id || null ] }}"
+        }
+      },
+      "id": "write",
+      "name": "Write Release Log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2016,
+        272
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $items('Dispatch + Queue (DryRun Safe)').map((i) => i.json || {});\nconst summary = rows.find((r) => r.status === 'summary') || null;\nconst sample = rows.filter((r) => r.status !== 'summary').slice(0, 20);\nreturn [{ json: { ok: true, summary: summary?.summary || null, sample } }];"
+      },
+      "id": "summary",
+      "name": "Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "content": " LT - Cold Outreach Sender Release Dispatcher (LIVE)\n\n  Purpose\n  - Release cold-outreach contacts into GHL in controlled daily flow.\n  - Assign sender email fairly across active sender pool.\n  - Set contact field marketing_sender_email.\n  - Add Enrollment Queue tag for Cannabis Ads router.\n  - Protect sender warm-up limits and avoid over-sending.\n\n  Run Schedule\n  - Runs hourly, including Sundays (for monitoring/summaries).\n  - Dispatch is allowed only:\n    - Mon-Sat\n    - 8:00 AM ET to 5:00 PM PT\n  - Sundays: summary-only, zero dispatch.\n\n  Source + Eligibility\n  - Source table: Postgres \"Apollo_Contacts\".\n  - Candidate must:\n    - have email\n    - have tag containing \"cold-outreach\"\n    - not exist in \"ColdOutreach_Release_Log\" (not yet released)\n\n  Time Gating (Two Layers)\n  1) Global window gate\n  - Must be Mon-Sat and inside 8:00 AM ET to 5:00 PM PT.\n  - If closed: workflow returns summary and exits (no writes).\n\n  2) Per-contact local business hours gate\n  - Contact must be within local 8:00 AM-4:59 PM.\n  - Timezone resolution:\n    - use explicit timezone/contact_timezone if valid\n    - else fallback from state/country (US state map, CA province map)\n  - If outside local hours: deferred_outside_business_hours\n  - If timezone cannot be resolved: deferred_missing_timezone\n  - Deferred contacts are retried automatically on future runs.\n\n  Sender Allocation + Capacity\n  - Sender pool from Config sendersJson (currently 4 senders, equal weight).\n  - Caps by warmupWeekOverride:\n    - Week 1: 50\n    - Week 2: 75\n    - Week 3: 100\n  - Capacity guard:\n    - subtracts safety buffer (max(minSafetyBuffer, cap * safetyBufferPct))\n  - Deterministic sender assignment by contact seed (stable distribution).\n\n  Live Actions Per Contact\n  3) If not found, upsert/create contact in GHL.\n  4) Update custom field marketing_sender_email.\n  5) Add Enrollment Queue tag \"Enrollment Queue - Cannabis Ads\".\n  6) Write release row to \"ColdOutreach_Release_Log\" with status queued.\n\n  Retry/Idempotency Behavior\n  - Only successfully queued contacts are inserted into release log.\n  - Deferred/error contacts are not marked released and will retry automatically.\n\n  Summary Fields to Watch\n  - windowOpen, sundayBlocked, windowLabel\n  - candidates, totalUnreleased, backlogBeyondBatch\n  - queued, planned, deferred, deferredOutsideBusinessHours, deferredMissingTimezone, errors\n  - sender remaining capacity snapshot per run\n\n  Current Live Config\n  - active: true\n  - defaultDryRun: false\n  - schedule: hourly\n  - candidateLimit: 500\n  - warmupWeekOverride: 2",
+        "height": 1472,
+        "width": 608
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -592
+      ],
+      "id": "2d3be017-658a-43c0-b64d-91921a72a7fa",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*)::int AS total_unreleased FROM \"Apollo_Contacts\" a WHERE COALESCE(a.email,'') <> '' AND COALESCE(a.tags,'') ILIKE '%cold-outreach%' AND NOT EXISTS (SELECT 1 FROM \"ColdOutreach_Release_Log\" r WHERE r.apollo_row_id = a.id);",
+        "options": {}
+      },
+      "id": "count_unreleased",
+      "name": "Count Unreleased Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1344,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter(i => (i.json || {}).status === 'queued').map(i => ({ json: i.json }));"
+      },
+      "id": "only_queued",
+      "name": "Only Queued",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        272
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Ensure Release Log Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Release Log Table": {
+      "main": [
+        [
+          {
+            "node": "Fetch Cold Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Cold Candidates": {
+      "main": [
+        [
+          {
+            "node": "Estimate InFlight Due Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estimate InFlight Due Today": {
+      "main": [
+        [
+          {
+            "node": "Count Unreleased Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dispatch + Queue (DryRun Safe)": {
+      "main": [
+        [
+          {
+            "node": "Only Queued",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Unreleased Candidates": {
+      "main": [
+        [
+          {
+            "node": "Dispatch + Queue (DryRun Safe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Queued": {
+      "main": [
+        [
+          {
+            "node": "Write Release Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Release Log": {
+      "main": []
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "99MrjrJPoJbbf3Zp"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "0435e8ab-3c6b-4109-bf2e-e4d3b22c2524",
+  "activeVersionId": "0435e8ab-3c6b-4109-bf2e-e4d3b22c2524",
+  "versionCounter": 113,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-20T09:28:35.191Z",
+      "createdAt": "2026-02-20T09:28:35.191Z",
+      "role": "workflow:owner",
+      "workflowId": "NTpQnMrpjzusPXHX",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-07T20:45:32.695Z",
+    "createdAt": "2026-03-07T20:45:32.695Z",
+    "versionId": "0435e8ab-3c6b-4109-bf2e-e4d3b22c2524",
+    "workflowId": "NTpQnMrpjzusPXHX",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours"
+              }
+            ]
+          }
+        },
+        "id": "schedule",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          224,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "location",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "base",
+                "name": "apiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "apikey",
+                "name": "apiKey",
+                "type": "string",
+                "value": "pit-a55a45b3-f933-4898-9cbb-7cfe74c95d28"
+              },
+              {
+                "id": "dry",
+                "name": "defaultDryRun",
+                "type": "boolean",
+                "value": false
+              },
+              {
+                "id": "tag",
+                "name": "queueTag",
+                "type": "string",
+                "value": "Enrollment Queue - Cannabis Ads"
+              },
+              {
+                "id": "field",
+                "name": "senderFieldName",
+                "type": "string",
+                "value": "marketing_sender_email"
+              },
+              {
+                "id": "limit",
+                "name": "candidateLimit",
+                "type": "number",
+                "value": 500
+              },
+              {
+                "id": "pct",
+                "name": "safetyBufferPct",
+                "type": "number",
+                "value": 0.1
+              },
+              {
+                "id": "min",
+                "name": "minSafetyBuffer",
+                "type": "number",
+                "value": 5
+              },
+              {
+                "id": "week",
+                "name": "warmupWeekOverride",
+                "type": "number",
+                "value": 2
+              },
+              {
+                "id": "senders",
+                "name": "sendersJson",
+                "type": "string",
+                "value": "[{\"email\":\"cameron@livetransparent.com\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.co\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.agency\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.org\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100}]"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "config",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          448,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "CREATE TABLE IF NOT EXISTS \"ColdOutreach_Release_Log\" ( id BIGSERIAL PRIMARY KEY, apollo_row_id BIGINT UNIQUE, contact_email TEXT, ghl_contact_id TEXT, sender_email TEXT NOT NULL, release_date DATE NOT NULL DEFAULT CURRENT_DATE, release_ts TIMESTAMPTZ NOT NULL DEFAULT NOW(), status TEXT NOT NULL DEFAULT 'queued', run_id TEXT ); CREATE INDEX IF NOT EXISTS cold_outreach_release_log_idx_sender_date ON \"ColdOutreach_Release_Log\" (sender_email, release_date);",
+          "options": {}
+        },
+        "id": "ensure",
+        "name": "Ensure Release Log Table",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          672,
+          176
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT a.id AS apollo_row_id, a.first_name, a.last_name, a.email, COALESCE(NULLIF(a.mobile_phone,''), NULLIF(a.corporate_phone,''), NULLIF(a.work_direct_phone,''), NULLIF(a.home_phone,''), NULLIF(a.other_phone,'')) AS phone, a.company_name, a.city, a.state, a.country, a.company_city, a.company_state, a.company_country, row_to_json(a)->>'timezone' AS timezone, row_to_json(a)->>'contact_timezone' AS contact_timezone, a.tags FROM \"Apollo_Contacts\" a WHERE COALESCE(a.email,'') <> '' AND COALESCE(a.tags,'') ILIKE '%cold-outreach%' AND NOT EXISTS (SELECT 1 FROM \"ColdOutreach_Release_Log\" r WHERE r.apollo_row_id = a.id) ORDER BY a.id ASC LIMIT {{$item(0).$node[\"Config\"].json.candidateLimit}};",
+          "options": {}
+        },
+        "id": "fetch",
+        "name": "Fetch Cold Candidates",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          896,
+          176
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT sender_email, due_today FROM (\n  SELECT sender_email, COUNT(*)::int AS due_today\n  FROM \"ColdOutreach_Release_Log\"\n  WHERE release_date IN (CURRENT_DATE, CURRENT_DATE - INTERVAL '2 day', CURRENT_DATE - INTERVAL '4 day', CURRENT_DATE - INTERVAL '7 day', CURRENT_DATE - INTERVAL '11 day')\n  GROUP BY sender_email\n  UNION ALL\n  SELECT '__none__'::text AS sender_email, 0::int AS due_today\n) x;",
+          "options": {}
+        },
+        "id": "inflight",
+        "name": "Estimate InFlight Due Today",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1120,
+          176
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const cfg = $item(0).$node['Config'].json || {};\nconst dryRun = !!cfg.defaultDryRun;\nconst locationId = String(cfg.locationId || '').trim();\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst queueTag = String(cfg.queueTag || 'Enrollment Queue - Cannabis Ads').trim();\nconst senderFieldName = String(cfg.senderFieldName || 'marketing_sender_email').trim();\nconst warmupWeek = Math.max(1, Math.trunc(Number(cfg.warmupWeekOverride || 1)));\n\nif (!locationId) throw new Error('Missing locationId');\nif (!dryRun && !apiKey) throw new Error('Missing apiKey in live mode');\n\nconst nowEt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));\nconst nowPt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));\nconst etHour = nowEt.getHours();\nconst ptHour = nowPt.getHours();\nconst isSundayEt = nowEt.getDay() === 0;\nconst withinDispatchWindow = !isSundayEt && etHour >= 8 && ptHour < 17;\n\nlet senders = [];\ntry {\n  senders = JSON.parse(String(cfg.sendersJson || '[]'));\n} catch {\n  throw new Error('Invalid sendersJson');\n}\n\nsenders = senders\n  .filter((s) => s && s.active !== false && s.email)\n  .map((s) => ({\n    email: String(s.email).toLowerCase().trim(),\n    weight: Math.max(1, Math.trunc(Number(s.weight || 1))),\n    cap:\n      warmupWeek <= 1\n        ? Number(s.capWeek1 || 50)\n        : warmupWeek === 2\n          ? Number(s.capWeek2 || 75)\n          : Number(s.capWeek3 || 100),\n  }));\nif (!senders.length) throw new Error('No active senders');\n\nconst candidates = $items('Fetch Cold Candidates').map((i) => i.json || {});\nconst inflight = $items('Estimate InFlight Due Today').map((i) => i.json || {});\nconst backlogTotal = Number($items('Count Unreleased Candidates')[0]?.json?.total_unreleased || 0);\n\nconst inflightMap = new Map(\n  inflight.map((r) => [String(r.sender_email || '').toLowerCase(), Number(r.due_today || 0)]),\n);\n\nconst minSafety = Math.max(1, Math.trunc(Number(cfg.minSafetyBuffer || 5)));\nconst pctSafety = Number(cfg.safetyBufferPct || 0.1);\nfor (const s of senders) {\n  const safety = Math.max(minSafety, Math.round(s.cap * pctSafety));\n  s.remaining = Math.max(0, s.cap - Number(inflightMap.get(s.email) || 0) - safety);\n  s.safetyBuffer = safety;\n  s.inFlightDueToday = Number(inflightMap.get(s.email) || 0);\n}\n\nconst ring = [];\nfor (const s of senders) for (let i = 0; i < s.weight; i++) ring.push(s.email);\n\nfunction hashString(str) {\n  let h = 0;\n  const s = String(str || '');\n  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;\n  return Math.abs(h);\n}\n\nfunction pickSenderForCandidate(seedRaw) {\n  if (!ring.length) return '';\n  const seed = Math.abs(Number(seedRaw || 0)) || 0;\n  const start = seed % ring.length;\n  for (let i = 0; i < ring.length; i++) {\n    const email = ring[(start + i) % ring.length];\n    const sender = senders.find((x) => x.email === email);\n    if (sender && sender.remaining > 0) {\n      sender.remaining -= 1;\n      return sender.email;\n    }\n  }\n  return '';\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headers = {\n  Authorization: `Bearer ${apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nfunction sleep(ms) {\n  return new Promise((resolve) => setTimeout(resolve, ms));\n}\n\nasync function apiRequest(method, path, body) {\n  const options = { method, url: `${apiBaseUrl}${path}`, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return { ok: false, data: err?.response?.body || err?.message || err };\n  }\n}\n\nfunction isValidTimeZone(tz) {\n  try {\n    new Intl.DateTimeFormat('en-US', { timeZone: tz });\n    return true;\n  } catch {\n    return false;\n  }\n}\n\nconst usStateToTz = {\n  AL: 'America/Chicago', AK: 'America/Anchorage', AZ: 'America/Phoenix', AR: 'America/Chicago',\n  CA: 'America/Los_Angeles', CO: 'America/Denver', CT: 'America/New_York', DE: 'America/New_York',\n  FL: 'America/New_York', GA: 'America/New_York', HI: 'Pacific/Honolulu', ID: 'America/Denver',\n  IL: 'America/Chicago', IN: 'America/Indiana/Indianapolis', IA: 'America/Chicago', KS: 'America/Chicago',\n  KY: 'America/New_York', LA: 'America/Chicago', ME: 'America/New_York', MD: 'America/New_York',\n  MA: 'America/New_York', MI: 'America/New_York', MN: 'America/Chicago', MS: 'America/Chicago',\n  MO: 'America/Chicago', MT: 'America/Denver', NE: 'America/Chicago', NV: 'America/Los_Angeles',\n  NH: 'America/New_York', NJ: 'America/New_York', NM: 'America/Denver', NY: 'America/New_York',\n  NC: 'America/New_York', ND: 'America/Chicago', OH: 'America/New_York', OK: 'America/Chicago',\n  OR: 'America/Los_Angeles', PA: 'America/New_York', RI: 'America/New_York', SC: 'America/New_York',\n  SD: 'America/Chicago', TN: 'America/Chicago', TX: 'America/Chicago', UT: 'America/Denver',\n  VT: 'America/New_York', VA: 'America/New_York', WA: 'America/Los_Angeles', WV: 'America/New_York',\n  WI: 'America/Chicago', WY: 'America/Denver', DC: 'America/New_York'\n};\n\nconst usStateNameToCode = {\n  ALABAMA:'AL', ALASKA:'AK', ARIZONA:'AZ', ARKANSAS:'AR', CALIFORNIA:'CA', COLORADO:'CO', CONNECTICUT:'CT', DELAWARE:'DE',\n  FLORIDA:'FL', GEORGIA:'GA', HAWAII:'HI', IDAHO:'ID', ILLINOIS:'IL', INDIANA:'IN', IOWA:'IA', KANSAS:'KS', KENTUCKY:'KY',\n  LOUISIANA:'LA', MAINE:'ME', MARYLAND:'MD', MASSACHUSETTS:'MA', MICHIGAN:'MI', MINNESOTA:'MN', MISSISSIPPI:'MS', MISSOURI:'MO',\n  MONTANA:'MT', NEBRASKA:'NE', NEVADA:'NV', 'NEW HAMPSHIRE':'NH', 'NEW JERSEY':'NJ', 'NEW MEXICO':'NM', 'NEW YORK':'NY',\n  'NORTH CAROLINA':'NC', 'NORTH DAKOTA':'ND', OHIO:'OH', OKLAHOMA:'OK', OREGON:'OR', PENNSYLVANIA:'PA', 'RHODE ISLAND':'RI',\n  'SOUTH CAROLINA':'SC', 'SOUTH DAKOTA':'SD', TENNESSEE:'TN', TEXAS:'TX', UTAH:'UT', VERMONT:'VT', VIRGINIA:'VA', WASHINGTON:'WA',\n  'WEST VIRGINIA':'WV', WISCONSIN:'WI', WYOMING:'WY', 'DISTRICT OF COLUMBIA':'DC'\n};\n\nconst caProvinceToTz = {\n  AB: 'America/Edmonton', BC: 'America/Vancouver', MB: 'America/Winnipeg', NB: 'America/Moncton',\n  NL: 'America/St_Johns', NS: 'America/Halifax', NT: 'America/Yellowknife', NU: 'America/Iqaluit',\n  ON: 'America/Toronto', PE: 'America/Halifax', QC: 'America/Toronto', SK: 'America/Regina', YT: 'America/Whitehorse'\n};\n\nconst caProvinceNameToCode = {\n  ALBERTA:'AB', 'BRITISH COLUMBIA':'BC', MANITOBA:'MB', 'NEW BRUNSWICK':'NB', NEWFOUNDLAND:'NL',\n  'NEWFOUNDLAND AND LABRADOR':'NL', 'NOVA SCOTIA':'NS', 'NORTHWEST TERRITORIES':'NT', NUNAVUT:'NU',\n  ONTARIO:'ON', 'PRINCE EDWARD ISLAND':'PE', QUEBEC:'QC', SASKATCHEWAN:'SK', YUKON:'YT'\n};\n\nfunction norm(v) {\n  return String(v || '').trim();\n}\n\nfunction normState(v) {\n  return norm(v).toUpperCase().replace(/\\./g, '').replace(/\\s+/g, ' ');\n}\n\nfunction normCountry(v) {\n  return norm(v).toUpperCase().replace(/\\./g, '').replace(/\\s+/g, ' ');\n}\n\nfunction resolveContactTimezone(c) {\n  const explicitTz = norm(c.contact_timezone) || norm(c.timezone);\n  if (explicitTz && isValidTimeZone(explicitTz)) return explicitTz;\n\n  const stateNorm = normState(norm(c.state) || norm(c.company_state));\n  const countryNorm = normCountry(norm(c.country) || norm(c.company_country));\n\n  const usCodes = new Set(['US', 'USA', 'UNITED STATES', 'UNITED STATES OF AMERICA']);\n  const caCodes = new Set(['CA', 'CAN', 'CANADA']);\n\n  let stateCode = stateNorm;\n  if (stateCode.length > 2) {\n    stateCode = usStateNameToCode[stateCode] || caProvinceNameToCode[stateCode] || stateCode;\n  }\n\n  if (!countryNorm || usCodes.has(countryNorm)) {\n    if (usStateToTz[stateCode]) return usStateToTz[stateCode];\n  }\n\n  if (caCodes.has(countryNorm)) {\n    if (caProvinceToTz[stateCode]) return caProvinceToTz[stateCode];\n  }\n\n  if (usStateToTz[stateCode]) return usStateToTz[stateCode];\n  if (caProvinceToTz[stateCode]) return caProvinceToTz[stateCode];\n\n  return '';\n}\n\nlet senderFieldId = '';\nif (!dryRun) {\n  const cf = await apiRequest.call(this, 'GET', `/locations/${locationId}/customFields?model=contact`);\n  if (!cf.ok) throw new Error(`Failed custom fields lookup: ${JSON.stringify(cf.data)}`);\n  const arr = Array.isArray(cf.data?.customFields)\n    ? cf.data.customFields\n    : Array.isArray(cf.data?.data?.customFields)\n      ? cf.data.data.customFields\n      : Array.isArray(cf.data?.data)\n        ? cf.data.data\n        : [];\n  senderFieldId = arr.find((f) => String(f?.name || '').trim() === senderFieldName)?.id || '';\n  if (!senderFieldId) throw new Error(`Missing GHL field: ${senderFieldName}`);\n}\n\nconst runId = `${new Date().toISOString()}__sender_release`;\nconst out = [];\n\nif (!withinDispatchWindow) {\n  out.push({\n    json: {\n      status: 'summary',\n      summary: {\n        ok: true,\n        dryRun,\n        runId,\n        warmupWeek,\n        windowOpen: false,\n        windowLabel: 'Mon-Sat, 8:00 AM ET to 5:00 PM PT',\n        sundayBlocked: isSundayEt,\n        currentEtHour: etHour,\n        currentPtHour: ptHour,\n        candidates: 0,\n        totalUnreleased: backlogTotal,\n        backlogBeyondBatch: backlogTotal,\n        planned: 0,\n        queued: 0,\n        deferred: 0,\n        deferredOutsideBusinessHours: 0,\n        deferredMissingTimezone: 0,\n        errors: 0,\n        warnings: [isSundayEt ? 'SUNDAY_BLOCKED: no dispatch on Sundays.' : 'DISPATCH_WINDOW_CLOSED: no contacts dispatched outside Mon-Sat 8:00 AM ET to 5:00 PM PT.'],\n        senders: senders.map((s) => ({\n          email: s.email,\n          cap: s.cap,\n          inFlightDueToday: s.inFlightDueToday,\n          safetyBuffer: s.safetyBuffer,\n          remainingAfterPlan: s.remaining,\n        })),\n      },\n    },\n  });\n  return out;\n}\n\nfor (const c of candidates) {\n  const rowId = Number(c.apollo_row_id || 0);\n  const email = String(c.email || '').trim();\n\n  if (!email) {\n    out.push({ json: { status: 'skipped_missing_email', apollo_row_id: c.apollo_row_id } });\n    continue;\n  }\n\n  const contactTz = resolveContactTimezone(c);\n  if (!contactTz) {\n    out.push({ json: { status: 'deferred_missing_timezone', apollo_row_id: rowId || null, email } });\n    continue;\n  }\n\n  const localNow = new Date(new Date().toLocaleString('en-US', { timeZone: contactTz }));\n  const localHour = localNow.getHours();\n  if (localHour < 8 || localHour >= 17) {\n    out.push({ json: { status: 'deferred_outside_business_hours', apollo_row_id: rowId || null, email, timezone: contactTz, localHour } });\n    continue;\n  }\n\n  const sender = pickSenderForCandidate(rowId || hashString(email));\n  if (!sender) {\n    out.push({ json: { status: 'deferred_no_capacity', apollo_row_id: c.apollo_row_id, email } });\n    continue;\n  }\n\n  if (dryRun) {\n    out.push({\n      json: {\n        status: 'planned',\n        apollo_row_id: c.apollo_row_id,\n        email,\n        sender_email: sender,\n        timezone: contactTz,\n        run_id: runId,\n      },\n    });\n    continue;\n  }\n\n  let contactId = '';\n  let contactSource = '';\n\n  const dup = await apiRequest.call(\n    this,\n    'GET',\n    `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}`,\n  );\n\n  if (dup.ok && dup.data?.contact?.id) {\n    contactId = String(dup.data.contact.id);\n    contactSource = 'existing';\n  }\n\n  if (!contactId) {\n    await sleep(200);\n    const upsert = await apiRequest.call(this, 'POST', '/contacts/upsert', {\n      locationId,\n      email,\n      firstName: c.first_name || undefined,\n      lastName: c.last_name || undefined,\n      phone: c.phone || undefined,\n      companyName: c.company_name || undefined,\n    });\n    if (!upsert.ok) {\n      out.push({ json: { status: 'error_upsert', apollo_row_id: rowId || null, email, sender_email: sender, details: upsert.data } });\n      continue;\n    }\n    contactId = String(upsert.data?.contact?.id || upsert.data?.id || upsert.data?.contactId || '');\n    contactSource = 'upsert';\n  }\n\n  if (!contactId) {\n    out.push({ json: { status: 'error_contact_id', apollo_row_id: rowId || null, email, sender_email: sender, details: dup.data } });\n    continue;\n  }\n\n  const setField = await apiRequest.call(this, 'PUT', `/contacts/${contactId}`, {\n    customFields: [{ id: senderFieldId, value: sender }],\n  });\n\n  if (!setField.ok) {\n    out.push({ json: { status: 'error_set_sender', apollo_row_id: rowId || null, email, sender_email: sender, contact_id: contactId, details: setField.data } });\n    continue;\n  }\n\n  const tag = await apiRequest.call(this, 'POST', `/contacts/${contactId}/tags`, { tags: [queueTag] });\n  if (!tag.ok) {\n    out.push({ json: { status: 'error_add_queue_tag', apollo_row_id: rowId || null, email, sender_email: sender, contact_id: contactId, details: tag.data } });\n    continue;\n  }\n\n  out.push({\n    json: {\n      status: 'queued',\n      apollo_row_id: rowId || null,\n      email,\n      sender_email: sender,\n      contact_id: contactId,\n      contact_source: contactSource,\n      timezone: contactTz,\n      run_id: runId,\n    },\n  });\n}\n\nconst warnings = [];\nif (dryRun) warnings.push('DRY_RUN_ACTIVE: no GHL writes or release log inserts are executed.');\nif (!apiKey) warnings.push('GHL_API_KEY_EMPTY: apiKey is blank in Config/env.');\nwarnings.push('Deferred contacts are retried automatically on next run because they are not inserted into release log.');\n\nout.push({\n  json: {\n    status: 'summary',\n    summary: {\n      ok: true,\n      dryRun,\n      runId,\n      warmupWeek,\n      windowOpen: true,\n      windowLabel: 'Mon-Sat, 8:00 AM ET to 5:00 PM PT',\n      sundayBlocked: isSundayEt,\n      currentEtHour: etHour,\n      currentPtHour: ptHour,\n      candidates: candidates.length,\n      totalUnreleased: backlogTotal,\n      backlogBeyondBatch: Math.max(0, backlogTotal - candidates.length),\n      planned: out.filter((x) => x.json.status === 'planned').length,\n      queued: out.filter((x) => x.json.status === 'queued').length,\n      deferred: out.filter((x) => String(x.json.status || '').startsWith('deferred_')).length,\n      deferredOutsideBusinessHours: out.filter((x) => x.json.status === 'deferred_outside_business_hours').length,\n      deferredMissingTimezone: out.filter((x) => x.json.status === 'deferred_missing_timezone').length,\n      errors: out.filter((x) => String(x.json.status || '').startsWith('error_')).length,\n      warnings,\n      senders: senders.map((s) => ({\n        email: s.email,\n        cap: s.cap,\n        inFlightDueToday: s.inFlightDueToday,\n        safetyBuffer: s.safetyBuffer,\n        remainingAfterPlan: s.remaining,\n      })),\n    },\n  },\n});\n\nreturn out;\n"
+        },
+        "id": "dispatch",
+        "name": "Dispatch + Queue (DryRun Safe)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1568,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO \"ColdOutreach_Release_Log\" (apollo_row_id, contact_email, ghl_contact_id, sender_email, release_date, release_ts, status, run_id) VALUES ($1,$2,$3,$4,CURRENT_DATE,NOW(),'queued',$5) ON CONFLICT (apollo_row_id) DO NOTHING;",
+          "options": {
+            "queryBatching": "independently",
+            "queryReplacement": "={{ [ $json.apollo_row_id, $json.email || null, $json.contact_id || null, $json.sender_email || null, $json.run_id || null ] }}"
+          }
+        },
+        "id": "write",
+        "name": "Write Release Log",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2016,
+          272
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const rows = $items('Dispatch + Queue (DryRun Safe)').map((i) => i.json || {});\nconst summary = rows.find((r) => r.status === 'summary') || null;\nconst sample = rows.filter((r) => r.status !== 'summary').slice(0, 20);\nreturn [{ json: { ok: true, summary: summary?.summary || null, sample } }];"
+        },
+        "id": "summary",
+        "name": "Summary",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1792,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "content": " LT - Cold Outreach Sender Release Dispatcher (LIVE)\n\n  Purpose\n  - Release cold-outreach contacts into GHL in controlled daily flow.\n  - Assign sender email fairly across active sender pool.\n  - Set contact field marketing_sender_email.\n  - Add Enrollment Queue tag for Cannabis Ads router.\n  - Protect sender warm-up limits and avoid over-sending.\n\n  Run Schedule\n  - Runs hourly, including Sundays (for monitoring/summaries).\n  - Dispatch is allowed only:\n    - Mon-Sat\n    - 8:00 AM ET to 5:00 PM PT\n  - Sundays: summary-only, zero dispatch.\n\n  Source + Eligibility\n  - Source table: Postgres \"Apollo_Contacts\".\n  - Candidate must:\n    - have email\n    - have tag containing \"cold-outreach\"\n    - not exist in \"ColdOutreach_Release_Log\" (not yet released)\n\n  Time Gating (Two Layers)\n  1) Global window gate\n  - Must be Mon-Sat and inside 8:00 AM ET to 5:00 PM PT.\n  - If closed: workflow returns summary and exits (no writes).\n\n  2) Per-contact local business hours gate\n  - Contact must be within local 8:00 AM-4:59 PM.\n  - Timezone resolution:\n    - use explicit timezone/contact_timezone if valid\n    - else fallback from state/country (US state map, CA province map)\n  - If outside local hours: deferred_outside_business_hours\n  - If timezone cannot be resolved: deferred_missing_timezone\n  - Deferred contacts are retried automatically on future runs.\n\n  Sender Allocation + Capacity\n  - Sender pool from Config sendersJson (currently 4 senders, equal weight).\n  - Caps by warmupWeekOverride:\n    - Week 1: 50\n    - Week 2: 75\n    - Week 3: 100\n  - Capacity guard:\n    - subtracts safety buffer (max(minSafetyBuffer, cap * safetyBufferPct))\n  - Deterministic sender assignment by contact seed (stable distribution).\n\n  Live Actions Per Contact\n  3) If not found, upsert/create contact in GHL.\n  4) Update custom field marketing_sender_email.\n  5) Add Enrollment Queue tag \"Enrollment Queue - Cannabis Ads\".\n  6) Write release row to \"ColdOutreach_Release_Log\" with status queued.\n\n  Retry/Idempotency Behavior\n  - Only successfully queued contacts are inserted into release log.\n  - Deferred/error contacts are not marked released and will retry automatically.\n\n  Summary Fields to Watch\n  - windowOpen, sundayBlocked, windowLabel\n  - candidates, totalUnreleased, backlogBeyondBatch\n  - queued, planned, deferred, deferredOutsideBusinessHours, deferredMissingTimezone, errors\n  - sender remaining capacity snapshot per run\n\n  Current Live Config\n  - active: true\n  - defaultDryRun: false\n  - schedule: hourly\n  - candidateLimit: 500\n  - warmupWeekOverride: 2",
+          "height": 1472,
+          "width": 608
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -464,
+          -592
+        ],
+        "id": "2d3be017-658a-43c0-b64d-91921a72a7fa",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT COUNT(*)::int AS total_unreleased FROM \"Apollo_Contacts\" a WHERE COALESCE(a.email,'') <> '' AND COALESCE(a.tags,'') ILIKE '%cold-outreach%' AND NOT EXISTS (SELECT 1 FROM \"ColdOutreach_Release_Log\" r WHERE r.apollo_row_id = a.id);",
+          "options": {}
+        },
+        "id": "count_unreleased",
+        "name": "Count Unreleased Candidates",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1344,
+          176
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "return $input.all().filter(i => (i.json || {}).status === 'queued').map(i => ({ json: i.json }));"
+        },
+        "id": "only_queued",
+        "name": "Only Queued",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1792,
+          272
+        ]
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Ensure Release Log Table",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure Release Log Table": {
+        "main": [
+          [
+            {
+              "node": "Fetch Cold Candidates",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Cold Candidates": {
+        "main": [
+          [
+            {
+              "node": "Estimate InFlight Due Today",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Estimate InFlight Due Today": {
+        "main": [
+          [
+            {
+              "node": "Count Unreleased Candidates",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Dispatch + Queue (DryRun Safe)": {
+        "main": [
+          [
+            {
+              "node": "Only Queued",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Count Unreleased Candidates": {
+        "main": [
+          [
+            {
+              "node": "Dispatch + Queue (DryRun Safe)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Only Queued": {
+        "main": [
+          [
+            {
+              "node": "Write Release Log",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write Release Log": {
+        "main": []
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-07T20:45:32.784Z",
+        "id": 266,
+        "workflowId": "NTpQnMrpjzusPXHX",
+        "versionId": "0435e8ab-3c6b-4109-bf2e-e4d3b22c2524",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-03-07T20:45:32.822Z",
+        "id": 267,
+        "workflowId": "NTpQnMrpjzusPXHX",
+        "versionId": "0435e8ab-3c6b-4109-bf2e-e4d3b22c2524",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

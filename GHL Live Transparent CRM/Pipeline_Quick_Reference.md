@@ -85,3 +85,20 @@
 - `Apollo Contact Id` is only written on successful phone enrichment and should align to Apollo `contact.id` when present.
 - Phone extraction now prioritizes person-level direct phone sources and callback payloads.
 - Any candidate matching existing `Corporate Phone` or `Company Phone` is treated as a company/trunkline number and ignored for direct phone writes.
+
+## RB2B Intake Quick Rules (Live)
+- n8n workflow: `rb2b leads` (`3kjsIUeoEQFx26cC`)
+- Webhook path: `/webhook/rb2b_leads_v2`
+- GHL contact resolution order:
+- email duplicate lookup first
+- exact full-name fallback second
+- Contact action:
+- update if found, upsert/create if missing
+- Tags appended (non-destructive):
+- `rb2b_website_visitor`
+- `mql`
+- Postgres persistence:
+- upsert into `RB2B_Leads` by `lead_key`
+- Follow-up task:
+- title `New RB2B contact - Call`
+- assigned to Kevin `7s3brzxGF4WSiz95DPkF`

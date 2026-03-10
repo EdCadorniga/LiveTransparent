@@ -1,0 +1,242 @@
+{
+  "updatedAt": "2026-02-24T18:02:27.821Z",
+  "createdAt": "2026-02-17T23:19:46.052Z",
+  "id": "lQTW0QPwBcf3o7j8",
+  "name": "WL - Webhook to Slack Channel Update",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wl-slack-channel-update-v2",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        272,
+        304
+      ],
+      "webhookId": "82989d12-f9a2-4a8d-a31f-ae14b7a38fb1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = ($json.body && typeof $json.body === 'object') ? $json.body : $json;\n\nconst firstName = String(incoming.firstName || incoming.first_name || '').trim();\nconst lastName = String(incoming.lastName || incoming.last_name || '').trim();\nconst fullName = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown contact';\nconst email = String(incoming.email || '').trim() || 'N/A';\nconst phone = String(incoming.phone || '').trim() || 'N/A';\n\nconst startRaw = incoming.appointmentStart || incoming.bookingStart || incoming.startTime || incoming.start || incoming.appointment_start || '';\nconst endRaw = incoming.appointmentEnd || incoming.bookingEnd || incoming.endTime || incoming.end || incoming.appointment_end || '';\nconst calendarName = String(incoming.calendarName || incoming.calendar || incoming.calendar_name || '').trim() || 'N/A';\nconst appointmentTitle = String(incoming.appointmentTitle || incoming.title || incoming.appointment_title || '').trim() || 'N/A';\nconst timezone = String(incoming.timezone || incoming.tz || 'UTC').trim();\n\nconst formatDate = (value) => {\n  if (!value) return 'N/A';\n  const dt = new Date(value);\n  if (Number.isNaN(dt.getTime())) return String(value);\n  try {\n    return dt.toLocaleString('en-US', { timeZone: timezone, dateStyle: 'medium', timeStyle: 'short' });\n  } catch {\n    return dt.toISOString();\n  }\n};\n\nconst startAt = formatDate(startRaw);\nconst endAt = formatDate(endRaw);\n\nconst text = [\n  'New booking received (#leads)',\n  `Name: ${fullName}`,\n  `Email: ${email}`,\n  `Phone: ${phone}`,\n  `Calendar: ${calendarName}`,\n  `Appointment: ${appointmentTitle}`,\n  `Start: ${startAt}`,\n  `End: ${endAt}`,\n  `Timezone: ${timezone}`\n].join('\\n');\n\nreturn [{\n  json: {\n    text,\n    sourcePayload: incoming\n  }\n}];\n"
+      },
+      "id": "build_payload",
+      "name": "Build Slack Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://hooks.slack.com/services/REDACTED",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { text: $json.text } }}",
+        "options": {},
+        "authentication": "none"
+      },
+      "id": "post_to_slack",
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        784,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Slack Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Slack Payload": {
+      "main": [
+        [
+          {
+            "node": "Post to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "e53b2ddf-4bd0-45de-b674-d0bcede9e173",
+  "activeVersionId": "e53b2ddf-4bd0-45de-b674-d0bcede9e173",
+  "versionCounter": 33,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-17T23:19:46.052Z",
+      "createdAt": "2026-02-17T23:19:46.052Z",
+      "role": "workflow:owner",
+      "workflowId": "lQTW0QPwBcf3o7j8",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-02-24T18:02:27.823Z",
+    "createdAt": "2026-02-24T18:02:27.823Z",
+    "versionId": "e53b2ddf-4bd0-45de-b674-d0bcede9e173",
+    "workflowId": "lQTW0QPwBcf3o7j8",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "wl-slack-channel-update-v2",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "webhook_trigger",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          272,
+          304
+        ],
+        "webhookId": "82989d12-f9a2-4a8d-a31f-ae14b7a38fb1"
+      },
+      {
+        "parameters": {
+          "jsCode": "const incoming = ($json.body && typeof $json.body === 'object') ? $json.body : $json;\n\nconst firstName = String(incoming.firstName || incoming.first_name || '').trim();\nconst lastName = String(incoming.lastName || incoming.last_name || '').trim();\nconst fullName = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown contact';\nconst email = String(incoming.email || '').trim() || 'N/A';\nconst phone = String(incoming.phone || '').trim() || 'N/A';\n\nconst startRaw = incoming.appointmentStart || incoming.bookingStart || incoming.startTime || incoming.start || incoming.appointment_start || '';\nconst endRaw = incoming.appointmentEnd || incoming.bookingEnd || incoming.endTime || incoming.end || incoming.appointment_end || '';\nconst calendarName = String(incoming.calendarName || incoming.calendar || incoming.calendar_name || '').trim() || 'N/A';\nconst appointmentTitle = String(incoming.appointmentTitle || incoming.title || incoming.appointment_title || '').trim() || 'N/A';\nconst timezone = String(incoming.timezone || incoming.tz || 'UTC').trim();\n\nconst formatDate = (value) => {\n  if (!value) return 'N/A';\n  const dt = new Date(value);\n  if (Number.isNaN(dt.getTime())) return String(value);\n  try {\n    return dt.toLocaleString('en-US', { timeZone: timezone, dateStyle: 'medium', timeStyle: 'short' });\n  } catch {\n    return dt.toISOString();\n  }\n};\n\nconst startAt = formatDate(startRaw);\nconst endAt = formatDate(endRaw);\n\nconst text = [\n  'New booking received (#leads)',\n  `Name: ${fullName}`,\n  `Email: ${email}`,\n  `Phone: ${phone}`,\n  `Calendar: ${calendarName}`,\n  `Appointment: ${appointmentTitle}`,\n  `Start: ${startAt}`,\n  `End: ${endAt}`,\n  `Timezone: ${timezone}`\n].join('\\n');\n\nreturn [{\n  json: {\n    text,\n    sourcePayload: incoming\n  }\n}];\n"
+        },
+        "id": "build_payload",
+        "name": "Build Slack Payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          528,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://hooks.slack.com/services/REDACTED",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { text: $json.text } }}",
+          "options": {},
+          "authentication": "none"
+        },
+        "id": "post_to_slack",
+        "name": "Post to Slack",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          784,
+          304
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Build Slack Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Slack Payload": {
+        "main": [
+          [
+            {
+              "node": "Post to Slack",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-02-24T18:02:27.960Z",
+        "id": 117,
+        "workflowId": "lQTW0QPwBcf3o7j8",
+        "versionId": "e53b2ddf-4bd0-45de-b674-d0bcede9e173",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-02-24T18:02:28.750Z",
+        "id": 118,
+        "workflowId": "lQTW0QPwBcf3o7j8",
+        "versionId": "e53b2ddf-4bd0-45de-b674-d0bcede9e173",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}
