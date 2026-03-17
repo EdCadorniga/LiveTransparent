@@ -16,6 +16,11 @@ pnpm-debug.log*
 *.log
 *.tmp
 *.cache
+.tmp/
+.tmp_*
+tmp_*
+_exec_*.json
+_wf_*.json
 
 # OS / editor
 .DS_Store
