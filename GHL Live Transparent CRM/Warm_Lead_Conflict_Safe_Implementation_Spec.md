@@ -101,7 +101,15 @@ Trigger:
 Flow:
 1. Resolve channel and priority.
 2. Run idempotency checks.
-3. Apply standard tags (`Lead Status: Warm`, `Stage: MQL`).
+3. Apply standard warm markers.
+- Always safe: `Lead Status: Warm`
+- Do not apply `mql` / `Stage: MQL` universally to every warm path.
+- Apply `mql` only on approved high-intent paths:
+- Referral
+- LinkedIn Lead Form
+- Meta Lead Form
+- Website Hero/Footer lead forms
+- Booking path only when the booked calendar is `cameron-1on1-30min`
 4. Ensure minimum stage/pipeline:
 - Move to Warm pipeline + MQL stage only if contact is not already further in sales progression.
 5. Route by highest-priority channel:

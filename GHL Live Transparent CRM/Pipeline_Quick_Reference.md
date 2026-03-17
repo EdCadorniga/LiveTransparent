@@ -32,6 +32,22 @@
 - Do not move backward unless correcting a documented error.
 - Use `Booked` as the handoff point into `Discovery Scheduled`.
 
+## MQL Rules
+- `mql` is not applied to every warm contact.
+- Approved `mql` sources:
+- `LinkedIn Lead Form`
+- `Meta Lead Form`
+- `Website` lead forms only
+- `Referral`
+- Booking only when calendar is `cameron-1on1-30min`
+- Do not use `Warm  Referral` for normal bookings/appointments.
+- Non-Cameron bookings must not receive `mql`.
+
+## Booking Slack Rule
+- `#leads` booking alerts are sent from the filtered GHL booking automation.
+- Only `cameron-1on1-30min` bookings should post to Slack.
+- Do not add duplicate Slack-send actions for the same booking in other workflows.
+
 ## Required Actions Per Stage Change
 - Update stage immediately after meaningful interaction.
 - Add a note with reason for movement.

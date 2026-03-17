@@ -15,6 +15,24 @@
 ## Agent Tooling
 - This environment has MCP access to the `n8n` instance via the `n8n-lt` MCP server entry in Codex config.
 - When workflow state or runtime behavior is relevant, use the `n8n-lt` MCP tools to verify actual instance state instead of guessing from local files.
+- This environment also has GHL MCP access, but some endpoints may fail through `ghl_workflows` even when the PIT itself is valid.
+- If a GHL MCP call returns scope/auth errors for an endpoint that should be available, verify whether the same endpoint works through direct GHL API before assuming the PIT is bad.
+
+## GHL Direct API Fallback
+- If `ghl_workflows` fails on a specific endpoint but `ghl_official` or other GHL reads still succeed, treat it as a possible MCP wrapper/auth-scope mismatch rather than an immediate PIT failure.
+- For direct GHL API testing, use:
+- Base URL: `https://services.leadconnectorhq.com`
+- Headers:
+- `Authorization: Bearer <PIT>`
+- `Version: 2021-07-28`
+- `Accept: application/json`
+- In this Windows environment, direct HTTPS calls may fail inside the sandbox due local TLS/schannel issues; if the request matters, rerun outside the sandbox before concluding the endpoint is unavailable.
+- Proven case (`2026-03-17`):
+- `ghl_workflows.GET_all_or_email_sms_templates` returned `401` / `The token is not authorized for this scope.`
+- Direct API call with the same PIT succeeded:
+- `GET /locations/:locationId/templates?type=sms&limit=20`
+- Required documented scope: `locations/templates.readonly`
+- Conclusion: direct API fallback can recover access to endpoints that the MCP wrapper cannot currently reach.
 
 ## Status Freshness Rule
 - Operational status sections in this file are snapshots, not guarantees.
@@ -152,6 +170,9 @@
 - n8n workflow `WL - Webhook to Slack Channel - Website Visitor` (`8USvJkRlKzbj6Fu1`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Form Submission` (`FQE90HDUilFVdASY`) - active.
 - n8n workflow `rb2b leads` (`3kjsIUeoEQFx26cC`) - active.
+- GHL direct API template retrieval pattern verified for this location:
+- `GET https://services.leadconnectorhq.com/locations/Zwz4relUXVPxx8uohnjV/templates?type=sms&limit=20`
+- Returned live SMS templates successfully with a valid PIT on `2026-03-17`.
 - Plan doc: `GHL Live Transparent CRM/Warm_Lead_Conflict_Safe_Implementation_Spec.md`
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
@@ -437,8 +458,45 @@
 - Runtime fixes applied during stabilization:
   - removed direct `$env` dependency in Code node (moved to Set `Config` node inputs).
   - switched HTTP helper to `$httpRequest`/`this.helpers.httpRequest` fallback pattern.
-  - corrected task node contact-id reference to avoid empty `/contacts//tasks` path.
-  - reconnected `Ensure RB2B Leads Table` so it is not orphaned in graph.
+- corrected task node contact-id reference to avoid empty `/contacts//tasks` path.
+- reconnected `Ensure RB2B Leads Table` so it is not orphaned in graph.
+
+## Session Notes (2026-03-17)
+- Direct GHL API fallback was verified for endpoints that were not reachable through `ghl_workflows` MCP.
+- `ghl_official` MCP calls confirmed the PIT was valid.
+- `ghl_workflows.GET_all_or_email_sms_templates` continued to return `401` / `The token is not authorized for this scope.` even with a valid PIT.
+- Public docs lookup confirmed:
+- endpoint: `GET /locations/:locationId/templates`
+- required scope: `locations/templates.readonly`
+- Direct API call with PIT succeeded and returned `6` live SMS templates for location `Zwz4relUXVPxx8uohnjV`.
+- Current live SMS templates in GHL:
+- `SMS 1 – Initial Outreach`
+- `SMS 2 – Value + Soft Authority`
+- `SMS 3 – Social Proof`
+- `SMS 4 – Curiosity Hook`
+- `SMS 5 – Dispensary Angle (if applicable)`
+- `SMS 6 – Breakup Message`
+- Reusable lesson:
+- if `ghl_workflows` fails but the endpoint is documented and the PIT works elsewhere, test the endpoint directly against `https://services.leadconnectorhq.com` before assuming the token is invalid.
+- PIT rotation / n8n workflow update work completed:
+- Latest PIT standardized to `pit-8a0de81d-3555-4909-a8eb-afecd3794828`.
+- Verified that several live n8n workflows had older PITs hardcoded in node parameters and code payloads.
+- Updated live workflows to the latest PIT, including warm intake tagging, website intake, Apollo enrichment, MQL opportunity creation, and the cold outreach sender dispatcher.
+- Repo-side workflow backups and generated artifacts were also bulk-updated so local snapshots match the latest PIT.
+- Reliable direct n8n API path from this machine:
+- use `X-N8N-API-KEY` header, not Bearer auth
+- use `https://automations.livetransparent.com/api/v1`
+- a Node `fetch` script with a browser-like `User-Agent` worked reliably when PowerShell `Invoke-RestMethod` / `curl.exe` hit local TLS or transport issues
+- SimpleTexting staged workflow status:
+- Workflow `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) remains inactive/staged.
+- It now supports `templateKey`-driven sends in addition to raw `message` payloads.
+- Current template-key behavior is implemented in the `Validate + Send SMS` Code node and reads `templateRegistryJson` from the upstream `Config` Set node.
+- Verified live behavior includes template-key resolution and variable interpolation logic for SimpleTexting sends.
+- Additional SimpleTexting draft workflows created and left inactive pending API token issuance:
+- `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`) path `lt-simpletexting-inbound-reply`
+- `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`) path `lt-simpletexting-delivery-events`
+- `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`) path `lt-simpletexting-unsubscribes`
+- These three workflows currently normalize payloads and enforce webhook-key auth only; they do not yet write back to GHL or other downstream systems.
 
 ## Session Notes (2026-02-24)
 - Intake webhook sender wiring completed and validated:

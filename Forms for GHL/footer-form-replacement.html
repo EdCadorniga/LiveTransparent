@@ -101,6 +101,36 @@
       justify-content: center;
     }
 
+    .submit-btn[disabled] {
+      opacity: 0.7;
+      cursor: wait;
+    }
+
+    .form-status {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .form-status.is-visible {
+      display: block;
+    }
+
+    .form-status.is-success {
+      color: #d8f5df;
+      border-color: #4fb86f;
+      background: #102416;
+    }
+
+    .form-status.is-error {
+      color: #ffd8d8;
+      border-color: #d16c6c;
+      background: #2a1111;
+    }
+
     @media (max-width: 920px) {
       .footer-form-wrap {
         grid-template-columns: 1fr;
@@ -140,7 +170,49 @@
       <textarea id="message" class="message" name="message" required></textarea>
 
       <button class="submit-btn" type="submit">Submit</button>
+      <div class="form-status" aria-live="polite"></div>
     </div>
   </form>
+  <script>
+    (function () {
+      var form = document.querySelector('.footer-form-wrap');
+      if (!form) return;
+
+      var button = form.querySelector('button[type="submit"]');
+      var status = form.querySelector('.form-status');
+
+      function showStatus(message, kind) {
+        status.textContent = message;
+        status.className = 'form-status is-visible ' + (kind === 'success' ? 'is-success' : 'is-error');
+      }
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        button.disabled = true;
+        showStatus('Submitting...', 'success');
+
+        try {
+          var payload = new URLSearchParams(new FormData(form));
+          var response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'Accept': 'application/json, text/plain, */*'
+            },
+            body: payload.toString()
+          });
+
+          if (!response.ok) throw new Error('Request failed');
+
+          form.reset();
+          showStatus('Thanks. Your message was sent successfully.', 'success');
+        } catch (error) {
+          showStatus('Submission failed. Please try again or email ed@livetransparent.com.', 'error');
+        } finally {
+          button.disabled = false;
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

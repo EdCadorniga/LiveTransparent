@@ -31,7 +31,7 @@ Exit criteria:
 Definition:
 - Contact matches minimum quality criteria for sales attention.
 Entry criteria:
-- Lead quality checks pass (fit + intent).
+- Lead quality checks pass (fit + intent), and the contact came from an approved MQL path.
 Exit criteria:
 - Routed to outreach, nurture, or disqualified.
 
@@ -171,6 +171,24 @@ Exit criteria:
 - Do not skip stages unless manager-approved.
 - Do not move backward except documented correction.
 
+## 5A) MQL Tag Rules (Current)
+- `mql` is not a universal warm tag.
+- `mql` should only be added on approved high-intent paths.
+- Current approved paths:
+- `Warm  LinkedIn Lead Form`
+- `Warm  Meta Lead Form`
+- `Warm  Website` when created by the website Hero or Footer lead forms
+- `Warm  Referral`
+- Booking path only when the booked calendar is `cameron-1on1-30min`
+- Standard bookings/appointments must not receive `Warm  Referral` unless the lead is actually referral-sourced.
+- Non-Cameron bookings must not receive `mql`.
+- The downstream n8n workflow `GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)` only reacts after `mql` is present; it does not add the tag itself.
+
+## 5B) Booking Slack Rule (Current)
+- Booking alerts for `#leads` are owned by the filtered GHL booking automation, not by broad warm-routing logic.
+- Only bookings for calendar `cameron-1on1-30min` should be sent to `WL - Webhook to Slack Channel Update`.
+- Avoid adding separate Slack-send steps for the same booking event elsewhere in GHL to prevent duplicates.
+
 ## 6) Ownership and Accountability
 - Marketing/Automation owner:
   - Keeps Warm pipeline clean and routed.
@@ -270,6 +288,7 @@ Use this status when training users on what should currently fire automatically.
   - intake tag added: `Referral - Intake`
   - micro workflow trigger: `Contact Tag Added` on `Referral - Intake`
   - workflow adds `Warm  Referral`, sets source/UTM metadata, then removes `Referral - Intake` at end.
+- `Warm  Referral` is a source tag only for true referrals. It should not be used as a substitute booking tag for general appointments.
 
 ## 13) Warm Automation Coverage Checklist (Last Known 2026-02-24)
 Use this list during onboarding to avoid assuming all channel triggers are already active.

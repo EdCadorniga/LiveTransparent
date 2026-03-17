@@ -12,6 +12,7 @@ The `mql` tag should only be applied for high-intent warm triggers:
   - Hero form
   - Footer form
 - `Warm  Referral`
+- Booking appointments only when the booked calendar matches `cameron-1on1-30min`
 
 The `mql` tag should not be applied universally to every contact entering `WL - Master Warm Intake and Routing`.
 
@@ -73,11 +74,18 @@ In `WL - Master Warm Intake and Routing`:
   - LinkedIn Lead Form
   - Referral
   - Website lead-form path
+  - Booking path limited to calendar `cameron-1on1-30min`
 
 The website lead-form path should be limited to contacts created by:
 
 - `Website Lead Intake from Hero form` (`RTV5jUiTt05lad07`)
 - `Website Lead Intake from Footer Form` (`RSfLF7LU0rDC4jAI`)
+
+The booking path should be limited by the appointment/calendar identifier sent by GHL:
+
+- allowed calendar slug/name: `cameron-1on1-30min`
+- non-matching calendars must not add `mql`
+- non-matching calendars must not be posted into the Slack leads alert flow
 
 ## Notes
 
