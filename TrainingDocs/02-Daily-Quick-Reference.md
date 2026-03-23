@@ -55,13 +55,22 @@ Use this file during your work day.
 - Meta Lead Form
 - Website Hero/Footer forms
 - Referral
-- Booking only when calendar is `cameron-1on1-30min`
+- Booking only when calendar is `Regulated Ads On Social/Search`
+- Normalized key may appear as `regulated-ads` or `regulated-ads-on-social-search`
 
 ## Booking Quick Rules
 
-- Only `cameron-1on1-30min` bookings should hit the `#leads` Slack alert
+- Only `Regulated Ads On Social/Search` bookings should hit the `#leads` Slack alert
+- The normalized key may appear as `regulated-ads` or `regulated-ads-on-social-search`
 - Other bookings should not go to `#leads`
+- Regulated ads bookings should also get tag `SQL`
+- Regulated ads bookings should have an opportunity moved or created in `Sales -> Discovery Scheduled`
 - Do not use `Warm  Referral` for regular bookings
+
+## Validation Note
+
+- This regulated ads booking flow was live-tested on `2026-03-19`
+- The test contact and opportunity were left in GHL intentionally for team visibility
 
 ## Before You End Your Day
 

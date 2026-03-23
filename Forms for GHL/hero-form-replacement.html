@@ -147,6 +147,7 @@
       var form = document.getElementById('lt-hero-form');
       if (!form) return;
 
+      var bookingUrl = 'https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK?utm_source=website&utm_medium=form&utm_campaign=regulated_ads_booking&utm_content=hero_form';
       var button = form.querySelector('button[type="submit"]');
       var status = form.querySelector('.form-status');
 
@@ -183,7 +184,8 @@
           if (!response.ok) throw new Error('Request failed');
 
           form.reset();
-          showStatus('Thanks. Your demo request was sent successfully.', 'success');
+          showStatus('Thanks. Redirecting you to booking now...', 'success');
+          window.location.href = bookingUrl;
         } catch (error) {
           showStatus('Submission failed. Please try again or email ed@livetransparent.com.', 'error');
         } finally {

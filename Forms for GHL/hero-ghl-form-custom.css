@@ -1,0 +1,194 @@
+#_builder-form,
+#_builder-form .hl-app,
+#_builder-form .hl-app .container,
+#_builder-form form {
+  background: #000000 !important;
+  color: #ffffff !important;
+  max-width: 420px !important;
+  margin: 0 auto !important;
+  padding: 14px !important;
+  border: 3px solid #e6e6e6 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Hide regular field labels only */
+#_builder-form
+  .form-builder--item
+  > label:not([for*="terms_and_conditions"]):not([for*="checkbox"]):not(
+    [for*="radio"]
+  ),
+#_builder-form .short-label {
+  display: none !important;
+}
+
+/* Tighten wrappers hard */
+#_builder-form .form-builder--item,
+#_builder-form .field-container,
+#_builder-form .hl-form-field {
+  margin-bottom: 2px !important;
+  padding-bottom: 0 !important;
+}
+
+/* Headings */
+#_builder-form h1,
+#_builder-form h2,
+#_builder-form h3,
+#_builder-form .text-element,
+#_builder-form .text-element * {
+  color: #ffffff !important;
+}
+
+#_builder-form h2,
+#_builder-form .text-element h2 {
+  margin: 0 !important;
+  font-size: 44px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+}
+
+#_builder-form h3,
+#_builder-form .text-element h3 {
+  margin: 6px 0 8px !important;
+  font-size: 24px !important;
+  line-height: 1.05 !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+}
+
+/* Inputs */
+#_builder-form input[type="text"],
+#_builder-form input[type="email"],
+#_builder-form input[type="tel"],
+#_builder-form input[type="number"],
+#_builder-form textarea,
+#_builder-form select,
+#_builder-form .form-control,
+#_builder-form .multiselect,
+#_builder-form .multiselect__tags {
+  width: 100% !important;
+  margin: 0 0 4px !important;
+  padding: 10px 14px !important;
+  border: 2px solid #e6e6e6 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  font-size: 17px !important;
+  line-height: 1.15 !important;
+  box-shadow: none !important;
+}
+
+#_builder-form textarea {
+  min-height: 68px !important;
+  resize: vertical !important;
+}
+
+#_builder-form input::placeholder,
+#_builder-form textarea::placeholder {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-size: 17px !important;
+  line-height: 1.15 !important;
+}
+
+/* Button */
+#_builder-form button,
+#_builder-form .btn,
+#_builder-form input[type="submit"] {
+  display: block !important;
+  width: 80% !important;
+  min-width: 0 !important;
+  margin: 1px auto 6px !important;
+  padding: 8px 16px !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  text-align: center !important;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease !important;
+}
+
+#_builder-form button *,
+#_builder-form .btn *,
+#_builder-form input[type="submit"] * {
+  color: #000000 !important;
+  text-align: center !important;
+}
+
+#_builder-form button:hover,
+#_builder-form .btn:hover,
+#_builder-form input[type="submit"]:hover {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+#_builder-form button:hover *,
+#_builder-form .btn:hover *,
+#_builder-form input[type="submit"]:hover * {
+  color: #ffffff !important;
+  text-align: center !important;
+}
+
+/* Body text and links */
+#_builder-form p,
+#_builder-form span,
+#_builder-form div,
+#_builder-form small,
+#_builder-form a {
+  color: #ffffff !important;
+}
+
+#_builder-form a {
+  text-decoration: underline !important;
+}
+
+/* Keep T&C checkbox text white */
+#_builder-form .checkbox-container label,
+#_builder-form .checkbox-container label *,
+#_builder-form .checkbox-container .terms-text-container,
+#_builder-form .checkbox-container .terms-text-container *,
+#_builder-form .checkbox-container p,
+#_builder-form .checkbox-container p *,
+#_builder-form .checkbox-container span,
+#_builder-form .checkbox-container span * {
+  color: #ffffff !important;
+}
+
+/* Compress checkbox layout */
+#_builder-form .checkbox-container {
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+
+#_builder-form .checkbox-container label {
+  margin-left: 6px !important;
+  width: 100% !important;
+}
+
+#_builder-form .checkbox-container p {
+  margin: 0 !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+}
+
+/* Keep checkbox borders dark */
+#_builder-form .checkbox-container input[type="checkbox"],
+#_builder-form input[type="radio"] {
+  border-color: #000000 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Privacy/terms row */
+#_builder-form a[href*="privacy-policy"],
+#_builder-form a[href*="terms"] {
+  color: #ffffff !important;
+  font-size: 11px !important;
+  text-decoration: underline !important;
+}

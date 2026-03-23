@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-03T12:35:31.343Z",
+  "updatedAt": "2026-03-17T00:31:20.035Z",
   "createdAt": "2026-03-03T11:56:33.677Z",
   "id": "MI91SutAbAj3QSXp",
   "name": "GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)",
@@ -58,14 +58,14 @@
     "executionTimeout": 3600,
     "timezone": "UTC",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": true
   },
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "95f5e5a8-76b0-45e4-a586-fbc5e18a83bb",
-  "activeVersionId": "95f5e5a8-76b0-45e4-a586-fbc5e18a83bb",
-  "versionCounter": 13,
+  "versionId": "73537e62-9962-4f65-bd8e-db09b25d56ac",
+  "activeVersionId": "73537e62-9962-4f65-bd8e-db09b25d56ac",
+  "versionCounter": 19,
   "triggerCount": 1,
   "shared": [
     {
@@ -88,9 +88,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-03T12:35:31.346Z",
-    "createdAt": "2026-03-03T12:35:31.346Z",
-    "versionId": "95f5e5a8-76b0-45e4-a586-fbc5e18a83bb",
+    "updatedAt": "2026-03-17T00:31:20.038Z",
+    "createdAt": "2026-03-17T00:31:20.038Z",
+    "versionId": "73537e62-9962-4f65-bd8e-db09b25d56ac",
     "workflowId": "MI91SutAbAj3QSXp",
     "nodes": [
       {
@@ -142,18 +142,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-03T12:35:31.421Z",
-        "id": 189,
+        "createdAt": "2026-03-17T00:31:20.119Z",
+        "id": 315,
         "workflowId": "MI91SutAbAj3QSXp",
-        "versionId": "95f5e5a8-76b0-45e4-a586-fbc5e18a83bb",
+        "versionId": "73537e62-9962-4f65-bd8e-db09b25d56ac",
         "event": "deactivated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       },
       {
-        "createdAt": "2026-03-03T12:35:31.449Z",
-        "id": 190,
+        "createdAt": "2026-03-17T00:31:20.161Z",
+        "id": 316,
         "workflowId": "MI91SutAbAj3QSXp",
-        "versionId": "95f5e5a8-76b0-45e4-a586-fbc5e18a83bb",
+        "versionId": "73537e62-9962-4f65-bd8e-db09b25d56ac",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }

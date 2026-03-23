@@ -71,7 +71,7 @@
 - `Email Sequence.docx`: Source sequence copy used to rebuild HTML templates.
 - `Backup of all n8n workflows/`: Full-instance n8n workflow JSON backups (one file per workflow) plus export `manifest.json`.
   - Latest full refresh: `2026-03-08`, `21` workflows exported, `0` failures.
-- `GHL Live Transparent CRM/RB2B_Website_Visitor_Intake_Workflow.md`: Technical runbook for RB2B webhook intake, GHL reconciliation/tagging, Postgres upsert, and Kevin follow-up task creation.
+- `GHL Live Transparent CRM/RB2B_Website_Visitor_Intake_Workflow.md`: Technical runbook for RB2B webhook intake, GHL reconciliation/tagging, Postgres upsert, and John follow-up task creation.
 
 ## Reference Docs Convention
 - Keep service reference files under `n8n/nodes/<service>/REFERENCE.md`.
@@ -217,7 +217,12 @@
 - `WL - Micro - Meta Remarketing`: build/verify trigger and warm tag flow.
 - `WL - Micro - Website`: build/verify trigger and warm tag flow.
 - Verify `WL - Master Warm Intake and Routing` trigger list includes every warm tag, including `Warm Meta Remarketing`.
-- Verify opportunity routing handoff automation for `Sales Outreach: Booked` -> `Sales: Discovery Scheduled`.
+- Regulated ads booking handoff is now verified live:
+  - source calendar `Regulated Ads On Social/Search`
+  - normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+  - GHL filtered booking automation posts to `https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`
+  - n8n workflow `WL - Webhook to Slack Channel Update` sends Slack, adds `SQL`, and creates or moves the opportunity into `Sales -> Discovery Scheduled`
+- Other booking paths still require separate verification before assuming they should hand off into Sales.
 - Verify active outreach/nurture sequence stop conditions at booked/closed states.
 - Validate/test active n8n warm intake tag webhooks; set `defaultDryRun=false` (or pass `dryRun=false`) only when ready for live intake tag writes.
 - Restart Codex/MCP session after updating `N8N_WEBHOOK_USERNAME` and `N8N_WEBHOOK_PASSWORD` in `~/.codex/config.toml` so `run_webhook` can execute authenticated tests.
@@ -331,7 +336,7 @@
 - `04 - Cannabis Ads-5-V1 - Let's Talk About Failure`
 - `05 - Cannabis Ads-4-V1 - Save $200k On EBITA`
 - CTA link standardized from apply-page Calendly flow:
-- `https://calendly.com/transparentecom/how-to-run-cannabis-ads-on-meta`
+- `https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK?utm_source=email&utm_medium=outreach&utm_campaign=wl_seq_cannabis_ads&utm_content=book_meeting`
 - Template formatting applied:
 - Inline CTA hyperlinks for action phrases (e.g., `book a meeting`)
 - CTA button above signature (`Book a Meeting`)
@@ -454,7 +459,7 @@
   - Contact update or upsert in GHL.
   - Tag append (non-destructive): `rb2b_website_visitor`, `mql`.
   - Postgres upsert into `RB2B_Leads` keyed by `lead_key`.
-  - Follow-up task creation: `New RB2B contact - Call`, assigned to Kevin (`7s3brzxGF4WSiz95DPkF`).
+  - Follow-up task creation: `New RB2B contact - Call`, assigned to John.
 - Runtime fixes applied during stabilization:
   - removed direct `$env` dependency in Code node (moved to Set `Config` node inputs).
   - switched HTTP helper to `$httpRequest`/`this.helpers.httpRequest` fallback pattern.
@@ -497,6 +502,25 @@
 - `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`) path `lt-simpletexting-delivery-events`
 - `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`) path `lt-simpletexting-unsubscribes`
 - These three workflows currently normalize payloads and enforce webhook-key auth only; they do not yet write back to GHL or other downstream systems.
+
+## Session Notes (2026-03-19)
+- Regulated ads booking flow was validated with a real public booking on `Regulated Ads On Social/Search`.
+- Source GHL workflow is a filtered booking automation that sends:
+  - `POST https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`
+- Runtime worker:
+  - n8n workflow `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`)
+- Live validation initially exposed a payload-shape bug:
+  - GHL sent booking data under nested `calendar` fields
+  - the workflow had been checking only flat fields
+  - result was a false non-match until the normalization logic was corrected
+- Current verified behavior for the regulated ads booking path:
+  - Slack alert is sent to `#leads`
+  - contact receives tag `SQL`
+  - opportunity is moved to `Sales -> Discovery Scheduled`, or created there if missing
+- Live validation artifacts:
+  - test contact kept in GHL: `OMfr5JlM7HqQv1YUq5bn`
+  - test opportunity kept in GHL: `6gt9SCmZkmoPPo5bfzlT`
+  - test appointment deleted after validation to clear the slot: `xlSmtk8beDM4uUI1e24V`
 
 ## Session Notes (2026-02-24)
 - Intake webhook sender wiring completed and validated:

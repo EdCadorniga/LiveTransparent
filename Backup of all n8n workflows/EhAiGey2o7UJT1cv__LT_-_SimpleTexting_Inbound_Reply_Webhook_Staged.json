@@ -1,0 +1,149 @@
+{
+  "updatedAt": "2026-03-17T12:01:20.372Z",
+  "createdAt": "2026-03-17T12:01:20.372Z",
+  "id": "EhAiGey2o7UJT1cv",
+  "name": "LT - SimpleTexting Inbound Reply (Webhook, Staged)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "webhook_in",
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        280,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-simpletexting-inbound-reply",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "auth_header_name",
+              "name": "authHeaderName",
+              "type": "string",
+              "value": "x-lt-webhook-key"
+            },
+            {
+              "id": "auth_header_value",
+              "name": "authHeaderValue",
+              "type": "string",
+              "value": "={{$env.LT_SIMPLETEXTING_WEBHOOK_KEY || ''}}"
+            },
+            {
+              "id": "provider_name",
+              "name": "provider",
+              "type": "string",
+              "value": "SimpleTexting"
+            },
+            {
+              "id": "event_type",
+              "name": "eventType",
+              "type": "string",
+              "value": "inbound_reply"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "normalize",
+      "name": "Validate + Normalize Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const src = $json || {};\nconst body = src.body || {};\nconst headers = src.headers || {};\n\nconst cfg = {\n  defaultDryRun: !!src.defaultDryRun,\n  authHeaderName: String(src.authHeaderName || 'x-lt-webhook-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n  provider: String(src.provider || 'SimpleTexting').trim(),\n  eventType: String(src.eventType || 'inbound_reply').trim(),\n};\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid webhook auth header' } }];\n}\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBoolean(v, fallback) {\n  if (v === undefined || v === null || v === '') return fallback;\n  if (typeof v === 'boolean') return v;\n  const s = String(v).trim().toLowerCase();\n  if (['true','1','yes','y'].includes(s)) return true;\n  if (['false','0','no','n'].includes(s)) return false;\n  return fallback;\n}\nfunction normalizePhone(v) {\n  const digits = clean(v).replace(/\\D/g, '');\n  if (!digits) return '';\n  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);\n  return digits;\n}\n\nconst dryRun = parseBoolean(body.dryRun, cfg.defaultDryRun);\nconst from = normalizePhone(body.from || body.phone || body.mobile || body.senderPhone || body.contactPhone);\nconst to = normalizePhone(body.to || body.destination || body.number || body.accountPhone);\nconst message = clean(body.message || body.text || body.body || body.smsBody);\nconst providerMessageId = clean(body.smsid || body.id || body.messageId || body.message_id);\nconst receivedAt = clean(body.receivedAt || body.timestamp || body.createdAt || body.date || new Date().toISOString());\nconst contactId = clean(body.contactId || body.ghlContactId || body.externalContactId);\nconst conversationKey = clean(body.conversationId || body.threadId || body.externalId);\nconst unsubscribeKeyword = ['stop','stopall','unsubscribe','cancel','end','quit'].includes(message.toLowerCase());\n\nif (!from) {\n  return [{ json: { ok: false, error: 'missing_from_phone', message: 'Provide from/phone/mobile/senderPhone/contactPhone' } }];\n}\nif (!message) {\n  return [{ json: { ok: false, error: 'missing_message', message: 'Provide message/text/body/smsBody' } }];\n}\n\nreturn [{ json: {\n  ok: true,\n  dryRun,\n  provider: cfg.provider,\n  eventType: cfg.eventType,\n  from,\n  to,\n  message,\n  providerMessageId,\n  contactId,\n  conversationKey,\n  receivedAt,\n  unsubscribeKeyword,\n  rawBody: body,\n  nextStep: dryRun ? 'draft_only_no_side_effects' : 'ready_for_ghl_sync_logic'\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Validate + Normalize Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "eca45264-4743-4b71-b7f6-99ca9a08c0cf",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-17T12:01:20.372Z",
+      "createdAt": "2026-03-17T12:01:20.372Z",
+      "role": "workflow:owner",
+      "workflowId": "EhAiGey2o7UJT1cv",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-04T01:21:05.284Z",
+  "updatedAt": "2026-03-17T00:31:24.002Z",
   "createdAt": "2026-02-26T14:43:24.021Z",
   "id": "WuxgTa0EEL1mb2SA",
   "name": "GHL Apollo Enrichment - Phone Webhook Intake (Staged)",
@@ -352,9 +352,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "59b10c25-5295-4c6c-be25-28e6b6e7059c",
-  "activeVersionId": "59b10c25-5295-4c6c-be25-28e6b6e7059c",
-  "versionCounter": 142,
+  "versionId": "b860580d-da91-4eee-a996-8b5ea5865a21",
+  "activeVersionId": "b860580d-da91-4eee-a996-8b5ea5865a21",
+  "versionCounter": 145,
   "triggerCount": 1,
   "shared": [
     {
@@ -377,9 +377,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-04T01:21:05.290Z",
-    "createdAt": "2026-03-04T01:21:05.290Z",
-    "versionId": "59b10c25-5295-4c6c-be25-28e6b6e7059c",
+    "updatedAt": "2026-03-17T00:31:24.006Z",
+    "createdAt": "2026-03-17T00:31:24.006Z",
+    "versionId": "b860580d-da91-4eee-a996-8b5ea5865a21",
     "workflowId": "WuxgTa0EEL1mb2SA",
     "nodes": [
       {
@@ -720,34 +720,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-04T01:21:06.588Z",
-        "id": 246,
+        "createdAt": "2026-03-17T00:31:24.099Z",
+        "id": 327,
         "workflowId": "WuxgTa0EEL1mb2SA",
-        "versionId": "59b10c25-5295-4c6c-be25-28e6b6e7059c",
+        "versionId": "b860580d-da91-4eee-a996-8b5ea5865a21",
         "event": "deactivated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       },
       {
-        "createdAt": "2026-03-04T01:21:06.620Z",
-        "id": 247,
+        "createdAt": "2026-03-17T00:31:24.138Z",
+        "id": 328,
         "workflowId": "WuxgTa0EEL1mb2SA",
-        "versionId": "59b10c25-5295-4c6c-be25-28e6b6e7059c",
-        "event": "activated",
-        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
-      },
-      {
-        "createdAt": "2026-03-04T01:21:05.455Z",
-        "id": 244,
-        "workflowId": "WuxgTa0EEL1mb2SA",
-        "versionId": "59b10c25-5295-4c6c-be25-28e6b6e7059c",
-        "event": "deactivated",
-        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
-      },
-      {
-        "createdAt": "2026-03-04T01:21:05.501Z",
-        "id": 245,
-        "workflowId": "WuxgTa0EEL1mb2SA",
-        "versionId": "59b10c25-5295-4c6c-be25-28e6b6e7059c",
+        "versionId": "b860580d-da91-4eee-a996-8b5ea5865a21",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }

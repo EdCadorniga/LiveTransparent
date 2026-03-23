@@ -39,7 +39,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://hooks.slack.com/services/REDACTED",
+        "url": "=REDACTED_SLACK_WEBHOOK_URL",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -163,7 +163,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "=https://hooks.slack.com/services/REDACTED",
+          "url": "=REDACTED_SLACK_WEBHOOK_URL",
           "sendHeaders": true,
           "headerParameters": {
             "parameters": [

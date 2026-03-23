@@ -109,7 +109,8 @@ Flow:
 - LinkedIn Lead Form
 - Meta Lead Form
 - Website Hero/Footer lead forms
-- Booking path only when the booked calendar is `cameron-1on1-30min`
+- Booking path only when the booked calendar is `Regulated Ads On Social/Search`
+- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
 4. Ensure minimum stage/pipeline:
 - Move to Warm pipeline + MQL stage only if contact is not already further in sales progression.
 5. Route by highest-priority channel:
@@ -410,3 +411,20 @@ ID bindings (must use IDs, not names):
 - Sales Outreach `Attempting Contact`: `b97e42b1-b4c2-4759-8212-33596a085cf2`
 - Sales pipeline: `MThKauqlvnEFuFmAkyWX`
 - Sales `Discovery Scheduled`: `6f5aa304-a190-40da-8556-7c65bbc52733`
+
+## 24) Cameron Booking Implementation Note (2026-03-19)
+- The Cameron booking path is now implemented live outside the generic warm-routing spec.
+- Trigger source:
+  - filtered GHL booking automation for `Regulated Ads On Social/Search`
+  - webhook target `https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`
+- Runtime worker:
+  - n8n workflow `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`)
+- Runtime behavior:
+  - send `#leads` Slack alert
+  - add tag `SQL`
+  - move an existing open opportunity into `Sales -> Discovery Scheduled`, or create one there if none exists
+- Live validation:
+  - completed with a real public-widget booking on `2026-03-19`
+  - nested booking payload handling was fixed in the workflow after validation exposed a mismatch
+  - test appointment was deleted after validation
+  - test contact and opportunity were intentionally left in GHL for team visibility

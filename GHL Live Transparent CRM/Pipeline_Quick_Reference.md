@@ -31,6 +31,7 @@
 - Do not skip stages without manager approval.
 - Do not move backward unless correcting a documented error.
 - Use `Booked` as the handoff point into `Discovery Scheduled`.
+- Current automated booked handoff is only for `Regulated Ads On Social/Search` / normalized keys `regulated-ads` or `regulated-ads-on-social-search`.
 
 ## MQL Rules
 - `mql` is not applied to every warm contact.
@@ -39,14 +40,24 @@
 - `Meta Lead Form`
 - `Website` lead forms only
 - `Referral`
-- Booking only when calendar is `cameron-1on1-30min`
+- Booking only when calendar is `Regulated Ads On Social/Search`
+- normalized key may appear as `regulated-ads` or `regulated-ads-on-social-search`
 - Do not use `Warm  Referral` for normal bookings/appointments.
-- Non-Cameron bookings must not receive `mql`.
+- Non-regulated-ads bookings must not receive `mql`.
+- Regulated ads bookings should also receive tag `SQL`.
+- Regulated ads bookings should end in `Sales -> Discovery Scheduled`.
 
 ## Booking Slack Rule
 - `#leads` booking alerts are sent from the filtered GHL booking automation.
-- Only `cameron-1on1-30min` bookings should post to Slack.
+- Only `Regulated Ads On Social/Search` bookings should post to Slack.
+- GHL posts the filtered booking to `https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`.
+- n8n workflow `WL - Webhook to Slack Channel Update` sends the Slack message and handles the `SQL` + Sales handoff logic.
 - Do not add duplicate Slack-send actions for the same booking in other workflows.
+
+## Live Validation Note
+- Live validation completed on `2026-03-19`.
+- The test appointment was removed after the run.
+- The test contact and opportunity were intentionally left in GHL for teammate review.
 
 ## Required Actions Per Stage Change
 - Update stage immediately after meaningful interaction.
@@ -117,4 +128,4 @@
 - upsert into `RB2B_Leads` by `lead_key`
 - Follow-up task:
 - title `New RB2B contact - Call`
-- assigned to Kevin `7s3brzxGF4WSiz95DPkF`
+- assigned to John

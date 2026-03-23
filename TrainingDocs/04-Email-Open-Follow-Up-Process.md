@@ -8,7 +8,7 @@ If a contact opens emails 3 times:
 
 - wait 45 minutes
 - if they already booked, do nothing
-- if they did not book, assign them to Kevin
+- if they did not book, assign them to John
 
 ## Why This Matters
 
@@ -26,18 +26,17 @@ But three opens are strong enough to deserve a closer look.
 2. Waits 45 minutes
 3. Checks if the lead booked
 4. If not booked:
-- assigns the contact to Kevin
-- assigns or creates the opportunity for Kevin
+- assigns the contact to John
+- assigns or creates the opportunity for John
 
-## Kevin
+## Current Owner
 
-- Name: Kevin Lagudgud
-- Email: `kevin@livetransparent.com`
+- John
 
 ## Key Tags
 
 - `Email Open 3x - Pending Assign`
-- `Email Open 3x - Assigned Kevin`
+- `open email 3x`
 
 ## Booked Guard
 

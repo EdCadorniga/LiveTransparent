@@ -1,20 +1,19 @@
-# Email Open 3x -> Assign Kevin (GHL)
+# Email Open 3x -> Assign John (GHL)
 
 ## Goal
 When a contact accumulates 3 email opens (across any sequence emails), wait 45 minutes, then:
 - If booked: do nothing.
-- If not booked: assign contact owner to Kevin and assign/create opportunity to Kevin.
+- If not booked: assign contact owner to John and assign/create opportunity to John.
 
-Kevin user:
-- Name: Kevin Lagudgud
-- Email: kevin@livetransparent.com
-- User ID: `7s3brzxGF4WSiz95DPkF`
+Current owner:
+- Name: John
+- Use John's current GHL user ID in the live workflow.
 
 ## Required Field + Tags
 Create/confirm:
 - Custom field (Number): `email_open_count_total`
 - Tag: `Email Open 3x - Pending Assign`
-- Tag: `Email Open 3x - Assigned Kevin`
+- Tag: `open email 3x`
 
 Use existing booked signal tags/states if already present:
 - `Meeting Booked`
@@ -31,7 +30,7 @@ Trigger:
 
 Steps:
 1. If/Else guard (skip if already handled)
-- If tag `Email Open 3x - Assigned Kevin` exists -> End.
+- If tag `open email 3x` exists -> End.
 
 2. If/Else guard (optional)
 - If tag `Meeting Booked` exists -> End.
@@ -48,7 +47,7 @@ Steps:
 
 ## Workflow 2: Delayed Assignment + Booking Exception
 Name:
-- `WL - Seq - Email Open 3x Assign Kevin`
+- `WL - Seq - Email Open 3x Assign John`
 
 Trigger:
 - Contact tag added: `Email Open 3x - Pending Assign`
@@ -70,21 +69,21 @@ True branch (booked):
 
 False branch (not booked):
 3. Assign contact owner
-- Assign to user ID `7s3brzxGF4WSiz95DPkF` (Kevin)
+- Assign to John's current GHL user ID
 
 4. Create/Update opportunity
 - Pipeline: `Sales Outreach`
 - Stage: `Engaged` (or your preferred working stage)
 - Status: `Open`
-- Owner: Kevin (`7s3brzxGF4WSiz95DPkF`)
+- Owner: John
 - Behavior: update existing open opportunity if present; otherwise create one.
 
 5. Tags
-- Add tag `Email Open 3x - Assigned Kevin`
+- Add tag `open email 3x`
 - Remove tag `Email Open 3x - Pending Assign`
 
 ## Important Settings
-- Keep Workflow 2 re-entry OFF so Kevin assignment is one-time.
+- Keep Workflow 2 re-entry OFF so John assignment is one-time.
 - Workflow 1 can re-enter to continue counting opens, but the `Assigned` tag guard prevents repeated assignment.
 - Keep your existing stop workflow (`WL - Seq - Stop on Booked/Reply/Closed`) active; this logic complements it.
 

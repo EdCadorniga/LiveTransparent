@@ -12,7 +12,8 @@ The `mql` tag should only be applied for high-intent warm triggers:
   - Hero form
   - Footer form
 - `Warm  Referral`
-- Booking appointments only when the booked calendar matches `cameron-1on1-30min`
+- Booking appointments only when the booked calendar matches `Regulated Ads On Social/Search`
+- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
 
 The `mql` tag should not be applied universally to every contact entering `WL - Master Warm Intake and Routing`.
 
@@ -74,7 +75,7 @@ In `WL - Master Warm Intake and Routing`:
   - LinkedIn Lead Form
   - Referral
   - Website lead-form path
-  - Booking path limited to calendar `cameron-1on1-30min`
+  - Booking path limited to calendar `Regulated Ads On Social/Search`
 
 The website lead-form path should be limited to contacts created by:
 
@@ -83,9 +84,24 @@ The website lead-form path should be limited to contacts created by:
 
 The booking path should be limited by the appointment/calendar identifier sent by GHL:
 
-- allowed calendar slug/name: `cameron-1on1-30min`
+- allowed calendar name: `Regulated Ads On Social/Search`
+- allowed normalized slug/key: `regulated-ads` or `regulated-ads-on-social-search`
 - non-matching calendars must not add `mql`
 - non-matching calendars must not be posted into the Slack leads alert flow
+
+## Related Regulated Ads Booking Automation
+
+This webhook is the `mql` baseline path only. The regulated ads booking path also has a separate live webhook flow:
+
+- GHL filtered booking automation posts to `https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`
+- n8n workflow `WL - Webhook to Slack Channel Update` sends the Slack alert
+- that same n8n flow adds tag `SQL`
+- that same n8n flow ensures the opportunity is in `Sales -> Discovery Scheduled`
+
+## Live Validation Note
+
+- The regulated ads booking path was live-tested on `2026-03-19`
+- The test contact and opportunity were left in GHL intentionally for internal inspection
 
 ## Notes
 

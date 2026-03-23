@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-24T15:19:15.156Z",
+  "updatedAt": "2026-03-17T00:31:19.349Z",
   "createdAt": "2026-02-16T15:32:03.394Z",
   "id": "SmMf8QIfysuxQJbG",
   "name": "GHL Warm Intake - Email Inbound Tag (Webhook)",
@@ -122,9 +122,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "f0f33d2a-9333-4b6b-96ae-445d096067a9",
-  "activeVersionId": "f0f33d2a-9333-4b6b-96ae-445d096067a9",
-  "versionCounter": 14,
+  "versionId": "817396df-f40d-47d5-8aa9-70a3ed92cdfe",
+  "activeVersionId": "817396df-f40d-47d5-8aa9-70a3ed92cdfe",
+  "versionCounter": 17,
   "triggerCount": 1,
   "shared": [
     {
@@ -147,9 +147,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-02-24T15:19:44.077Z",
-    "createdAt": "2026-02-24T15:19:15.158Z",
-    "versionId": "f0f33d2a-9333-4b6b-96ae-445d096067a9",
+    "updatedAt": "2026-03-17T00:31:19.352Z",
+    "createdAt": "2026-03-17T00:31:19.352Z",
+    "versionId": "817396df-f40d-47d5-8aa9-70a3ed92cdfe",
     "workflowId": "SmMf8QIfysuxQJbG",
     "nodes": [
       {
@@ -255,15 +255,23 @@
       }
     },
     "authors": "Ed cadorniga",
-    "name": "Version f0f33d2a",
-    "description": "",
-    "autosaved": true,
+    "name": null,
+    "description": null,
+    "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-02-24T15:19:44.070Z",
-        "id": 105,
+        "createdAt": "2026-03-17T00:31:19.428Z",
+        "id": 313,
         "workflowId": "SmMf8QIfysuxQJbG",
-        "versionId": "f0f33d2a-9333-4b6b-96ae-445d096067a9",
+        "versionId": "817396df-f40d-47d5-8aa9-70a3ed92cdfe",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-03-17T00:31:19.472Z",
+        "id": 314,
+        "workflowId": "SmMf8QIfysuxQJbG",
+        "versionId": "817396df-f40d-47d5-8aa9-70a3ed92cdfe",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-20T05:29:04.976Z",
+  "updatedAt": "2026-03-17T00:31:21.373Z",
   "createdAt": "2026-02-17T15:03:20.502Z",
   "id": "RSfLF7LU0rDC4jAI",
   "name": "Website Lead Intake from Footer Form",
@@ -140,9 +140,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
-  "activeVersionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
-  "versionCounter": 32,
+  "versionId": "449b1ab2-fc21-4f77-bcb4-f788c0b19a43",
+  "activeVersionId": "449b1ab2-fc21-4f77-bcb4-f788c0b19a43",
+  "versionCounter": 35,
   "triggerCount": 1,
   "shared": [
     {
@@ -165,9 +165,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-02-18T16:28:59.956Z",
-    "createdAt": "2026-02-18T16:28:59.956Z",
-    "versionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
+    "updatedAt": "2026-03-17T00:31:21.376Z",
+    "createdAt": "2026-03-17T00:31:21.376Z",
+    "versionId": "449b1ab2-fc21-4f77-bcb4-f788c0b19a43",
     "workflowId": "RSfLF7LU0rDC4jAI",
     "nodes": [
       {
@@ -296,18 +296,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-02-18T16:29:00.160Z",
-        "id": 37,
+        "createdAt": "2026-03-17T00:31:21.442Z",
+        "id": 319,
         "workflowId": "RSfLF7LU0rDC4jAI",
-        "versionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
-        "event": "activated",
+        "versionId": "449b1ab2-fc21-4f77-bcb4-f788c0b19a43",
+        "event": "deactivated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       },
       {
-        "createdAt": "2026-02-20T05:29:05.086Z",
-        "id": 67,
+        "createdAt": "2026-03-17T00:31:21.484Z",
+        "id": 320,
         "workflowId": "RSfLF7LU0rDC4jAI",
-        "versionId": "b89f10e7-91e9-44ed-b1f0-681bd266ddee",
+        "versionId": "449b1ab2-fc21-4f77-bcb4-f788c0b19a43",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }

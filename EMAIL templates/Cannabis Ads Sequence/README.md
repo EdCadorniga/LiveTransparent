@@ -22,7 +22,7 @@ This folder is the editable source of truth for sequence content and order.
 5. `05-cannabis-ads-4-v1.html` (`Cannabis Ads-4-V1`)
 
 ## Live Link Targets Used in Templates
-- Primary CTA (all 5 templates): `https://calendly.com/transparentecom/how-to-run-cannabis-ads-on-meta`
+- Primary CTA (all 5 templates): `https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK?utm_source=email&utm_medium=outreach&utm_campaign=wl_seq_cannabis_ads&utm_content=book_meeting`
 - Resource link (only email 5): `https://livetransparent.com/resources/`
 
 ## Local File to GHL Template Mapping
@@ -34,7 +34,7 @@ This folder is the editable source of truth for sequence content and order.
 
 ## Link Hygiene Status
 - `https://livetransparent.com/resources/`: reachable (web fetch check passed).
-- Calendly link: present consistently in all templates; automated health-check from this environment is inconclusive due external TLS/bot restrictions, so final click validation should be done in browser before send.
+- Booking link: present consistently in all templates; final click validation should be done in browser before send.
 
 ## Editing Workflow
 1. Edit the needed `.html` file in this folder.

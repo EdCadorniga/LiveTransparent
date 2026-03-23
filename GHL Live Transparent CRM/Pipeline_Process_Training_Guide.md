@@ -170,8 +170,18 @@ Exit criteria:
 - Outreach-to-Sales handoff: move at `Booked`.
 - Do not skip stages unless manager-approved.
 - Do not move backward except documented correction.
+- Current booked automation scope is not universal:
+  - only `Regulated Ads On Social/Search` / normalized keys `regulated-ads` or `regulated-ads-on-social-search` are auto-routed into `Sales -> Discovery Scheduled`
 
-## 5A) MQL Tag Rules (Current)
+## 5A) Website Hero Consent Rule (Current)
+- The website hero form uses GHL's built-in T&C consent elements.
+- `T&C 1` is the non-marketing SMS consent checkbox.
+- `T&C 2` is the marketing SMS consent checkbox.
+- These are built-in form consent elements, not separate contact custom fields.
+- If workflow branching is needed, use GHL's built-in T&C form-submission filters.
+- Unsubscribe behavior in later SMS or email traffic does not replace collecting consent at the form step.
+
+## 5B) MQL Tag Rules (Current)
 - `mql` is not a universal warm tag.
 - `mql` should only be added on approved high-intent paths.
 - Current approved paths:
@@ -179,15 +189,29 @@ Exit criteria:
 - `Warm  Meta Lead Form`
 - `Warm  Website` when created by the website Hero or Footer lead forms
 - `Warm  Referral`
-- Booking path only when the booked calendar is `cameron-1on1-30min`
+- Booking path only when the booked calendar is `Regulated Ads On Social/Search`
+- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
 - Standard bookings/appointments must not receive `Warm  Referral` unless the lead is actually referral-sourced.
-- Non-Cameron bookings must not receive `mql`.
+- Non-regulated-ads bookings must not receive `mql`.
 - The downstream n8n workflow `GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)` only reacts after `mql` is present; it does not add the tag itself.
+- The regulated ads booking path separately adds `SQL` and ensures the opportunity is in `Sales -> Discovery Scheduled`.
 
-## 5B) Booking Slack Rule (Current)
+## 5C) Booking Slack Rule (Current)
 - Booking alerts for `#leads` are owned by the filtered GHL booking automation, not by broad warm-routing logic.
-- Only bookings for calendar `cameron-1on1-30min` should be sent to `WL - Webhook to Slack Channel Update`.
+- Only bookings for calendar `Regulated Ads On Social/Search` should be sent to `WL - Webhook to Slack Channel Update`.
+- GHL sends the webhook to `https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`.
+- n8n workflow `WL - Webhook to Slack Channel Update` is the component that sends the Slack message, adds `SQL`, and creates or moves the Sales opportunity.
 - Avoid adding separate Slack-send steps for the same booking event elsewhere in GHL to prevent duplicates.
+
+## 5D) Live Validation Note (2026-03-19)
+- The regulated ads booking path was validated with a real public-widget booking, not just an API-created appointment.
+- Validation confirmed:
+  - GHL booking automation fired the webhook
+  - n8n sent the Slack alert
+  - n8n added tag `SQL`
+  - n8n moved the opportunity into `Sales -> Discovery Scheduled`
+- The test appointment was deleted after validation.
+- The test contact and opportunity were intentionally left in GHL for internal review visibility.
 
 ## 6) Ownership and Accountability
 - Marketing/Automation owner:
@@ -386,7 +410,7 @@ This process handles anonymous website-visitor enrichment events sent from RB2B 
 ### E) Follow-Up Task Rule
 - Create one task on processed contact:
 - Title: `New RB2B contact - Call`
-- Assigned user: Kevin (`7s3brzxGF4WSiz95DPkF`)
+- Assigned user: John
 
 ### F) Troubleshooting
 1. If task node returns `Cannot POST /contacts//tasks`, verify task node URL references `ghl_contact_id` from `Prepare + Upsert GHL Contact`.

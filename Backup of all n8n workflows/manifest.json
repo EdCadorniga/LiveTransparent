@@ -1,82 +1,93 @@
 {
-  "exportedAt": "2026-03-07T20:55:33.127535+00:00",
+  "exportedAt": "2026-03-19T00:28:17.681953+00:00",
   "source": "https://automations.livetransparent.com/api/v1",
-  "count": 21,
+  "count": 26,
   "workflows": [
     {
       "id": "MI91SutAbAj3QSXp",
       "name": "GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)",
       "active": true,
-      "updatedAt": "2026-03-03T12:35:31.343Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:20.035Z",
       "file": "MI91SutAbAj3QSXp__GHL_-_MQL_Tag_-_Ensure_Warm_Qualified_Opportunity_Webhook.json"
     },
     {
       "id": "WuxgTa0EEL1mb2SA",
       "name": "GHL Apollo Enrichment - Phone Webhook Intake (Staged)",
       "active": true,
-      "updatedAt": "2026-03-04T01:21:05.284Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:24.002Z",
       "file": "WuxgTa0EEL1mb2SA__GHL_Apollo_Enrichment_-_Phone_Webhook_Intake_Staged.json"
     },
     {
       "id": "WmKAhG7mIaXonNsh",
       "name": "GHL Apollo Enrichment - Webhook Intake (Sheet First)",
       "active": true,
-      "updatedAt": "2026-02-26T17:28:23.859Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:23.318Z",
       "file": "WmKAhG7mIaXonNsh__GHL_Apollo_Enrichment_-_Webhook_Intake_Sheet_First.json"
     },
     {
       "id": "YaWizRnw7XmkcvZH",
       "name": "GHL Apollo Phone Enrichment - Callback Handler",
       "active": true,
-      "updatedAt": "2026-03-04T00:45:18.127Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:24.673Z",
       "file": "YaWizRnw7XmkcvZH__GHL_Apollo_Phone_Enrichment_-_Callback_Handler.json"
     },
     {
       "id": "U7c6byTLXAMgcS75",
       "name": "GHL Apollo Phone Enrichment - Callback Handler V4",
       "active": true,
-      "updatedAt": "2026-03-04T01:21:07.576Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:22.658Z",
       "file": "U7c6byTLXAMgcS75__GHL_Apollo_Phone_Enrichment_-_Callback_Handler_V4.json"
     },
     {
       "id": "OowP3sAd8c9paSKf",
       "name": "GHL Warm Intake - Add Intake Tag (Webhook)",
       "active": true,
-      "updatedAt": "2026-02-16T15:54:26.363Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:18.707Z",
       "file": "OowP3sAd8c9paSKf__GHL_Warm_Intake_-_Add_Intake_Tag_Webhook.json"
     },
     {
       "id": "SmMf8QIfysuxQJbG",
       "name": "GHL Warm Intake - Email Inbound Tag (Webhook)",
       "active": true,
-      "updatedAt": "2026-02-24T15:19:15.156Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:19.349Z",
       "file": "SmMf8QIfysuxQJbG__GHL_Warm_Intake_-_Email_Inbound_Tag_Webhook.json"
     },
     {
       "id": "J4B0n0QeSeOeqAci",
       "name": "GHL Warm Intake - Email Outbound Tag (Webhook)",
       "active": true,
-      "updatedAt": "2026-02-24T15:16:29.586Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:18.029Z",
       "file": "J4B0n0QeSeOeqAci__GHL_Warm_Intake_-_Email_Outbound_Tag_Webhook.json"
     },
     {
       "id": "6lp8sIS3YMB1t9Ri",
       "name": "GHL Warm Intake - Referral Tag (Webhook)",
       "active": true,
-      "updatedAt": "2026-02-24T15:54:10.514Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:17.246Z",
       "file": "6lp8sIS3YMB1t9Ri__GHL_Warm_Intake_-_Referral_Tag_Webhook.json"
     },
     {
       "id": "5nYzp9DgQUopzWhR",
       "name": "GHL Warm Intake - SMS Tag (Webhook)",
       "active": true,
-      "updatedAt": "2026-02-24T15:49:03.056Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:29:37.358Z",
       "file": "5nYzp9DgQUopzWhR__GHL_Warm_Intake_-_SMS_Tag_Webhook.json"
     },
     {
       "id": "T28iLcm4Hszo19MG",
       "name": "LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)",
       "active": true,
+      "isArchived": false,
       "updatedAt": "2026-02-20T09:52:01.421Z",
       "file": "T28iLcm4Hszo19MG__LT_-_Cold_Outreach_CSV_-_GHL_Import_DryRun_Staged.json"
     },
@@ -84,6 +95,7 @@
       "id": "kVCTmy1m8fEyP6Q7",
       "name": "LT - Cold Outreach CSV -> Postgres Ingest (Staged)",
       "active": true,
+      "isArchived": false,
       "updatedAt": "2026-02-20T10:10:37.649Z",
       "file": "kVCTmy1m8fEyP6Q7__LT_-_Cold_Outreach_CSV_-_Postgres_Ingest_Staged.json"
     },
@@ -91,13 +103,55 @@
       "id": "NTpQnMrpjzusPXHX",
       "name": "LT - Cold Outreach Sender Release Dispatcher (Staged)",
       "active": true,
-      "updatedAt": "2026-03-07T20:45:32.691Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T01:21:21.191Z",
       "file": "NTpQnMrpjzusPXHX__LT_-_Cold_Outreach_Sender_Release_Dispatcher_Staged.json"
+    },
+    {
+      "id": "AEi1VCzkLvaYFr4U",
+      "name": "LT - SimpleTexting Delivery Events (Webhook, Staged)",
+      "active": false,
+      "isArchived": false,
+      "updatedAt": "2026-03-17T12:01:20.711Z",
+      "file": "AEi1VCzkLvaYFr4U__LT_-_SimpleTexting_Delivery_Events_Webhook_Staged.json"
+    },
+    {
+      "id": "EhAiGey2o7UJT1cv",
+      "name": "LT - SimpleTexting Inbound Reply (Webhook, Staged)",
+      "active": false,
+      "isArchived": false,
+      "updatedAt": "2026-03-17T12:01:20.372Z",
+      "file": "EhAiGey2o7UJT1cv__LT_-_SimpleTexting_Inbound_Reply_Webhook_Staged.json"
+    },
+    {
+      "id": "Q3Ivnwe4z2Y3cD7A",
+      "name": "LT - SimpleTexting SMS Send (Webhook, Staged)",
+      "active": false,
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:33:40.261Z",
+      "file": "Q3Ivnwe4z2Y3cD7A__LT_-_SimpleTexting_SMS_Send_Webhook_Staged.json"
+    },
+    {
+      "id": "IyBKMkpYQ7pa0C8V",
+      "name": "LT - SimpleTexting Unsubscribe Events (Webhook, Staged)",
+      "active": false,
+      "isArchived": false,
+      "updatedAt": "2026-03-17T12:01:21.025Z",
+      "file": "IyBKMkpYQ7pa0C8V__LT_-_SimpleTexting_Unsubscribe_Events_Webhook_Staged.json"
+    },
+    {
+      "id": "3kjsIUeoEQFx26cC",
+      "name": "rb2b leads",
+      "active": true,
+      "isArchived": false,
+      "updatedAt": "2026-03-19T00:21:37.828Z",
+      "file": "3kjsIUeoEQFx26cC__rb2b_leads.json"
     },
     {
       "id": "BMpUMhc4UJdAmCfS",
       "name": "TEMP - Apollo Fresh Rerun For Error Contacts",
       "active": false,
+      "isArchived": true,
       "updatedAt": "2026-03-04T00:47:20.917Z",
       "file": "BMpUMhc4UJdAmCfS__TEMP_-_Apollo_Fresh_Rerun_For_Error_Contacts.json"
     },
@@ -105,6 +159,7 @@
       "id": "B3z2ALUA3jcWuG9G",
       "name": "TEMP - Apollo Queued Backfill From Smart List (Historical)",
       "active": false,
+      "isArchived": true,
       "updatedAt": "2026-03-04T00:47:27.497Z",
       "file": "B3z2ALUA3jcWuG9G__TEMP_-_Apollo_Queued_Backfill_From_Smart_List_Historical.json"
     },
@@ -112,6 +167,7 @@
       "id": "yDi3QoRkxtdXOUuL",
       "name": "TEMP - Backfill MQL Contacts -> Warm Qualified Opportunity",
       "active": false,
+      "isArchived": true,
       "updatedAt": "2026-03-03T14:45:38.421Z",
       "file": "yDi3QoRkxtdXOUuL__TEMP_-_Backfill_MQL_Contacts_-_Warm_Qualified_Opportunity.json"
     },
@@ -119,20 +175,23 @@
       "id": "RSfLF7LU0rDC4jAI",
       "name": "Website Lead Intake from Footer Form",
       "active": true,
-      "updatedAt": "2026-02-20T05:29:04.976Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:21.373Z",
       "file": "RSfLF7LU0rDC4jAI__Website_Lead_Intake_from_Footer_Form.json"
     },
     {
       "id": "RTV5jUiTt05lad07",
       "name": "Website Lead Intake from Hero form",
       "active": true,
-      "updatedAt": "2026-02-20T05:28:59.976Z",
+      "isArchived": false,
+      "updatedAt": "2026-03-17T00:31:21.994Z",
       "file": "RTV5jUiTt05lad07__Website_Lead_Intake_from_Hero_form.json"
     },
     {
       "id": "FQE90HDUilFVdASY",
       "name": "WL - Webhook to Slack Channel - Form Submission",
       "active": true,
+      "isArchived": false,
       "updatedAt": "2026-03-05T14:14:31.047Z",
       "file": "FQE90HDUilFVdASY__WL_-_Webhook_to_Slack_Channel_-_Form_Submission.json"
     },
@@ -140,6 +199,7 @@
       "id": "8USvJkRlKzbj6Fu1",
       "name": "WL - Webhook to Slack Channel - Website Visitor",
       "active": true,
+      "isArchived": false,
       "updatedAt": "2026-02-24T18:20:12.982Z",
       "file": "8USvJkRlKzbj6Fu1__WL_-_Webhook_to_Slack_Channel_-_Website_Visitor.json"
     },
@@ -147,6 +207,7 @@
       "id": "lQTW0QPwBcf3o7j8",
       "name": "WL - Webhook to Slack Channel Update",
       "active": true,
+      "isArchived": false,
       "updatedAt": "2026-02-24T18:02:27.821Z",
       "file": "lQTW0QPwBcf3o7j8__WL_-_Webhook_to_Slack_Channel_Update.json"
     }

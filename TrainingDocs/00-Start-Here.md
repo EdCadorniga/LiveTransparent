@@ -9,6 +9,7 @@ Use these files in this order:
 3. `03-MQL-and-Booking-Rules.md`
 4. `04-Email-Open-Follow-Up-Process.md`
 5. `05-Website-Visitor-Leads.md`
+6. `06-GHL-Automations-Guide.md`
 
 Who this is for:
 
@@ -22,6 +23,14 @@ What this folder is for:
 - Learn when a lead is ready for sales
 - Learn what tags and alerts matter
 - Learn what to do each day in GHL
+- Learn the website hero consent rule:
+  - `T&C 1` = non-marketing SMS consent
+  - `T&C 2` = marketing SMS consent
+  - these are built-in GHL form consent elements, not separate contact custom fields
+- Learn the regulated ads booking rule:
+  - only `Regulated Ads On Social/Search` / normalized keys `regulated-ads` or `regulated-ads-on-social-search` get `SQL`
+  - only that booking should trigger the `#leads` Slack alert
+  - only that booking should move or create the opportunity in `Sales -> Discovery Scheduled`
 
 What this folder is not for:
 

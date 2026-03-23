@@ -21,7 +21,8 @@ Add `mql` only when the lead came from one of these:
 - `Warm  Website` when the lead came from the website Hero form
 - `Warm  Website` when the lead came from the website Footer form
 - `Warm  Referral`
-- A booking on calendar `cameron-1on1-30min`
+- A booking on calendar `Regulated Ads On Social/Search`
+- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
 
 ## Do Not Add `mql` For
 
@@ -41,29 +42,53 @@ Do not use it:
 - for calendar routing
 - as a shortcut to force MQL
 
+## Website Hero Consent Rule
+
+The website hero form uses GHL's built-in consent elements.
+
+- `T&C 1` = non-marketing SMS consent
+- `T&C 2` = marketing SMS consent
+- these are built-in GHL form consent elements, not separate contact custom fields
+- if a workflow needs to branch on consent, use GHL's built-in T&C workflow filters on the form submission
+- unsubscribe handling in SMS or email does not replace collecting consent at the form step
+
 ## Booking Rule
 
 If a contact books the right meeting:
 
-- calendar must be `cameron-1on1-30min`
+- calendar must be `Regulated Ads On Social/Search`
+- normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
 - then the lead can get `mql`
+- then the lead should also get `SQL`
+- then the opportunity should be moved to `Sales -> Discovery Scheduled`, or created there if none exists
 
 If the contact books a different meeting:
 
 - do not add `mql`
+- do not add `SQL`
+- do not send the `#leads` Slack alert
+- do not move/create the Sales opportunity from this rule
 
 ## Slack Rule
 
-The `#leads` booking alert is sent by a filtered GHL booking automation.
+The `#leads` booking alert is sent by a filtered GHL booking automation that calls n8n.
 
 Only this should happen:
 
-- `cameron-1on1-30min` booking -> send to `#leads`
+- `Regulated Ads On Social/Search` booking -> send webhook -> n8n -> send to `#leads`
 
 This should not happen:
 
 - all bookings -> send to `#leads`
 - duplicate Slack sends from multiple workflows
+
+Current implementation:
+
+- GHL filters the regulated ads booking before firing the webhook
+- GHL posts to `https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`
+- n8n workflow `WL - Webhook to Slack Channel Update` sends the Slack alert
+- the same n8n workflow adds `SQL`
+- the same n8n workflow moves or creates the opportunity in `Sales -> Discovery Scheduled`
 
 ## What Happens After `mql` Is Added
 
@@ -71,8 +96,15 @@ After `mql` is added:
 
 - GHL sends the contact into the MQL follow-up logic
 - n8n can create or update the `Warm -> Qualified (MQL)` opportunity
+- for the regulated ads booking path, n8n also creates or updates the `Sales -> Discovery Scheduled` opportunity state
 
 Important:
 
 - n8n does not decide who gets `mql`
 - the GHL rules decide that first
+
+## Validation Note
+
+- This regulated ads booking path was live-tested on `2026-03-19`
+- The test appointment was deleted after the test
+- The test contact and opportunity were left in GHL intentionally so the team can review the result

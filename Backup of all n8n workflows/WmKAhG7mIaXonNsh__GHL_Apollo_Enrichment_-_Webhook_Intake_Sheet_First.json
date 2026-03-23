@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-26T17:28:23.859Z",
+  "updatedAt": "2026-03-17T00:31:23.318Z",
   "createdAt": "2026-02-13T14:51:11.125Z",
   "id": "WmKAhG7mIaXonNsh",
   "name": "GHL Apollo Enrichment - Webhook Intake (Sheet First)",
@@ -352,9 +352,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "1306e122-fcd9-4e77-88ea-dc36f52b63f0",
-  "activeVersionId": "1306e122-fcd9-4e77-88ea-dc36f52b63f0",
-  "versionCounter": 93,
+  "versionId": "8c04755c-25fd-4d56-b5da-f52cec965c8e",
+  "activeVersionId": "8c04755c-25fd-4d56-b5da-f52cec965c8e",
+  "versionCounter": 96,
   "triggerCount": 1,
   "shared": [
     {
@@ -377,9 +377,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-02-26T17:28:23.873Z",
-    "createdAt": "2026-02-26T17:28:23.873Z",
-    "versionId": "1306e122-fcd9-4e77-88ea-dc36f52b63f0",
+    "updatedAt": "2026-03-17T00:31:23.320Z",
+    "createdAt": "2026-03-17T00:31:23.320Z",
+    "versionId": "8c04755c-25fd-4d56-b5da-f52cec965c8e",
     "workflowId": "WmKAhG7mIaXonNsh",
     "nodes": [
       {
@@ -718,18 +718,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-02-26T17:28:24.366Z",
-        "id": 182,
+        "createdAt": "2026-03-17T00:31:23.414Z",
+        "id": 325,
         "workflowId": "WmKAhG7mIaXonNsh",
-        "versionId": "1306e122-fcd9-4e77-88ea-dc36f52b63f0",
-        "event": "activated",
+        "versionId": "8c04755c-25fd-4d56-b5da-f52cec965c8e",
+        "event": "deactivated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       },
       {
-        "createdAt": "2026-02-26T17:28:24.878Z",
-        "id": 183,
+        "createdAt": "2026-03-17T00:31:23.451Z",
+        "id": 326,
         "workflowId": "WmKAhG7mIaXonNsh",
-        "versionId": "1306e122-fcd9-4e77-88ea-dc36f52b63f0",
+        "versionId": "8c04755c-25fd-4d56-b5da-f52cec965c8e",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }

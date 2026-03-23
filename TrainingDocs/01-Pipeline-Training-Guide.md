@@ -96,6 +96,7 @@ Use this when:
 Important:
 
 - `Booked` is the handoff point into Sales
+- The current automated booked handoff is only for the regulated ads booking path
 
 ### `Unresponsive`
 
@@ -111,6 +112,12 @@ Use this when:
 Use this when:
 
 - A discovery call is booked
+
+Important:
+
+- The current automated booking handoff is for `Regulated Ads On Social/Search`
+- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+- That path adds `SQL` and ensures the opportunity is in `Sales -> Discovery Scheduled`
 
 ### `Discovery Completed`
 
@@ -153,7 +160,8 @@ Use `mql` only for:
 - `Warm  Meta Lead Form`
 - `Warm  Website` from the website Hero or Footer forms
 - `Warm  Referral`
-- Bookings only when the calendar is `cameron-1on1-30min`
+- Bookings only when the calendar is `Regulated Ads On Social/Search`
+- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
 
 Do not use `mql` for:
 
@@ -173,12 +181,25 @@ Do not use `Warm  Referral` for:
 
 ## Booking Slack Rule
 
-The `#leads` Slack booking alert is controlled by a filtered GHL booking automation.
+The `#leads` Slack booking alert is controlled by a filtered GHL booking automation that posts into n8n.
 
 That means:
 
-- only `cameron-1on1-30min` bookings should go to `#leads`
+- only `Regulated Ads On Social/Search` bookings should go to `#leads`
 - not every booking should go to `#leads`
+
+Current implementation:
+
+- GHL workflow filters the regulated ads booking
+- GHL sends `POST https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`
+- n8n workflow `WL - Webhook to Slack Channel Update` sends the Slack alert
+- the same n8n flow adds `SQL` and moves or creates the opportunity in `Sales -> Discovery Scheduled`
+
+Live validation:
+
+- This booking path was live-tested on `2026-03-19`
+- The test appointment was removed after validation so the regulated ads slot is clear
+- The test contact and opportunity were intentionally left in GHL so teammates can inspect the result
 
 ## Simple Stage Rules
 

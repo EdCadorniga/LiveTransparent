@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-16T15:54:26.363Z",
+  "updatedAt": "2026-03-17T00:31:18.707Z",
   "createdAt": "2026-02-16T15:30:18.083Z",
   "id": "OowP3sAd8c9paSKf",
   "name": "GHL Warm Intake - Add Intake Tag (Webhook)",
@@ -127,9 +127,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "57a9aa8c-76d2-4909-9ea4-a0788701e6f0",
-  "activeVersionId": "57a9aa8c-76d2-4909-9ea4-a0788701e6f0",
-  "versionCounter": 9,
+  "versionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
+  "activeVersionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
+  "versionCounter": 12,
   "triggerCount": 1,
   "shared": [
     {
@@ -152,9 +152,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-02-16T15:30:18.119Z",
-    "createdAt": "2026-02-16T15:30:18.119Z",
-    "versionId": "57a9aa8c-76d2-4909-9ea4-a0788701e6f0",
+    "updatedAt": "2026-03-17T00:31:18.710Z",
+    "createdAt": "2026-03-17T00:31:18.710Z",
+    "versionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
     "workflowId": "OowP3sAd8c9paSKf",
     "nodes": [
       {
@@ -270,18 +270,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-02-16T15:47:35.421Z",
-        "id": 7,
+        "createdAt": "2026-03-17T00:31:18.771Z",
+        "id": 311,
         "workflowId": "OowP3sAd8c9paSKf",
-        "versionId": "57a9aa8c-76d2-4909-9ea4-a0788701e6f0",
-        "event": "activated",
+        "versionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
+        "event": "deactivated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       },
       {
-        "createdAt": "2026-02-16T15:54:26.514Z",
-        "id": 9,
+        "createdAt": "2026-03-17T00:31:18.800Z",
+        "id": 312,
         "workflowId": "OowP3sAd8c9paSKf",
-        "versionId": "57a9aa8c-76d2-4909-9ea4-a0788701e6f0",
+        "versionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }

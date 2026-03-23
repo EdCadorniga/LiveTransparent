@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-04T01:21:07.576Z",
+  "updatedAt": "2026-03-17T00:31:22.658Z",
   "createdAt": "2026-03-04T00:45:54.868Z",
   "id": "U7c6byTLXAMgcS75",
   "name": "GHL Apollo Phone Enrichment - Callback Handler V4",
@@ -141,9 +141,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "f0730a0c-c8cd-4dd5-85c0-aeb1d3021430",
-  "activeVersionId": "f0730a0c-c8cd-4dd5-85c0-aeb1d3021430",
-  "versionCounter": 13,
+  "versionId": "c0b0695e-5a52-433b-b332-837cc041eba4",
+  "activeVersionId": "c0b0695e-5a52-433b-b332-837cc041eba4",
+  "versionCounter": 16,
   "triggerCount": 1,
   "shared": [
     {
@@ -166,9 +166,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-04T01:21:07.578Z",
-    "createdAt": "2026-03-04T01:21:07.578Z",
-    "versionId": "f0730a0c-c8cd-4dd5-85c0-aeb1d3021430",
+    "updatedAt": "2026-03-17T00:31:22.660Z",
+    "createdAt": "2026-03-17T00:31:22.660Z",
+    "versionId": "c0b0695e-5a52-433b-b332-837cc041eba4",
     "workflowId": "U7c6byTLXAMgcS75",
     "nodes": [
       {
@@ -298,34 +298,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-04T01:21:08.129Z",
-        "id": 250,
+        "createdAt": "2026-03-17T00:31:22.739Z",
+        "id": 323,
         "workflowId": "U7c6byTLXAMgcS75",
-        "versionId": "f0730a0c-c8cd-4dd5-85c0-aeb1d3021430",
+        "versionId": "c0b0695e-5a52-433b-b332-837cc041eba4",
         "event": "deactivated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       },
       {
-        "createdAt": "2026-03-04T01:21:08.222Z",
-        "id": 251,
+        "createdAt": "2026-03-17T00:31:22.775Z",
+        "id": 324,
         "workflowId": "U7c6byTLXAMgcS75",
-        "versionId": "f0730a0c-c8cd-4dd5-85c0-aeb1d3021430",
-        "event": "activated",
-        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
-      },
-      {
-        "createdAt": "2026-03-04T01:21:07.651Z",
-        "id": 248,
-        "workflowId": "U7c6byTLXAMgcS75",
-        "versionId": "f0730a0c-c8cd-4dd5-85c0-aeb1d3021430",
-        "event": "deactivated",
-        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
-      },
-      {
-        "createdAt": "2026-03-04T01:21:07.696Z",
-        "id": 249,
-        "workflowId": "U7c6byTLXAMgcS75",
-        "versionId": "f0730a0c-c8cd-4dd5-85c0-aeb1d3021430",
+        "versionId": "c0b0695e-5a52-433b-b332-837cc041eba4",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }
