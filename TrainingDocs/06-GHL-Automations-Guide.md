@@ -147,7 +147,7 @@ These are the main tags documented in our system and what they mean.
 - `Stage: MQL`: older system tag that marks an MQL-type path
 - `mql`: current working tag for approved marketing-qualified leads
 - `SQL`: sales-qualified lead tag used on the regulated ads booking path
-- `meeting booked`: meeting has been booked
+- `meeting booked`: qualifying booked meeting signal, not a generic any-calendar booking tag
 
 ### Intake and Referral Tags
 
@@ -177,6 +177,7 @@ These are the main tags documented in our system and what they mean.
 
 - Not every warm tag means the lead is an `mql`
 - Not every booked meeting means the lead is an `SQL`
+- `meeting booked` should only be trusted for the current regulated ads booking path and a small set of legacy Cameron 30-minute records kept after cleanup
 - `Warm  Referral` should only be used for real referrals
 - `Referral - Intake` is a temporary workflow tag, not a final source tag
 - `Stage: MQL` is still seen in docs and older logic, but `mql` is the main working tag users should watch

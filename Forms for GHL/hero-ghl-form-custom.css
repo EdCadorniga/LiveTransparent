@@ -1,194 +1,269 @@
+/* =========================
+     FORM CONTAINER
+  ========================= */
 #_builder-form,
 #_builder-form .hl-app,
-#_builder-form .hl-app .container,
-#_builder-form form {
+#_builder-form .form-builder--wrap,
+#_builder-form .form-builder--form {
   background: #000000 !important;
   color: #ffffff !important;
-  max-width: 420px !important;
+}
+
+/* Hero form width */
+#_builder-form {
+  width: 100% !important;
+  max-width: 600px !important;
   margin: 0 auto !important;
-  padding: 14px !important;
-  border: 3px solid #e6e6e6 !important;
+}
+
+@media (max-width: 991px) {
+  #_builder-form {
+    max-width: 480px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  #_builder-form {
+    max-width: 92vw !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #_builder-form {
+    max-width: 100% !important;
+  }
+}
+
+/* =========================
+     HEADINGS
+  ========================= */
+#_builder-form h2 {
+  color: #ffffff !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 46px !important;
+  line-height: 1.05 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  margin: 0 0 8px 0 !important;
+}
+
+#_builder-form h3 {
+  color: #ffffff !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 17px !important;
+  line-height: 1.35 !important;
+  font-style: italic !important;
+  font-weight: 500 !important;
+  margin: 0 0 18px 0 !important;
+}
+
+/* =========================
+     GLOBAL TYPOGRAPHY
+  ========================= */
+#_builder-form,
+#_builder-form p,
+#_builder-form span,
+#_builder-form label,
+#_builder-form small,
+#_builder-form input,
+#_builder-form textarea,
+#_builder-form select,
+#_builder-form button {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+/* =========================
+     INPUTS
+  ========================= */
+#_builder-form input,
+#_builder-form textarea,
+#_builder-form select {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
   border-radius: 0 !important;
   box-shadow: none !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  font-weight: 400 !important;
+  padding: 14px !important;
 }
 
-/* Hide regular field labels only */
-#_builder-form
-  .form-builder--item
-  > label:not([for*="terms_and_conditions"]):not([for*="checkbox"]):not(
-    [for*="radio"]
-  ),
-#_builder-form .short-label {
-  display: none !important;
+#_builder-form textarea.form-control {
+  border: 1px solid #ffffff !important;
 }
 
-/* Tighten wrappers hard */
-#_builder-form .form-builder--item,
-#_builder-form .field-container,
-#_builder-form .hl-form-field {
-  margin-bottom: 2px !important;
-  padding-bottom: 0 !important;
+/* Uniform placeholder styling */
+#_builder-form input::placeholder,
+#_builder-form textarea::placeholder,
+#_builder-form select::placeholder,
+#_builder-form input::-webkit-input-placeholder,
+#_builder-form textarea::-webkit-input-placeholder,
+#_builder-form input::-moz-placeholder,
+#_builder-form textarea::-moz-placeholder,
+#_builder-form input:-ms-input-placeholder,
+#_builder-form textarea:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.72) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.72) !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  font-weight: 400 !important;
+  opacity: 1 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
 }
 
-/* Headings */
-#_builder-form h1,
-#_builder-form h2,
-#_builder-form h3,
-#_builder-form .text-element,
-#_builder-form .text-element * {
-  color: #ffffff !important;
-}
-
-#_builder-form h2,
-#_builder-form .text-element h2 {
-  margin: 0 !important;
-  font-size: 44px !important;
-  line-height: 1 !important;
-  font-weight: 700 !important;
-}
-
-#_builder-form h3,
-#_builder-form .text-element h3 {
-  margin: 6px 0 8px !important;
-  font-size: 24px !important;
-  line-height: 1.05 !important;
-  font-style: italic !important;
+/* Remove any bold styling from placeholder-like content */
+#_builder-form input[placeholder],
+#_builder-form textarea[placeholder] {
   font-weight: 400 !important;
 }
 
-/* Inputs */
-#_builder-form input[type="text"],
-#_builder-form input[type="email"],
-#_builder-form input[type="tel"],
-#_builder-form input[type="number"],
-#_builder-form textarea,
-#_builder-form select,
-#_builder-form .form-control,
-#_builder-form .multiselect,
-#_builder-form .multiselect__tags {
-  width: 100% !important;
-  margin: 0 0 4px !important;
-  padding: 10px 14px !important;
-  border: 2px solid #e6e6e6 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: #ffffff !important;
-  font-size: 17px !important;
-  line-height: 1.15 !important;
-  box-shadow: none !important;
-}
-
 #_builder-form textarea {
-  min-height: 68px !important;
+  min-height: 72px !important;
   resize: vertical !important;
 }
 
-#_builder-form input::placeholder,
-#_builder-form textarea::placeholder {
-  color: #ffffff !important;
-  opacity: 1 !important;
-  font-size: 17px !important;
-  line-height: 1.15 !important;
+#_builder-form input:focus,
+#_builder-form textarea:focus,
+#_builder-form select:focus {
+  outline: none !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 0 1px #ffffff !important;
 }
 
-/* Button */
-#_builder-form button,
-#_builder-form .btn,
-#_builder-form input[type="submit"] {
-  display: block !important;
-  width: 80% !important;
-  min-width: 0 !important;
-  margin: 1px auto 6px !important;
-  padding: 8px 16px !important;
-  border: 1px solid #ffffff !important;
-  border-radius: 0 !important;
+/* Hide standard labels if placeholders are used */
+#_builder-form
+  .form-builder--item
+  > label:not([for*="terms"]):not([for*="radio"]) {
+  display: none !important;
+}
+
+/* =========================
+     CONSENT + LEGAL TEXT
+  ========================= */
+#_builder-form .form-builder--item label[for*="terms"],
+#_builder-form .form-builder--item label[for*="radio"],
+#_builder-form .terms-and-conditions,
+#_builder-form .privacy-policy,
+#_builder-form .disclaimer,
+#_builder-form .form-builder--item .checkbox-label,
+#_builder-form .form-builder--item .option-label,
+#_builder-form .form-builder--item small,
+#_builder-form .form-builder--item p,
+#_builder-form .hl-text-input-wrapper + div p,
+#_builder-form input[type="checkbox"] + p {
+  color: #ffffff !important;
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+  font-weight: 400 !important;
+  opacity: 1 !important;
+}
+
+#_builder-form strong,
+#_builder-form b {
+  color: #ffffff !important;
+}
+
+#_builder-form input[type="checkbox"] {
+  width: 14px !important;
+  height: 14px !important;
+  accent-color: #ffffff !important;
+  margin-right: 8px !important;
+}
+
+/* =========================
+     BUTTON
+  ========================= */
+#_builder-form button.btn,
+#_builder-form .button-element,
+#_builder-form [type="submit"] {
   background: #ffffff !important;
   color: #000000 !important;
-  font-size: 32px !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
+  border: none !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
-  text-align: center !important;
-  transition: background-color 0.2s ease, color 0.2s ease,
-    border-color 0.2s ease !important;
-}
-
-#_builder-form button *,
-#_builder-form .btn *,
-#_builder-form input[type="submit"] * {
-  color: #000000 !important;
+  min-height: 52px !important;
+  padding: 18px 20px !important;
   text-align: center !important;
 }
 
-#_builder-form button:hover,
-#_builder-form .btn:hover,
-#_builder-form input[type="submit"]:hover {
-  background: #000000 !important;
-  color: #ffffff !important;
-  border-color: #ffffff !important;
-}
-
-#_builder-form button:hover *,
-#_builder-form .btn:hover *,
-#_builder-form input[type="submit"]:hover * {
-  color: #ffffff !important;
-  text-align: center !important;
-}
-
-/* Body text and links */
-#_builder-form p,
-#_builder-form span,
-#_builder-form div,
-#_builder-form small,
-#_builder-form a {
-  color: #ffffff !important;
-}
-
-#_builder-form a {
-  text-decoration: underline !important;
-}
-
-/* Keep T&C checkbox text white */
-#_builder-form .checkbox-container label,
-#_builder-form .checkbox-container label *,
-#_builder-form .checkbox-container .terms-text-container,
-#_builder-form .checkbox-container .terms-text-container *,
-#_builder-form .checkbox-container p,
-#_builder-form .checkbox-container p *,
-#_builder-form .checkbox-container span,
-#_builder-form .checkbox-container span * {
-  color: #ffffff !important;
-}
-
-/* Compress checkbox layout */
-#_builder-form .checkbox-container {
-  margin-top: 2px !important;
-  margin-bottom: 2px !important;
-}
-
-#_builder-form .checkbox-container label {
-  margin-left: 6px !important;
+#_builder-form button.btn .button-content,
+#_builder-form .button-element .button-content,
+#_builder-form button.btn .button-content--left,
+#_builder-form .button-element .button-content--left,
+#_builder-form [type="submit"] .button-content,
+#_builder-form [type="submit"] .button-content--left {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
   width: 100% !important;
+  text-align: center !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
 }
 
-#_builder-form .checkbox-container p {
+#_builder-form button.btn p,
+#_builder-form .button-element p,
+#_builder-form [type="submit"] p,
+#_builder-form button.btn span,
+#_builder-form .button-element span,
+#_builder-form [type="submit"] span,
+#_builder-form button.btn div,
+#_builder-form .button-element div,
+#_builder-form [type="submit"] div {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
   margin: 0 !important;
-  font-size: 11px !important;
-  line-height: 1.25 !important;
 }
 
-/* Keep checkbox borders dark */
-#_builder-form .checkbox-container input[type="checkbox"],
-#_builder-form input[type="radio"] {
-  border-color: #000000 !important;
-  box-shadow: none !important;
-  outline: none !important;
+#_builder-form button.btn:hover,
+#_builder-form .button-element:hover,
+#_builder-form [type="submit"]:hover {
+  background: #f2f2f2 !important;
+  color: #000000 !important;
 }
 
-/* Privacy/terms row */
-#_builder-form a[href*="privacy-policy"],
-#_builder-form a[href*="terms"] {
+/* =========================
+     FOOTER LINKS
+  ========================= */
+#_builder-form a[href*="privacy"],
+#_builder-form a[href*="terms"],
+#_builder-form .terms-and-conditions a,
+#_builder-form .privacy-policy a,
+#_builder-form p a {
   color: #ffffff !important;
-  font-size: 11px !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  font-weight: 400 !important;
   text-decoration: underline !important;
+  opacity: 1 !important;
+}
+
+#_builder-form a[href*="privacy"]:hover,
+#_builder-form a[href*="terms"]:hover,
+#_builder-form .terms-and-conditions a:hover,
+#_builder-form .privacy-policy a:hover,
+#_builder-form p a:hover {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 0.85 !important;
+}
+
+/* =========================
+     SPACING
+  ========================= */
+#_builder-form .form-builder--item {
+  margin-bottom: 14px !important;
+}
+
+#_builder-form .form-builder--item:last-child {
+  margin-bottom: 0 !important;
 }

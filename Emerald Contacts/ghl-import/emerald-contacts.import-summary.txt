@@ -1,0 +1,13 @@
+Source files: 6
+Source rows: 33561
+Importable rows: 27320
+Skipped rows missing both email and phone: 6241
+Deduped rows before phone safety filter: 24354
+Deduped rows in GHL-safe import: 19649
+Rows moved to review file (phone-only shared/invalid): 4705
+Deduplication collisions resolved: 2966
+Export shape: GHL-safe standard headers + live Em_* custom-field headers + Batch_Upload
+
+All rows CSV: emerald-contacts.ghl.csv
+Deduped CSV: emerald-contacts.dedup.ghl.csv
+Review CSV: emerald-contacts.dedup.review-shared-phone.csv

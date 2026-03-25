@@ -41,7 +41,7 @@ Main Website:livetransparent.comFunnels (GHL Hosted):offers.livetransparent.comb
 - In parallel: deploy internal BookStack knowledgebase in Coolify and publish SOP docs for team enablement.
 - BookStack docs: bookstack/README.md
 - AI Agent knowledgebase is deferred to a later phase (license/usage decision pending).
-- Process doc: GHL Live Transparent CRM/AI_Agent_Knowledgebase_Setup_Process.md
+- Process doc: Website AI Chatbot/plans/AI_Agent_Knowledgebase_Setup_Process.md
 
 10. Sequence and Nurture Architecture
 - Objective: convert warm engagement into booked sales conversations without duplicate or conflicting outreach.

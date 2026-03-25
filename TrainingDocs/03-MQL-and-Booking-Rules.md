@@ -60,12 +60,14 @@ If a contact books the right meeting:
 - normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
 - then the lead can get `mql`
 - then the lead should also get `SQL`
+- then the lead can keep `meeting booked`
 - then the opportunity should be moved to `Sales -> Discovery Scheduled`, or created there if none exists
 
 If the contact books a different meeting:
 
 - do not add `mql`
 - do not add `SQL`
+- do not keep or rely on `meeting booked` from that booking
 - do not send the `#leads` Slack alert
 - do not move/create the Sales opportunity from this rule
 
@@ -108,3 +110,4 @@ Important:
 - This regulated ads booking path was live-tested on `2026-03-19`
 - The test appointment was deleted after the test
 - The test contact and opportunity were left in GHL intentionally so the team can review the result
+- The `meeting booked` tag population was audited on `2026-03-24`; non-qualifying bookings and unrelated contacts were cleaned up

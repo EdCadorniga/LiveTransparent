@@ -1,6 +1,6 @@
 # Cannabis Ads Sender Routing Runbook (GHL + n8n Dispatcher)
 
-Last updated: `2026-03-08`
+Last updated: `2026-03-24`
 Location: `Live Transparent` (`Zwz4relUXVPxx8uohnjV`)
 
 ## Purpose
@@ -32,7 +32,9 @@ Implement sender locking for Cannabis Ads enrollment using GHL field `marketing_
 - `Seq Variant A`
 - `Seq Variant B`
 - `Do Not Nurture`
-- `Meeting Booked`
+- `meeting booked`
+  - current valid workflow scope: regulated ads booking calendar only
+  - legacy retained contacts may still have it from Cameron 30-minute bookings
 
 ## Workflow Scope
 - Router workflow: `WL - Seq Enrollment Router - Cannabis Ads`
@@ -53,7 +55,7 @@ In `WL - Seq Enrollment Router - Cannabis Ads`:
 1. Trigger: tag added `Enrollment Queue - Cannabis Ads`.
 2. Add guard checks before split:
 - does not have `Seq Enrolled - Cannabis Ads`
-- does not have `Meeting Booked`
+- does not have `meeting booked`
 - does not have `Do Not Nurture`
 - DND does not block email
 - `marketing_sender_email` is not empty
@@ -120,6 +122,7 @@ Dispatcher workflow runs hourly and handles release automatically:
 3. Confirm no contact enters both A and B.
 4. Confirm queue tag is removed after enrollment.
 5. Confirm stop workflow removes from both A and B on booked/reply/closed/do-not-nurture.
+6. Confirm `meeting booked` is not present on unrelated bookings or non-booking records.
 6. Confirm release math:
 - Total sent-today for sender (in-flight + newly released) does not exceed sender daily cap.
 

@@ -64,6 +64,7 @@ Use this file during your work day.
 - The normalized key may appear as `regulated-ads` or `regulated-ads-on-social-search`
 - Other bookings should not go to `#leads`
 - Regulated ads bookings should also get tag `SQL`
+- `meeting booked` should only be trusted on qualifying regulated ads bookings and a small set of legacy Cameron 30-minute records
 - Regulated ads bookings should have an opportunity moved or created in `Sales -> Discovery Scheduled`
 - Do not use `Warm  Referral` for regular bookings
 

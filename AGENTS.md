@@ -13,10 +13,34 @@
 - Keep config values centralized in service `.env` files so future domain cutovers are small changes.
 
 ## Agent Tooling
-- This environment has MCP access to the `n8n` instance via the `n8n-lt` MCP server entry in Codex config.
+- This environment has MCP access to the live `n8n` instance via the `n8n-lt` MCP server entry in Codex config.
+- For this project, use `n8n-lt` as the canonical n8n MCP. Do not assume a generic `n8n` MCP target.
 - When workflow state or runtime behavior is relevant, use the `n8n-lt` MCP tools to verify actual instance state instead of guessing from local files.
-- This environment also has GHL MCP access, but some endpoints may fail through `ghl_workflows` even when the PIT itself is valid.
+- This environment also has GHL MCP access.
+- Preferred GHL MCP for this location: `ghl_official`. Treat it as the primary MCP that is working against the valid PIT for the `Live Transparent` location.
+- Secondary GHL MCP: `ghl_workflows`. It is available and useful, but some endpoints may fail there even when the PIT itself is valid.
 - If a GHL MCP call returns scope/auth errors for an endpoint that should be available, verify whether the same endpoint works through direct GHL API before assuming the PIT is bad.
+
+## Codex Skills Available
+- This Codex environment includes reusable skills that may be invoked when the task matches them.
+- Current installed skills:
+- `ai-first-engineering`: engineering operating model and execution guidance for AI-heavy build workflows.
+- `browser-qa`: browser-based QA and smoke testing using MCP browser tools.
+- `codebase-onboarding`: structured unfamiliar-repo analysis and onboarding.
+- `context-budget`: context window and prompt-budget auditing.
+- `deep-research`: multi-source research with citations.
+- `rules-distill`: extract and consolidate operational rules from existing skills/docs.
+- `security-review`: secure implementation checklist for auth, secrets, inputs, APIs, and sensitive flows.
+- `verification-loop`: verification-first workflow for implementation/testing loops.
+- `openai-docs`: OpenAI docs/product guidance using current official documentation.
+- `skill-creator`: create or improve Codex skills.
+- `skill-installer`: install additional Codex skills.
+
+## MCP Inventory
+- `n8n-lt`: primary MCP for this project; use it for workflow state, execution checks, and runtime verification against `automations.livetransparent.com`.
+- `ghl_official`: primary GHL MCP for this location; use it first when interacting with GHL data or configuration backed by the working PIT.
+- `ghl_workflows`: secondary GHL MCP; use when it exposes needed actions, but be cautious about false scope/auth failures on some endpoints.
+- Direct GHL API fallback remains approved when MCP behavior is inconsistent with known-good PIT access.
 
 ## GHL Direct API Fallback
 - If `ghl_workflows` fails on a specific endpoint but `ghl_official` or other GHL reads still succeed, treat it as a possible MCP wrapper/auth-scope mismatch rather than an immediate PIT failure.
@@ -69,6 +93,8 @@
 - `ghl create sequence plan/email-templates-cannabis-ads/Order A/`: Ordered HTML package for A path upload/copy.
 - `ghl create sequence plan/email-templates-cannabis-ads/Order B/`: Ordered HTML package for B path upload/copy.
 - `Email Sequence.docx`: Source sequence copy used to rebuild HTML templates.
+- `Emerald Contacts/build_ghl_import.py`: Canonical Emerald CSV merger and GHL import generator.
+- `Emerald Contacts/README.md`: Repeatable Emerald merge, dedupe, and GHL import runbook.
 - `Backup of all n8n workflows/`: Full-instance n8n workflow JSON backups (one file per workflow) plus export `manifest.json`.
   - Latest full refresh: `2026-03-08`, `21` workflows exported, `0` failures.
 - `GHL Live Transparent CRM/RB2B_Website_Visitor_Intake_Workflow.md`: Technical runbook for RB2B webhook intake, GHL reconciliation/tagging, Postgres upsert, and John follow-up task creation.
@@ -77,6 +103,39 @@
 - Keep service reference files under `n8n/nodes/<service>/REFERENCE.md`.
 - Reference files should map n8n node usage to concrete upstream API actions/endpoints where applicable.
 - When native n8n node coverage is partial, document `HTTP Request` fallback endpoints explicitly.
+
+## n8n Workflow Update Method (Canonical)
+- Use `n8n-lt` first for:
+  - workflow discovery
+  - activation-state verification
+  - checking whether a live edit actually persisted
+- Treat `n8n-lt` as the read/verification source of truth, not always the most reliable mutation path.
+- When workflow edits are small and MCP mutation works cleanly, use `n8n-lt`.
+- When `n8n-lt` mutation helpers show transport/schema issues, ignore `active`, or fail to persist large edits, move immediately to the direct n8n REST API instead of repeatedly retrying MCP mutations.
+- Direct n8n REST path verified live for this project:
+  - base: `https://automations.livetransparent.com/api/v1`
+  - auth header: `X-N8N-API-KEY`
+  - update route: `PUT /workflows/{id}`
+- Least-fragile direct update payload:
+  - `name`
+  - `nodes`
+  - `connections`
+  - `settings`
+- Avoid full-object writebacks unless required. Large payloads with extra workflow metadata are more likely to fail or drift.
+- After every live mutation:
+  - re-read the workflow through `n8n-lt`
+  - verify `active`
+  - verify `defaultDryRun` or equivalent runtime toggles
+  - verify the exact changed node parameters/code
+- For production webhook workflows:
+  - patch code/config first
+  - verify state second
+  - only then disable dry-run and allow side effects
+- For large code-node edits:
+  - build the full code string locally
+  - push one clean replacement
+  - avoid many incremental MCP edits that can leave nodes or connections half-updated
+- If a direct patch or workaround is important enough to repeat, save it under `scripts/` and document it in this file or a nearby runbook.
 
 ## Marketing Docs Map (Canonical)
 - Purpose: these are the source-of-truth docs for marketing copy and contact-facing messaging.
@@ -166,6 +225,9 @@
 - n8n workflow `LT - Cold Outreach CSV -> Postgres Ingest (Staged)` (`kVCTmy1m8fEyP6Q7`) - active.
 - n8n workflow `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` (`T28iLcm4Hszo19MG`) - active.
 - n8n workflow `LT - Cold Outreach Sender Release Dispatcher (Staged)` (`NTpQnMrpjzusPXHX`) - active.
+- n8n workflow `LT - Emerald CSV -> Postgres Ingest (Staged)` (`mSegmpMUd0DRwFEx`) - inactive.
+- n8n workflow `LT - Emerald CSV -> GHL Import (DryRun, Staged)` (`BLr1x1HKdgM1Xfxk`) - inactive.
+- n8n workflow `LT - Emerald Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`) - inactive.
 - n8n workflow `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Website Visitor` (`8USvJkRlKzbj6Fu1`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Form Submission` (`FQE90HDUilFVdASY`) - active.
@@ -177,7 +239,7 @@
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
 - GHL webhook sender checklist: `GHL Live Transparent CRM/GHL_Intake_Webhook_Sender_Automations_Checklist.md`
-- AI agent process: `GHL Live Transparent CRM/AI_Agent_Knowledgebase_Setup_Process.md`
+- AI agent process: `Website AI Chatbot/plans/AI_Agent_Knowledgebase_Setup_Process.md`
 - BookStack deploy guide: `bookstack/README.md`
 
 ## Contact Field Status (Current)
@@ -192,6 +254,35 @@
 - `Corporate Phone` and `Company Phone` remain company/trunkline metadata only and are explicitly excluded from direct phone writes.
 - Duplicate UTM/LT fields were created during initial run and cleaned up; one canonical field per name now exists.
 - `Warm Date` is canonically `DATE` by design (no Date/Time migration planned).
+- Emerald import metadata:
+- GHL source tags created for Emerald:
+  - `emerald`
+  - `cannabis-retail-mso-executive-1`
+  - `cannabis-retail-mso-executive-2`
+  - `cannabis-retail-mso-marketing-1`
+  - `cannabis-retail-sso-executive-1`
+  - `cannabis-retail-sso-executive-2`
+  - `cannabis-retail-sso-marketing-1`
+- Emerald custom field folder exists in GHL UI and holds the `Em_` preservation fields.
+- Emerald-specific contact fields created:
+  - `Em_Emerald_Contact_ID`
+  - `Em_Roles`
+  - `Em_Seniorities`
+  - `Em_All_Known_Emails`
+  - `Em_All_Known_Phones`
+  - `Em_Contact_LinkedIn_URLs`
+  - `Em_Contact_Non_LinkedIn_URLs`
+  - `Em_Emerald_Location_IDs`
+  - `Em_Location_Legal_Names`
+  - `Em_Location_Display_Names`
+  - `Em_Location_LinkedIn_URLs`
+  - `Em_Location_Non_LinkedIn_URLs`
+  - `Em_Ultimate_HQ_Names`
+  - `Em_HQ_Names`
+  - `Em_Company_LinkedIn_URLs`
+  - `Em_Company_Non_LinkedIn_URLs`
+  - `Em_Source_File`
+- `Batch_Upload` is the canonical field for storing the original Emerald source CSV base name without `.csv`.
 
 ## Workflow Status (Current)
 - GHL workflow `WL - Master Warm Intake and Routing`
@@ -222,11 +313,17 @@
   - normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
   - GHL filtered booking automation posts to `https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2`
   - n8n workflow `WL - Webhook to Slack Channel Update` sends Slack, adds `SQL`, and creates or moves the opportunity into `Sales -> Discovery Scheduled`
+- `WL - Seq - Stop on Booked/Reply/Closed` was re-verified live on `2026-03-24`:
+  - `Customer Booked Appointment` is now filtered to calendar `Regulated Ads On Social/Search`
+  - `meeting booked` should only remain on contacts with either:
+    - current regulated ads booking calendar `SrtXcFVyea7pFl3nTiIK`
+    - legacy Cameron 30-minute booking calendar `a5VRVUAXQQQw5hV3Iqd3`
+  - historical cleanup completed on `2026-03-24`: `58` invalid `meeting booked` tags removed; `3` valid contacts retained
 - Other booking paths still require separate verification before assuming they should hand off into Sales.
 - Verify active outreach/nurture sequence stop conditions at booked/closed states.
 - Validate/test active n8n warm intake tag webhooks; set `defaultDryRun=false` (or pass `dryRun=false`) only when ready for live intake tag writes.
 - Restart Codex/MCP session after updating `N8N_WEBHOOK_USERNAME` and `N8N_WEBHOOK_PASSWORD` in `~/.codex/config.toml` so `run_webhook` can execute authenticated tests.
-- End-to-end tests are pending (no production contacts yet).
+- End-to-end booking-path validation is complete for the regulated ads flow; continue to treat unrelated booking paths as unverified until checked live.
 
 ### n8n Intake Runtime Status (Verified `2026-02-26` via `n8n-lt`)
 - Website intake webhooks (active):
@@ -518,9 +615,79 @@
   - contact receives tag `SQL`
   - opportunity is moved to `Sales -> Discovery Scheduled`, or created there if missing
 - Live validation artifacts:
-  - test contact kept in GHL: `OMfr5JlM7HqQv1YUq5bn`
+  - historical test contact kept in GHL: `OMfr5JlM7HqQv1YUq5bn`
   - test opportunity kept in GHL: `6gt9SCmZkmoPPo5bfzlT`
   - test appointment deleted after validation to clear the slot: `xlSmtk8beDM4uUI1e24V`
+
+## Session Notes (2026-03-24)
+- Reviewed live GHL workflow `WL - Seq - Stop on Booked/Reply/Closed` in the builder.
+- Confirmed `Customer Booked Appointment` is filtered to `Regulated Ads On Social/Search` rather than all calendars.
+- Confirmed the workflow still adds tag `meeting booked` and removes contacts from sequence workflows.
+- Audited all contacts carrying `meeting booked` against live appointment history.
+- Canonical allowed booking calendars for retaining `meeting booked`:
+  - current regulated ads calendar `SrtXcFVyea7pFl3nTiIK`
+  - legacy Cameron 30-minute calendar `a5VRVUAXQQQw5hV3Iqd3`
+- Audit result before cleanup:
+  - `61` contacts had `meeting booked`
+  - `3` had qualifying appointments
+  - `58` were invalid and had the tag removed
+- Post-cleanup live state:
+  - `meeting booked` remains only on the `3` valid contacts
+  - invalid historical tags from `Cameron-1on1-15mins`, `Interview-Presentation`, RB2B, Facebook, and cold outreach records were cleared
+
+## Session Notes (2026-03-25)
+- Emerald contact import process is now documented and repeatable:
+  - generator: `Emerald Contacts/build_ghl_import.py`
+  - runbook: `Emerald Contacts/README.md`
+- Current Emerald merge process:
+  - reads all source CSVs from `Emerald Contacts/`
+  - maps standard GHL fields plus planned `Em_*` preservation fields
+  - sets `Batch_Upload` to the original source CSV name without `.csv`
+  - dedupes by email first, then name/company, then phone
+  - suppresses unsafe shared phones from direct `Phone` import by moving them to `Corporate Phone`
+- SimpleTexting callback productionization completed:
+  - `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`)
+  - `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`)
+  - `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`)
+- All three callback workflows were verified active after user-side enablement.
+- All three callback workflows were updated so `defaultDryRun=false` and re-verified live.
+- Verified efficient live n8n workflow update path for this project:
+  - `n8n-lt` is reliable for workflow discovery and readback verification
+  - direct n8n REST `PUT /api/v1/workflows/{id}` with `X-N8N-API-KEY` is the reliable fallback when MCP activation/update helpers are inconsistent
+- Direct patch payload that worked cleanly in production:
+  - `name`
+  - `nodes`
+  - `connections`
+  - `settings: {}`
+- Operational lesson:
+  - if MCP mutation calls ignore `active`, fail schema validation on large payloads, or do not persist edits, stop retrying them and switch to the direct REST update path, then verify through `n8n-lt`
+- Additional Emerald setup completed:
+  - reviewed all six source CSVs under `Emerald Contacts/`
+  - created the Emerald source tags in GHL:
+    - `emerald`
+    - `cannabis-retail-mso-executive-1`
+    - `cannabis-retail-mso-executive-2`
+    - `cannabis-retail-mso-marketing-1`
+    - `cannabis-retail-sso-executive-1`
+    - `cannabis-retail-sso-executive-2`
+    - `cannabis-retail-sso-marketing-1`
+  - created Emerald-specific GHL custom fields prefixed `Em_` and placed them in the `Emerald` contact field folder
+- Emerald workflow decision:
+  - direct merged-CSV import into GHL is currently the preferred path for Emerald contacts
+  - keep the Emerald staged n8n ingestion workflows available for Postgres use and as fallback import tooling
+- Emerald staged n8n workflows created and verified saved inactive:
+  - `LT - Emerald CSV -> Postgres Ingest (Staged)` (`mSegmpMUd0DRwFEx`)
+    - webhook path: `/webhook/lt-emerald-postgres-intake`
+    - target table: `Emerald_Contacts`
+    - default behavior: `defaultDryRun=true`
+  - `LT - Emerald CSV -> GHL Import (DryRun, Staged)` (`BLr1x1HKdgM1Xfxk`)
+    - webhook path: `/webhook/lt-emerald-ghl-import`
+    - default behavior: `defaultDryRun=true`
+    - maps standard GHL fields plus the `Em_` fields and `Batch_Upload`
+  - `LT - Emerald Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`)
+    - default behavior: `defaultDryRun=true`
+    - release log table: `Emerald_Release_Log`
+    - current queue tag is placeholder `Enrollment Queue - Emerald` and must be confirmed before any activation
 
 ## Session Notes (2026-02-24)
 - Intake webhook sender wiring completed and validated:

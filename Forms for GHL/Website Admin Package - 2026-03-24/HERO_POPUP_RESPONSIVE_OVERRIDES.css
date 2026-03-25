@@ -1,0 +1,52 @@
+/* Live site override for GHL popup form kxrHpS9bX16nzkIbr2py
+   Purpose: keep the popup responsive and avoid visible popup scrollbars on desktop, tablet, and mobile. */
+
+#popup-kxrHpS9bX16nzkIbr2py-wrapper.ep-wrapper {
+  width: min(600px, calc(100vw - 48px)) !important;
+  max-width: calc(100vw - 48px) !important;
+  overflow: hidden !important;
+  border-radius: 3px !important;
+}
+
+#popup-kxrHpS9bX16nzkIbr2py-header.ep-header {
+  width: 100% !important;
+}
+
+#popup-kxrHpS9bX16nzkIbr2py-close-icon.ep-close-icon {
+  margin-left: auto !important;
+}
+
+#popup-kxrHpS9bX16nzkIbr2py {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: min(82dvh, 760px) !important;
+  max-height: calc(100dvh - 96px) !important;
+  overflow: hidden !important;
+  display: block !important;
+  border: none !important;
+  border-radius: 3px !important;
+}
+
+@media (max-width: 1024px) {
+  #popup-kxrHpS9bX16nzkIbr2py-wrapper.ep-wrapper {
+    width: min(480px, calc(100vw - 40px)) !important;
+    max-width: calc(100vw - 40px) !important;
+  }
+
+  #popup-kxrHpS9bX16nzkIbr2py {
+    height: min(80dvh, 720px) !important;
+    max-height: calc(100dvh - 72px) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  #popup-kxrHpS9bX16nzkIbr2py-wrapper.ep-wrapper {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  #popup-kxrHpS9bX16nzkIbr2py {
+    height: min(78dvh, 680px) !important;
+    max-height: calc(100dvh - 40px) !important;
+  }
+}

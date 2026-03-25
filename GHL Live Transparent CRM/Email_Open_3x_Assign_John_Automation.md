@@ -16,8 +16,13 @@ Create/confirm:
 - Tag: `open email 3x`
 
 Use existing booked signal tags/states if already present:
-- `Meeting Booked`
+- `meeting booked`
 - `Do Not Nurture` (optional guard)
+
+Important:
+- Treat `meeting booked` as a scoped signal, not a generic \"any booking\" signal.
+- Current valid workflow scope is the regulated ads booking calendar.
+- Legacy Cameron 30-minute bookings may still retain the tag on older valid records.
 
 ## Workflow 1: Count Opens + Queue Assignment
 Name:
@@ -33,7 +38,7 @@ Steps:
 - If tag `open email 3x` exists -> End.
 
 2. If/Else guard (optional)
-- If tag `Meeting Booked` exists -> End.
+- If tag `meeting booked` exists -> End.
 
 3. Update contact field
 - `email_open_count_total = {{contact.email_open_count_total}} + 1`
@@ -59,7 +64,7 @@ Steps:
 
 2. If/Else booking check
 - If ANY of these are true, stop routing:
-  - Tag `Meeting Booked` exists
+  - Tag `meeting booked` exists
   - Opportunity is in booked/closed stage (if you use these statuses)
   - Appointment status is booked (if available in your location workflow conditions)
 

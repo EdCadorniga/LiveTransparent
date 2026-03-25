@@ -1,6 +1,6 @@
 # Cannabis Ads Sequence Enrollment (A/B 50-50) - Implementation Checklist
 
-Last updated: `2026-03-08`
+Last updated: `2026-03-24`
 
 ## 1) GHL Contact Fields
 - [x] Create `Email Campaign` (Single line text).
@@ -15,7 +15,7 @@ Last updated: `2026-03-08`
 - [x] `Seq Enrolled - Cannabis Ads`
 - [x] `Seq Variant A`
 - [x] `Seq Variant B`
-- [x] `Meeting Booked`
+- [x] `meeting booked`
 - [x] `Enrollment Queue - Cannabis Ads`
 - [x] `Do Not Nurture`
 
@@ -39,7 +39,7 @@ Last updated: `2026-03-08`
 - [ ] Entry filter/guard checks:
 - [ ] Has `Enrollment Queue - Cannabis Ads`
 - [ ] Does not have `Seq Enrolled - Cannabis Ads`
-- [ ] Does not have `Meeting Booked`
+- [ ] Does not have `meeting booked`
 - [ ] Does not have `Do Not Nurture`
 - [ ] DND Enabled Channels does not include `Email`
 - [ ] Has non-empty `marketing_sender_email`
@@ -69,17 +69,18 @@ Last updated: `2026-03-08`
 - [ ] Confirm no fallback to personal sender
 
 ## 6) Stop/Suppression Automation
-- [ ] Build/verify `WL - Seq - Stop on Booked/Reply/Closed`.
+- [x] Build/verify `WL - Seq - Stop on Booked/Reply/Closed`.
 - [ ] Trigger paths to include:
-- [ ] Appointment booked (demo calendar)
+- [x] Appointment booked (`Regulated Ads On Social/Search` only)
 - [ ] Customer replied (email)
 - [ ] Opportunity `Closed Won`
 - [ ] Opportunity `Closed Lost`
 - [ ] Tag added `Do Not Nurture`
 - [ ] Actions on all trigger paths:
-- [ ] Add `Meeting Booked` where applicable
+- [x] Add `meeting booked` only on the qualifying regulated ads booking path
 - [ ] Remove from sequence workflow A
 - [ ] Remove from sequence workflow B
+- [x] Historical cleanup completed on `2026-03-24`: invalid `meeting booked` tags were removed from non-qualifying bookings and unrelated contacts
 
 ## 7) Sender Warm-Up Controls
 - [x] Implement controlled daily enrollment cap using n8n dispatcher `NTpQnMrpjzusPXHX` (automated release model).

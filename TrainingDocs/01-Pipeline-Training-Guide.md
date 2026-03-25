@@ -200,6 +200,7 @@ Live validation:
 - This booking path was live-tested on `2026-03-19`
 - The test appointment was removed after validation so the regulated ads slot is clear
 - The test contact and opportunity were intentionally left in GHL so teammates can inspect the result
+- On `2026-03-24`, the `meeting booked` tag was audited and cleaned up so unrelated bookings no longer carry that signal
 
 ## Simple Stage Rules
 

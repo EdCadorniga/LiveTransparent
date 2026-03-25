@@ -18,5 +18,9 @@ Notes:
 - Current intent:
   - `T&C 1` = non-marketing SMS consent
   - `T&C 2` = marketing SMS consent
+- Current handoff standard:
+  - keep checkbox copy short
+  - do not repeat the legal links in both checkbox labels
+  - place one shared legal note near the consent area linking to `https://livetransparent.com/terms/` and `https://livetransparent.com/privacy-policy/`
 - We are not using separate custom consent fields for this form right now.
 - If consent logic needs to be used in automation, use GHL's built-in T&C workflow filtering on form submissions.

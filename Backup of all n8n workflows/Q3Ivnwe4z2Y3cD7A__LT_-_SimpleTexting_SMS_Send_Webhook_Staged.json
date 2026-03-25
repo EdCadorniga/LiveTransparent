@@ -45,7 +45,7 @@
               "id": "api_token",
               "name": "apiToken",
               "type": "string",
-              "value": "={{$env.SIMPLETEXTING_API_TOKEN || ''}}"
+              "value": "2c6c70889dc76040f4dead05ee6b0a3a"
             },
             {
               "id": "default_dry_run",

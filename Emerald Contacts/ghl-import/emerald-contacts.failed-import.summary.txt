@@ -1,0 +1,2 @@
+Retry-safe rows: 19
+Manual-review rows: 8
