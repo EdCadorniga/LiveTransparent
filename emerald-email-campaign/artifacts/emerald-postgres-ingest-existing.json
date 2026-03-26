@@ -1,0 +1,279 @@
+{
+  "updatedAt": "2026-03-24T11:36:21.130Z",
+  "createdAt": "2026-03-24T11:36:21.130Z",
+  "id": "mSegmpMUd0DRwFEx",
+  "name": "LT - Emerald CSV -> Postgres Ingest (Staged)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-emerald-postgres-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook_in",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        260,
+        300
+      ],
+      "webhookId": "lt-emerald-postgres-intake"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "source_label",
+              "name": "sourceLabel",
+              "value": "emerald_contacts",
+              "type": "string"
+            },
+            {
+              "id": "table_name",
+              "name": "tableName",
+              "value": "Emerald_Contacts",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst source = (input.body && typeof input.body === 'object') ? input.body : input;\nconst cfg = $item(0).$node['Config'].json || {};\n\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [];\n  let cell = '';\n  let inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    const next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { cell += '\"'; i++; }\n      else if (ch === '\"') inQuotes = false;\n      else cell += ch;\n    } else {\n      if (ch === '\"') inQuotes = true;\n      else if (ch === ',') { row.push(cell); cell = ''; }\n      else if (ch === '\\n') { row.push(cell); rows.push(row); row = []; cell = ''; }\n      else if (ch === '\\r') {}\n      else cell += ch;\n    }\n  }\n  if (cell.length || row.length) { row.push(cell); rows.push(row); }\n  return rows;\n}\n\nfunction rowsToObjects(rows) {\n  if (!rows.length) return [];\n  const headers = rows[0].map((h) => String(h || '').trim());\n  const out = [];\n  for (let i = 1; i < rows.length; i++) {\n    const r = rows[i];\n    const obj = {};\n    headers.forEach((h, idx) => { if (h) obj[h] = r[idx] ?? ''; });\n    const hasAny = Object.values(obj).some((v) => String(v || '').trim() !== '');\n    if (hasAny) out.push(obj);\n  }\n  return out;\n}\n\nfunction nk(s) {\n  return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');\n}\n\nfunction pick(obj, aliases) {\n  const wanted = new Set((aliases || []).map(nk));\n  for (const [k, v] of Object.entries(obj || {})) {\n    if (wanted.has(nk(k)) && String(v ?? '').trim() !== '') return String(v).trim();\n  }\n  return '';\n}\n\nfunction stripCsvExt(v) {\n  return String(v || '').trim().replace(/\\.csv$/i, '');\n}\n\nfunction slugify(v) {\n  return stripCsvExt(v).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');\n}\n\nfunction hashString(str) {\n  let h = 0;\n  const s = String(str || '');\n  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;\n  return Math.abs(h);\n}\n\nfunction lit(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'NULL';\n  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';\n  if (typeof v === 'object') {\n    const s = JSON.stringify(v).replace(/'/g, \"''\");\n    return `'${s}'::jsonb`;\n  }\n  const s = String(v).replace(/'/g, \"''\");\n  return `'${s}'`;\n}\n\nfunction splitTags(raw, sourceFileBase) {\n  const base = String(raw || '').trim();\n  const computed = ['emerald'];\n  if (sourceFileBase) computed.push(slugify(sourceFileBase));\n  const merged = (base ? base.split(',').map((t) => t.trim()) : []).concat(computed);\n  return merged.filter((t) => t).filter((v, i, a) => a.indexOf(v) === i);\n}\n\nlet records = [];\nif (Array.isArray(source.records)) {\n  records = source.records;\n} else if (typeof source.csvText === 'string' && source.csvText.trim() !== '') {\n  records = rowsToObjects(parseCsv(source.csvText));\n}\nif (!records.length) throw new Error('Provide body.records (array) or body.csvText (CSV string)');\n\nconst dryRun = (source.dryRun === undefined || source.dryRun === null) ? !!cfg.defaultDryRun : !!source.dryRun;\nconst tableName = String(source.tableName || cfg.tableName || 'Emerald_Contacts').trim();\nconst sourceLabel = String(source.sourceLabel || cfg.sourceLabel || 'emerald_contacts').trim();\nconst sourceFileOverride = stripCsvExt(source.sourceFile || source.batchUpload || '');\n\nconst cols = [\n  'record_key','emerald_contact_id','first_name','last_name','full_name','title','roles','seniorities',\n  'primary_email','primary_phone','all_known_emails','all_known_phones','contact_linkedin_urls','contact_non_linkedin_urls',\n  'contact_city','contact_state','emerald_location_ids','location_legal_names','location_display_names',\n  'location_linkedin_urls','location_non_linkedin_urls','company_name','ultimate_hq_names','hq_names',\n  'company_linkedin_urls','company_non_linkedin_urls','source_file','tags','source','raw_payload'\n];\n\nconst updates = cols.filter((c) => !['record_key', 'raw_payload'].includes(c))\n  .map((c) => `\"${c}\" = EXCLUDED.\"${c}\"`)\n  .concat(['\"raw_payload\" = EXCLUDED.\"raw_payload\"', '\"updated_at\" = NOW()']);\n\nreturn records.map((rec) => {\n  const sourceFileBase = stripCsvExt(sourceFileOverride || pick(rec, ['Source File','source_file','sourceFile','Batch_Upload','batch_upload']));\n  const title = pick(rec, ['Titles','Title','title']);\n  const primaryEmail = pick(rec, ['Primary Email','primary_email','email']);\n  const primaryPhone = pick(rec, ['Primary Phone','primary_phone','phone']);\n  const fullName = pick(rec, ['Full Name','full_name']);\n  const companyName = pick(rec, ['Company Name(s)','company_name','companyName']);\n  const emeraldContactId = pick(rec, ['Emerald Contact ID','emerald_contact_id']);\n  const tags = splitTags(pick(rec, ['Tags','tags']), sourceFileBase).join(',');\n  const recordKey = emeraldContactId\n    || (sourceFileBase && primaryEmail ? `${sourceFileBase}::email::${primaryEmail.toLowerCase()}` : '')\n    || (sourceFileBase && primaryPhone ? `${sourceFileBase}::phone::${primaryPhone}` : '')\n    || (sourceFileBase && fullName ? `${sourceFileBase}::name::${fullName.toLowerCase()}` : '')\n    || `hash::${hashString(JSON.stringify(rec))}`;\n\n  const normalized = {\n    record_key: recordKey,\n    emerald_contact_id: emeraldContactId || null,\n    first_name: pick(rec, ['First Name','first_name','firstName']) || null,\n    last_name: pick(rec, ['Last Name','last_name','lastName']) || null,\n    full_name: fullName || null,\n    title: title || null,\n    roles: pick(rec, ['Roles','roles']) || null,\n    seniorities: pick(rec, ['Seniorities','seniorities']) || null,\n    primary_email: primaryEmail || null,\n    primary_phone: primaryPhone || null,\n    all_known_emails: pick(rec, ['All Known Emails','all_known_emails']) || null,\n    all_known_phones: pick(rec, ['All Known Phones','all_known_phones']) || null,\n    contact_linkedin_urls: pick(rec, ['Contact LinkedIn URL(s)','contact_linkedin_urls']) || null,\n    contact_non_linkedin_urls: pick(rec, ['Contact non-LinkedIn URL(s)','contact_non_linkedin_urls']) || null,\n    contact_city: pick(rec, ['Contact City','contact_city','city']) || null,\n    contact_state: pick(rec, ['Contact State','contact_state','state']) || null,\n    emerald_location_ids: pick(rec, ['Emerald Location id(s)','emerald_location_ids']) || null,\n    location_legal_names: pick(rec, ['Location Legal Name(s)','location_legal_names']) || null,\n    location_display_names: pick(rec, ['Location Display Name(s)','location_display_names']) || null,\n    location_linkedin_urls: pick(rec, ['Location LinkedIn URL(s)','location_linkedin_urls']) || null,\n    location_non_linkedin_urls: pick(rec, ['Location non-LinkedIn URL(s)','location_non_linkedin_urls']) || null,\n    company_name: companyName || null,\n    ultimate_hq_names: pick(rec, ['Ultimate HQ Name(s)','ultimate_hq_names']) || null,\n    hq_names: pick(rec, ['HQ Name(s)','hq_names']) || null,\n    company_linkedin_urls: pick(rec, ['Company LinkedIn URL(s)','company_linkedin_urls']) || null,\n    company_non_linkedin_urls: pick(rec, ['Company non-LinkedIn URL(s)','company_non_linkedin_urls']) || null,\n    source_file: sourceFileBase || null,\n    tags,\n    source: sourceLabel,\n    raw_payload: rec,\n  };\n\n  const values = cols.map((c) => lit(normalized[c]));\n  const sql = dryRun\n    ? 'SELECT 1 AS dry_run;'\n    : `INSERT INTO \"${tableName}\" (${cols.map((c) => `\"${c}\"`).join(', ')}, \"ingested_at\", \"updated_at\")\\nVALUES (${values.join(', ')}, NOW(), NOW())\\nON CONFLICT (record_key) DO UPDATE SET\\n${updates.join(',\\n')};`;\n\n  return { json: { dryRun, tableName, sourceLabel, normalized, upsertSql: sql } };\n});"
+      },
+      "id": "build_sql",
+      "name": "Build SQL (DryRun Safe)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{$json.upsertSql}}",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "id": "upsert",
+      "name": "Upsert Into Emerald_Contacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1180,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst dryRun = items.length ? !!items[0].json.dryRun : true;\nconst tableName = items.length ? items[0].json.tableName : 'Emerald_Contacts';\nreturn [{ json: { ok: true, dryRun, table: tableName, rowsProcessed: items.length, writesExecuted: dryRun ? 0 : items.length, note: dryRun ? 'No rows were written. Set body.dryRun=false after validation to write.' : 'Rows written to Postgres.' } }];"
+      },
+      "id": "summarize",
+      "name": "Summarize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1620,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS \"Emerald_Contacts\" (\n  id BIGSERIAL PRIMARY KEY,\n  record_key TEXT NOT NULL,\n  emerald_contact_id TEXT,\n  first_name TEXT,\n  last_name TEXT,\n  full_name TEXT,\n  title TEXT,\n  roles TEXT,\n  seniorities TEXT,\n  primary_email TEXT,\n  primary_phone TEXT,\n  all_known_emails TEXT,\n  all_known_phones TEXT,\n  contact_linkedin_urls TEXT,\n  contact_non_linkedin_urls TEXT,\n  contact_city TEXT,\n  contact_state TEXT,\n  emerald_location_ids TEXT,\n  location_legal_names TEXT,\n  location_display_names TEXT,\n  location_linkedin_urls TEXT,\n  location_non_linkedin_urls TEXT,\n  company_name TEXT,\n  ultimate_hq_names TEXT,\n  hq_names TEXT,\n  company_linkedin_urls TEXT,\n  company_non_linkedin_urls TEXT,\n  source_file TEXT,\n  tags TEXT,\n  source TEXT DEFAULT 'emerald_contacts',\n  raw_payload JSONB,\n  ingested_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS record_key TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS emerald_contact_id TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS first_name TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS last_name TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS full_name TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS title TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS roles TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS seniorities TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS primary_email TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS primary_phone TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS all_known_emails TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS all_known_phones TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS contact_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS contact_non_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS contact_city TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS contact_state TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS emerald_location_ids TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS location_legal_names TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS location_display_names TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS location_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS location_non_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_name TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ultimate_hq_names TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS hq_names TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_non_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS source_file TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS tags TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'emerald_contacts';\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS raw_payload JSONB;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ingested_at TIMESTAMPTZ DEFAULT NOW();\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();\nCREATE UNIQUE INDEX IF NOT EXISTS emerald_contacts_uidx_record_key ON \"Emerald_Contacts\" (record_key);\nCREATE INDEX IF NOT EXISTS emerald_contacts_idx_email ON \"Emerald_Contacts\" (primary_email);\n",
+        "options": {}
+      },
+      "id": "ensure_columns",
+      "name": "Ensure Emerald_Contacts Table",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return $items('Build SQL (DryRun Safe)').map(i => ({ json: i.json }));"
+      },
+      "id": "restore_build_sql_items",
+      "name": "Restore Build SQL Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        460
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Build SQL (DryRun Safe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL (DryRun Safe)": {
+      "main": [
+        [
+          {
+            "node": "Ensure Emerald_Contacts Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Emerald_Contacts Table": {
+      "main": [
+        [
+          {
+            "node": "Restore Build SQL Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Build SQL Items": {
+      "main": [
+        [
+          {
+            "node": "Upsert Into Emerald_Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Into Emerald_Contacts": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "9a88fcc2-8ca7-4170-9d00-9919113c68af",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-24T11:36:21.130Z",
+      "createdAt": "2026-03-24T11:36:21.130Z",
+      "role": "workflow:owner",
+      "workflowId": "mSegmpMUd0DRwFEx",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

@@ -93,6 +93,11 @@
 - `ghl create sequence plan/email-templates-cannabis-ads/Order A/`: Ordered HTML package for A path upload/copy.
 - `ghl create sequence plan/email-templates-cannabis-ads/Order B/`: Ordered HTML package for B path upload/copy.
 - `Email Sequence.docx`: Source sequence copy used to rebuild HTML templates.
+- `emerald-email-campaign/`: Canonical workspace for the Emerald email campaign snapshot, rollout docs, and artifacts.
+- `emerald-email-campaign/Exported Emerald Contacts.csv`: Fixed GHL-exported Emerald cohort snapshot used to seed the campaign dispatch table.
+- `emerald-email-campaign/plan.md`: Emerald campaign architecture and locked decisions.
+- `emerald-email-campaign/dispatcher-plan.md`: Emerald sender-dispatch and Postgres release rules.
+- `emerald-email-campaign/workflow-mapping.md`: Mapping between Emerald queue tags, source tags, and the 4 GHL workflows.
 - `Emerald Contacts/build_ghl_import.py`: Canonical Emerald CSV merger and GHL import generator.
 - `Emerald Contacts/README.md`: Repeatable Emerald merge, dedupe, and GHL import runbook.
 - `Backup of all n8n workflows/`: Full-instance n8n workflow JSON backups (one file per workflow) plus export `manifest.json`.
@@ -116,6 +121,11 @@
   - base: `https://automations.livetransparent.com/api/v1`
   - auth header: `X-N8N-API-KEY`
   - update route: `PUT /workflows/{id}`
+- Live `PUT /workflows/{id}` payload shape is strict:
+  - accepted body fields are `name`, `nodes`, `connections`, and `settings`
+  - `settings` can be passed as `{}` to preserve the server-side settings block
+  - extra top-level fields or read-only fields are rejected
+- On Windows, direct `curl.exe` to the n8n host can fail with `schannel` TLS errors; use Python `requests` for direct REST verification and update calls when that happens.
 - Least-fragile direct update payload:
   - `name`
   - `nodes`
@@ -227,7 +237,8 @@
 - n8n workflow `LT - Cold Outreach Sender Release Dispatcher (Staged)` (`NTpQnMrpjzusPXHX`) - active.
 - n8n workflow `LT - Emerald CSV -> Postgres Ingest (Staged)` (`mSegmpMUd0DRwFEx`) - inactive.
 - n8n workflow `LT - Emerald CSV -> GHL Import (DryRun, Staged)` (`BLr1x1HKdgM1Xfxk`) - inactive.
-- n8n workflow `LT - Emerald Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`) - inactive.
+- n8n workflow `LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)` (`0jDKgG8VvmfyORQn`) - inactive.
+- n8n workflow `LT - Emerald Campaign Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`) - active.
 - n8n workflow `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Website Visitor` (`8USvJkRlKzbj6Fu1`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Form Submission` (`FQE90HDUilFVdASY`) - active.
@@ -283,6 +294,17 @@
   - `Em_Company_Non_LinkedIn_URLs`
   - `Em_Source_File`
 - `Batch_Upload` is the canonical field for storing the original Emerald source CSV base name without `.csv`.
+- Emerald campaign queue tags created:
+  - `enrollment queue - emerald - executives mso`
+  - `enrollment queue - emerald - executives sso`
+  - `enrollment queue - emerald - marketing mso`
+  - `enrollment queue - emerald - marketing sso`
+- Emerald campaign enrolled/audit tags created:
+  - `seq enrolled - emerald`
+  - `seq emerald - executives mso`
+  - `seq emerald - executives sso`
+  - `seq emerald - marketing mso`
+  - `seq emerald - marketing sso`
 
 ## Workflow Status (Current)
 - GHL workflow `WL - Master Warm Intake and Routing`
@@ -684,10 +706,94 @@
     - webhook path: `/webhook/lt-emerald-ghl-import`
     - default behavior: `defaultDryRun=true`
     - maps standard GHL fields plus the `Em_` fields and `Batch_Upload`
-  - `LT - Emerald Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`)
+  - `LT - Emerald Campaign Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`)
     - default behavior: `defaultDryRun=true`
     - release log table: `Emerald_Release_Log`
-    - current queue tag is placeholder `Enrollment Queue - Emerald` and must be confirmed before any activation
+    - queue routing now targets the 4 Emerald queue tags by bucket
+    - sender cap ramp now `300/day` in week 1, `400/day` in week 2, `500/day` in week 3 and beyond
+    - warmup start date set to `2026-03-27`
+
+## Session Notes (2026-03-27)
+- Emerald campaign workspace created:
+  - `emerald-email-campaign/`
+  - `emerald-email-campaign/Exported Emerald Contacts.csv`
+  - `emerald-email-campaign/plan.md`
+  - `emerald-email-campaign/dispatcher-plan.md`
+  - `emerald-email-campaign/workflow-mapping.md`
+- n8n access status:
+  - `n8n-lt` is reachable at `https://automations.livetransparent.com/mcp-server/http`
+  - working MCP flow: `POST initialize` followed by `tools/list` over streamable HTTP
+  - the server accepts the bearer token from `N8N_MCP_ACCESS_TOKEN`
+  - `GET /mcp-server/http` is not a valid health check and returns `404 Cannot GET /mcp-server/http`
+  - Codex resource probes (`resources/list`, `resources/templates/list`) return `Method not found` because this server exposes tools, not generic MCP resources
+  - direct n8n REST API with `X-N8N-API-KEY` is also working
+  - local Windows `curl.exe` can fail here with `schannel` TLS errors; use Node fetch or another client for endpoint verification
+  - manual launch of `@leonardsellem/n8n-mcp-server` succeeds when `npm_config_cache` points to repo-local `.npm-cache`
+  - no `config.toml` change was required; the earlier failure mode was probe mismatch, not bad credentials
+- Emerald dispatcher live-state check:
+  - `LT - Emerald Campaign Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`) is published, active, and MCP-exposed
+  - `execute_workflow` succeeded in dry-run mode with execution id `2843`
+  - dry-run summary:
+    - `windowOpen: true`
+    - `windowLabel: Mon-Sat, 8:00 AM ET to 5:00 PM PT`
+    - `sundayBlocked: false`
+    - `currentEtHour: 17`
+    - `currentPtHour: 14`
+    - `candidates: 500`
+    - `totalUnreleased: 16081`
+    - `backlogBeyondBatch: 15581`
+    - `planned: 500`
+    - `queued: 0`
+    - `deferred: 0`
+    - `errors: 0`
+  - warnings returned by the workflow:
+    - `DRY_RUN_ACTIVE: no GHL writes or release log inserts are executed.`
+    - `GHL_WORKFLOWS_STILL_REQUIRE_QUEUE_TAG_TRIGGER_WIRING.`
+  - live dispatcher query was updated to interleave buckets instead of scanning `id ASC`, which prevented MSO starvation in the first 500-row batches
+  - sender cap visibility is now explicit in `Config.sendersJson` and the live execution summary
+  - with `candidateLimit` increased to `500` and later `1200`, the live `Only Queued` output showed all 4 buckets in rotation:
+    - `executives_mso`
+    - `executives_sso`
+    - `marketing_mso`
+    - `marketing_sso`
+  - sample rows showed balanced sender rotation across the 4 configured aliases
+  - no further workflow edits were required after the live validation
+- Emerald GHL sequence workflow publication check:
+  - `GET /workflows/?locationId=Zwz4relUXVPxx8uohnjV` returned the 4 Emerald workflows as `published`
+  - live workflow IDs:
+    - `a3f96d18-3cd1-4182-b08d-8e6bde6f77c1` - `WL - Seq - Cannabis Ads Emerald - Executives MSO`
+    - `e7a4dd5b-c6da-459c-9c48-2d5ca2bc3421` - `WL - Seq - Cannabis Ads Emerald - Executives SSO`
+    - `141d878e-7a27-43bc-97ab-c67c69b18f14` - `WL - Seq - Cannabis Ads Emerald - Marketing MSO`
+    - `18eced4d-958a-49e4-9a23-899eabc94833` - `WL - Seq - Cannabis Ads Emerald - Marketing SSO`
+  - direct `GET /workflow/:id` returned `401 Unauthorized` with the current PIT, so the direct API can confirm publish/state but not read the inner step graph
+  - user-verified follow-up: all 4 automations are published, but enrollments remain at `0`, so the queue-tag trigger path still needs validation
+- Emerald campaign tags created in GHL:
+  - queue tags:
+    - `enrollment queue - emerald - executives mso`
+    - `enrollment queue - emerald - executives sso`
+    - `enrollment queue - emerald - marketing mso`
+    - `enrollment queue - emerald - marketing sso`
+  - enrolled/audit tags:
+    - `seq enrolled - emerald`
+    - `seq emerald - executives mso`
+    - `seq emerald - executives sso`
+    - `seq emerald - marketing mso`
+    - `seq emerald - marketing sso`
+- Emerald campaign n8n implementation:
+  - created `LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)` (`0jDKgG8VvmfyORQn`)
+    - webhook path: `/webhook/lt-emerald-campaign-postgres-intake`
+    - target table: `Emerald_Campaign_Contacts`
+    - default behavior: `defaultDryRun=true`
+  - updated `LT - Emerald Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`) to `LT - Emerald Campaign Sender Release Dispatcher (Staged)`
+    - active and MCP-exposed
+    - source table now `Emerald_Campaign_Contacts`
+    - queue routing now targets the 4 Emerald queue tags by bucket
+    - sender cap ramp now `300/day` in week 1, `400/day` in week 2, `500/day` in week 3 and beyond
+    - warmup start date set to `2026-03-27`
+- Emerald campaign snapshot seeded into Postgres:
+  - source file: `emerald-email-campaign/Exported Emerald Contacts.csv`
+  - result: `20165` rows written into `Emerald_Campaign_Contacts`
+  - snapshot ingest workflow was deactivated again after the seed run
 
 ## Session Notes (2026-02-24)
 - Intake webhook sender wiring completed and validated:
@@ -752,7 +858,7 @@
 - Email actions in Cannabis Ads workflow are being configured to use dynamic sender:
 - `From Email = {{contact.marketing_sender_email}}`
 - Sender warm-up policy locked:
-- Week 1 `50/day` per sender, Week 2 `75/day` per sender, Week 3+ `100/day` per sender.
+- `300/day` per sender.
 - Quota interpretation locked:
 - per-sender cap is total outbound emails/day (includes in-flight sequence sends + new enrollments), not just new contacts added that day.
 - Current sender pool: one active sender; add additional senders later after domain + sender verification.

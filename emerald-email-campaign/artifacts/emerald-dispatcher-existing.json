@@ -1,0 +1,394 @@
+{
+  "updatedAt": "2026-03-24T11:39:27.716Z",
+  "createdAt": "2026-03-24T11:39:27.716Z",
+  "id": "8UXlpoMJnQ229AuG",
+  "name": "LT - Emerald Sender Release Dispatcher (Staged)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "base",
+              "name": "apiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "apikey",
+              "name": "apiKey",
+              "type": "string",
+              "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+            },
+            {
+              "id": "dry",
+              "name": "defaultDryRun",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "tag",
+              "name": "queueTag",
+              "type": "string",
+              "value": "Enrollment Queue - Emerald"
+            },
+            {
+              "id": "field",
+              "name": "senderFieldName",
+              "type": "string",
+              "value": "marketing_sender_email"
+            },
+            {
+              "id": "limit",
+              "name": "candidateLimit",
+              "type": "number",
+              "value": 500
+            },
+            {
+              "id": "pct",
+              "name": "safetyBufferPct",
+              "type": "number",
+              "value": 0.1
+            },
+            {
+              "id": "min",
+              "name": "minSafetyBuffer",
+              "type": "number",
+              "value": 5
+            },
+            {
+              "id": "week",
+              "name": "warmupWeekOverride",
+              "type": "number",
+              "value": 1
+            },
+            {
+              "id": "senders",
+              "name": "sendersJson",
+              "type": "string",
+              "value": "[{\"email\":\"cameron@livetransparent.com\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.co\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.agency\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100},{\"email\":\"cameron@livetransparent.org\",\"active\":true,\"weight\":1,\"capWeek1\":50,\"capWeek2\":75,\"capWeek3\":100}]"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS \"Emerald_Release_Log\" ( id BIGSERIAL PRIMARY KEY, emerald_row_id BIGINT UNIQUE, contact_email TEXT, ghl_contact_id TEXT, sender_email TEXT NOT NULL, release_date DATE NOT NULL DEFAULT CURRENT_DATE, release_ts TIMESTAMPTZ NOT NULL DEFAULT NOW(), status TEXT NOT NULL DEFAULT 'queued', run_id TEXT ); CREATE INDEX IF NOT EXISTS emerald_release_log_idx_sender_date ON \"Emerald_Release_Log\" (sender_email, release_date);",
+        "options": {}
+      },
+      "id": "ensure",
+      "name": "Ensure Release Log Table",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT e.id AS emerald_row_id, e.first_name, e.last_name, e.primary_email AS email, e.primary_phone AS phone, e.company_name, e.contact_city AS city, e.contact_state AS state, NULL::text AS country, row_to_json(e)->>'timezone' AS timezone, row_to_json(e)->>'contact_timezone' AS contact_timezone, e.tags FROM \"Emerald_Contacts\" e WHERE COALESCE(e.primary_email,'') <> '' AND COALESCE(e.tags,'') ILIKE '%emerald%' AND NOT EXISTS (SELECT 1 FROM \"Emerald_Release_Log\" r WHERE r.emerald_row_id = e.id) ORDER BY e.id ASC LIMIT {{$item(0).$node[\"Config\"].json.candidateLimit}};",
+        "options": {}
+      },
+      "id": "fetch",
+      "name": "Fetch Emerald Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT sender_email, due_today FROM ( SELECT sender_email, COUNT(*)::int AS due_today FROM \"Emerald_Release_Log\" WHERE release_date IN (CURRENT_DATE, CURRENT_DATE - INTERVAL '2 day', CURRENT_DATE - INTERVAL '4 day', CURRENT_DATE - INTERVAL '7 day', CURRENT_DATE - INTERVAL '11 day') GROUP BY sender_email UNION ALL SELECT '__none__'::text AS sender_email, 0::int AS due_today ) x;",
+        "options": {}
+      },
+      "id": "inflight",
+      "name": "Estimate InFlight Due Today",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*)::int AS total_unreleased FROM \"Emerald_Contacts\" e WHERE COALESCE(e.primary_email,'') <> '' AND COALESCE(e.tags,'') ILIKE '%emerald%' AND NOT EXISTS (SELECT 1 FROM \"Emerald_Release_Log\" r WHERE r.emerald_row_id = e.id);",
+        "options": {}
+      },
+      "id": "count_unreleased",
+      "name": "Count Unreleased Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1344,
+        176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $item(0).$node['Config'].json || {};\nconst dryRun = !!cfg.defaultDryRun;\nconst locationId = String(cfg.locationId || '').trim();\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst queueTag = String(cfg.queueTag || 'Enrollment Queue - Emerald').trim();\nconst senderFieldName = String(cfg.senderFieldName || 'marketing_sender_email').trim();\nconst warmupWeek = Math.max(1, Math.trunc(Number(cfg.warmupWeekOverride || 1)));\n\nif (!locationId) throw new Error('Missing locationId');\nif (!dryRun && !apiKey) throw new Error('Missing apiKey in live mode');\n\nconst nowEt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));\nconst nowPt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));\nconst etHour = nowEt.getHours();\nconst ptHour = nowPt.getHours();\nconst isSundayEt = nowEt.getDay() === 0;\nconst withinDispatchWindow = !isSundayEt && etHour >= 8 && ptHour < 17;\n\nlet senders = [];\ntry {\n  senders = JSON.parse(String(cfg.sendersJson || '[]'));\n} catch {\n  throw new Error('Invalid sendersJson');\n}\n\nsenders = senders.filter((s) => s && s.active !== false && s.email).map((s) => ({\n  email: String(s.email).toLowerCase().trim(),\n  weight: Math.max(1, Math.trunc(Number(s.weight || 1))),\n  cap: warmupWeek <= 1 ? Number(s.capWeek1 || 50) : warmupWeek === 2 ? Number(s.capWeek2 || 75) : Number(s.capWeek3 || 100),\n}));\nif (!senders.length) throw new Error('No active senders');\n\nconst candidates = $items('Fetch Emerald Candidates').map((i) => i.json || {});\nconst inflight = $items('Estimate InFlight Due Today').map((i) => i.json || {});\nconst backlogTotal = Number($items('Count Unreleased Candidates')[0]?.json?.total_unreleased || 0);\nconst inflightMap = new Map(inflight.map((r) => [String(r.sender_email || '').toLowerCase(), Number(r.due_today || 0)]));\n\nconst minSafety = Math.max(1, Math.trunc(Number(cfg.minSafetyBuffer || 5)));\nconst pctSafety = Number(cfg.safetyBufferPct || 0.1);\nfor (const s of senders) {\n  const safety = Math.max(minSafety, Math.round(s.cap * pctSafety));\n  s.remaining = Math.max(0, s.cap - Number(inflightMap.get(s.email) || 0) - safety);\n  s.safetyBuffer = safety;\n  s.inFlightDueToday = Number(inflightMap.get(s.email) || 0);\n}\n\nconst ring = [];\nfor (const s of senders) for (let i = 0; i < s.weight; i++) ring.push(s.email);\nfunction hashString(str) { let h = 0; const s = String(str || ''); for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0; return Math.abs(h); }\nfunction pickSender(seedRaw) {\n  if (!ring.length) return '';\n  const seed = Math.abs(Number(seedRaw || 0)) || 0;\n  const start = seed % ring.length;\n  for (let i = 0; i < ring.length; i++) {\n    const email = ring[(start + i) % ring.length];\n    const sender = senders.find((x) => x.email === email);\n    if (sender && sender.remaining > 0) { sender.remaining -= 1; return sender.email; }\n  }\n  return '';\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest(method, path, body) {\n  const options = { method, url: `${apiBaseUrl}${path}`, headers: { Authorization: `Bearer ${apiKey}`, Version: '2021-07-28', 'Content-Type': 'application/json', Accept: 'application/json' }, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return { ok: false, data: err?.response?.body || err?.message || err };\n  }\n}\nfunction isValidTimeZone(tz) { try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return true; } catch { return false; } }\nconst usStateToTz = { AL:'America/Chicago', AK:'America/Anchorage', AZ:'America/Phoenix', AR:'America/Chicago', CA:'America/Los_Angeles', CO:'America/Denver', CT:'America/New_York', DE:'America/New_York', FL:'America/New_York', GA:'America/New_York', HI:'Pacific/Honolulu', ID:'America/Denver', IL:'America/Chicago', IN:'America/Indiana/Indianapolis', IA:'America/Chicago', KS:'America/Chicago', KY:'America/New_York', LA:'America/Chicago', ME:'America/New_York', MD:'America/New_York', MA:'America/New_York', MI:'America/New_York', MN:'America/Chicago', MS:'America/Chicago', MO:'America/Chicago', MT:'America/Denver', NE:'America/Chicago', NV:'America/Los_Angeles', NH:'America/New_York', NJ:'America/New_York', NM:'America/Denver', NY:'America/New_York', NC:'America/New_York', ND:'America/Chicago', OH:'America/New_York', OK:'America/Chicago', OR:'America/Los_Angeles', PA:'America/New_York', RI:'America/New_York', SC:'America/New_York', SD:'America/Chicago', TN:'America/Chicago', TX:'America/Chicago', UT:'America/Denver', VT:'America/New_York', VA:'America/New_York', WA:'America/Los_Angeles', WV:'America/New_York', WI:'America/Chicago', WY:'America/Denver', DC:'America/New_York' };\nfunction norm(v) { return String(v || '').trim(); }\nfunction resolveContactTimezone(c) {\n  const explicit = norm(c.contact_timezone) || norm(c.timezone);\n  if (explicit && isValidTimeZone(explicit)) return explicit;\n  const state = norm(c.state).toUpperCase();\n  return usStateToTz[state] || '';\n}\nlet senderFieldId = '';\nif (!dryRun) {\n  const cf = await apiRequest('GET', `/locations/${locationId}/customFields?model=contact`);\n  if (!cf.ok) throw new Error(`Failed custom fields lookup: ${JSON.stringify(cf.data)}`);\n  const arr = Array.isArray(cf.data?.customFields) ? cf.data.customFields : Array.isArray(cf.data?.data?.customFields) ? cf.data.data.customFields : Array.isArray(cf.data?.data) ? cf.data.data : [];\n  senderFieldId = arr.find((f) => String(f?.name || '').trim() === senderFieldName)?.id || '';\n  if (!senderFieldId) throw new Error(`Missing GHL field: ${senderFieldName}`);\n}\n\nconst runId = `${new Date().toISOString()}__emerald_sender_release`;\nconst out = [];\nif (!withinDispatchWindow) {\n  out.push({ json: { status: 'summary', summary: { ok: true, dryRun, runId, warmupWeek, windowOpen: false, windowLabel: 'Mon-Sat, 8:00 AM ET to 5:00 PM PT', sundayBlocked: isSundayEt, currentEtHour: etHour, currentPtHour: ptHour, candidates: 0, totalUnreleased: backlogTotal, backlogBeyondBatch: backlogTotal, planned: 0, queued: 0, deferred: 0, deferredOutsideBusinessHours: 0, deferredMissingTimezone: 0, errors: 0, warnings: [isSundayEt ? 'SUNDAY_BLOCKED: no dispatch on Sundays.' : 'DISPATCH_WINDOW_CLOSED: no contacts dispatched outside Mon-Sat 8:00 AM ET to 5:00 PM PT.'], senders: senders.map((s) => ({ email: s.email, cap: s.cap, inFlightDueToday: s.inFlightDueToday, safetyBuffer: s.safetyBuffer, remainingAfterPlan: s.remaining })) } } });\n  return out;\n}\nfor (const c of candidates) {\n  const rowId = Number(c.emerald_row_id || 0);\n  const email = String(c.email || '').trim();\n  if (!email) { out.push({ json: { status: 'skipped_missing_email', emerald_row_id: c.emerald_row_id } }); continue; }\n  const contactTz = resolveContactTimezone(c);\n  if (!contactTz) { out.push({ json: { status: 'deferred_missing_timezone', emerald_row_id: rowId || null, email } }); continue; }\n  const localNow = new Date(new Date().toLocaleString('en-US', { timeZone: contactTz }));\n  const localHour = localNow.getHours();\n  if (localHour < 8 || localHour >= 17) { out.push({ json: { status: 'deferred_outside_business_hours', emerald_row_id: rowId || null, email, timezone: contactTz, localHour } }); continue; }\n  const sender = pickSender(rowId || hashString(email));\n  if (!sender) { out.push({ json: { status: 'deferred_no_capacity', emerald_row_id: c.emerald_row_id, email } }); continue; }\n  if (dryRun) { out.push({ json: { status: 'planned', emerald_row_id: c.emerald_row_id, email, sender_email: sender, timezone: contactTz, run_id: runId } }); continue; }\n  let contactId = '';\n  let contactSource = '';\n  const dup = await apiRequest('GET', `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}`);\n  if (dup.ok && dup.data?.contact?.id) { contactId = String(dup.data.contact.id); contactSource = 'existing'; }\n  if (!contactId) {\n    const upsert = await apiRequest('POST', '/contacts/upsert', { locationId, email, firstName: c.first_name || undefined, lastName: c.last_name || undefined, phone: c.phone || undefined, companyName: c.company_name || undefined });\n    if (!upsert.ok) { out.push({ json: { status: 'error_upsert', emerald_row_id: rowId || null, email, sender_email: sender, details: upsert.data } }); continue; }\n    contactId = String(upsert.data?.contact?.id || upsert.data?.id || upsert.data?.contactId || '');\n    contactSource = 'upsert';\n  }\n  if (!contactId) { out.push({ json: { status: 'error_contact_id', emerald_row_id: rowId || null, email, sender_email: sender, details: dup.data } }); continue; }\n  const setField = await apiRequest('PUT', `/contacts/${contactId}`, { customFields: [{ id: senderFieldId, value: sender }] });\n  if (!setField.ok) { out.push({ json: { status: 'error_set_sender', emerald_row_id: rowId || null, email, sender_email: sender, contact_id: contactId, details: setField.data } }); continue; }\n  const tag = await apiRequest('POST', `/contacts/${contactId}/tags`, { tags: [queueTag] });\n  if (!tag.ok) { out.push({ json: { status: 'error_add_queue_tag', emerald_row_id: rowId || null, email, sender_email: sender, contact_id: contactId, details: tag.data } }); continue; }\n  out.push({ json: { status: 'queued', emerald_row_id: rowId || null, email, sender_email: sender, contact_id: contactId, contact_source: contactSource, timezone: contactTz, run_id: runId } });\n}\nconst warnings = [];\nif (dryRun) warnings.push('DRY_RUN_ACTIVE: no GHL writes or release log inserts are executed.');\nwarnings.push('QUEUE_TAG_PLACEHOLDER: confirm queueTag before activation.');\nout.push({ json: { status: 'summary', summary: { ok: true, dryRun, runId, warmupWeek, windowOpen: true, windowLabel: 'Mon-Sat, 8:00 AM ET to 5:00 PM PT', sundayBlocked: isSundayEt, currentEtHour: etHour, currentPtHour: ptHour, candidates: candidates.length, totalUnreleased: backlogTotal, backlogBeyondBatch: Math.max(0, backlogTotal - candidates.length), planned: out.filter((x) => x.json.status === 'planned').length, queued: out.filter((x) => x.json.status === 'queued').length, deferred: out.filter((x) => String(x.json.status || '').startsWith('deferred_')).length, deferredOutsideBusinessHours: out.filter((x) => x.json.status === 'deferred_outside_business_hours').length, deferredMissingTimezone: out.filter((x) => x.json.status === 'deferred_missing_timezone').length, errors: out.filter((x) => String(x.json.status || '').startsWith('error_')).length, warnings, senders: senders.map((s) => ({ email: s.email, cap: s.cap, inFlightDueToday: s.inFlightDueToday, safetyBuffer: s.safetyBuffer, remainingAfterPlan: s.remaining })) } } });\nreturn out;"
+      },
+      "id": "dispatch",
+      "name": "Dispatch + Queue (DryRun Safe)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter(i => (i.json || {}).status === 'queued').map(i => ({ json: i.json }));"
+      },
+      "id": "only_queued",
+      "name": "Only Queued",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO \"Emerald_Release_Log\" (emerald_row_id, contact_email, ghl_contact_id, sender_email, release_date, release_ts, status, run_id) VALUES ($1,$2,$3,$4,CURRENT_DATE,NOW(),'queued',$5) ON CONFLICT (emerald_row_id) DO NOTHING;",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{ [ $json.emerald_row_id, $json.email || null, $json.contact_id || null, $json.sender_email || null, $json.run_id || null ] }}"
+        }
+      },
+      "id": "write",
+      "name": "Write Release Log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2016,
+        272
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $items('Dispatch + Queue (DryRun Safe)').map((i) => i.json || {});\nconst summary = rows.find((r) => r.status === 'summary') || null;\nconst sample = rows.filter((r) => r.status !== 'summary').slice(0, 20);\nreturn [{ json: { ok: true, summary: summary?.summary || null, sample } }];"
+      },
+      "id": "summary",
+      "name": "Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Ensure Release Log Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Release Log Table": {
+      "main": [
+        [
+          {
+            "node": "Fetch Emerald Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Emerald Candidates": {
+      "main": [
+        [
+          {
+            "node": "Estimate InFlight Due Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estimate InFlight Due Today": {
+      "main": [
+        [
+          {
+            "node": "Count Unreleased Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Unreleased Candidates": {
+      "main": [
+        [
+          {
+            "node": "Dispatch + Queue (DryRun Safe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dispatch + Queue (DryRun Safe)": {
+      "main": [
+        [
+          {
+            "node": "Only Queued",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Queued": {
+      "main": [
+        [
+          {
+            "node": "Write Release Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "c5a96a2f-653c-484f-986f-e64fd25a6398",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-24T11:39:27.716Z",
+      "createdAt": "2026-03-24T11:39:27.716Z",
+      "role": "workflow:owner",
+      "workflowId": "8UXlpoMJnQ229AuG",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}
