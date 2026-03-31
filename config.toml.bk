@@ -1,0 +1,136 @@
+
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+suppress_unstable_features_warning = true
+
+[projects.'\?\C:\Users\edmon\OneDrive\Documents\Projects\n8n-katwill']
+trust_level = "trusted"
+
+[projects.'\?\C:\Users\edmon\OneDrive\Documents\Projects\n8n-katwill-mcps']
+trust_level = "trusted"
+
+[projects.'\\?\C:\Users\edmon\OneDrive\Documents\Projects\n8n-katwill-mcps']
+trust_level = "trusted"
+
+[projects.'C:\Users\edmon\OneDrive\Documents\Projects\Whitefriar Attio - get Gmeet Links and other details from calendly']
+trust_level = "trusted"
+
+[projects.'\\?\C:\Users\edmon\OneDrive\Documents\Projects\LiveTransparent']
+trust_level = "trusted"
+
+[projects.'C:\Users\edmon\OneDrive\Documents\Projects\RCT']
+trust_level = "trusted"
+
+[projects.'C:\Users\edmon\OneDrive\Documents\Projects\Whitefriar Attio Webhook']
+trust_level = "trusted"
+
+[projects.'C:\Users\edmon\OneDrive\Documents\Projects\SM8_CCG_03232026']
+trust_level = "trusted"
+
+[features]
+experimental_windows_sandbox = true
+elevated_windows_sandbox = true
+
+[sandbox_workspace_write]
+network_access = true
+
+[notice]
+hide_full_access_warning = true
+
+[notice.model_migrations]
+"gpt-5.3-codex" = "gpt-5.4"
+
+[mcp_servers.n8n_mcp]
+command = "cmd"
+args = ["/c", "npx", "-y", "mcp-remote", "https://automation.katwillservices.com.au/mcp-server/http", "--header", "Authorization: Bearer %N8N_MCP_TOKEN%"]
+enabled = false
+
+[mcp_servers.n8n_mcp.env]
+N8N_MCP_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkOWJhNDc2NC0yYjI2LTRjOGMtODYyZi0zNjBiZWU3NWRlMjMiLCJpc3MiOiJuOG4iLCJhdWQiOiJtY3Atc2VydmVyLWFwaSIsImp0aSI6ImQxNGNjMzI0LTA3NTgtNGI0Zi1iMDBhLTMxZjQxYTM5OTg2OSIsImlhdCI6MTc3MDIxNTYyM30.FMsId8dmfXFyNBxlZmIhpSM1e0BTAxfkfjrDgks2SCs"
+
+[mcp_servers.n8n_rest]
+command = "cmd"
+args = ["/c", "npx", "-y", "@leonardsellem/n8n-mcp-server"]
+enabled = false
+
+[mcp_servers.n8n_rest.env]
+N8N_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkOWJhNDc2NC0yYjI2LTRjOGMtODYyZi0zNjBiZWU3NWRlMjMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiOWYwZWE4ZmUtM2RkNS00NTYyLWFlNjEtNWIyZDRlZDU2MGQ3IiwiaWF0IjoxNzcwMjg0MjAyLCJleHAiOjE3NzU0NDgwMDB9.gd6HXSJJV73dBvlfkyEz6kxY_Ne80k6Ucz7TfS4QfK0"
+N8N_API_URL = "https://automation.katwillservices.com.au/api/v1"
+
+[mcp_servers.ref_http]
+url = "https://api.ref.tools/mcp?apiKey=ref-03da25e5b7f5b0dff139"
+
+[mcp_servers.exa]
+url = "https://mcp.exa.ai/mcp?apiKey=52ae5ad5-2779-4014-806f-58029d282c7c"
+
+[mcp_servers."n8n-lt"]
+enabled = true
+command = "cmd"
+args = ["/c", "npx", "-y", "supergateway", "--streamableHttp", "https://automations.livetransparent.com/mcp-server/http", "--header", "authorization:Bearer %N8N_MCP_ACCESS_TOKEN%"]
+
+[mcp_servers."n8n-lt".env]
+N8N_MCP_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NjFmYjY1NS1iMTc2LTRkNjMtYTRlZC0zY2M2NmUyNzk2NDIiLCJpc3MiOiJuOG4iLCJhdWQiOiJtY3Atc2VydmVyLWFwaSIsImp0aSI6Ijg2OTUxNWNlLTEyMDktNDUwNy05ZTk4LWRjZDM2YzJhMmQ3ZiIsImlhdCI6MTc3NDU1ODExMH0.GyKyuFwB9M08p738izYTUy1tnqDugPP7wtPqV2xpFnQ"
+
+[mcp_servers."n8n-lt".tools.execute_workflow]
+approval_mode = "approve"
+
+[mcp_servers.apollo_io]
+command = "npx"
+args = ["-y", "@thevgergroup/apollo-io-mcp@latest"]
+enabled = false
+
+[mcp_servers.apollo_io.env]
+APOLLO_API_KEY = ""
+APOLLO_BASE_URL = "https://api.apollo.io/api/v1"
+
+[mcp_servers.ghl_official]
+command = "cmd"
+args = ["/c", "npx", "-y", "mcp-remote", "https://services.leadconnectorhq.com/mcp/", "--header", "Authorization: Bearer %GHL_PIT%", "--header", "locationId: %GHL_LOCATION_ID%"]
+
+[mcp_servers.ghl_official.env]
+GHL_LOCATION_ID = "Zwz4relUXVPxx8uohnjV"
+GHL_PIT = "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+
+[mcp_servers.browsermcp]
+command = "npx"
+args = ["@browsermcp/mcp@latest"]
+enabled = false
+
+[mcp_servers.ghl_workflows]
+command = "cmd"
+args = ["/c", "npx", "-y", "@drausal/gohighlevel-mcp"]
+
+[mcp_servers.ghl_workflows.env]
+BEARER_TOKEN_BEARER = "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+BEARER_TOKEN_BEARERAUTH = "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+GHL_LOCATION_ID = "Zwz4relUXVPxx8uohnjV"
+
+[mcp_servers.ghl_workflows.tools.create-custom-field]
+approval_mode = "approve"
+
+[mcp_servers.chrome_devtools]
+command = "cmd"
+args = ["/c", "npx", "-y", "chrome-devtools-mcp@latest"]
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest"]
+
+[mcp_servers.playwright.tools.browser_navigate]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_evaluate]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_click]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_run_code]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_press_key]
+approval_mode = "approve"
+
+
+

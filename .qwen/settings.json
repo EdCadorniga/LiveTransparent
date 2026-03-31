@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ghl_workflows__get-location"
+    ]
+  },
+  "$version": 3
+}

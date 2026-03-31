@@ -2,6 +2,7 @@
 .env
 **/.env
 config.toml
+config.toml.bak
 *.env.local
 *.env.*.local
 
@@ -17,6 +18,7 @@ pnpm-debug.log*
 *.log
 *.tmp
 *.cache
+**/__pycache__/
 .tmp/
 .tmp_*
 tmp_*
@@ -28,3 +30,6 @@ _wf_*.json
 Thumbs.db
 .idea/
 .vscode/
+
+# Untracked n8n workflow backups
+Backup of n8n workflows UNTRACKED/

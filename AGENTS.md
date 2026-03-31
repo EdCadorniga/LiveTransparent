@@ -101,8 +101,152 @@
 - `Emerald Contacts/build_ghl_import.py`: Canonical Emerald CSV merger and GHL import generator.
 - `Emerald Contacts/README.md`: Repeatable Emerald merge, dedupe, and GHL import runbook.
 - `Backup of all n8n workflows/`: Full-instance n8n workflow JSON backups (one file per workflow) plus export `manifest.json`.
-  - Latest full refresh: `2026-03-08`, `21` workflows exported, `0` failures.
+  - Latest full refresh: `2026-03-31`, `23` workflows exported, `0` failures.
+- `Backup of n8n workflows UNTRACKED/`: Gitignored workflow backups for local/development use.
+  - Follows naming convention: `{workflowId}__{sanitizedName}.json`
+  - Not committed to version control
+  - Created: 2026-03-31
 - `GHL Live Transparent CRM/RB2B_Website_Visitor_Intake_Workflow.md`: Technical runbook for RB2B webhook intake, GHL reconciliation/tagging, Postgres upsert, and John follow-up task creation.
+
+## Emerald Canonical (Current)
+- Treat this section as the compact operational summary for Emerald. Keep deeper design detail in:
+  - `emerald-email-campaign/plan.md`
+  - `emerald-email-campaign/dispatcher-plan.md`
+  - `emerald-email-campaign/workflow-mapping.md`
+
+### Emerald Campaign Architecture
+- Canonical source snapshot: `emerald-email-campaign/Exported Emerald Contacts.csv`
+- Stable release pool: Postgres table `Emerald_Campaign_Contacts`
+- Durable company-research cache: Postgres table `Emerald_Company_Research_Cache`
+- Delivery system: GHL workflows
+- Release controller: n8n workflow `LT - Emerald Campaign Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`)
+- Shared campaign value: `Email Campaign = Emerald Cannabis Ads`
+
+### Emerald Buckets and Queue Tags
+- Buckets:
+  - `executives_mso`
+  - `executives_sso`
+  - `marketing_mso`
+  - `marketing_sso`
+- Emerald queue tags:
+  - `Enrollment Queue - Emerald - Executives MSO`
+  - `Enrollment Queue - Emerald - Executives SSO`
+  - `Enrollment Queue - Emerald - Marketing MSO`
+  - `Enrollment Queue - Emerald - Marketing SSO`
+- Shared enrolled tag:
+  - `Seq Enrolled - Emerald`
+- Bucket audit tags:
+  - `Seq Emerald - Executives MSO`
+  - `Seq Emerald - Executives SSO`
+  - `Seq Emerald - Marketing MSO`
+  - `Seq Emerald - Marketing SSO`
+
+### Emerald GHL Sequence Workflows
+- `WL - Seq - Cannabis Ads Emerald - Executives MSO` (`a3f96d18-3cd1-4182-b08d-8e6bde6f77c1`)
+- `WL - Seq - Cannabis Ads Emerald - Executives SSO` (`e7a4dd5b-c6da-459c-9c48-2d5ca2bc3421`)
+- `WL - Seq - Cannabis Ads Emerald - Marketing MSO` (`141d878e-7a27-43bc-97ab-c67c69b18f14`)
+- `WL - Seq - Cannabis Ads Emerald - Marketing SSO` (`18eced4d-958a-49e4-9a23-899eabc94833`)
+- Common workflow behavior:
+  - remove matching Emerald queue tag on entry
+  - add `Seq Enrolled - Emerald`
+  - keep `From Email = {{contact.marketing_sender_email}}`
+  - v1 keeps only the first 3 emails active unless explicitly changed
+
+### Emerald Dispatcher Rules
+- Do not dispatch by straight `ORDER BY id ASC`.
+- Use bucket-interleaved candidate ordering so each batch mixes:
+  - `executives_mso`
+  - `executives_sso`
+  - `marketing_mso`
+  - `marketing_sso`
+- Sender assignment happens in the dispatcher, not at import time.
+- Sender warmup caps remain:
+  - days 1-7: `300/day` per sender
+  - days 8-14: `400/day` per sender
+  - day 15 onward: `500/day` per sender
+- Exclusion guards include:
+  - prior Cannabis Ads enrollment tags/values
+  - `Seq Enrolled - Emerald`
+  - `Do Not Nurture`
+  - blank email
+  - email DND
+
+### Emerald Company Sync Workflow
+- Live workflow: `LT - Emerald Executive SSO -> Company Sync (Staged)` (`GHVYyYmhfNiZ7bbN`)
+- Design intent: company-first research, not contact-first enrichment.
+- Grouping key is `company_domain_key`, resolved in this order:
+  - non-generic business email domain
+  - stronger company/website signals
+  - synthetic per-contact fallback key for generic-mailbox cases
+- Reusable company findings are cached in Postgres and reused across same-company contacts.
+- The workflow should not use the contact's personal city/state as a proxy for company geography.
+
+### Emerald Company Sync Output Contract
+- Target company-level fields:
+  - `company_name`
+  - `company_operating_state`
+  - `company_operating_market_note`
+  - `company_cannabis_marketing_signal`
+  - `company_research_snippet`
+  - `company_research_confidence`
+  - `company_research_source`
+- GHL contact delivery fields currently used for Email #4 support:
+  - `Company Name for Emails`
+  - `Em_Company_Operating_State`
+  - `Em_Company_Research_Snippet`
+  - `Em_Company_Market_Note`
+  - `Em_Cannabis_Marketing_Signal`
+  - `emerald_exec_sso_ai_research`
+  - `Em_Email4_Personalization_Ready`
+  - `Em_Email4_Personalization_Reason`
+
+### Email #4 Personalization Rules
+- Personalized Email #4 is allowed only when the record is actually usable for company/state-specific copy.
+- `Em_Email4_Personalization_Ready = Yes` only when all required evidence is present:
+  - research source is website-backed (`website+heuristic`)
+  - `company_operating_state` is present
+  - `company_research_snippet` is present
+  - cannabis/marketing context is present enough to justify the copy
+- If those conditions are not met, mark:
+  - `Em_Email4_Personalization_Ready = No`
+  - `Em_Email4_Personalization_Reason = <reason>`
+- The fallback/generic Email #4 must be used whenever readiness is `No`.
+- Do not send the personalized Email #4 just because research is marked done.
+
+### Company Sync Runtime Rules
+- `Needs Research?` should send only true website-research items to `OpenRouter Research`.
+- `cache_only`, `deterministic_only`, and institutional skips should bypass `OpenRouter Research`.
+- `OpenRouter Research` should stay `continueOnFail=true` with a short timeout, not 5-minute hangs.
+- The local validator must preserve one output item per input item.
+- Cached `website+heuristic` results must not be downgraded to `no_website_evidence` just because `evidencePages` is empty in a cache-only pass.
+- Low-value/non-eligible rows must not broadly propagate the `done` marker across same-company contacts.
+
+### Company Discovery and Skip Rules
+- Academic/institutional-looking domains should not be skipped blindly.
+- Before skipping an institutional record, check for stronger business/cannabis signals in:
+  - `company_non_linkedin_urls`
+  - `location_non_linkedin_urls`
+  - LinkedIn URL fields
+  - company/location naming text
+- Social-platform domains should be treated like generic/non-company domains when deriving company keys.
+- Discovery/link extraction should favor likely company/about/compliance/cannabis pages and include cannabis-related keyword variants such as:
+  - `dispensary`
+  - `cannabis`
+  - `hemp`
+  - `thc`
+  - `cbd`
+  - `cultivation`
+  - `delivery`
+  - `adult-use`
+  - `medical cannabis`
+
+### Emerald Reset / Backfill Notes
+- Use targeted resets for bad cache rows rather than clearing the whole campaign blindly when possible.
+- Helper script for temporary reset workflow creation:
+  - `scripts/rerun_bad_emerald_sso_companies.py`
+- n8n execution note:
+  - `n8n-lt` is reliable for verification
+  - live execution sometimes requires temporarily setting `availableInMCP=true` through direct n8n REST, then reverting it after the run
 
 ## Reference Docs Convention
 - Keep service reference files under `n8n/nodes/<service>/REFERENCE.md`.
@@ -131,6 +275,15 @@
   - `nodes`
   - `connections`
   - `settings`
+- n8n public API execution caveats verified on `2026-03-31`:
+  - `POST /api/v1/workflows/{id}/run` returned `405`
+  - `POST /api/v1/workflows/run` returned `405`
+  - For one-off execution from Codex, the reliable path was:
+    - set workflow `settings.availableInMCP = true`
+    - execute through `n8n-lt.execute_workflow`
+  - When updating `settings` through direct REST, the accepted minimal body was:
+    - `{"callerPolicy":"workflowsFromSameOwner","availableInMCP":<bool>}`
+  - Sending back extra settings keys from a read payload can be rejected with `request/body/settings must NOT have additional properties`.
 - Avoid full-object writebacks unless required. Large payloads with extra workflow metadata are more likely to fail or drift.
 - After every live mutation:
   - re-read the workflow through `n8n-lt`
@@ -146,6 +299,42 @@
   - push one clean replacement
   - avoid many incremental MCP edits that can leave nodes or connections half-updated
 - If a direct patch or workaround is important enough to repeat, save it under `scripts/` and document it in this file or a nearby runbook.
+
+## Emerald SSO Company Sync (Current Learnings)
+- Workflow: `LT - Emerald Executive SSO -> Company Sync (Staged)` (`GHVYyYmhfNiZ7bbN`)
+- As of `2026-03-31`, important live behavior/rules:
+  - `batchLimit` is `10`
+  - `OpenRouter Validate` is a local `Code` node, not an external HTTP validator
+  - `OpenRouter Research` timeout is `30000`
+  - `Needs Research?` should send only true website-research items to `OpenRouter Research`
+  - non-research paths (`cache_only`, `deterministic_only`, `skip_institutional`) should bypass the LLM
+- Cache quality rule:
+  - do not trust `Emerald_Company_Research_Cache` rows with `company_research_source = no_website_evidence` as reusable personalization cache
+  - reusable cache should effectively mean `website+heuristic` plus usable state/snippet or signal
+- Website fetch implementation note:
+  - in n8n Code nodes, use `$httpRequest` / `this.helpers.httpRequest` for site fetches
+  - do not rely on global `fetch` for company-site scraping in this workflow
+- Email #4 gating rule:
+  - personalized Email #4 is only valid when `Em_Email4_Personalization_Ready = Yes`
+  - otherwise the fallback generic Email #4 should be used
+- Current GHL personalization fields used by this workflow:
+  - `Company Name for Emails`
+  - `Em_Company_Operating_State`
+  - `Em_Company_Research_Snippet`
+  - `Em_Company_Market_Note`
+  - `Em_Cannabis_Marketing_Signal`
+  - `Em_Email4_Personalization_Ready`
+  - `Em_Email4_Personalization_Reason`
+- Validation bug fixed on `2026-03-31`:
+  - cached `website+heuristic` rows must not be downgraded to `no_website_evidence` just because `evidencePages` is empty on the current pass
+- Website discovery optimization added on `2026-03-31`:
+  - broader cannabis/business keywords are used for:
+    - business override detection
+    - candidate internal-page discovery
+    - cannabis signal extraction
+- Temporary targeted cache reset helper exists locally:
+  - [scripts/rerun_bad_emerald_sso_companies.py](/C:/Users/edmon/OneDrive/Documents/Projects/LiveTransparent/scripts/rerun_bad_emerald_sso_companies.py)
+  - it was used to delete selected cache rows from `Emerald_Company_Research_Cache` and reset matching `Emerald_Contacts` rows back to `pending`
 
 ## Marketing Docs Map (Canonical)
 - Purpose: these are the source-of-truth docs for marketing copy and contact-facing messaging.
@@ -222,6 +411,10 @@
 8. Optional later phase: connect GHL AI Agent to knowledgebase content after routing tests pass and licensing is approved.
 
 ## Existing Setup Artifacts
+
+### Active Workflows (23 Total)
+
+**Warm Intake Workflows (7):**
 - n8n workflow `GHL Warm Intake - Add Intake Tag (Webhook)` (`OowP3sAd8c9paSKf`) - active.
 - n8n workflow `GHL Warm Intake - Email Inbound Tag (Webhook)` (`SmMf8QIfysuxQJbG`) - active.
 - n8n workflow `GHL Warm Intake - Email Outbound Tag (Webhook)` (`J4B0n0QeSeOeqAci`) - active.
@@ -229,20 +422,40 @@
 - n8n workflow `GHL Warm Intake - Referral Tag (Webhook)` (`6lp8sIS3YMB1t9Ri`) - active.
 - n8n workflow `Website Lead Intake from Hero form` (`RTV5jUiTt05lad07`) - active.
 - n8n workflow `Website Lead Intake from Footer Form` (`RSfLF7LU0rDC4jAI`) - active.
+
+**Apollo Enrichment Workflows (4):**
 - n8n workflow `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) - active.
 - n8n workflow `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) - active.
 - n8n workflow `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) - active.
+- n8n workflow `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) - active (legacy, superseded by V4).
+
+**Cold Outreach Workflows (3):**
 - n8n workflow `LT - Cold Outreach CSV -> Postgres Ingest (Staged)` (`kVCTmy1m8fEyP6Q7`) - active.
 - n8n workflow `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` (`T28iLcm4Hszo19MG`) - active.
 - n8n workflow `LT - Cold Outreach Sender Release Dispatcher (Staged)` (`NTpQnMrpjzusPXHX`) - active.
+
+**Emerald Campaign Workflows (4):**
+- n8n workflow `LT - Emerald Campaign Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`) - active.
 - n8n workflow `LT - Emerald CSV -> Postgres Ingest (Staged)` (`mSegmpMUd0DRwFEx`) - inactive.
 - n8n workflow `LT - Emerald CSV -> GHL Import (DryRun, Staged)` (`BLr1x1HKdgM1Xfxk`) - inactive.
-- n8n workflow `LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)` (`0jDKgG8VvmfyORQn`) - inactive.
-- n8n workflow `LT - Emerald Campaign Sender Release Dispatcher (Staged)` (`8UXlpoMJnQ229AuG`) - active.
+- n8n workflow `LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)` (`0jDKgG8VvmfyORQn`) - inactive (seeded 2026-03-27, 20165 rows).
+
+**SimpleTexting Workflows (3):**
+- n8n workflow `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`) - active, `defaultDryRun=false`.
+- n8n workflow `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`) - active, `defaultDryRun=false`.
+- n8n workflow `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`) - active, `defaultDryRun=false`.
+- All three workflows include full GHL integration: note creation, tag management (`simpletext_ongoing`, `simpletext_stop`), contact resolution via phone lookup.
+
+**Slack Notification Workflows (3):**
 - n8n workflow `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Website Visitor` (`8USvJkRlKzbj6Fu1`) - active.
 - n8n workflow `WL - Webhook to Slack Channel - Form Submission` (`FQE90HDUilFVdASY`) - active.
-- n8n workflow `rb2b leads` (`3kjsIUeoEQFx26cC`) - active.
+
+**Other Workflows (2):**
+- n8n workflow `rb2b leads` (`3kjsIUeoEQFx26cC`) - active. Webhook: `/webhook/rb2b_leads_v3`.
+- n8n workflow `GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)` (`MI91SutAbAj3QSXp`) - active.
+
+### Documentation & References
 - GHL direct API template retrieval pattern verified for this location:
 - `GET https://services.leadconnectorhq.com/locations/Zwz4relUXVPxx8uohnjV/templates?type=sms&limit=20`
 - Returned live SMS templates successfully with a valid PIT on `2026-03-17`.
@@ -907,6 +1120,53 @@ This block is preserved as execution history. Current operational state is now l
 - `kVCTmy1m8fEyP6Q7` active (Postgres ingest webhook)
 - `T28iLcm4Hszo19MG` active (GHL import webhook)
 - `NTpQnMrpjzusPXHX` active/live (sender release dispatcher)
+
+## Current Workflow Inventory (2026-03-31)
+
+**Total Active Workflows:** 23
+
+### Warm Intake Workflows (7)
+- `OowP3sAd8c9paSKf` - GHL Warm Intake - Add Intake Tag (Webhook)
+- `SmMf8QIfysuxQJbG` - GHL Warm Intake - Email Inbound Tag (Webhook)
+- `J4B0n0QeSeOeqAci` - GHL Warm Intake - Email Outbound Tag (Webhook)
+- `5nYzp9DgQUopzWhR` - GHL Warm Intake - SMS Tag (Webhook)
+- `6lp8sIS3YMB1t9Ri` - GHL Warm Intake - Referral Tag (Webhook)
+- `RTV5jUiTt05lad07` - Website Lead Intake from Hero form
+- `RSfLF7LU0rDC4jAI` - Website Lead Intake from Footer Form
+
+### Apollo Enrichment Workflows (4)
+- `WmKAhG7mIaXonNsh` - GHL Apollo Enrichment - Webhook Intake (Sheet First)
+- `WuxgTa0EEL1mb2SA` - GHL Apollo Enrichment - Phone Webhook Intake (Staged)
+- `U7c6byTLXAMgcS75` - GHL Apollo Phone Enrichment - Callback Handler V4
+- `YaWizRnw7XmkcvZH` - GHL Apollo Phone Enrichment - Callback Handler (legacy)
+
+### Cold Outreach Workflows (3)
+- `kVCTmy1m8fEyP6Q7` - LT - Cold Outreach CSV -> Postgres Ingest (Staged)
+- `T28iLcm4Hszo19MG` - LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)
+- `NTpQnMrpjzusPXHX` - LT - Cold Outreach Sender Release Dispatcher (Staged)
+
+### Emerald Campaign Workflows (4)
+- `8UXlpoMJnQ229AuG` - LT - Emerald Campaign Sender Release Dispatcher (Staged) - **ACTIVE**
+- `mSegmpMUd0DRwFEx` - LT - Emerald CSV -> Postgres Ingest (Staged) - inactive
+- `BLr1x1HKdgM1Xfxk` - LT - Emerald CSV -> GHL Import (DryRun, Staged) - inactive
+- `0jDKgG8VvmfyORQn` - LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged) - inactive (seeded)
+
+### SimpleTexting Workflows (3)
+- `EhAiGey2o7UJT1cv` - LT - SimpleTexting Inbound Reply (Webhook, Staged)
+- `AEi1VCzkLvaYFr4U` - LT - SimpleTexting Delivery Events (Webhook, Staged)
+- `IyBKMkpYQ7pa0C8V` - LT - SimpleTexting Unsubscribe Events (Webhook, Staged)
+
+### Slack Notification Workflows (3)
+- `lQTW0QPwBcf3o7j8` - WL - Webhook to Slack Channel Update
+- `8USvJkRlKzbj6Fu1` - WL - Webhook to Slack Channel - Website Visitor
+- `FQE90HDUilFVdASY` - WL - Webhook to Slack Channel - Form Submission
+
+### Other Workflows (2)
+- `3kjsIUeoEQFx26cC` - rb2b leads
+- `MI91SutAbAj3QSXp` - GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)
+
+### Inactive/Staged Workflows
+- `Q3Ivnwe4z2Y3cD7A` - LT - SimpleTexting SMS Send (Webhook, Staged) - inactive/staged
 
 ## LLM Operating Constraints
 You are a code-first, automation-focused assistant under strict constraints.
