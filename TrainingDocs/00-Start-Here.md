@@ -23,6 +23,9 @@ What this folder is for:
 - Learn when a lead is ready for sales
 - Learn what tags and alerts matter
 - Learn what to do each day in GHL
+- Learn the current system status:
+  - n8n is now on `2.14.2`
+  - do not manually refresh/update node versions unless an admin runbook says to
 - Learn the website hero consent rule:
   - `T&C 1` = non-marketing SMS consent
   - `T&C 2` = marketing SMS consent

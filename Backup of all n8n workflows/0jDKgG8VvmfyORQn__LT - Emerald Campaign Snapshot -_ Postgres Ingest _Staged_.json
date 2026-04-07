@@ -1,0 +1,277 @@
+{
+  "updatedAt": "2026-04-05T10:14:01.431Z",
+  "createdAt": "2026-03-26T18:44:58.116Z",
+  "id": "0jDKgG8VvmfyORQn",
+  "name": "LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-emerald-campaign-postgres-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook_in",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        272,
+        304
+      ],
+      "webhookId": "lt-emerald-postgres-intake"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "source_label",
+              "name": "sourceLabel",
+              "value": "emerald_campaign_snapshot",
+              "type": "string"
+            },
+            {
+              "id": "table_name",
+              "name": "tableName",
+              "value": "Emerald_Campaign_Contacts",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $json || {};\nconst source = (input.body && typeof input.body === 'object') ? input.body : input;\nconst cfg = $item(0).$node['Config'].json || {};\n\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [];\n  let cell = '';\n  let inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    const next = text[i + 1];\n    if (inQuotes) {\n      if (ch === '\"' && next === '\"') { cell += '\"'; i++; }\n      else if (ch === '\"') inQuotes = false;\n      else cell += ch;\n    } else {\n      if (ch === '\"') inQuotes = true;\n      else if (ch === ',') { row.push(cell); cell = ''; }\n      else if (ch === '\\n') { row.push(cell); rows.push(row); row = []; cell = ''; }\n      else if (ch === '\\r') {}\n      else cell += ch;\n    }\n  }\n  if (cell.length || row.length) { row.push(cell); rows.push(row); }\n  return rows;\n}\n\nfunction rowsToObjects(rows) {\n  if (!rows.length) return [];\n  const headers = rows[0].map((h) => String(h || '').trim());\n  const out = [];\n  for (let i = 1; i < rows.length; i++) {\n    const r = rows[i];\n    const obj = {};\n    headers.forEach((h, idx) => { if (h) obj[h] = r[idx] ?? ''; });\n    const hasAny = Object.values(obj).some((v) => String(v || '').trim() !== '');\n    if (hasAny) out.push(obj);\n  }\n  return out;\n}\n\nfunction nk(s) {\n  return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');\n}\n\nfunction pick(obj, aliases) {\n  const wanted = new Set((aliases || []).map(nk));\n  for (const [k, v] of Object.entries(obj || {})) {\n    if (wanted.has(nk(k)) && String(v ?? '').trim() !== '') return String(v).trim();\n  }\n  return '';\n}\n\nfunction lit(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'NULL';\n  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';\n  if (typeof v === 'object') {\n    const s = JSON.stringify(v).replace(/'/g, \"''\");\n    return `'${s}'::jsonb`;\n  }\n  const s = String(v).replace(/'/g, \"''\");\n  return `'${s}'`;\n}\n\nfunction bucketFromTags(tags) {\n  const raw = String(tags || '').toLowerCase();\n  if (raw.includes('cannabis-retail-mso-executive-1') || raw.includes('cannabis-retail-mso-executive-2')) {\n    return { bucket: 'executives_mso', queueTag: 'Enrollment Queue - Emerald - Executives MSO' };\n  }\n  if (raw.includes('cannabis-retail-sso-executive-1') || raw.includes('cannabis-retail-sso-executive-2')) {\n    return { bucket: 'executives_sso', queueTag: 'Enrollment Queue - Emerald - Executives SSO' };\n  }\n  if (raw.includes('cannabis-retail-mso-marketing-1')) {\n    return { bucket: 'marketing_mso', queueTag: 'Enrollment Queue - Emerald - Marketing MSO' };\n  }\n  if (raw.includes('cannabis-retail-sso-marketing-1')) {\n    return { bucket: 'marketing_sso', queueTag: 'Enrollment Queue - Emerald - Marketing SSO' };\n  }\n  return { bucket: null, queueTag: null };\n}\n\nfunction parseTs(value) {\n  const s = String(value || '').trim();\n  return s ? s : null;\n}\n\nlet records = [];\nif (Array.isArray(source.records)) {\n  records = source.records;\n} else if (typeof source.csvText === 'string' && source.csvText.trim() !== '') {\n  records = rowsToObjects(parseCsv(source.csvText));\n}\nif (!records.length) throw new Error('Provide body.records (array) or body.csvText (CSV string)');\n\nconst dryRun = (source.dryRun === undefined || source.dryRun === null) ? !!cfg.defaultDryRun : !!source.dryRun;\nconst tableName = String(source.tableName || cfg.tableName || 'Emerald_Campaign_Contacts').trim();\n\nconst cols = [\n  'record_key','ghl_contact_id','first_name','last_name','full_name','email','phone',\n  'created_at_source','last_activity_source','tags_raw','bucket','bucket_queue_tag',\n  'marketing_sender_email','email_campaign','release_status','release_tag',\n  'released_at','sender_assigned_at','raw_payload'\n];\n\nconst updates = cols.filter((c) => !['record_key', 'raw_payload'].includes(c))\n  .map((c) => `\"${c}\" = EXCLUDED.\"${c}\"`)\n  .concat(['\"raw_payload\" = EXCLUDED.\"raw_payload\"', '\"updated_at\" = NOW()']);\n\nreturn records.map((rec) => {\n  const ghlContactId = pick(rec, ['Contact Id', 'contact_id']) || null;\n  const firstName = pick(rec, ['First Name', 'first_name']) || null;\n  const lastName = pick(rec, ['Last Name', 'last_name']) || null;\n  const email = pick(rec, ['Email', 'email']) || null;\n  const phone = pick(rec, ['Phone', 'phone']) || null;\n  const tagsRaw = pick(rec, ['Tags', 'tags']) || null;\n  const fullName = [firstName, lastName].filter(Boolean).join(' ') || null;\n  const bucketMeta = bucketFromTags(tagsRaw);\n  const recordKey = ghlContactId || (email ? `email::${email.toLowerCase()}` : `${firstName || ''}::${lastName || ''}::${phone || ''}`);\n  const normalized = {\n    record_key: recordKey,\n    ghl_contact_id: ghlContactId,\n    first_name: firstName,\n    last_name: lastName,\n    full_name: fullName,\n    email,\n    phone,\n    created_at_source: parseTs(pick(rec, ['Created', 'created'])),\n    last_activity_source: parseTs(pick(rec, ['Last Activity', 'last_activity'])),\n    tags_raw: tagsRaw,\n    bucket: bucketMeta.bucket,\n    bucket_queue_tag: bucketMeta.queueTag,\n    marketing_sender_email: null,\n    email_campaign: null,\n    release_status: 'pending',\n    release_tag: null,\n    released_at: null,\n    sender_assigned_at: null,\n    raw_payload: rec,\n  };\n  const values = cols.map((c) => lit(normalized[c]));\n  const sql = dryRun\n    ? 'SELECT 1 AS dry_run;'\n    : `INSERT INTO \"${tableName}\" (${cols.map((c) => `\"${c}\"`).join(', ')}, \"ingested_at\", \"updated_at\")\nVALUES (${values.join(', ')}, NOW(), NOW())\nON CONFLICT (record_key) DO UPDATE SET\n${updates.join(',\\n')};`;\n\n  return { json: { dryRun, tableName, normalized, upsertSql: sql } };\n});\n"
+      },
+      "id": "build_sql",
+      "name": "Build SQL (DryRun Safe)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{$json.upsertSql}}",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "id": "upsert",
+      "name": "Upsert Into Emerald_Campaign_Contacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1392,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sourceItems = $items('Build SQL (DryRun Safe)');\nconst writeItems = $input.all();\nconst dryRun = sourceItems.length ? !!sourceItems[0].json.dryRun : true;\nconst tableName = sourceItems.length ? sourceItems[0].json.tableName : 'Emerald_Campaign_Contacts';\nconst bucketed = sourceItems.filter((i) => i.json?.normalized?.bucket).length;\nreturn [{ json: { ok: true, dryRun, table: tableName, rowsProcessed: sourceItems.length, rowsBucketed: bucketed, writesExecuted: dryRun ? 0 : writeItems.length, note: dryRun ? 'No rows were written. Set body.dryRun=false after validation to write.' : 'Campaign snapshot rows written to Postgres.' } }];"
+      },
+      "id": "summarize",
+      "name": "Summarize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1840,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS \"Emerald_Campaign_Contacts\" (\n  id BIGSERIAL PRIMARY KEY,\n  record_key TEXT NOT NULL,\n  ghl_contact_id TEXT,\n  first_name TEXT,\n  last_name TEXT,\n  full_name TEXT,\n  email TEXT,\n  phone TEXT,\n  created_at_source TIMESTAMPTZ,\n  last_activity_source TIMESTAMPTZ,\n  tags_raw TEXT,\n  bucket TEXT,\n  bucket_queue_tag TEXT,\n  marketing_sender_email TEXT,\n  email_campaign TEXT,\n  release_status TEXT DEFAULT 'pending',\n  release_tag TEXT,\n  released_at TIMESTAMPTZ,\n  sender_assigned_at TIMESTAMPTZ,\n  raw_payload JSONB,\n  ingested_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS record_key TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_id TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS first_name TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS last_name TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS full_name TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS email TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS phone TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS created_at_source TIMESTAMPTZ;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS last_activity_source TIMESTAMPTZ;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS tags_raw TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS bucket TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS bucket_queue_tag TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS marketing_sender_email TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS email_campaign TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS release_status TEXT DEFAULT 'pending';\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS release_tag TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS released_at TIMESTAMPTZ;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS sender_assigned_at TIMESTAMPTZ;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS raw_payload JSONB;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS ingested_at TIMESTAMPTZ DEFAULT NOW();\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();\nCREATE UNIQUE INDEX IF NOT EXISTS emerald_campaign_contacts_uidx_record_key ON \"Emerald_Campaign_Contacts\" (record_key);\nCREATE INDEX IF NOT EXISTS emerald_campaign_contacts_idx_email ON \"Emerald_Campaign_Contacts\" (email);\nCREATE INDEX IF NOT EXISTS emerald_campaign_contacts_idx_bucket ON \"Emerald_Campaign_Contacts\" (bucket);\n",
+        "options": {}
+      },
+      "id": "ensure_columns",
+      "name": "Ensure Emerald_Campaign_Contacts Table",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        944,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $items('Build SQL (DryRun Safe)').map(i => ({ json: i.json }));"
+      },
+      "id": "restore_build_sql_items",
+      "name": "Restore Build SQL Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Build SQL (DryRun Safe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SQL (DryRun Safe)": {
+      "main": [
+        [
+          {
+            "node": "Ensure Emerald_Campaign_Contacts Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Build SQL Items": {
+      "main": [
+        [
+          {
+            "node": "Upsert Into Emerald_Campaign_Contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Emerald_Campaign_Contacts Table": {
+      "main": [
+        [
+          {
+            "node": "Restore Build SQL Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Into Emerald_Campaign_Contacts": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "4ab61a2d-a452-44cc-a6e9-bcbe0c8c40e8",
+  "activeVersionId": null,
+  "versionCounter": 14,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-26T18:44:58.116Z",
+      "createdAt": "2026-03-26T18:44:58.116Z",
+      "role": "workflow:owner",
+      "workflowId": "0jDKgG8VvmfyORQn",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

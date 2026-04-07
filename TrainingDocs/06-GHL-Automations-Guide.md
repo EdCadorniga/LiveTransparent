@@ -24,6 +24,12 @@ Automations help us:
 - create or update follow-up work
 - keep the team from missing good leads
 
+## Current System Note
+
+- n8n is now on `2.14.2`
+- no manual node-version refresh is planned during the upgrade follow-up
+- if an automation looks different in the editor after the upgrade, stop and escalate before changing node fields
+
 ## Main Automations You Will See
 
 ### Website Form Leads

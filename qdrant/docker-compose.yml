@@ -1,0 +1,26 @@
+services:
+  qdrant:
+    image: 'qdrant/qdrant:v1.13.2'
+    container_name: qdrant
+    restart: unless-stopped
+    environment:
+      QDRANT__SERVICE__API_KEY: '${QDRANT_API_KEY}'
+    volumes:
+      - 'qdrant_data:/qdrant/storage'
+    networks:
+      coolify-shared:
+        aliases:
+          - qdrant
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:6333/healthz || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  qdrant_data: null
+
+networks:
+  coolify-shared:
+    external: true

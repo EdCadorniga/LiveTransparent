@@ -8,6 +8,7 @@ Capture RB2B webhook leads, reconcile/update contact data in GHL, apply qualific
 - Workflow ID: `3kjsIUeoEQFx26cC`
 - Webhook path: `/webhook/rb2b_leads_v3`
 - Test webhook path: `/webhook-test/rb2b_leads_v3`
+- Platform note: n8n is now on `2.14.2`; no manual node-version refresh is planned unless post-upgrade review shows a real issue
 
 ## Input Payload (RB2B)
 - `LinkedIn URL`

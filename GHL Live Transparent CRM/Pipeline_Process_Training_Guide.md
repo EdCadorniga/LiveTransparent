@@ -14,6 +14,11 @@ This process applies to:
 - `Sales Outreach`: active contact attempts and meeting conversion
 - `Sales`: deal progression from discovery to close
 
+## 3A) Current Platform Note
+- n8n is now on `2.14.2`.
+- No manual node-version refresh is planned right now.
+- If a workflow looks different after the upgrade, verify live behavior before editing node fields.
+
 ## 4) Pipeline Definitions and Stage Criteria
 
 ### A) Warm Pipeline

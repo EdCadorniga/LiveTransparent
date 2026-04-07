@@ -244,6 +244,10 @@
 - Use targeted resets for bad cache rows rather than clearing the whole campaign blindly when possible.
 - Helper script for temporary reset workflow creation:
   - `scripts/rerun_bad_emerald_sso_companies.py`
+- Temporary live reset workflow for full Executive SSO company-sync reruns:
+  - `TMP - Reset Emerald Executive SSO Company Sync Queue` (`v2eMeP05wjxqCTFe`)
+  - manual trigger only, inactive by default
+  - deletes matching `Emerald_Company_Research_Cache` rows and resets `Emerald_Contacts` sync/research fields back to pending for contacts tagged `seq emerald - executives sso`
 - n8n execution note:
   - `n8n-lt` is reliable for verification
   - live execution sometimes requires temporarily setting `availableInMCP=true` through direct n8n REST, then reverting it after the run
@@ -284,6 +288,17 @@
   - When updating `settings` through direct REST, the accepted minimal body was:
     - `{"callerPolicy":"workflowsFromSameOwner","availableInMCP":<bool>}`
   - Sending back extra settings keys from a read payload can be rejected with `request/body/settings must NOT have additional properties`.
+ - Direct workflow update behavior re-verified on `2026-04-05` against n8n `2.14.2`:
+   - `PUT /api/v1/workflows/{id}` still rejected the full read-back `settings` block with `request/body/settings must NOT have additional properties`.
+   - The working mutation payload again had to reduce `settings` to the minimal accepted subset:
+     - `callerPolicy`
+     - `availableInMCP`
+   - After a successful `PUT`, the API response body can report `active: true` even for a staged workflow that should remain inactive.
+   - Do not trust the `PUT` response alone for workflow state.
+   - Always follow direct workflow mutation with:
+     - `GET /api/v1/workflows/{id}` to verify the saved nodes/code
+     - explicit activate/deactivate correction if the workflow must remain staged
+     - backup refresh if the local workflow JSON is intended to mirror live
 - Avoid full-object writebacks unless required. Large payloads with extra workflow metadata are more likely to fail or drift.
 - After every live mutation:
   - re-read the workflow through `n8n-lt`
@@ -304,9 +319,14 @@
 - Workflow: `LT - Emerald Executive SSO -> Company Sync (Staged)` (`GHVYyYmhfNiZ7bbN`)
 - As of `2026-03-31`, important live behavior/rules:
   - `batchLimit` is `10`
-  - `OpenRouter Validate` is a local `Code` node, not an external HTTP validator
+  - `researchModel` is `google/gemini-2.5-flash`
+  - `validatorModel` remains configured as `qwen/qwen-2.5-7b-instruct`
+  - `OpenRouter Validate` is no longer on the runtime path; `Parse Research Response` now flows directly to `Finalize Company Sync`
   - `OpenRouter Research` timeout is `30000`
-  - `Needs Research?` should send only true website-research items to `OpenRouter Research`
+  - `Needs Research?` must route normalized `researchMode === website` items to `OpenRouter Research`, and all other modes directly to `Parse Research Response`
+  - `Parse Research Response` now matches prep data by `company_domain_key` instead of relying on fragile `pairedItem` fallback indexing
+  - `Fetch Executive SSO Candidates` should reference `{{$node["Config"].json.batchLimit}}` in the SQL `LIMIT`, not `$item(0)`
+  - `defaultDryRun` is now `false` in the live Config node
   - non-research paths (`cache_only`, `deterministic_only`, `skip_institutional`) should bypass the LLM
 - Cache quality rule:
   - do not trust `Emerald_Company_Research_Cache` rows with `company_research_source = no_website_evidence` as reusable personalization cache
@@ -440,11 +460,17 @@
 - n8n workflow `LT - Emerald CSV -> GHL Import (DryRun, Staged)` (`BLr1x1HKdgM1Xfxk`) - inactive.
 - n8n workflow `LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)` (`0jDKgG8VvmfyORQn`) - inactive (seeded 2026-03-27, 20165 rows).
 
-**SimpleTexting Workflows (3):**
-- n8n workflow `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`) - active, `defaultDryRun=false`.
-- n8n workflow `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`) - active, `defaultDryRun=false`.
-- n8n workflow `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`) - active, `defaultDryRun=false`.
-- All three workflows include full GHL integration: note creation, tag management (`simpletext_ongoing`, `simpletext_stop`), contact resolution via phone lookup.
+**SimpleTexting Workflows (7):**
+- n8n workflow `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) - inactive/staged. Canonical outbound SimpleTexting delivery adapter. Receives webhook payloads, resolves `templateKey`, sends via SimpleTexting, and can sync GHL notes/tags.
+- n8n workflow `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`) - active, `defaultDryRun=false`. Handles inbound reply callbacks from SimpleTexting and writes back to GHL.
+- n8n workflow `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`) - active, `defaultDryRun=false`. Handles delivery-status callbacks from SimpleTexting and is the right place to branch invalid-number remediation into Apollo phone enrichment.
+- n8n workflow `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`) - active, `defaultDryRun=false`. Handles unsubscribe callbacks and applies the stop-state back to GHL.
+- n8n workflow `LT - SimpleTexting Warmup Dispatcher (Staged)` (`dZQLlbTLkpE1843X`) - archived. Legacy/experimental first-touch release dispatcher. Not part of the current planned six-message campaign architecture.
+- n8n workflow `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`) - inactive/staged, `defaultDryRun=true`. Intended enrollment dispatcher for the current design. Pulls eligible contacts from the `Simpletexting Pool` search body, excludes contacts already stopped/in-progress/finished, writes enrollment state, and launches the sequencer.
+- n8n workflow `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`) - inactive/staged, `defaultDryRun=true`. Six-step n8n-owned drip sequencer. Re-fetches the contact and checks `simpletext_stop` before every send, waits between messages, and records campaign state/events in Postgres.
+- Current architecture note:
+  - keep `SMS Send`, `Inbound Reply`, `Delivery Events`, `Unsubscribe Events`, `Pool Dispatcher`, and `Campaign Sequencer`
+  - keep `Warmup Dispatcher` archived unless the older first-touch warmup experiment is intentionally revived
 
 **Slack Notification Workflows (3):**
 - n8n workflow `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`) - active.
@@ -824,16 +850,15 @@
 - use `X-N8N-API-KEY` header, not Bearer auth
 - use `https://automations.livetransparent.com/api/v1`
 - a Node `fetch` script with a browser-like `User-Agent` worked reliably when PowerShell `Invoke-RestMethod` / `curl.exe` hit local TLS or transport issues
-- SimpleTexting staged workflow status:
+- SimpleTexting live workflow status:
 - Workflow `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) remains inactive/staged.
-- It now supports `templateKey`-driven sends in addition to raw `message` payloads.
-- Current template-key behavior is implemented in the `Validate + Send SMS` Code node and reads `templateRegistryJson` from the upstream `Config` Set node.
-- Verified live behavior includes template-key resolution and variable interpolation logic for SimpleTexting sends.
-- Additional SimpleTexting draft workflows created and left inactive pending API token issuance:
-- `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`) path `lt-simpletexting-inbound-reply`
-- `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`) path `lt-simpletexting-delivery-events`
-- `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`) path `lt-simpletexting-unsubscribes`
-- These three workflows currently normalize payloads and enforce webhook-key auth only; they do not yet write back to GHL or other downstream systems.
+- It supports `templateKey`-driven sends in addition to raw `message` payloads.
+- The send workflow now uses a dedicated shared secret for webhook auth and a separate `simpleTextingApiToken` field for the provider API key.
+- `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`) path `lt-simpletexting-inbound-reply` is active/published and writes back to GHL.
+- `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`) path `lt-simpletexting-delivery-events` is active/published and writes back to GHL.
+- `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`) path `lt-simpletexting-unsubscribes` is active/published and writes back to GHL.
+- `LT - SimpleTexting Warmup Dispatcher (Staged)` (`dZQLlbTLkpE1843X`) is now archived and should be treated as retired legacy logic, not the current campaign path.
+- `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`) and `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`) were created on `2026-04-05` for the n8n-owned six-message SimpleTexting drip architecture and remain inactive/dry-run.
 
 ## Session Notes (2026-03-19)
 - Regulated ads booking flow was validated with a real public booking on `Regulated Ads On Social/Search`.
@@ -1151,10 +1176,14 @@ This block is preserved as execution history. Current operational state is now l
 - `BLr1x1HKdgM1Xfxk` - LT - Emerald CSV -> GHL Import (DryRun, Staged) - inactive
 - `0jDKgG8VvmfyORQn` - LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged) - inactive (seeded)
 
-### SimpleTexting Workflows (3)
-- `EhAiGey2o7UJT1cv` - LT - SimpleTexting Inbound Reply (Webhook, Staged)
-- `AEi1VCzkLvaYFr4U` - LT - SimpleTexting Delivery Events (Webhook, Staged)
-- `IyBKMkpYQ7pa0C8V` - LT - SimpleTexting Unsubscribe Events (Webhook, Staged)
+### SimpleTexting Workflows (7)
+- `Q3Ivnwe4z2Y3cD7A` - LT - SimpleTexting SMS Send (Webhook, Staged) - outbound delivery adapter; keep inactive until message copy and campaign wiring are final
+- `EhAiGey2o7UJT1cv` - LT - SimpleTexting Inbound Reply (Webhook, Staged) - published callback handler for inbound replies
+- `AEi1VCzkLvaYFr4U` - LT - SimpleTexting Delivery Events (Webhook, Staged) - published callback handler for delivery events and delivery-failure branching
+- `IyBKMkpYQ7pa0C8V` - LT - SimpleTexting Unsubscribe Events (Webhook, Staged) - published callback handler for unsubscribes
+- `dZQLlbTLkpE1843X` - LT - SimpleTexting Warmup Dispatcher (Staged) - archived legacy/experimental first-touch dispatcher; not part of the current six-step campaign design
+- `usxYXSuc4ahw40V3` - LT - SimpleTexting Pool Dispatcher (Staged) - staged enrollment dispatcher for the current n8n-owned campaign design
+- `7mSiivR3NhtLIcNz` - LT - SimpleTexting Campaign Sequencer (Staged) - staged six-message sequencer with stop check before every send
 
 ### Slack Notification Workflows (3)
 - `lQTW0QPwBcf3o7j8` - WL - Webhook to Slack Channel Update
@@ -1167,6 +1196,11 @@ This block is preserved as execution history. Current operational state is now l
 
 ### Inactive/Staged Workflows
 - `Q3Ivnwe4z2Y3cD7A` - LT - SimpleTexting SMS Send (Webhook, Staged) - inactive/staged
+- `usxYXSuc4ahw40V3` - LT - SimpleTexting Pool Dispatcher (Staged) - inactive/staged
+- `7mSiivR3NhtLIcNz` - LT - SimpleTexting Campaign Sequencer (Staged) - inactive/staged
+
+### Archived Workflows
+- `dZQLlbTLkpE1843X` - LT - SimpleTexting Warmup Dispatcher (Staged) - archived legacy workflow
 
 ## LLM Operating Constraints
 You are a code-first, automation-focused assistant under strict constraints.
@@ -1192,7 +1226,9 @@ You are a code-first, automation-focused assistant under strict constraints.
 
 ### N8N (MANDATORY)
 - n8n policy: keep production n8n updated to the latest stable version.
-- Current observed live version (verified `2026-02-16`): `2.7.4`.
+- Current production target/version: `2.14.2`.
+- Repo deploy definition currently pins [`n8n/docker-compose.yml`](/C:/Users/edmon/OneDrive/Documents/Projects/LiveTransparent/n8n/docker-compose.yml) to `n8nio/n8n:2.14.2`.
+- Previous deployed version before this upgrade: `2.9.4`.
 - Before using any node, operation, or parameter, verify against the currently running instance/schema when version-sensitive behavior matters.
   - If you cannot verify the running version/schema for a version-sensitive change, STOP and ask.
 - Use ONLY current native nodes and parameters.

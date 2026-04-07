@@ -1,0 +1,359 @@
+{
+  "updatedAt": "2026-04-05T10:39:15.511Z",
+  "createdAt": "2026-03-17T12:01:21.025Z",
+  "id": "IyBKMkpYQ7pa0C8V",
+  "name": "LT - SimpleTexting Unsubscribe Events (Webhook, Staged)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "webhook_in",
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        280,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-simpletexting-unsubscribes",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "webhookId": "abcef54f-0794-471b-8f6d-e51e358dcab9"
+    },
+    {
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "auth_header_name",
+              "name": "authHeaderName",
+              "type": "string",
+              "value": "x-lt-webhook-key"
+            },
+            {
+              "id": "auth_header_value",
+              "name": "authHeaderValue",
+              "type": "string",
+              "value": "Lt9Qv2Xm"
+            },
+            {
+              "id": "provider_name",
+              "name": "provider",
+              "type": "string",
+              "value": "SimpleTexting"
+            },
+            {
+              "id": "event_type",
+              "name": "eventType",
+              "type": "string",
+              "value": "unsubscribe_event"
+            },
+            {
+              "id": "ghlLocationId",
+              "name": "ghlLocationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "ghlApiBaseUrl",
+              "name": "ghlApiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "ghlApiKey",
+              "name": "ghlApiKey",
+              "type": "string",
+              "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+            },
+            {
+              "id": "tagOngoing",
+              "name": "tagOngoing",
+              "type": "string",
+              "value": "simpletext_ongoing"
+            },
+            {
+              "id": "tagStop",
+              "name": "tagStop",
+              "type": "string",
+              "value": "simpletext_stop"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "normalize",
+      "name": "Validate + Normalize Unsubscribe",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const src = $json || {};\nconst body = src.body || {};\nconst headers = src.headers || {};\nconst values = (body.values && typeof body.values === 'object' && !Array.isArray(body.values)) ? body.values : {};\n\nconst cfg = {\n  defaultDryRun: !!src.defaultDryRun,\n  authHeaderName: String(src.authHeaderName || 'x-lt-webhook-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n  provider: String(src.provider || 'SimpleTexting').trim(),\n  eventType: String(src.eventType || 'unsubscribe_event').trim(),\n  ghlLocationId: String(src.ghlLocationId || '').trim(),\n  ghlApiBaseUrl: String(src.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  ghlApiKey: String(src.ghlApiKey || '').trim(),\n  tagOngoing: String(src.tagOngoing || 'simpletext_ongoing').trim(),\n  tagStop: String(src.tagStop || 'simpletext_stop').trim(),\n};\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid webhook auth header' } }];\n}\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBoolean(v, fallback) {\n  if (v === undefined || v === null || v === '') return fallback;\n  if (typeof v === 'boolean') return v;\n  const s = String(v).trim().toLowerCase();\n  if (['true','1','yes','y'].includes(s)) return true;\n  if (['false','0','no','n'].includes(s)) return false;\n  return fallback;\n}\nfunction normalizePhone(v) {\n  const digits = clean(v).replace(/\\D/g, '');\n  if (!digits) return '';\n  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);\n  return digits;\n}\nfunction formatPhone(v) {\n  const digits = normalizePhone(v);\n  if (!digits) return '';\n  if (digits.length === 10) return `+1 ${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;\n  return `+${digits}`;\n}\nfunction normalizeTagList(value) {\n  if (Array.isArray(value)) return value.map((item) => clean(typeof item === 'string' ? item : item?.name || item?.value)).filter(Boolean);\n  if (typeof value === 'string') return value.split(',').map((item) => clean(item)).filter(Boolean);\n  return [];\n}\nfunction getContactsArray(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  return [];\n}\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ method, url, headers, body }) {\n  const options = { method, url, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\nasync function resolveGhlContact(phone, explicitGhlContactId) {\n  if (explicitGhlContactId) return { contactId: explicitGhlContactId, resolvedVia: 'input_contactId' };\n  if (!cfg.ghlApiKey || !cfg.ghlLocationId || !phone) return { contactId: '', resolvedVia: 'unavailable' };\n  const lookup = await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.ghlApiBaseUrl}/contacts/?locationId=${encodeURIComponent(cfg.ghlLocationId)}&query=${encodeURIComponent(phone)}&limit=10`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n    },\n  });\n  if (!lookup.ok) return { contactId: '', resolvedVia: 'lookup_failed', details: lookup.data };\n  const match = getContactsArray(lookup.data).find((contact) => normalizePhone(contact?.phone) === phone);\n  if (!match?.id) return { contactId: '', resolvedVia: 'phone_lookup_no_match' };\n  return { contactId: match.id, resolvedVia: 'phone_lookup', existingTags: normalizeTagList(match.tags || []) };\n}\nasync function createGhlNote(contactId, noteBody) {\n  return await apiRequest.call(this, {\n    method: 'POST',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/notes`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: { body: noteBody },\n  });\n}\nasync function addTags(contactId, tags) {\n  const normalized = normalizeTagList(tags);\n  if (!contactId || !normalized.length) return { attempted: false, ok: true, tags: normalized };\n  return await apiRequest.call(this, {\n    method: 'POST',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/tags`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: { tags: normalized },\n  });\n}\nasync function removeTags(contactId, tags) {\n  const normalized = normalizeTagList(tags);\n  if (!contactId || !normalized.length) return { attempted: false, ok: true, tags: normalized };\n  return await apiRequest.call(this, {\n    method: 'DELETE',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/tags`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: { tags: normalized },\n  });\n}\n\nconst dryRun = parseBoolean(body.dryRun, cfg.defaultDryRun);\nconst reportType = clean(body.type || body.reportType || values.type || 'UNSUBSCRIBE_REPORT');\nconst phone = normalizePhone(values.phone || values.contactPhone || body.phone || body.mobile || body.from || body.contactPhone);\nconst keyword = clean(values.keyword || body.keyword || body.reply || body.reason || 'STOP').toUpperCase();\nconst unsubscribedAt = clean(values.timestamp || body.unsubscribedAt || body.timestamp || body.createdAt || body.date || new Date().toISOString());\nconst contactId = clean(values.contactId || body.contactId || body.ghlContactId || body.externalContactId);\nconst sourceCampaign = clean(values.campaignKey || body.campaignKey || body.sequenceKey || body.list || body.keywordGroup);\nconst accountPhone = normalizePhone(values.accountPhone || body.accountPhone || body.to || body.number);\n\nif (!phone) {\n  return [{ json: { ok: false, error: 'missing_phone', message: 'Provide values.phone or a fallback phone field' } }];\n}\n\nconst resolvedContact = await resolveGhlContact.call(this, phone, contactId);\nconst noteBody = [\n  'SMS unsubscribe received via SimpleTexting',\n  `Unsubscribed At: ${unsubscribedAt}`,\n  `From: ${formatPhone(phone) || phone}`,\n  accountPhone ? `To: ${formatPhone(accountPhone) || accountPhone}` : '',\n  `Keyword: ${keyword || 'STOP'}`,\n  sourceCampaign ? `Source Campaign: ${sourceCampaign}` : '',\n  `Report Type: ${reportType}`,\n].filter(Boolean).join('\\n');\n\nif (dryRun) {\n  return [{ json: {\n    ok: true,\n    dryRun,\n    provider: cfg.provider,\n    eventType: cfg.eventType,\n    reportType,\n    phone,\n    keyword,\n    unsubscribedAt,\n    contactId,\n    sourceCampaign,\n    accountPhone,\n    ghlNotePreview: noteBody,\n    ghlContactResolution: resolvedContact,\n    requestedTagAdds: [cfg.tagStop],\n    requestedTagRemovals: [cfg.tagOngoing],\n    rawBody: body,\n    rawValues: values,\n    nextStep: 'draft_only_no_side_effects'\n  } }];\n}\n\nlet noteSync = { attempted: false, contactId: resolvedContact.contactId || '', resolvedVia: resolvedContact.resolvedVia || '', ok: false };\nlet tagSync = { attempted: false, contactId: resolvedContact.contactId || '', added: [], removed: [], addOk: false, removeOk: false };\nif (cfg.ghlApiKey && cfg.ghlLocationId && resolvedContact.contactId) {\n  const noteRes = await createGhlNote.call(this, resolvedContact.contactId, noteBody);\n  noteSync.attempted = true;\n  noteSync.ok = noteRes.ok;\n  noteSync.details = noteRes.ok ? (noteRes.data?.note || noteRes.data || {}) : noteRes.data;\n\n  tagSync.attempted = true;\n  tagSync.added = [cfg.tagStop];\n  tagSync.removed = [cfg.tagOngoing];\n  const addRes = await addTags.call(this, resolvedContact.contactId, [cfg.tagStop]);\n  tagSync.addOk = !!addRes.ok;\n  tagSync.addDetails = addRes.ok ? (addRes.data?.contact || addRes.data || {}) : addRes.data;\n  const removeRes = await removeTags.call(this, resolvedContact.contactId, [cfg.tagOngoing]);\n  tagSync.removeOk = !!removeRes.ok;\n  tagSync.removeDetails = removeRes.ok ? (removeRes.data?.contact || removeRes.data || {}) : removeRes.data;\n}\n\nreturn [{ json: {\n  ok: true,\n  dryRun,\n  provider: cfg.provider,\n  eventType: cfg.eventType,\n  reportType,\n  phone,\n  keyword,\n  unsubscribedAt,\n  contactId,\n  sourceCampaign,\n  accountPhone,\n  ghlNoteSync: noteSync,\n  ghlTagSync: tagSync,\n  rawBody: body,\n  rawValues: values,\n  nextStep: noteSync.ok ? 'unsubscribe_logged_and_contact_stopped' : 'unsubscribe_pending_manual_review'\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Validate + Normalize Unsubscribe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "executionOrder": "v0",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+  "activeVersionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+  "versionCounter": 25,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-17T12:01:21.025Z",
+      "createdAt": "2026-03-17T12:01:21.025Z",
+      "role": "workflow:owner",
+      "workflowId": "IyBKMkpYQ7pa0C8V",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-05T10:39:15.514Z",
+    "createdAt": "2026-04-05T10:39:15.514Z",
+    "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+    "workflowId": "IyBKMkpYQ7pa0C8V",
+    "nodes": [
+      {
+        "id": "webhook_in",
+        "name": "Webhook Intake",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          280,
+          300
+        ],
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lt-simpletexting-unsubscribes",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "webhookId": "abcef54f-0794-471b-8f6d-e51e358dcab9"
+      },
+      {
+        "id": "config",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          520,
+          300
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "default_dry_run",
+                "name": "defaultDryRun",
+                "type": "boolean",
+                "value": false
+              },
+              {
+                "id": "auth_header_name",
+                "name": "authHeaderName",
+                "type": "string",
+                "value": "x-lt-webhook-key"
+              },
+              {
+                "id": "auth_header_value",
+                "name": "authHeaderValue",
+                "type": "string",
+                "value": "Lt9Qv2Xm"
+              },
+              {
+                "id": "provider_name",
+                "name": "provider",
+                "type": "string",
+                "value": "SimpleTexting"
+              },
+              {
+                "id": "event_type",
+                "name": "eventType",
+                "type": "string",
+                "value": "unsubscribe_event"
+              },
+              {
+                "id": "ghlLocationId",
+                "name": "ghlLocationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "ghlApiBaseUrl",
+                "name": "ghlApiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "ghlApiKey",
+                "name": "ghlApiKey",
+                "type": "string",
+                "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+              },
+              {
+                "id": "tagOngoing",
+                "name": "tagOngoing",
+                "type": "string",
+                "value": "simpletext_ongoing"
+              },
+              {
+                "id": "tagStop",
+                "name": "tagStop",
+                "type": "string",
+                "value": "simpletext_stop"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "normalize",
+        "name": "Validate + Normalize Unsubscribe",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          800,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const src = $json || {};\nconst body = src.body || {};\nconst headers = src.headers || {};\nconst values = (body.values && typeof body.values === 'object' && !Array.isArray(body.values)) ? body.values : {};\n\nconst cfg = {\n  defaultDryRun: !!src.defaultDryRun,\n  authHeaderName: String(src.authHeaderName || 'x-lt-webhook-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n  provider: String(src.provider || 'SimpleTexting').trim(),\n  eventType: String(src.eventType || 'unsubscribe_event').trim(),\n  ghlLocationId: String(src.ghlLocationId || '').trim(),\n  ghlApiBaseUrl: String(src.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  ghlApiKey: String(src.ghlApiKey || '').trim(),\n  tagOngoing: String(src.tagOngoing || 'simpletext_ongoing').trim(),\n  tagStop: String(src.tagStop || 'simpletext_stop').trim(),\n};\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid webhook auth header' } }];\n}\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBoolean(v, fallback) {\n  if (v === undefined || v === null || v === '') return fallback;\n  if (typeof v === 'boolean') return v;\n  const s = String(v).trim().toLowerCase();\n  if (['true','1','yes','y'].includes(s)) return true;\n  if (['false','0','no','n'].includes(s)) return false;\n  return fallback;\n}\nfunction normalizePhone(v) {\n  const digits = clean(v).replace(/\\D/g, '');\n  if (!digits) return '';\n  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);\n  return digits;\n}\nfunction formatPhone(v) {\n  const digits = normalizePhone(v);\n  if (!digits) return '';\n  if (digits.length === 10) return `+1 ${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;\n  return `+${digits}`;\n}\nfunction normalizeTagList(value) {\n  if (Array.isArray(value)) return value.map((item) => clean(typeof item === 'string' ? item : item?.name || item?.value)).filter(Boolean);\n  if (typeof value === 'string') return value.split(',').map((item) => clean(item)).filter(Boolean);\n  return [];\n}\nfunction getContactsArray(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  return [];\n}\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ method, url, headers, body }) {\n  const options = { method, url, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\nasync function resolveGhlContact(phone, explicitGhlContactId) {\n  if (explicitGhlContactId) return { contactId: explicitGhlContactId, resolvedVia: 'input_contactId' };\n  if (!cfg.ghlApiKey || !cfg.ghlLocationId || !phone) return { contactId: '', resolvedVia: 'unavailable' };\n  const lookup = await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.ghlApiBaseUrl}/contacts/?locationId=${encodeURIComponent(cfg.ghlLocationId)}&query=${encodeURIComponent(phone)}&limit=10`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n    },\n  });\n  if (!lookup.ok) return { contactId: '', resolvedVia: 'lookup_failed', details: lookup.data };\n  const match = getContactsArray(lookup.data).find((contact) => normalizePhone(contact?.phone) === phone);\n  if (!match?.id) return { contactId: '', resolvedVia: 'phone_lookup_no_match' };\n  return { contactId: match.id, resolvedVia: 'phone_lookup', existingTags: normalizeTagList(match.tags || []) };\n}\nasync function createGhlNote(contactId, noteBody) {\n  return await apiRequest.call(this, {\n    method: 'POST',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/notes`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: { body: noteBody },\n  });\n}\nasync function addTags(contactId, tags) {\n  const normalized = normalizeTagList(tags);\n  if (!contactId || !normalized.length) return { attempted: false, ok: true, tags: normalized };\n  return await apiRequest.call(this, {\n    method: 'POST',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/tags`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: { tags: normalized },\n  });\n}\nasync function removeTags(contactId, tags) {\n  const normalized = normalizeTagList(tags);\n  if (!contactId || !normalized.length) return { attempted: false, ok: true, tags: normalized };\n  return await apiRequest.call(this, {\n    method: 'DELETE',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/tags`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: { tags: normalized },\n  });\n}\n\nconst dryRun = parseBoolean(body.dryRun, cfg.defaultDryRun);\nconst reportType = clean(body.type || body.reportType || values.type || 'UNSUBSCRIBE_REPORT');\nconst phone = normalizePhone(values.phone || values.contactPhone || body.phone || body.mobile || body.from || body.contactPhone);\nconst keyword = clean(values.keyword || body.keyword || body.reply || body.reason || 'STOP').toUpperCase();\nconst unsubscribedAt = clean(values.timestamp || body.unsubscribedAt || body.timestamp || body.createdAt || body.date || new Date().toISOString());\nconst contactId = clean(values.contactId || body.contactId || body.ghlContactId || body.externalContactId);\nconst sourceCampaign = clean(values.campaignKey || body.campaignKey || body.sequenceKey || body.list || body.keywordGroup);\nconst accountPhone = normalizePhone(values.accountPhone || body.accountPhone || body.to || body.number);\n\nif (!phone) {\n  return [{ json: { ok: false, error: 'missing_phone', message: 'Provide values.phone or a fallback phone field' } }];\n}\n\nconst resolvedContact = await resolveGhlContact.call(this, phone, contactId);\nconst noteBody = [\n  'SMS unsubscribe received via SimpleTexting',\n  `Unsubscribed At: ${unsubscribedAt}`,\n  `From: ${formatPhone(phone) || phone}`,\n  accountPhone ? `To: ${formatPhone(accountPhone) || accountPhone}` : '',\n  `Keyword: ${keyword || 'STOP'}`,\n  sourceCampaign ? `Source Campaign: ${sourceCampaign}` : '',\n  `Report Type: ${reportType}`,\n].filter(Boolean).join('\\n');\n\nif (dryRun) {\n  return [{ json: {\n    ok: true,\n    dryRun,\n    provider: cfg.provider,\n    eventType: cfg.eventType,\n    reportType,\n    phone,\n    keyword,\n    unsubscribedAt,\n    contactId,\n    sourceCampaign,\n    accountPhone,\n    ghlNotePreview: noteBody,\n    ghlContactResolution: resolvedContact,\n    requestedTagAdds: [cfg.tagStop],\n    requestedTagRemovals: [cfg.tagOngoing],\n    rawBody: body,\n    rawValues: values,\n    nextStep: 'draft_only_no_side_effects'\n  } }];\n}\n\nlet noteSync = { attempted: false, contactId: resolvedContact.contactId || '', resolvedVia: resolvedContact.resolvedVia || '', ok: false };\nlet tagSync = { attempted: false, contactId: resolvedContact.contactId || '', added: [], removed: [], addOk: false, removeOk: false };\nif (cfg.ghlApiKey && cfg.ghlLocationId && resolvedContact.contactId) {\n  const noteRes = await createGhlNote.call(this, resolvedContact.contactId, noteBody);\n  noteSync.attempted = true;\n  noteSync.ok = noteRes.ok;\n  noteSync.details = noteRes.ok ? (noteRes.data?.note || noteRes.data || {}) : noteRes.data;\n\n  tagSync.attempted = true;\n  tagSync.added = [cfg.tagStop];\n  tagSync.removed = [cfg.tagOngoing];\n  const addRes = await addTags.call(this, resolvedContact.contactId, [cfg.tagStop]);\n  tagSync.addOk = !!addRes.ok;\n  tagSync.addDetails = addRes.ok ? (addRes.data?.contact || addRes.data || {}) : addRes.data;\n  const removeRes = await removeTags.call(this, resolvedContact.contactId, [cfg.tagOngoing]);\n  tagSync.removeOk = !!removeRes.ok;\n  tagSync.removeDetails = removeRes.ok ? (removeRes.data?.contact || removeRes.data || {}) : removeRes.data;\n}\n\nreturn [{ json: {\n  ok: true,\n  dryRun,\n  provider: cfg.provider,\n  eventType: cfg.eventType,\n  reportType,\n  phone,\n  keyword,\n  unsubscribedAt,\n  contactId,\n  sourceCampaign,\n  accountPhone,\n  ghlNoteSync: noteSync,\n  ghlTagSync: tagSync,\n  rawBody: body,\n  rawValues: values,\n  nextStep: noteSync.ok ? 'unsubscribe_logged_and_contact_stopped' : 'unsubscribe_pending_manual_review'\n} }];"
+        }
+      }
+    ],
+    "connections": {
+      "Webhook Intake": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Validate + Normalize Unsubscribe",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-05T10:39:15.987Z",
+        "id": 601,
+        "workflowId": "IyBKMkpYQ7pa0C8V",
+        "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-05T10:39:16.041Z",
+        "id": 602,
+        "workflowId": "IyBKMkpYQ7pa0C8V",
+        "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-05T10:39:15.584Z",
+        "id": 599,
+        "workflowId": "IyBKMkpYQ7pa0C8V",
+        "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-05T10:39:15.629Z",
+        "id": 600,
+        "workflowId": "IyBKMkpYQ7pa0C8V",
+        "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

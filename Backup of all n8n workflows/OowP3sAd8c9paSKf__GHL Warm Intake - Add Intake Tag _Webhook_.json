@@ -1,0 +1,290 @@
+{
+  "updatedAt": "2026-03-17T00:31:18.707Z",
+  "createdAt": "2026-02-16T15:30:18.083Z",
+  "id": "OowP3sAd8c9paSKf",
+  "name": "GHL Warm Intake - Add Intake Tag (Webhook)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-warm-intake-tag",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_in",
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "value": "Zwz4relUXVPxx8uohnjV",
+              "type": "string"
+            },
+            {
+              "id": "api_base_url",
+              "name": "apiBaseUrl",
+              "value": "https://services.leadconnectorhq.com",
+              "type": "string"
+            },
+            {
+              "id": "api_key",
+              "name": "apiKey",
+              "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828",
+              "type": "string"
+            },
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "auth_header_name",
+              "name": "authHeaderName",
+              "value": "x-intake-key",
+              "type": "string"
+            },
+            {
+              "id": "auth_header_value",
+              "name": "authHeaderValue",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $json;\nconst body = src.body || {};\nconst headers = src.headers || {};\n\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  defaultDryRun: !!src.defaultDryRun,\n  authHeaderName: String(src.authHeaderName || 'x-intake-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n};\n\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid intake auth header' } }];\n}\n\nconst tagMap = {\n  email_inbound: 'Warm Intake - Email Inbound',\n  email_outbound: 'Warm Intake - Email Outbound',\n  sms: 'Warm Intake - SMS',\n  referral: 'Referral - Intake',\n};\nconst allowedTags = new Set(Object.values(tagMap));\n\nlet intakeTag = String(body.intakeTag || body.tag || '').trim();\nconst intakeType = String(body.intakeType || body.type || '').trim().toLowerCase();\nif (!intakeTag && intakeType && tagMap[intakeType]) intakeTag = tagMap[intakeType];\n\nif (!intakeTag || !allowedTags.has(intakeTag)) {\n  return [{\n    json: {\n      ok: false,\n      error: 'invalid_tag',\n      message: 'Provide a valid intakeTag',\n      allowedTags: Array.from(allowedTags),\n      acceptedTypes: Object.keys(tagMap),\n    },\n  }];\n}\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\n\nfunction clean(v) { return String(v || '').trim(); }\nlet contactId = clean(body.contactId);\nconst email = clean(body.email);\nconst phone = clean(body.phone);\nconst firstName = clean(body.firstName);\nconst lastName = clean(body.lastName);\n\nif (!contactId && !email && !phone) {\n  return [{ json: { ok: false, error: 'missing_contact', message: 'Provide contactId or email/phone' } }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = {\n    method,\n    url: `${cfg.apiBaseUrl}${path}`,\n    headers: headersGhl,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nlet resolvedVia = 'contactId';\nif (!contactId) {\n  resolvedVia = 'upsert';\n  const upsertBody = {\n    locationId: cfg.locationId,\n    email: email || undefined,\n    phone: phone || undefined,\n    firstName: firstName || undefined,\n    lastName: lastName || undefined,\n  };\n  Object.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\n  const upsert = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsert.ok) {\n    return [{ json: { ok: false, error: 'upsert_failed', details: upsert.data } }];\n  }\n  contactId = upsert.data?.contact?.id || upsert.data?.id || upsert.data?.contactId || '';\n  if (!contactId) {\n    return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsert.data } }];\n  }\n}\n\nif (dryRun) {\n  return [{\n    json: {\n      ok: true,\n      dryRun: true,\n      action: 'would_add_intake_tag',\n      contactId,\n      intakeTag,\n      resolvedVia,\n    },\n  }];\n}\n\nconst tagRes = await apiRequest.call(this, {\n  method: 'POST',\n  path: `/contacts/${contactId}/tags`,\n  body: { tags: [intakeTag] },\n});\n\nif (!tagRes.ok) {\n  return [{ json: { ok: false, error: 'tag_add_failed', contactId, intakeTag, details: tagRes.data } }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun: false,\n    action: 'intake_tag_added',\n    contactId,\n    intakeTag,\n    resolvedVia,\n    response: tagRes.data,\n  },\n}];"
+      },
+      "id": "apply_tag",
+      "name": "Validate + Add Intake Tag",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Validate + Add Intake Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
+  "activeVersionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
+  "versionCounter": 14,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-16T15:30:18.083Z",
+      "createdAt": "2026-02-16T15:30:18.083Z",
+      "role": "workflow:owner",
+      "workflowId": "OowP3sAd8c9paSKf",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-17T00:31:18.710Z",
+    "createdAt": "2026-03-17T00:31:18.710Z",
+    "versionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
+    "workflowId": "OowP3sAd8c9paSKf",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lt-warm-intake-tag",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "webhook_in",
+        "name": "Webhook Intake",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          280,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "location_id",
+                "name": "locationId",
+                "value": "Zwz4relUXVPxx8uohnjV",
+                "type": "string"
+              },
+              {
+                "id": "api_base_url",
+                "name": "apiBaseUrl",
+                "value": "https://services.leadconnectorhq.com",
+                "type": "string"
+              },
+              {
+                "id": "api_key",
+                "name": "apiKey",
+                "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828",
+                "type": "string"
+              },
+              {
+                "id": "default_dry_run",
+                "name": "defaultDryRun",
+                "value": true,
+                "type": "boolean"
+              },
+              {
+                "id": "auth_header_name",
+                "name": "authHeaderName",
+                "value": "x-intake-key",
+                "type": "string"
+              },
+              {
+                "id": "auth_header_value",
+                "name": "authHeaderValue",
+                "value": "",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "config",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          520,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const src = $json;\nconst body = src.body || {};\nconst headers = src.headers || {};\n\nconst cfg = {\n  locationId: src.locationId,\n  apiBaseUrl: String(src.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  apiKey: src.apiKey,\n  defaultDryRun: !!src.defaultDryRun,\n  authHeaderName: String(src.authHeaderName || 'x-intake-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n};\n\nif (!cfg.locationId) throw new Error('Missing Config.locationId');\nif (!cfg.apiKey) throw new Error('Missing Config.apiKey');\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid intake auth header' } }];\n}\n\nconst tagMap = {\n  email_inbound: 'Warm Intake - Email Inbound',\n  email_outbound: 'Warm Intake - Email Outbound',\n  sms: 'Warm Intake - SMS',\n  referral: 'Referral - Intake',\n};\nconst allowedTags = new Set(Object.values(tagMap));\n\nlet intakeTag = String(body.intakeTag || body.tag || '').trim();\nconst intakeType = String(body.intakeType || body.type || '').trim().toLowerCase();\nif (!intakeTag && intakeType && tagMap[intakeType]) intakeTag = tagMap[intakeType];\n\nif (!intakeTag || !allowedTags.has(intakeTag)) {\n  return [{\n    json: {\n      ok: false,\n      error: 'invalid_tag',\n      message: 'Provide a valid intakeTag',\n      allowedTags: Array.from(allowedTags),\n      acceptedTypes: Object.keys(tagMap),\n    },\n  }];\n}\n\nconst dryRun = body.dryRun === undefined ? cfg.defaultDryRun : !!body.dryRun;\n\nfunction clean(v) { return String(v || '').trim(); }\nlet contactId = clean(body.contactId);\nconst email = clean(body.email);\nconst phone = clean(body.phone);\nconst firstName = clean(body.firstName);\nconst lastName = clean(body.lastName);\n\nif (!contactId && !email && !phone) {\n  return [{ json: { ok: false, error: 'missing_contact', message: 'Provide contactId or email/phone' } }];\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headersGhl = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = {\n    method,\n    url: `${cfg.apiBaseUrl}${path}`,\n    headers: headersGhl,\n    json: true,\n  };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nlet resolvedVia = 'contactId';\nif (!contactId) {\n  resolvedVia = 'upsert';\n  const upsertBody = {\n    locationId: cfg.locationId,\n    email: email || undefined,\n    phone: phone || undefined,\n    firstName: firstName || undefined,\n    lastName: lastName || undefined,\n  };\n  Object.keys(upsertBody).forEach((k) => upsertBody[k] === undefined && delete upsertBody[k]);\n\n  const upsert = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', body: upsertBody });\n  if (!upsert.ok) {\n    return [{ json: { ok: false, error: 'upsert_failed', details: upsert.data } }];\n  }\n  contactId = upsert.data?.contact?.id || upsert.data?.id || upsert.data?.contactId || '';\n  if (!contactId) {\n    return [{ json: { ok: false, error: 'contact_id_missing_after_upsert', details: upsert.data } }];\n  }\n}\n\nif (dryRun) {\n  return [{\n    json: {\n      ok: true,\n      dryRun: true,\n      action: 'would_add_intake_tag',\n      contactId,\n      intakeTag,\n      resolvedVia,\n    },\n  }];\n}\n\nconst tagRes = await apiRequest.call(this, {\n  method: 'POST',\n  path: `/contacts/${contactId}/tags`,\n  body: { tags: [intakeTag] },\n});\n\nif (!tagRes.ok) {\n  return [{ json: { ok: false, error: 'tag_add_failed', contactId, intakeTag, details: tagRes.data } }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    dryRun: false,\n    action: 'intake_tag_added',\n    contactId,\n    intakeTag,\n    resolvedVia,\n    response: tagRes.data,\n  },\n}];"
+        },
+        "id": "apply_tag",
+        "name": "Validate + Add Intake Tag",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          780,
+          300
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Intake": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Validate + Add Intake Tag",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-17T00:31:18.771Z",
+        "id": 311,
+        "workflowId": "OowP3sAd8c9paSKf",
+        "versionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-03-17T00:31:18.800Z",
+        "id": 312,
+        "workflowId": "OowP3sAd8c9paSKf",
+        "versionId": "56861267-a15e-416a-80f4-fe47ec5fec45",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

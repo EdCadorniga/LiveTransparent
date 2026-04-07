@@ -3,6 +3,11 @@
 ## Pipeline Flow
 `Warm` -> `Sales Outreach` -> `Sales`
 
+## Current Platform Note
+- n8n is now on `2.14.2`
+- no manual node-version refresh is planned right now
+- escalate if a workflow editor view looks different after the upgrade
+
 ## Warm
 1. `New`: New warm signal captured, not reviewed yet.
 2. `Qualified (MQL)`: Meets minimum fit + intent.
@@ -115,7 +120,7 @@
 
 ## RB2B Intake Quick Rules (Live)
 - n8n workflow: `rb2b leads` (`3kjsIUeoEQFx26cC`)
-- Webhook path: `/webhook/rb2b_leads_v2`
+- Webhook path: `/webhook/rb2b_leads_v3`
 - GHL contact resolution order:
 - email duplicate lookup first
 - exact full-name fallback second
