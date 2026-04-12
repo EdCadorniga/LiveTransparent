@@ -28,6 +28,16 @@ Last updated: `2026-03-27`
 - Trigger tag: `Enrollment Queue - Emerald - Marketing SSO`
 - Add tag: `Seq Emerald - Marketing SSO`
 
+### 5. Finance MSO (Planned)
+- Workflow: `WL - Seq - Cannabis Ads Emerald - Finance MSO`
+- Trigger tag: `enrollment queue - emerald - finance mso`
+- Add tag: `seq emerald - finance mso`
+
+### 6. Finance SSO (Planned)
+- Workflow: `WL - Seq - Cannabis Ads Emerald - Finance SSO`
+- Trigger tag: `enrollment queue - emerald - finance sso`
+- Add tag: `seq emerald - finance sso`
+
 ## Common Workflow Actions
 - Remove the matching Emerald queue tag on entry.
 - Add `Seq Enrolled - Emerald`.
@@ -45,6 +55,15 @@ Last updated: `2026-03-27`
 - `cannabis-retail-sso-executive-1`
 - `cannabis-retail-sso-executive-2`
 - `cannabis-retail-sso-marketing-1`
+- `cannabis-retail-mso-finance-1` (new)
+- `cannabis-retail-sso-finance-1` (new)
+
+## Person-Type Conflict Rule
+- Every Emerald person-type campaign must exclude contacts tagged for the other person types.
+- Executive campaigns exclude all marketing and finance source tags.
+- Marketing campaigns exclude all executive and finance source tags.
+- Finance campaigns exclude all executive and marketing source tags.
+- A contact must have at most one Emerald enrollment queue tag at a time.
 
 ## Notes
 - Batch suffixes are ignored for workflow routing.

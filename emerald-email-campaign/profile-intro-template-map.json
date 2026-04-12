@@ -1,0 +1,49 @@
+{
+  "locationId": "Zwz4relUXVPxx8uohnjV",
+  "folder": {
+    "id": "69d8c788a4e06a2e22244803",
+    "name": "Emerald targeted by profile"
+  },
+  "templates": [
+    {
+      "profileKey": "mso_executive",
+      "templateId": "69d8cca59d3c3334b384f671",
+      "name": "MSO Executive - Reliable Meta Access for Cannabis Brands"
+    },
+    {
+      "profileKey": "mso_marketing",
+      "templateId": "69d8cca6f4385ca038eabf46",
+      "name": "MSO Marketing - Paid Social Without Constant Interruptions"
+    },
+    {
+      "profileKey": "mso_finance",
+      "templateId": "69d8cca8f4385cf6dceabf4e",
+      "name": "MSO Finance - Open a More Reliable Revenue Channel"
+    },
+    {
+      "profileKey": "mso_retail_sales",
+      "templateId": "69d8cca937cb489098a8df09",
+      "name": "MSO Retail and Sales - Keep Traffic and Sales More Consistent"
+    },
+    {
+      "profileKey": "sso_executive",
+      "templateId": "69d8ccab2aeb5b1792edb5d6",
+      "name": "SSO Executive - Turn Paid Social Into a Reliable Growth Lever"
+    },
+    {
+      "profileKey": "sso_marketing",
+      "templateId": "69d8ccac37cb489454a8df44",
+      "name": "SSO Marketing - Keep Campaigns Live Without Constant Resets"
+    },
+    {
+      "profileKey": "sso_finance",
+      "templateId": "69d8ccaea4e06acf3c2484cf",
+      "name": "SSO Finance - Reduce Dependence on Too Few Revenue Channels"
+    },
+    {
+      "profileKey": "sso_retail_sales",
+      "templateId": "69d8ccb0642e9f0edb340bb9",
+      "name": "SSO Retail and Sales - Make Traffic and Sales More Predictable"
+    }
+  ]
+}

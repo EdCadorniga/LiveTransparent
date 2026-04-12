@@ -1,0 +1,161 @@
+{
+  "name": "LT - Emerald Intro Backfill Tagger (Staged)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "loc",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "base",
+              "name": "ghlApiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "pit",
+              "name": "ghlApiKey",
+              "type": "string",
+              "value": "={{$env.GHL_PIT || ''}}"
+            },
+            {
+              "id": "dry",
+              "name": "defaultDryRun",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "tag_backfill",
+              "name": "backfillTag",
+              "type": "string",
+              "value": "Seq Emerald - Intro Backfill Pending"
+            },
+            {
+              "id": "tag_done",
+              "name": "alreadySentTag",
+              "type": "string",
+              "value": "Seq Emerald - Intro Sent"
+            },
+            {
+              "id": "cutoff",
+              "name": "legacyCutoffTs",
+              "type": "string",
+              "value": "2026-04-03T23:59:59Z"
+            },
+            {
+              "id": "limit",
+              "name": "batchLimit",
+              "type": "number",
+              "value": 5000
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT\n+  NULLIF(TRIM(r.ghl_contact_id), '') AS ghl_contact_id,\n+  LOWER(NULLIF(TRIM(r.contact_email), '')) AS contact_email,\n+  MIN(r.release_ts) AS first_release_ts\n+FROM \"Emerald_Release_Log\" r\n+WHERE r.status = 'queued'\n+  AND r.release_ts <= CAST('{{$item(0).$node[\"Config\"].json.legacyCutoffTs}}' AS TIMESTAMPTZ)\n+  AND (\n+    NULLIF(TRIM(r.ghl_contact_id), '') IS NOT NULL\n+    OR NULLIF(TRIM(r.contact_email), '') IS NOT NULL\n+  )\n+GROUP BY NULLIF(TRIM(r.ghl_contact_id), ''), LOWER(NULLIF(TRIM(r.contact_email), ''))\n+ORDER BY MIN(r.release_ts) ASC\n+LIMIT {{$item(0).$node[\"Config\"].json.batchLimit}};",
+        "options": {}
+      },
+      "id": "fetch_candidates",
+      "name": "Fetch Legacy Release Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        700,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $item(0).$node['Config'].json || {};\n+const rows = $items('Fetch Legacy Release Candidates').map((i) => i.json || {});\n+\n+const locationId = String(cfg.locationId || '').trim();\n+const apiBaseUrl = String(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\n+const apiKey = String(cfg.ghlApiKey || '').trim();\n+const backfillTag = String(cfg.backfillTag || 'Seq Emerald - Intro Backfill Pending').trim();\n+const alreadySentTag = String(cfg.alreadySentTag || 'Seq Emerald - Intro Sent').trim().toLowerCase();\n+const dryRun = !!cfg.defaultDryRun;\n+\n+if (!locationId) throw new Error('Missing Config.locationId');\n+if (!dryRun && !apiKey) throw new Error('Missing Config.ghlApiKey for live mode');\n+\n+function clean(v) { return String(v ?? '').trim(); }\n+\n+async function doHttpRequest(options) {\n+  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n+  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n+  throw new Error('HTTP helper not available');\n+}\n+\n+const headers = {\n+  Authorization: `Bearer ${apiKey}`,\n+  Version: '2021-07-28',\n+  'Content-Type': 'application/json',\n+  Accept: 'application/json',\n+};\n+\n+async function apiRequest({ method, path, body }) {\n+  const options = { method, url: `${apiBaseUrl}${path}`, headers, json: true };\n+  if (body !== undefined) options.body = body;\n+  try {\n+    const data = await doHttpRequest.call(this, options);\n+    return { ok: true, data };\n+  } catch (err) {\n+    return {\n+      ok: false,\n+      status: err?.statusCode || err?.httpCode || 500,\n+      data: err?.response?.body || err?.message || err,\n+    };\n+  }\n+}\n+\n+async function resolveContactId(candidate) {\n+  const fromId = clean(candidate.ghl_contact_id);\n+  if (fromId) return { ok: true, contactId: fromId, resolvedVia: 'release_log_id' };\n+\n+  const email = clean(candidate.contact_email).toLowerCase();\n+  if (!email) return { ok: false, reason: 'missing_id_and_email' };\n+\n+  const dup = await apiRequest.call(this, {\n+    method: 'GET',\n+    path: `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}`,\n+  });\n+  if (!dup.ok) return { ok: false, reason: 'duplicate_lookup_failed', details: dup.data };\n+\n+  const id = clean(dup.data?.contact?.id || dup.data?.id || dup.data?.contactId || '');\n+  if (!id) return { ok: false, reason: 'email_lookup_no_match' };\n+  return { ok: true, contactId: id, resolvedVia: 'email_duplicate_lookup' };\n+}\n+\n+const dedupe = new Map();\n+for (const row of rows) {\n+  const key = clean(row.ghl_contact_id) || clean(row.contact_email).toLowerCase();\n+  if (!key) continue;\n+  if (!dedupe.has(key)) dedupe.set(key, row);\n+}\n+const candidates = Array.from(dedupe.values());\n+\n+const results = [];\n+for (const c of candidates) {\n+  const resolved = dryRun\n+    ? { ok: true, contactId: clean(c.ghl_contact_id) || null, resolvedVia: clean(c.ghl_contact_id) ? 'release_log_id' : 'dryrun_email_only' }\n+    : await resolveContactId.call(this, c);\n+\n+  if (!resolved.ok || !resolved.contactId) {\n+    results.push({ status: 'skipped_unresolved', reason: resolved.reason || 'unresolved', contact_email: c.contact_email || null, details: resolved.details || null });\n+    continue;\n+  }\n+\n+  if (dryRun) {\n+    results.push({ status: 'planned', contactId: resolved.contactId, contact_email: c.contact_email || null, first_release_ts: c.first_release_ts || null, resolvedVia: resolved.resolvedVia });\n+    continue;\n+  }\n+\n+  const contactRes = await apiRequest.call(this, { method: 'GET', path: `/contacts/${encodeURIComponent(resolved.contactId)}` });\n+  if (!contactRes.ok) {\n+    results.push({ status: 'error_contact_read', contactId: resolved.contactId, details: contactRes.data });\n+    continue;\n+  }\n+\n+  const tagList = Array.isArray(contactRes.data?.contact?.tags)\n+    ? contactRes.data.contact.tags\n+    : Array.isArray(contactRes.data?.tags)\n+      ? contactRes.data.tags\n+      : [];\n+  const tagSet = new Set(tagList.map((t) => clean(t).toLowerCase()).filter(Boolean));\n+\n+  if (tagSet.has(alreadySentTag)) {\n+    results.push({ status: 'skipped_already_intro_sent', contactId: resolved.contactId });\n+    continue;\n+  }\n+\n+  if (tagSet.has(clean(backfillTag).toLowerCase())) {\n+    results.push({ status: 'already_backfill_tagged', contactId: resolved.contactId });\n+    continue;\n+  }\n+\n+  const tagRes = await apiRequest.call(this, {\n+    method: 'POST',\n+    path: `/contacts/${encodeURIComponent(resolved.contactId)}/tags`,\n+    body: { tags: [backfillTag] },\n+  });\n+  if (!tagRes.ok) {\n+    results.push({ status: 'error_tag_add', contactId: resolved.contactId, details: tagRes.data });\n+    continue;\n+  }\n+\n+  results.push({ status: 'tagged', contactId: resolved.contactId, contact_email: c.contact_email || null });\n+}\n+\n+const summary = {\n+  ok: true,\n+  dryRun,\n+  cutoff: cfg.legacyCutoffTs,\n+  rowsFromQuery: rows.length,\n+  uniqueCandidates: candidates.length,\n+  planned: results.filter((r) => r.status === 'planned').length,\n+  tagged: results.filter((r) => r.status === 'tagged').length,\n+  skippedUnresolved: results.filter((r) => r.status === 'skipped_unresolved').length,\n+  skippedAlreadySent: results.filter((r) => r.status === 'skipped_already_intro_sent').length,\n+  alreadyBackfillTagged: results.filter((r) => r.status === 'already_backfill_tagged').length,\n+  errors: results.filter((r) => String(r.status || '').startsWith('error_')).length,\n+};\n+\n+return [{ json: { summary, sample: results.slice(0, 250) } }];"
+      },
+      "id": "tag_contacts",
+      "name": "Tag Contacts (DryRun Safe)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        280
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch Legacy Release Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Legacy Release Candidates": {
+      "main": [
+        [
+          {
+            "node": "Tag Contacts (DryRun Safe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  }
+}
