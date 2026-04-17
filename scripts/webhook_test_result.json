@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "dryRun": true,
+  "action": "would_send_message",
+  "provider": "SimpleTexting",
+  "endpoint": "messages",
+  "requestBody": {
+    "contactPhone": "5555551212",
+    "mode": "AUTO",
+    "text": "Hi this is John, just gave you a call. Saw you were interested in learning about cannabis ads on social/search.\\n\\nWe run ads for Mood, Cookies, and more! Interested in learning how?"
+  },
+  "campaignKey": "",
+  "externalId": "",
+  "senderLabel": "SimpleTexting",
+  "templateKey": "john_sms1",
+  "templateName": "John SMS 1 - Initial Outreach",
+  "textLength": 182,
+  "ghlNotePreview": "SMS sent via SimpleTexting\nTo: +1 555-555-1212\nTemplate: John SMS 1 - Initial Outreach\nMessage:\nHi this is John, just gave you a call. Saw you were interested in learning about cannabis ads on social/search.\\n\\nWe run ads for Mood, Cookies, and more! Interested in learning how?",
+  "ghlContactResolution": {
+    "contactId": "test-1",
+    "resolvedVia": "input_contactId",
+    "existingTags": []
+  },
+  "requestedTagAdds": [],
+  "requestedTagRemovals": []
+}

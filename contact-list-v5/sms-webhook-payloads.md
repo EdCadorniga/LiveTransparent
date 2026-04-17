@@ -2,13 +2,35 @@
 
 Use these in a GHL webhook action where the body is sent as JSON to the n8n SimpleTexting sender.
 
+## Endpoint and Header
+
+- Webhook URL: `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`
+- Header key: `x-lt-webhook-key`
+- Header value: `Lt9Qv2Xm`
+
+## Business Hours Enforcement (Live)
+
+- n8n now blocks sends outside business hours.
+- Current live window:
+- Timezone: `America/New_York` (EST/EDT)
+- Days: `Mon-Fri` (`1,2,3,4,5`)
+- Hours: `10:00-17:00` (local timezone above)
+- If blocked, response returns `error: outside_business_hours`.
+- Recommended in GHL: add a `Wait` step before webhook so contacts are only sent during this same window.
+
 ## Recommended Payload Shape
 
 ```json
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "PASTE_SEGMENT_SMS_COPY_HERE"
+  "templateKey": "PASTE_TEMPLATE_KEY_HERE",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```
 
@@ -18,7 +40,13 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "Hi {{contact.first_name}}, Cameron from Transparent. Most cannabis brands still can't properly run Meta ads. We help teams get live through compliant accounts and keep them running without constant restrictions. Let me know if this is relevant."
+  "templateKey": "emerald_mso_executive_intro",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```
 
@@ -28,7 +56,13 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "Hi {{contact.first_name}}, Cameron from Transparent. Most teams still can't fully run paid social. We help marketing teams get live and keep campaigns running without disruption. Let me know if this is relevant."
+  "templateKey": "emerald_mso_marketing_intro",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```
 
@@ -38,7 +72,13 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "Hi {{contact.first_name}}, Cameron from Transparent. Many teams still can't fully use paid social as a revenue channel. We help operators unlock it and keep it running reliably. Let me know if this is relevant."
+  "templateKey": "emerald_mso_finance_intro",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```
 
@@ -48,7 +88,13 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "Hi {{contact.first_name}}, Cameron from Transparent. When Meta ads go down, traffic and sales usually drop too. We help teams get live and keep things running without constant restrictions. Let me know if this is relevant."
+  "templateKey": "emerald_mso_retail_sales_intro",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```
 
@@ -58,7 +104,13 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "Hi {{contact.first_name}}, Cameron from Transparent. We've seen cases where teams have to reset more often than they should when ads get interrupted. Let me know if this sounds familiar."
+  "templateKey": "emerald_sso_executive_intro",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```
 
@@ -68,7 +120,13 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "Hi {{contact.first_name}}, Cameron from Transparent. We've seen cases where campaigns get interrupted mid-execution and teams lose momentum. Let me know if this sounds familiar."
+  "templateKey": "emerald_sso_marketing_intro",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```
 
@@ -78,7 +136,13 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "Hi {{contact.first_name}}, Cameron from Transparent. We've seen cases where revenue becomes uneven when advertising gets interrupted. Let me know if this sounds familiar."
+  "templateKey": "emerald_sso_finance_intro",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```
 
@@ -88,6 +152,12 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 {
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
-  "message": "Hi {{contact.first_name}}, Cameron from Transparent. We've seen cases where interruptions in advertising quietly create gaps in traffic and conversions. Let me know if this is something you've noticed."
+  "templateKey": "emerald_sso_retail_sales_intro",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
 }
 ```

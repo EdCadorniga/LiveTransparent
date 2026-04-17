@@ -1,0 +1,4547 @@
+{
+  "locationId": "Zwz4relUXVPxx8uohnjV",
+  "sourceCsv": "C:\\Users\\edmon\\OneDrive\\Documents\\Projects\\LiveTransparent\\contact-list-v5\\do-not-contact\\do-not-contact.ghl-import.csv",
+  "totalEmails": 907,
+  "matchedContacts": 904,
+  "taggedContacts": 904,
+  "missingContacts": 3,
+  "lookupErrors": 0,
+  "tagErrors": 0,
+  "items": [
+    {
+      "email": "a.chao@guideline.com",
+      "contactId": "GiChr1hcvt8Rg8DBmGCi",
+      "status": "tagged"
+    },
+    {
+      "email": "a.fine@vicentellp.com",
+      "contactId": "3p33RkK5r2Y049sWkYrW",
+      "status": "tagged"
+    },
+    {
+      "email": "a.livingston@vicentellp.com",
+      "contactId": "yX7zirFxBlZY93qUcFQg",
+      "status": "tagged"
+    },
+    {
+      "email": "a.smith@thevalenscompany.com",
+      "contactId": "x7u5hDtVwi0PO0iy0Gfg",
+      "status": "tagged"
+    },
+    {
+      "email": "aakhiezer@foleyhoag.com",
+      "contactId": "jmwysbfGgipovWZ24g4c",
+      "status": "tagged"
+    },
+    {
+      "email": "aaron.abeyta@gtigrows.com",
+      "contactId": "arVEbkQl2hIyGcNDkCYV",
+      "status": "tagged"
+    },
+    {
+      "email": "aaron.mccrary@ziongardens.com",
+      "contactId": "JontHBXkrgTgXKI4HwWP",
+      "status": "tagged"
+    },
+    {
+      "email": "aaron.sane@ecologicallabs.com",
+      "contactId": "FDrZ9IzKJj5Bdudebo9Y",
+      "status": "tagged"
+    },
+    {
+      "email": "aaron@astronomichigh.com",
+      "contactId": "FF2Q3tCYDOlEu1lnJDhQ",
+      "status": "tagged"
+    },
+    {
+      "email": "aaron@cg.management",
+      "contactId": "sfvwGcixWHwH1Ohjf6DO",
+      "status": "tagged"
+    },
+    {
+      "email": "aaron@lightscale.com",
+      "contactId": "KM1FDPG4Ivn3TFNyb0ba",
+      "status": "tagged"
+    },
+    {
+      "email": "aaronkeefer1@yahoo.com",
+      "contactId": "2RSjSpOcuNnS9CILyMjQ",
+      "status": "tagged"
+    },
+    {
+      "email": "aaronsmalone@gmail.com",
+      "contactId": "B4zJRjlOMi2oUk1VYcQy",
+      "status": "tagged"
+    },
+    {
+      "email": "abarr@hlgcpa.com",
+      "contactId": "A0bSbyXO4n3DEb8kXlAk",
+      "status": "tagged"
+    },
+    {
+      "email": "abauer@foleyhoag.com",
+      "contactId": "JSom3Fr91SKBeKJcpq2d",
+      "status": "tagged"
+    },
+    {
+      "email": "abayer-thomas@ulta.com",
+      "contactId": "4NTtwgnWGizukVKtrvbx",
+      "status": "tagged"
+    },
+    {
+      "email": "abdualrahman.abdualkader@umontreal.ca",
+      "contactId": "kPrUsnbGLbfzNB7JgFi2",
+      "status": "tagged"
+    },
+    {
+      "email": "abdul.raouf@saskpolytech.ca",
+      "contactId": "v62aLKO6qR7bscCkgHRK",
+      "status": "tagged"
+    },
+    {
+      "email": "abeauchamp@v-c-s.org",
+      "contactId": "CRowQZLbSX5bjrdrDauX",
+      "status": "tagged"
+    },
+    {
+      "email": "abeck@ihslab.com",
+      "contactId": "DEk2IEVL4i7KFqmD8bPW",
+      "status": "tagged"
+    },
+    {
+      "email": "abeeman@reminger.com",
+      "contactId": "cpjC0WLoCw02sYpccdwE",
+      "status": "tagged"
+    },
+    {
+      "email": "abeltz@messner.com",
+      "contactId": "KIvUyA7D4sGeBebXETDP",
+      "status": "tagged"
+    },
+    {
+      "email": "abigail@mountaineercare.com",
+      "contactId": "1DKg9H7Okj5pz6ocEOkh",
+      "status": "tagged"
+    },
+    {
+      "email": "abrack@citrincooperman.com",
+      "contactId": "q2vohJZHBg1q09Zv3QWY",
+      "status": "tagged"
+    },
+    {
+      "email": "abusch@tealcannabis.co",
+      "contactId": "hI7XDDdp3byhPZeSeTvs",
+      "status": "tagged"
+    },
+    {
+      "email": "acandello@citrincooperman.com",
+      "contactId": "HSANU75sPe9AaedD6vWV",
+      "status": "tagged"
+    },
+    {
+      "email": "acastell@dodsonlegal.com",
+      "contactId": "GtJGM72d3TvIyE6jh19L",
+      "status": "tagged"
+    },
+    {
+      "email": "accemn@gmail.com",
+      "contactId": "NRJFY5brFMVxabn5UcSd",
+      "status": "tagged"
+    },
+    {
+      "email": "achamoun@cbh.com",
+      "contactId": "36D7tBhcFxkviWq7GbDZ",
+      "status": "tagged"
+    },
+    {
+      "email": "acintas@jeeter.com",
+      "contactId": "Ug9WyQ9HuV1Q5aIvYhjK",
+      "status": "tagged"
+    },
+    {
+      "email": "acivins@citrincooperman.com",
+      "contactId": "dyn0a7d4ndJ9iDe2pUR9",
+      "status": "tagged"
+    },
+    {
+      "email": "acoffey@mirickoconnell.com",
+      "contactId": "vjZCNDSGUvq0kmVokvHI",
+      "status": "tagged"
+    },
+    {
+      "email": "acohen@machrealty.com",
+      "contactId": "HwO0CrpFeieIPPOWFpqb",
+      "status": "tagged"
+    },
+    {
+      "email": "acollura@guidepostsolutions.com",
+      "contactId": "jlBF1ytz2lqyk9FKV2oy",
+      "status": "tagged"
+    },
+    {
+      "email": "aconway@dreamfields.com",
+      "contactId": "O1S767dfHCdEZe9Eld1Z",
+      "status": "tagged"
+    },
+    {
+      "email": "acrowell@kpaonline.com",
+      "contactId": "quk72Q0xCijPynEvatzP",
+      "status": "tagged"
+    },
+    {
+      "email": "adadamo@ryconinc.com",
+      "contactId": "kixPbjcIMItOUfPIZYa6",
+      "status": "tagged"
+    },
+    {
+      "email": "adam.byer@ayrwellness.com",
+      "contactId": "66bCt4gzijBj3d7atfq5",
+      "status": "tagged"
+    },
+    {
+      "email": "adam.cohen@usi.com",
+      "contactId": "XbcXutYZQwNWUVJlYYA3",
+      "status": "tagged"
+    },
+    {
+      "email": "adam@apotex.com",
+      "contactId": "u6KlFoLZw76H3RT5xpPF",
+      "status": "tagged"
+    },
+    {
+      "email": "adam@hgremedies.com",
+      "contactId": "AZr4Btc0NC5ox6ff0Yyr",
+      "status": "tagged"
+    },
+    {
+      "email": "adam@loudmouthlabs.co",
+      "contactId": "tSTlPnY76MNJgb56UISz",
+      "status": "tagged"
+    },
+    {
+      "email": "adam@violabrands.com",
+      "contactId": "4TAXltNcQEhDCMtZmVh9",
+      "status": "tagged"
+    },
+    {
+      "email": "adamf@silverstemcannabis.com",
+      "contactId": "WPquqkhNKooghCoAPARY",
+      "status": "tagged"
+    },
+    {
+      "email": "adeangelis.legal@tlsgltd.com",
+      "contactId": "QUYqJMxzwNkDPaLRdU3X",
+      "status": "tagged"
+    },
+    {
+      "email": "adecespedes@shutts.com",
+      "contactId": "NaLCjHemYWYNxBPmfnnz",
+      "status": "tagged"
+    },
+    {
+      "email": "adedakia@medipharmlabs.com",
+      "contactId": "zIzGfLK2vkjBOCkKob9T",
+      "status": "tagged"
+    },
+    {
+      "email": "adelaney@hinshawlaw.com",
+      "contactId": "VfDRqj3Tuzicj9h7WVQw",
+      "status": "tagged"
+    },
+    {
+      "email": "aderamus@regent.bank",
+      "contactId": "frqfUWIwvD0pekgE748N",
+      "status": "tagged"
+    },
+    {
+      "email": "adhingra@tamu.edu",
+      "contactId": "YhgDudpkNElAHDp7yT3e",
+      "status": "tagged"
+    },
+    {
+      "email": "adodd@messner.com",
+      "contactId": "6kjWAsgsxCdqin4LnEju",
+      "status": "tagged"
+    },
+    {
+      "email": "adorman@reminger.com",
+      "contactId": "f1Ux5c7U2X41c7GBDhVw",
+      "status": "tagged"
+    },
+    {
+      "email": "adoshm@hsgcbd.com",
+      "contactId": "cefNVa2anhGmdkqJAQuw",
+      "status": "tagged"
+    },
+    {
+      "email": "adriana@thedowntowndispensary.com",
+      "contactId": "zEbbMBhSjQcjnHwabk74",
+      "status": "tagged"
+    },
+    {
+      "email": "adrienne.wilhoit@republicservices.com",
+      "contactId": "vWgUukCm0iYKIZ91za1r",
+      "status": "tagged"
+    },
+    {
+      "email": "adrongesen@yahoo.com",
+      "contactId": "iNOLLMLXneSHIlgb50rA",
+      "status": "tagged"
+    },
+    {
+      "email": "adthaler@atllp.com",
+      "contactId": "KgK715jaCE0448EV6ebc",
+      "status": "tagged"
+    },
+    {
+      "email": "aebruman@gmail.com",
+      "contactId": "tvo0QLZSFDtOvQmTDJKv",
+      "status": "tagged"
+    },
+    {
+      "email": "afalke@mirickoconnell.com",
+      "contactId": "T9TGQlnxznOqkDYglQHD",
+      "status": "tagged"
+    },
+    {
+      "email": "afinkelstein@shulmanrogers.com",
+      "contactId": "ZEAOCEQLJ5HEhMxI0Pun",
+      "status": "tagged"
+    },
+    {
+      "email": "afisher@acslabcannabis.com",
+      "contactId": "jwBuu84IynIfg9Q5pqL9",
+      "status": "tagged"
+    },
+    {
+      "email": "aford@hinckleyallen.com",
+      "contactId": "qPDE4NaMsrDLXDh89cxb",
+      "status": "tagged"
+    },
+    {
+      "email": "afriedrich@williamskastner.com",
+      "contactId": "0g5cCUK1oOF2XalHHcf6",
+      "status": "tagged"
+    },
+    {
+      "email": "agauthier@originenature.com",
+      "contactId": "VfzLE0CaLWCh5MvO9Mof",
+      "status": "tagged"
+    },
+    {
+      "email": "agemmell@messner.com",
+      "contactId": "C0b2Dgv3jfRwWuXOIWOE",
+      "status": "tagged"
+    },
+    {
+      "email": "aghazaryan@withum.com",
+      "contactId": "Q7KGtuFSSboXJBrXfRR5",
+      "status": "tagged"
+    },
+    {
+      "email": "agoers@col-care.com",
+      "contactId": "4QD0owNCMUubZy1AqqhP",
+      "status": "tagged"
+    },
+    {
+      "email": "agupta@auxly.com",
+      "contactId": "aFWaxEVwhfkD1Xuas3eU",
+      "status": "tagged"
+    },
+    {
+      "email": "ahack@medipharmlabs.com",
+      "contactId": "olKYbbJ9iK7RfG1EEheP",
+      "status": "tagged"
+    },
+    {
+      "email": "aharris@foleyhoag.com",
+      "contactId": "zXaeWVHPACSzYXRpyF3K",
+      "status": "tagged"
+    },
+    {
+      "email": "ahildreth@sanctuarymed.com",
+      "contactId": "FLNLOPOavrjWDIT0G95h",
+      "status": "tagged"
+    },
+    {
+      "email": "ahoffman@actlabs.com",
+      "contactId": "9wHzHTl4t0H5oH9dN5HV",
+      "status": "tagged"
+    },
+    {
+      "email": "ahummel@gtigrows.com",
+      "contactId": "JpyojiGHIOOGOdyK8kDs",
+      "status": "tagged"
+    },
+    {
+      "email": "aisha@tumigenomics.com",
+      "contactId": "DUDxr976c8D4txRIgcDg",
+      "status": "tagged"
+    },
+    {
+      "email": "ajmccardell@smithers.com",
+      "contactId": "AWZXHnL6POcvzrmFtc6J",
+      "status": "tagged"
+    },
+    {
+      "email": "akahn@foleyhoag.com",
+      "contactId": "KwADsCVI5IsXx6skXITR",
+      "status": "tagged"
+    },
+    {
+      "email": "akaur@cohnreznick.com",
+      "contactId": "MQeQODWJY1VdI42dGztj",
+      "status": "tagged"
+    },
+    {
+      "email": "akiko.kageyama@aya.yale.edu",
+      "contactId": "udJDxU5pDUckqndJzSwM",
+      "status": "tagged"
+    },
+    {
+      "email": "al.henderson@metergroup.com",
+      "contactId": "Z0UnV5sLa0HKxetI1ywD",
+      "status": "tagged"
+    },
+    {
+      "email": "alammert@mlklaw.com",
+      "contactId": "qGeS8wOTjFzU93vL7RUV",
+      "status": "tagged"
+    },
+    {
+      "email": "alan.roth@curaleaf.com",
+      "contactId": "6ve3qSW8e7YoUwEga3F9",
+      "status": "tagged"
+    },
+    {
+      "email": "albert@anconacontrols.com",
+      "contactId": "vmRr9UKnrw5tCtWqK7eY",
+      "status": "tagged"
+    },
+    {
+      "email": "aldun.andre@ferrarausa.com",
+      "contactId": "gj2C2AJgiBy9VjKtrpcH",
+      "status": "tagged"
+    },
+    {
+      "email": "alessandro.cesario@gtigrows.com",
+      "contactId": "9nb6KLOiBxLle6M2mTOH",
+      "status": "tagged"
+    },
+    {
+      "email": "alex.boot@mnp.ca",
+      "contactId": "LTXavROMtUKavYZ2yMm8",
+      "status": "tagged"
+    },
+    {
+      "email": "alex.miller@auroramj.com",
+      "contactId": "xYrEExfntGLsjVLPlFW7",
+      "status": "tagged"
+    },
+    {
+      "email": "alex@nutheralabs.com",
+      "contactId": "OoswuBTIK6hIFhj2016f",
+      "status": "tagged"
+    },
+    {
+      "email": "alex@solisbetter.com",
+      "contactId": "l4AYQDKibwqP9ts9sh16",
+      "status": "tagged"
+    },
+    {
+      "email": "alexa.sand@usu.edu",
+      "contactId": "GCrm7yLcm56Ks2TZgpev",
+      "status": "tagged"
+    },
+    {
+      "email": "alexa.summer@apollo.io",
+      "contactId": "SnADZODv9Rc7XQgzwJBs",
+      "status": "tagged"
+    },
+    {
+      "email": "alexander@atlantismgmt.com",
+      "contactId": "ru52qh3TjHQp7ENlwkEQ",
+      "status": "tagged"
+    },
+    {
+      "email": "alexisusher@amalgamatedbank.com",
+      "contactId": "lE56oOvJr43jp0LdwXEH",
+      "status": "tagged"
+    },
+    {
+      "email": "alfonso.garrido-lecca@colorado.edu",
+      "contactId": "WHo4gdUU4aFzhUFmpT3w",
+      "status": "tagged"
+    },
+    {
+      "email": "alfredo@conbud.com",
+      "contactId": "EXmFZumzrRDg57PYP7oF",
+      "status": "tagged"
+    },
+    {
+      "email": "ali.hansen@tantaluslabs.com",
+      "contactId": "vzmJMHJe5NCNg1RZq5yl",
+      "status": "tagged"
+    },
+    {
+      "email": "alisha@phylos.bio",
+      "contactId": "MQuzrgacDNOhHANZbOYV",
+      "status": "tagged"
+    },
+    {
+      "email": "alison.pearl@mnp.ca",
+      "contactId": "SI28IoPbG9ObBgQm66AB",
+      "status": "tagged"
+    },
+    {
+      "email": "allen@genesys.com",
+      "contactId": "evvOjv6dvNvRMtXnT4Sw",
+      "status": "tagged"
+    },
+    {
+      "email": "allison.mcbride@trulieve.com",
+      "contactId": "vyO5PX1ctnCgAnkkGqul",
+      "status": "tagged"
+    },
+    {
+      "email": "allison.mckillop@wanabrands.com",
+      "contactId": "AX3wfQNpRwm6DG0HgUE2",
+      "status": "tagged"
+    },
+    {
+      "email": "aloewens@foleyhoag.com",
+      "contactId": "9O4C0h0fmuqlEujwLYnv",
+      "status": "tagged"
+    },
+    {
+      "email": "alon@segev.ca",
+      "contactId": "vRnLJa2GWoL2XwrnDZA2",
+      "status": "tagged"
+    },
+    {
+      "email": "along@howardandhoward.com",
+      "contactId": "xR8n4PSHtEKF9AqIbke1",
+      "status": "tagged"
+    },
+    {
+      "email": "alovitt@chicagoatlantic.com",
+      "contactId": "YVrEdiRFdKWytcIRbD6g",
+      "status": "tagged"
+    },
+    {
+      "email": "aly@buddingoperations.com",
+      "contactId": "fUZxSkpzdbvPtZqcsDFd",
+      "status": "tagged"
+    },
+    {
+      "email": "am@zayzoon.com",
+      "contactId": "oNHdz7Dah49GrSJmFQQl",
+      "status": "tagged"
+    },
+    {
+      "email": "amanda@kaychalabs.com",
+      "contactId": "7yFoIXybclmGTp9lyd70",
+      "status": "tagged"
+    },
+    {
+      "email": "amanda@scalepeople.com",
+      "contactId": "z9OgqwWy3lTKLJAIKZIz",
+      "status": "tagged"
+    },
+    {
+      "email": "amandragouras@foleyhoag.com",
+      "contactId": "I4WpvwYDzjuTZCgZ9jCH",
+      "status": "tagged"
+    },
+    {
+      "email": "amar@olemiss.edu",
+      "contactId": "4LnFkYJGsBXIzwyjj203",
+      "status": "tagged"
+    },
+    {
+      "email": "ambehrensmbehrens@cbh.com",
+      "contactId": "IkF4kW8JOcWlsuLvOuTE",
+      "status": "tagged"
+    },
+    {
+      "email": "amcgee@howardandhoward.com",
+      "contactId": "Whr0z1mEgqSdWBMnH2Lr",
+      "status": "tagged"
+    },
+    {
+      "email": "amcgee@reminger.com",
+      "contactId": "yNbyAOp2DqwjBOc82OFl",
+      "status": "tagged"
+    },
+    {
+      "email": "amy@ebbandflowfarm.com",
+      "contactId": "DTZhvaf6JqKRrNN9DDXi",
+      "status": "tagged"
+    },
+    {
+      "email": "amyclendennen@stlcc.edu",
+      "contactId": "tE2XdhxrfJahhCCEHOfa",
+      "status": "tagged"
+    },
+    {
+      "email": "amyh@hsgcbd.com",
+      "contactId": "h7aegnXL3WyuYVNgaaJR",
+      "status": "tagged"
+    },
+    {
+      "email": "andre@fidimt.com",
+      "contactId": "mhRmm9ILcawvQkSFjEST",
+      "status": "tagged"
+    },
+    {
+      "email": "andrea.brownell@mnp.ca",
+      "contactId": "WlqXnIod4G7Cn667jT2b",
+      "status": "tagged"
+    },
+    {
+      "email": "andrea.stolpe@millernash.com",
+      "contactId": "IHsHP7TYliBgBUzUSi16",
+      "status": "tagged"
+    },
+    {
+      "email": "andrea@drinkbrez.com",
+      "contactId": "HJNaK7sSNL4GB30pKroP",
+      "status": "tagged"
+    },
+    {
+      "email": "andrea@thehazycamper.com",
+      "contactId": "2zOlSqJeqCikvzzvXufg",
+      "status": "tagged"
+    },
+    {
+      "email": "andregosselin@purcannpharma.com",
+      "contactId": "ouBNykt7qIoBQD1xGacY",
+      "status": "tagged"
+    },
+    {
+      "email": "andrew.dancoe@curaleaf.com",
+      "contactId": "EBmkYaPVRi05IH3Rx9gR",
+      "status": "tagged"
+    },
+    {
+      "email": "andrew.fleming@mnp.ca",
+      "contactId": "MOLgYxVV7ySnHXXi8wuX",
+      "status": "tagged"
+    },
+    {
+      "email": "andrew.smith@sonoma-county.org",
+      "contactId": "W8erXQxOHCsIoq82jRNz",
+      "status": "tagged"
+    },
+    {
+      "email": "andrew@apotex.com",
+      "contactId": "8E4Bm5jJw6lZhEZ7YU8m",
+      "status": "tagged"
+    },
+    {
+      "email": "andrew@growhealthy.com",
+      "contactId": "TcDmLpP5kjvobbiNsIb6",
+      "status": "tagged"
+    },
+    {
+      "email": "andrew@ohiogreensystems.com",
+      "contactId": "SQMPJBT5tuc8Y3iSfQa3",
+      "status": "tagged"
+    },
+    {
+      "email": "andrew@skolnik.com",
+      "contactId": "JJ6CKvqQeNO5cicBu5kl",
+      "status": "tagged"
+    },
+    {
+      "email": "andrew_schiesl@irco.com",
+      "contactId": "y5rIoHcYNVk9U28FwBNk",
+      "status": "tagged"
+    },
+    {
+      "email": "andrewbrown@carverfamilyfarm.com",
+      "contactId": "Pd6pzeuVrL1W2FrwDfIf",
+      "status": "tagged"
+    },
+    {
+      "email": "andrewhlee.ls@gmail.com",
+      "contactId": "L9to6uCjzHpoVsDy7snC",
+      "status": "tagged"
+    },
+    {
+      "email": "andrewlebbos@benzinga.com",
+      "contactId": "1F2seMDvUx0hyXczxkTW",
+      "status": "tagged"
+    },
+    {
+      "email": "andrewlondon@foleyhoag.com",
+      "contactId": "1BVOf1a3BeZtYUZvWzeQ",
+      "status": "tagged"
+    },
+    {
+      "email": "andrewp@crescolabs.com",
+      "contactId": "mz9XwL5177ICCx3O6CJS",
+      "status": "tagged"
+    },
+    {
+      "email": "anelson@acecashexpress.com",
+      "contactId": "RRDNNid9yZ2rsKRNx8a1",
+      "status": "tagged"
+    },
+    {
+      "email": "anelson@nelsonanalytical.com",
+      "contactId": "gcRoo5DSmGCy4bRLDqJz",
+      "status": "tagged"
+    },
+    {
+      "email": "anhnguyen6@gmail.com",
+      "contactId": "FggLbSsnKASy00yiFwah",
+      "status": "tagged"
+    },
+    {
+      "email": "anichol@howardandhoward.com",
+      "contactId": "cJ50qNvWCUTnj5M5BjPP",
+      "status": "tagged"
+    },
+    {
+      "email": "anna.stewart@meracannabis.com",
+      "contactId": "9CVhZ54ShXk7a9iTtgBD",
+      "status": "tagged"
+    },
+    {
+      "email": "anna@apotex.com",
+      "contactId": "CgZG3gIXJlgA1VCO883P",
+      "status": "tagged"
+    },
+    {
+      "email": "anne.robinson@ibm.com",
+      "contactId": "aA322Re1Mf7zfIsS1vNs",
+      "status": "tagged"
+    },
+    {
+      "email": "annette_eckman@steris.com",
+      "contactId": "MXEJfKpyJA11b8f19lZz",
+      "status": "tagged"
+    },
+    {
+      "email": "annie@14erboulder.com",
+      "contactId": "5vnI9lUwrOTLBgR7gRIn",
+      "status": "tagged"
+    },
+    {
+      "email": "anterola@siu.edu",
+      "contactId": "NauqCWjyAeBt9hju1UgS",
+      "status": "tagged"
+    },
+    {
+      "email": "anthony.picone@eacllc.com",
+      "contactId": "cFshXs2wHckx43gz9QXv",
+      "status": "tagged"
+    },
+    {
+      "email": "anthony@natura.io",
+      "contactId": "keFHO9cOCAxrX7NHRLlk",
+      "status": "tagged"
+    },
+    {
+      "email": "anthony@novafarms.com",
+      "contactId": "SIlgpltduuuhbHRuQ1wF",
+      "status": "tagged"
+    },
+    {
+      "email": "anthony@truecarefarms.com",
+      "contactId": "9naPrATWergptNRW0Dfj",
+      "status": "tagged"
+    },
+    {
+      "email": "anthonyalmaz@gmail.com",
+      "contactId": "xk0BO6MoOBZRd3EvDaSR",
+      "status": "tagged"
+    },
+    {
+      "email": "anthonyd@gpa-kc.com",
+      "contactId": "0LQfAnVTIv0X7qnibCzX",
+      "status": "tagged"
+    },
+    {
+      "email": "anthonymirenda@foleyhoag.com",
+      "contactId": "KqibnnYKDZxNlnw7P4Bs",
+      "status": "tagged"
+    },
+    {
+      "email": "antonio.mansour@redwhitebloom.com",
+      "contactId": "qksOocB1u7fn9XnjYFiR",
+      "status": "tagged"
+    },
+    {
+      "email": "aorler@constangy.com",
+      "contactId": "nTMEe13utvhrt9K3Kg5r",
+      "status": "tagged"
+    },
+    {
+      "email": "apeoples@cteh.com",
+      "contactId": "pZabe3t5sObTPOPH4Frn",
+      "status": "tagged"
+    },
+    {
+      "email": "apeterson@pipphorticulture.com",
+      "contactId": "Yni0GPSh7rH2e4KcAmwP",
+      "status": "tagged"
+    },
+    {
+      "email": "april.fredrickson@millernash.com",
+      "contactId": "jv9mhjJ2TzlQ7Js9BT9X",
+      "status": "tagged"
+    },
+    {
+      "email": "araymer@figr.com",
+      "contactId": "fhfGCAfTzce15VupPihs",
+      "status": "tagged"
+    },
+    {
+      "email": "ari.unterman@gmail.com",
+      "contactId": "Y2YmXciKbRIBJ69ViF24",
+      "status": "tagged"
+    },
+    {
+      "email": "arman@exhalence.la",
+      "contactId": "XMzL1AHhQ8x5S20DAqlP",
+      "status": "tagged"
+    },
+    {
+      "email": "arobison@buttecounty.net",
+      "contactId": "mqiPiGBnaolgD6C2ZejV",
+      "status": "tagged"
+    },
+    {
+      "email": "arotter@citrincooperman.com",
+      "contactId": "JW4jDTC6sVpGG0RCrhXQ",
+      "status": "tagged"
+    },
+    {
+      "email": "aroyval@messner.com",
+      "contactId": "2LheHb2vpDKdgJvvgAco",
+      "status": "tagged"
+    },
+    {
+      "email": "ars@tsgattorneys.com",
+      "contactId": "wKG3jOag9OYqRChKtONa",
+      "status": "tagged"
+    },
+    {
+      "email": "arturo@myfloradna.com",
+      "contactId": "FV0UoQNruLXodd3Xdg4q",
+      "status": "tagged"
+    },
+    {
+      "email": "arun@petalfast.com",
+      "contactId": "Z0VI3syg8P2TgfePU0pA",
+      "status": "tagged"
+    },
+    {
+      "email": "asanchez@unrivaledbrands.com",
+      "contactId": "MKteQACsNCfTpSwW83NE",
+      "status": "tagged"
+    },
+    {
+      "email": "asheffield@novelbeverage.com",
+      "contactId": "AEPuRANML751lqQUCtOF",
+      "status": "tagged"
+    },
+    {
+      "email": "ashish.bhandari@mnp.ca",
+      "contactId": "ydg5UpiyrBuy7n9RjnJo",
+      "status": "tagged"
+    },
+    {
+      "email": "ashley.sousa@axisinsurance.ca",
+      "contactId": "c43xa1l1uV40LU4UlVW5",
+      "status": "tagged"
+    },
+    {
+      "email": "ashley@greengold.group",
+      "contactId": "CYEdEqjGxsFeXZ5B2kLr",
+      "status": "tagged"
+    },
+    {
+      "email": "ashleypeebles@hotmail.com",
+      "contactId": "ahB4UJ6AP0hJUHa3NGTT",
+      "status": "tagged"
+    },
+    {
+      "email": "asolyom@gaasanalytical.com",
+      "contactId": "XbCP8TSh5LT8bwfntGtn",
+      "status": "tagged"
+    },
+    {
+      "email": "aspagnolo@guidepostsolutions.com",
+      "contactId": "Cheoak2bGcCgTikVqGG0",
+      "status": "tagged"
+    },
+    {
+      "email": "astezdzw328@comcast.net",
+      "contactId": "paoSqbY8diUNIa7Q2iNy",
+      "status": "tagged"
+    },
+    {
+      "email": "atejpar@gmail.com",
+      "contactId": "R8Qk4IQNQVVCLJwU8TQZ",
+      "status": "tagged"
+    },
+    {
+      "email": "athena@mammoth.org",
+      "contactId": "Gcaz1fDIB26I7SVcy4bU",
+      "status": "tagged"
+    },
+    {
+      "email": "atlascannabiscompany@gmail.com",
+      "contactId": "CuGpNCVeb7jjkp6xAKSA",
+      "status": "tagged"
+    },
+    {
+      "email": "austin.white@vertosa.com",
+      "contactId": "pxhdr0xzU4tWuFl8w6LA",
+      "status": "tagged"
+    },
+    {
+      "email": "austin@evermorecompany.com",
+      "contactId": "7veRS2QhhdmT3uGWYiiT",
+      "status": "tagged"
+    },
+    {
+      "email": "austin@peninsula-gardens.com",
+      "contactId": "R6WBLm6kxvQv3cCPvWdz",
+      "status": "tagged"
+    },
+    {
+      "email": "austin@thegreenjoint.com",
+      "contactId": "FiaKtaV71byABi46ddUS",
+      "status": "tagged"
+    },
+    {
+      "email": "avi.bobker@cohnreznick.com",
+      "contactId": "E5m61QjXA7AOGDmRlPsE",
+      "status": "tagged"
+    },
+    {
+      "email": "awatters@sozocompanies.com",
+      "contactId": "Ar12U0ZvfkOTRidC60On",
+      "status": "tagged"
+    },
+    {
+      "email": "aweigensberg@thecronosgroup.com",
+      "contactId": "AFpLt3MhaznxMUJo2z05",
+      "status": "tagged"
+    },
+    {
+      "email": "awordell@graco.com",
+      "contactId": "yskhp03WbXA1AxbCErH6",
+      "status": "tagged"
+    },
+    {
+      "email": "b.kurtzman@vicentellp.com",
+      "contactId": "Juvd9t46XOZH40Zuytp3",
+      "status": "tagged"
+    },
+    {
+      "email": "b.vicente@vicentellp.com",
+      "contactId": "rFnCxzZoGcMEd2HNuxIu",
+      "status": "tagged"
+    },
+    {
+      "email": "bak@h2law.com",
+      "contactId": "NdODMvu7zORnyZ5edEin",
+      "status": "tagged"
+    },
+    {
+      "email": "baljit.singh@usask.ca",
+      "contactId": "NLBFi3jlC6OnrpoiSnvk",
+      "status": "tagged"
+    },
+    {
+      "email": "balla@berkeley.edu",
+      "contactId": "SAHhvPUkBRKapZ3D510c",
+      "status": "tagged"
+    },
+    {
+      "email": "barry.logan@nmslabs.com",
+      "contactId": "Icy2JcHNbKO1QzcWCfnw",
+      "status": "tagged"
+    },
+    {
+      "email": "battebery@hlgcpa.com",
+      "contactId": "D76cTiOErUWrsKGA4NP9",
+      "status": "tagged"
+    },
+    {
+      "email": "bbeitzel@republicservices.com",
+      "contactId": "mNxPBUHOPZr5r4p9Stht",
+      "status": "tagged"
+    },
+    {
+      "email": "bbender@awholdings.com",
+      "contactId": "4ewu2Au2a6OIp2Udd3Mo",
+      "status": "tagged"
+    },
+    {
+      "email": "bbewsher@northeastonsavingsbank.com",
+      "contactId": "7NnGep58d1ZzHWCvN1Aw",
+      "status": "tagged"
+    },
+    {
+      "email": "bbingham@codesbrand.com",
+      "contactId": "uR9rK1KgRGpLYy4Pc6k7",
+      "status": "tagged"
+    },
+    {
+      "email": "bboshnack@citrincooperman.com",
+      "contactId": "ZTnoIwcudafvoufJdl2u",
+      "status": "tagged"
+    },
+    {
+      "email": "bbraithwaite@nowcfo.com",
+      "contactId": "USRVdaUgmGZwMGAU1yYZ",
+      "status": "tagged"
+    },
+    {
+      "email": "bburke@foleyhoag.com",
+      "contactId": "Vh6f6KATuk3WzcCBZlo0",
+      "status": "tagged"
+    },
+    {
+      "email": "bcamire@weedmaps.com",
+      "contactId": "S9z5IVAu8BCd20fLjzue",
+      "status": "tagged"
+    },
+    {
+      "email": "bcushman@tpbi.com",
+      "contactId": "rcad3zIVfBiLM30qNKD7",
+      "status": "tagged"
+    },
+    {
+      "email": "bdill@cbh.com",
+      "contactId": "50Dxht9q5Wlk5ykC6Mf8",
+      "status": "tagged"
+    },
+    {
+      "email": "bdolmage@messner.com",
+      "contactId": "s4hTB9CsWSpcKh4Igzpg",
+      "status": "tagged"
+    },
+    {
+      "email": "beaugreen9@hotmail.com",
+      "contactId": "FTIZeusapYPQNE9IYuiR",
+      "status": "tagged"
+    },
+    {
+      "email": "ben.burstein@verano.com",
+      "contactId": "xmQNKKs9BJbAd0J6Fgan",
+      "status": "tagged"
+    },
+    {
+      "email": "ben.heywood@marshall-melhorn.com",
+      "contactId": "xiOXm1sI90ZNQMUa73vG",
+      "status": "tagged"
+    },
+    {
+      "email": "ben@cw.legal",
+      "contactId": "udgyBjS5Ae1XdnBuhn3X",
+      "status": "tagged"
+    },
+    {
+      "email": "ben@glgroup.com",
+      "contactId": "be9FuGBWR9GpfiaXpyPJ",
+      "status": "tagged"
+    },
+    {
+      "email": "ben@vireohealth.com",
+      "contactId": "rdbnxWGLdPIjO26N0HF3",
+      "status": "tagged"
+    },
+    {
+      "email": "bernard.schulte@columbia.care",
+      "contactId": "I2mGzISEedCdvtmR0yZv",
+      "status": "tagged"
+    },
+    {
+      "email": "beth@anconacontrols.com",
+      "contactId": "J9TODhCq63klxdehHlL1",
+      "status": "tagged"
+    },
+    {
+      "email": "bethrider@gmail.com",
+      "contactId": "RktwbIjaWj8dQhkpD1DD",
+      "status": "tagged"
+    },
+    {
+      "email": "bfahey@reminger.com",
+      "contactId": "Zke0pQVfLvpAPIQMs8xx",
+      "status": "tagged"
+    },
+    {
+      "email": "bfalk@miricklaw.com",
+      "contactId": "vnolmEi69pkcDyj5Wewv",
+      "status": "tagged"
+    },
+    {
+      "email": "bfiacco@foleyhoag.com",
+      "contactId": "xgK4gNbuRbLKmMJc5QWU",
+      "status": "tagged"
+    },
+    {
+      "email": "bgarwood@howardandhoward.com",
+      "contactId": "DmQkMEU72NAg6XqycUFn",
+      "status": "tagged"
+    },
+    {
+      "email": "bgelbord@dykema.com",
+      "contactId": "aGFc3Kp7VHoda19hXjBx",
+      "status": "tagged"
+    },
+    {
+      "email": "bgelson@withum.com",
+      "contactId": "qy1PntDZduZm8AsqlaWP",
+      "status": "tagged"
+    },
+    {
+      "email": "bgillespie@gtigrows.com",
+      "contactId": "4Rq1x9PlbsLNukZiBh2r",
+      "status": "tagged"
+    },
+    {
+      "email": "bgoda@trivalentgroup.com",
+      "contactId": "HZZgaH4Ly4QjXGrmPhJo",
+      "status": "tagged"
+    },
+    {
+      "email": "bgregory17@gmail.com",
+      "contactId": "07lD32AMuA3yoGTnSmRi",
+      "status": "tagged"
+    },
+    {
+      "email": "bharnish@cannabiscured.com",
+      "contactId": "ettMjpta2D0DvGIZRlwj",
+      "status": "tagged"
+    },
+    {
+      "email": "bhowe@foleyhoag.com",
+      "contactId": "5spyFLeXT5UyowqYXZ3q",
+      "status": "tagged"
+    },
+    {
+      "email": "bigfishsmlfly@yahoo.com",
+      "contactId": "d2G7TvU6UwqVeyNBJ7Ex",
+      "status": "tagged"
+    },
+    {
+      "email": "bill.lutz@bp.com",
+      "contactId": "geD06vCY15GC465zmcyl",
+      "status": "tagged"
+    },
+    {
+      "email": "bj@cookiesre.com",
+      "contactId": "4baXokmyRuF3UYqG0vpy",
+      "status": "tagged"
+    },
+    {
+      "email": "bjamison@villagefarms.com",
+      "contactId": "cuqhgfnDILaw5tLnXUht",
+      "status": "tagged"
+    },
+    {
+      "email": "bjanovitz@reminger.com",
+      "contactId": "2RqOwl604LRjZEGEdLpp",
+      "status": "tagged"
+    },
+    {
+      "email": "bjflaher@macl1.com",
+      "contactId": "Bg4ZIA1g5ZLaEH0F5uMR",
+      "status": "tagged"
+    },
+    {
+      "email": "bjh2001@columbia.edu",
+      "contactId": "vs0rLRqNVwQ1skxunGUq",
+      "status": "tagged"
+    },
+    {
+      "email": "bjohnson@novan.com",
+      "contactId": "56e4DFJsctLmAdNBWZ9S",
+      "status": "tagged"
+    },
+    {
+      "email": "bjones@foleyhoag.com",
+      "contactId": "luL38V7ElbSZ9zXsJvuZ",
+      "status": "tagged"
+    },
+    {
+      "email": "bkearl@apollolabscorp.com",
+      "contactId": "Wpltr7oNJ0fUGJeWQb6q",
+      "status": "tagged"
+    },
+    {
+      "email": "bkravitz@gtigrows.com",
+      "contactId": "cJK4XJVDEmkPZmP1kk7T",
+      "status": "tagged"
+    },
+    {
+      "email": "blaculo@yahoo.com",
+      "contactId": "nMrwHS8V7jsw9GfQmYjR",
+      "status": "tagged"
+    },
+    {
+      "email": "blomasky@citrincooperman.com",
+      "contactId": "Es2QeRdT2opN8SBsmn3I",
+      "status": "tagged"
+    },
+    {
+      "email": "blowery@biovectra.com",
+      "contactId": "3m4Gpi75iZ58UBEuKsls",
+      "status": "tagged"
+    },
+    {
+      "email": "bmassimino@lavellelaw.com",
+      "contactId": "DEYPNBU47aIwQpiDMqhf",
+      "status": "tagged"
+    },
+    {
+      "email": "bmcgrath@hinshawlaw.com",
+      "contactId": "KNBgagh92LHJADywdwWt",
+      "status": "tagged"
+    },
+    {
+      "email": "bmcperry@hotmail.com",
+      "contactId": "h0e796Agwy8Cqnx88fMj",
+      "status": "tagged"
+    },
+    {
+      "email": "bmurray@reminger.com",
+      "contactId": "WZF87xmQIKHWTmUK3jfH",
+      "status": "tagged"
+    },
+    {
+      "email": "bnally@reminger.com",
+      "contactId": "0sWqDpsLw8323vbDpHxx",
+      "status": "tagged"
+    },
+    {
+      "email": "bobby@tricorbraun.com",
+      "contactId": "T0ldkA2MY6MzgM7suMee",
+      "status": "tagged"
+    },
+    {
+      "email": "bobsteen@comcast.net",
+      "contactId": "ab9EXkHLqwDQYh4ng5RA",
+      "status": "tagged"
+    },
+    {
+      "email": "bonnie@messner.com",
+      "contactId": "qAFPf7yx5prkUYoWb9f9",
+      "status": "tagged"
+    },
+    {
+      "email": "borna.z@gmail.com",
+      "contactId": "cp3p7MAKV0gToAYGUiyT",
+      "status": "tagged"
+    },
+    {
+      "email": "brad@bradauerbach.com",
+      "contactId": "10Nf9gUatVVDJeNgs5J9",
+      "status": "tagged"
+    },
+    {
+      "email": "brad@widemangroup.com",
+      "contactId": "4BKmBoh3fcvjEMN25PpF",
+      "status": "tagged"
+    },
+    {
+      "email": "brandon@oregrown.com",
+      "contactId": "CrsoDCXDR4BbTUbSoUzU",
+      "status": "tagged"
+    },
+    {
+      "email": "brant@myappmgmt.com",
+      "contactId": "KjEaEKYOEvviobQJ1lqX",
+      "status": "tagged"
+    },
+    {
+      "email": "brenda.crandall@battelle.org",
+      "contactId": "NoKhQL9m6Uaw8bxVWusq",
+      "status": "tagged"
+    },
+    {
+      "email": "brenda.newton@bd.com",
+      "contactId": "mCaddjjRjhbruJ8ORLpk",
+      "status": "tagged"
+    },
+    {
+      "email": "brent.barnes@claybourneco.com",
+      "contactId": "HFDpsHWPJKBEMVx8eHCa",
+      "status": "tagged"
+    },
+    {
+      "email": "brent.gustaf@curaleaf.com",
+      "contactId": "wRMpXcUfj3XQS9XUjDhK",
+      "status": "tagged"
+    },
+    {
+      "email": "bret@mainstreetfarms.com",
+      "contactId": "5hA1TthKeIeIEV2PKjdK",
+      "status": "tagged"
+    },
+    {
+      "email": "bret@marchandash.com",
+      "contactId": "jYl6AfceayCXSpQjTaUg",
+      "status": "tagged"
+    },
+    {
+      "email": "brett@brkthru.com",
+      "contactId": "zy1NnJ17rjbADP7kATLM",
+      "status": "tagged"
+    },
+    {
+      "email": "brettroberts89@gmail.com",
+      "contactId": "32TTlA1xJ4E7KSKap249",
+      "status": "tagged"
+    },
+    {
+      "email": "brian.pick@deeprootsharvest.com",
+      "contactId": "0w9YRut9bbhKPjN8W9Je",
+      "status": "tagged"
+    },
+    {
+      "email": "brian@righteousherbnm.com",
+      "contactId": "dok0aA8NbBrv9qj9lQZj",
+      "status": "tagged"
+    },
+    {
+      "email": "brockd@cintas.com",
+      "contactId": "nr35Kypg32zLqpmbgcXr",
+      "status": "tagged"
+    },
+    {
+      "email": "bruce.maloch@myfarmers.bank",
+      "contactId": "a5AsWyubPaszBDVmQGPc",
+      "status": "tagged"
+    },
+    {
+      "email": "bruce.murphy@umontreal.ca",
+      "contactId": "dHelYsyv1Q2xX9DhsjpM",
+      "status": "tagged"
+    },
+    {
+      "email": "bryan@alternabis.com",
+      "contactId": "KbTmPXauRSPVmY3KRGSi",
+      "status": "tagged"
+    },
+    {
+      "email": "bryan@borneobud.com",
+      "contactId": "UNovXCK79KgTAGApAVzm",
+      "status": "tagged"
+    },
+    {
+      "email": "bryan@standardwellness.com",
+      "contactId": "pAkgfrTf1ajBi9ZbLPnx",
+      "status": "tagged"
+    },
+    {
+      "email": "bryce.vilchuck@goldflora.com",
+      "contactId": "8TgUt10FfJbEtWmkIrrb",
+      "status": "tagged"
+    },
+    {
+      "email": "bsablan@nowcfo.com",
+      "contactId": "kdNya6dMIrWsD5E6Wtkc",
+      "status": "tagged"
+    },
+    {
+      "email": "bschuman@goodwinlaw.com",
+      "contactId": "uCcLFeUKjl4jUPRF3422",
+      "status": "tagged"
+    },
+    {
+      "email": "bsetnik@altasciences.com",
+      "contactId": "Y7cAjQekMnD3S26ej2mz",
+      "status": "tagged"
+    },
+    {
+      "email": "bsullivan@reminger.com",
+      "contactId": "t3XTS8ya6IZ6HvbUVOa2",
+      "status": "tagged"
+    },
+    {
+      "email": "bsummerill@nowcfo.com",
+      "contactId": "g6T28bG6mRsdas5iTJiC",
+      "status": "tagged"
+    },
+    {
+      "email": "bthompson@haywood.com",
+      "contactId": "hD6DpIbq8t7nD1XKlXKk",
+      "status": "tagged"
+    },
+    {
+      "email": "butch@whitemountainhealthcenter.com",
+      "contactId": "iytWWx3nqYCMTvSgDedr",
+      "status": "tagged"
+    },
+    {
+      "email": "bv@endlesscultivation.com",
+      "contactId": "JWqYbazPaPMubI0EIDa9",
+      "status": "tagged"
+    },
+    {
+      "email": "bwafford@gmail.com",
+      "contactId": "tnqgXc61WkGGeTSO9dBY",
+      "status": "tagged"
+    },
+    {
+      "email": "c.alovisetti@vicentellp.com",
+      "contactId": "FP3XmTljLJSORAzQUaDE",
+      "status": "tagged"
+    },
+    {
+      "email": "c.sheahan@acreageholdings.com",
+      "contactId": "mosrbQRAlVf5DCouAmhb",
+      "status": "tagged"
+    },
+    {
+      "email": "cac570@nyu.edu",
+      "contactId": "nNXmUZ3krwrpiUf7yTZA",
+      "status": "tagged"
+    },
+    {
+      "email": "calamont@yahoo.com",
+      "contactId": "wKkcNZ6uxb1Smf2GgYON",
+      "status": "tagged"
+    },
+    {
+      "email": "caldwell.sheri@gmail.com",
+      "contactId": "wUJ6Cwg5BWHfkFS9cShJ",
+      "status": "tagged"
+    },
+    {
+      "email": "calverson@katzgroup.ca",
+      "contactId": "7eAzaNfiV7rwKxBH6qk0",
+      "status": "tagged"
+    },
+    {
+      "email": "cam.vermette@klaviyo.com",
+      "contactId": "6yKm5i34hswyNQeROECp",
+      "status": "tagged"
+    },
+    {
+      "email": "cameron.larocque@mnp.ca",
+      "contactId": "6rq4NS4Uy60Ez2lZunRC",
+      "status": "tagged"
+    },
+    {
+      "email": "camerond@wonderbrett.com",
+      "contactId": "40WAdNDG7fESMYMgIczJ",
+      "status": "tagged"
+    },
+    {
+      "email": "campbell@millernash.com",
+      "contactId": "vMWqmpRWJnMl2IEhHEat",
+      "status": "tagged"
+    },
+    {
+      "email": "cannacapitalventures@gmail.com",
+      "contactId": "j85SjD9zI0RnR1wVMVhE",
+      "status": "tagged"
+    },
+    {
+      "email": "cara.sinclair@mnp.ca",
+      "contactId": "YndRVztqUCTRX0EIE6Ta",
+      "status": "tagged"
+    },
+    {
+      "email": "cara@north40cannabis.com",
+      "contactId": "qGwuVaOu6fci2unNU6N0",
+      "status": "tagged"
+    },
+    {
+      "email": "caren.woodson@kivaconfections.com",
+      "contactId": "aLAcwIt6NdZYsOf0LhXd",
+      "status": "tagged"
+    },
+    {
+      "email": "carmela@wlg.com",
+      "contactId": "ReequstQ1qjyNB2GCsjp",
+      "status": "tagged"
+    },
+    {
+      "email": "carol.howle@bp.com",
+      "contactId": "L2CMIMlCx5CSWMYuRY16",
+      "status": "tagged"
+    },
+    {
+      "email": "caroline.plater@klgates.com",
+      "contactId": "ONS8pdHi7sbRJgTmrM5L",
+      "status": "tagged"
+    },
+    {
+      "email": "carr@awholdings.com",
+      "contactId": "t9eb4dHNBkEM5rFS8G1t",
+      "status": "tagged"
+    },
+    {
+      "email": "carrie.hesse@firstcitizens.com",
+      "contactId": "scj7S2apz0Wu3GLMeYNE",
+      "status": "tagged"
+    },
+    {
+      "email": "catherine.shaw@millernash.com",
+      "contactId": "zLAuu24i5x7n4I5KB6LO",
+      "status": "tagged"
+    },
+    {
+      "email": "cathy.lebeau@isocanmed.com",
+      "contactId": "IqeEFg7eiZq2Xx481eK8",
+      "status": "tagged"
+    },
+    {
+      "email": "cbarnes@withum.com",
+      "contactId": "TxRAGvzW91ZCFLdSVRTf",
+      "status": "tagged"
+    },
+    {
+      "email": "cbeharry@foleyhoag.com",
+      "contactId": "oVlueWOGYQX5N85nPxjb",
+      "status": "tagged"
+    },
+    {
+      "email": "cbillet@weedmaps.com",
+      "contactId": "YB5OJnyd03LhDY6diGWu",
+      "status": "tagged"
+    },
+    {
+      "email": "cbottcher@mcglinchey.com",
+      "contactId": "zon3s0wxIaYXIxOXv0yn",
+      "status": "tagged"
+    },
+    {
+      "email": "cbradshaw@botanicalsciences.com",
+      "contactId": "nADoWyjW8mdI8DlUdUyA",
+      "status": "tagged"
+    },
+    {
+      "email": "cbrown@foleyhoag.com",
+      "contactId": "9IRW6siqkpEchSVINcbt",
+      "status": "tagged"
+    },
+    {
+      "email": "cburgin@nowcfo.com",
+      "contactId": "hQ0f8OvXqQEngvw3FjdZ",
+      "status": "tagged"
+    },
+    {
+      "email": "ccali@howardandhoward.com",
+      "contactId": "Oh4RQhce89VOI8FoItIY",
+      "status": "tagged"
+    },
+    {
+      "email": "ccarucci@messner.com",
+      "contactId": "0Dq8LR4Kxb4k43RP9FAX",
+      "status": "tagged"
+    },
+    {
+      "email": "ccasey@swisher.com",
+      "contactId": "A32td50oEZ9sXmB3o9oB",
+      "status": "tagged"
+    },
+    {
+      "email": "cchapman@mirickoconnell.com",
+      "contactId": "gzy0jXieL1lfZfEnYgeR",
+      "status": "tagged"
+    },
+    {
+      "email": "ccoppula@ryconinc.com",
+      "contactId": "i7vxXKGv3BaXtXIr3obf",
+      "status": "tagged"
+    },
+    {
+      "email": "ccoyle@cbh.com",
+      "contactId": "1ROZzJ5KihZ2CdF4e5lk",
+      "status": "tagged"
+    },
+    {
+      "email": "ccredelle@eccthc.com",
+      "contactId": "R5Z43JRYdjoDjlCjP0qx",
+      "status": "tagged"
+    },
+    {
+      "email": "ccrotty@constangy.com",
+      "contactId": "u1sCFmbIid88xFweQCcd",
+      "status": "tagged"
+    },
+    {
+      "email": "ccrow@jinkslaw.com",
+      "contactId": "XJdngCVNcw0JJ1lskSdv",
+      "status": "tagged"
+    },
+    {
+      "email": "cdeblanc@cbh.com",
+      "contactId": "xEBSypGU0dgNf3LDPRtj",
+      "status": "tagged"
+    },
+    {
+      "email": "cdelcambre@cbh.com",
+      "contactId": "CKyrFsUdfHPOjc3i0W0c",
+      "status": "tagged"
+    },
+    {
+      "email": "cdenton@botanicalsciences.com",
+      "contactId": "VOeWTTZ5Zs8di3Nscq4B",
+      "status": "tagged"
+    },
+    {
+      "email": "cecilia.wang@emeraldx.com",
+      "contactId": "7Jq5gKzySZj9ScNlPAUC",
+      "status": "tagged"
+    },
+    {
+      "email": "cekelly@yahoo.com",
+      "contactId": "algb9gqz0nLfvjDQalOe",
+      "status": "tagged"
+    },
+    {
+      "email": "cekimoff@withum.com",
+      "contactId": "U6zVgGQnRyRTvpTPyWOF",
+      "status": "tagged"
+    },
+    {
+      "email": "cellingsen@republicservices.com",
+      "contactId": "UiV3DF43MpiIVG3Lknn5",
+      "status": "tagged"
+    },
+    {
+      "email": "cfenlon@hinckleyallen.com",
+      "contactId": "fCvqLQVicoFjb7SqdqMf",
+      "status": "tagged"
+    },
+    {
+      "email": "cgreen@howardandhoward.com",
+      "contactId": "rpRlv6HsDEjS71Lglw2h",
+      "status": "tagged"
+    },
+    {
+      "email": "chad.fuller@troutman.com",
+      "contactId": "i7BwEGCTtXaOe9PYRBxV",
+      "status": "tagged"
+    },
+    {
+      "email": "chad.r.miller@gmail.com",
+      "contactId": "OIAzG7oPhgdjb7AOW2NN",
+      "status": "tagged"
+    },
+    {
+      "email": "chad.shields@intertek.com",
+      "contactId": "t3gVyTmsEyOWvGhF59Xz",
+      "status": "tagged"
+    },
+    {
+      "email": "challden@nationalgreensource.com",
+      "contactId": "JAvlwH6DsUMA0z2Wqu3C",
+      "status": "tagged"
+    },
+    {
+      "email": "chandrakanthemani@myfloradna.com",
+      "contactId": "QU5VpHxCPwAoKuNrK9ES",
+      "status": "tagged"
+    },
+    {
+      "email": "channa@figgro.com",
+      "contactId": "o5mluHpfMaAAhTHBBnzS",
+      "status": "tagged"
+    },
+    {
+      "email": "chantal@cannara.ca",
+      "contactId": "dYQ6zJTIL8ig94JPO2kB",
+      "status": "tagged"
+    },
+    {
+      "email": "chart@foleyhoag.com",
+      "contactId": "9WYH3InKye6m4kesrfC7",
+      "status": "tagged"
+    },
+    {
+      "email": "chaubiel@biglots.com",
+      "contactId": "V1IusMRg2wOrnh2L4U9z",
+      "status": "tagged"
+    },
+    {
+      "email": "che@rosebudcannabisfarms.ca",
+      "contactId": "nDtCYWmpAZksEo72yjOl",
+      "status": "tagged"
+    },
+    {
+      "email": "cheryl.king@choicepoint.com",
+      "contactId": "1EnoYNksoqXHl3u1X3BG",
+      "status": "tagged"
+    },
+    {
+      "email": "cheryl.palmeri@ibm.com",
+      "contactId": "xqOReJskjkSWfLcD41Az",
+      "status": "tagged"
+    },
+    {
+      "email": "cheryl@ithacaorganicscanna.co",
+      "contactId": "ku4LVKnmMq7HE0ScNoKj",
+      "status": "tagged"
+    },
+    {
+      "email": "chiggins@mirickoconnell.com",
+      "contactId": "mGBxQM7GZNFpl6iNJsS8",
+      "status": "tagged"
+    },
+    {
+      "email": "chinnershitz@paofw.com",
+      "contactId": "nmk2TYWunmx0rd6mLvJb",
+      "status": "tagged"
+    },
+    {
+      "email": "cholahan@foleyhoag.com",
+      "contactId": "dR7iOj724039UffOVw89",
+      "status": "tagged"
+    },
+    {
+      "email": "choward@swisher.com",
+      "contactId": "YYFRv48MH1mLdc7t7fQl",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.arambula@nowcfo.com",
+      "contactId": "GhpOI3K797LBqrYaqFAJ",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.fotopoulos@gmail.com",
+      "contactId": "SobaPWO5DuL5NGrR89f2",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.headen@gmail.com",
+      "contactId": "GEL31X457OAuOfnwA0Ne",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.helmer@millernash.com",
+      "contactId": "iobiIzDOAfPGKKOGnJmc",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.lenane@verano.com",
+      "contactId": "f37bLCvjdQpTVfXtA0iw",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.marzullo@brandywineglobal.com",
+      "contactId": "gHsDPTiPnpUzIqdu0MEA",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.obrien@calyxpeak.com",
+      "contactId": "E3nbpATI01GYXgjmLTRm",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.woods@beingplaid.com",
+      "contactId": "HRhgSpKRi2jaVis4OWhC",
+      "status": "tagged"
+    },
+    {
+      "email": "chris.wright@mnp.ca",
+      "contactId": "H8LpNFi7MfvwfPwXLILm",
+      "status": "tagged"
+    },
+    {
+      "email": "chris@fireballcanna.com",
+      "contactId": "s8Us7fwiwSBCDhrI426o",
+      "status": "tagged"
+    },
+    {
+      "email": "chris@getmaintainx.com",
+      "contactId": "7VvsmVtDaG1pcLCYSs8a",
+      "status": "tagged"
+    },
+    {
+      "email": "chris@levelblends.com",
+      "contactId": "lS81ILoGZfSlYrFkjMWE",
+      "status": "tagged"
+    },
+    {
+      "email": "chris@mammoth.org",
+      "contactId": "Qs9Dm7HuEa3ZCfvx7Mhi",
+      "status": "tagged"
+    },
+    {
+      "email": "chris@verano.com",
+      "contactId": "IN86DV8a8rIVT1FgQJmi",
+      "status": "tagged"
+    },
+    {
+      "email": "chris@wlg.com",
+      "contactId": "sDkXklfhlSpfniUH1GqH",
+      "status": "tagged"
+    },
+    {
+      "email": "christelle.gedeon@canopygrowth.com",
+      "contactId": "ldVVCK7Z8JGPtf4L8vRl",
+      "status": "tagged"
+    },
+    {
+      "email": "christian@goodalaska.com",
+      "contactId": "RAohrqCztGIkuGjHmMw8",
+      "status": "tagged"
+    },
+    {
+      "email": "christian@grownrogue.com",
+      "contactId": "B3PgW44mWNeb1PWwuCNG",
+      "status": "tagged"
+    },
+    {
+      "email": "christian@thebudease.com",
+      "contactId": "9SdMfQ4iNpx36udMNEUC",
+      "status": "tagged"
+    },
+    {
+      "email": "christine.jones@schwazze.com",
+      "contactId": "tIlkvQTDlL7XG42nR1w1",
+      "status": "tagged"
+    },
+    {
+      "email": "christine.slattery@millernash.com",
+      "contactId": "ZhXSyRLKsgcezTHU3KPv",
+      "status": "tagged"
+    },
+    {
+      "email": "christinebrownjd@yahoo.com",
+      "contactId": "ZklxQT6Wk93PEEVkYLXf",
+      "status": "tagged"
+    },
+    {
+      "email": "christopher.luhrs@gmail.com",
+      "contactId": "1ioLMs8HF1vARfcJ2jSh",
+      "status": "tagged"
+    },
+    {
+      "email": "christopher.pochon@squirepattonboggs.com",
+      "contactId": "NJ1sTtzLQK14jOFUVUev",
+      "status": "tagged"
+    },
+    {
+      "email": "christopherfeudo@foleyhoag.com",
+      "contactId": "mx9vl8s7rXGgyjJPhjPX",
+      "status": "tagged"
+    },
+    {
+      "email": "christos.tsamadias@wellsfargo.com",
+      "contactId": "A6hD7Lf3qZmPk6UrAG0m",
+      "status": "tagged"
+    },
+    {
+      "email": "christy.zhou@roselifescience.ca",
+      "contactId": "Zr9gAKo6t07eMsUVHeJS",
+      "status": "tagged"
+    },
+    {
+      "email": "chuntsinger@awholdings.com",
+      "contactId": "w0JG5iDdppRbTsvr0Q4Z",
+      "status": "tagged"
+    },
+    {
+      "email": "ckiernan@reedsmith.com",
+      "contactId": "uhBj0uYsI2B5DPaA9umy",
+      "status": "tagged"
+    },
+    {
+      "email": "claliberte@peakprocessing.com",
+      "contactId": "nxIBkF0zRhdNi5sIArSH",
+      "status": "tagged"
+    },
+    {
+      "email": "clambert@jushico.com",
+      "contactId": "vTNjzAL1ZPlS2hDd0StP",
+      "status": "tagged"
+    },
+    {
+      "email": "clarachoiny@hotmail.com",
+      "contactId": "QeLDbDfJDzMDXQsYg52X",
+      "status": "tagged"
+    },
+    {
+      "email": "clay.shorrock@adnas.com",
+      "contactId": "BhP16W9xjZcJgrMb3XSl",
+      "status": "tagged"
+    },
+    {
+      "email": "clay@fireescape.nyc",
+      "contactId": "56uBbQ5Hz1pDyU2QswJm",
+      "status": "tagged"
+    },
+    {
+      "email": "cmarlowe@baymedica.com",
+      "contactId": "SUTOok7toR9bToy31JVT",
+      "status": "tagged"
+    },
+    {
+      "email": "cmcdonald@murchisonlaw.com",
+      "contactId": "eiXXK35FINogbjTOEvFt",
+      "status": "tagged"
+    },
+    {
+      "email": "cmcgee@bayoucityhemp.com",
+      "contactId": "iO3MgaHdKTMFqBZmyYyd",
+      "status": "tagged"
+    },
+    {
+      "email": "cmessner@messner.com",
+      "contactId": "a3YaS93jp3gb816cgLoA",
+      "status": "tagged"
+    },
+    {
+      "email": "cmeyer@messner.com",
+      "contactId": "hUqkyzu99wP3IbFQ3ag7",
+      "status": "tagged"
+    },
+    {
+      "email": "cmondschean@hinshawlaw.com",
+      "contactId": "sNzWsdm5yYXLWWEZ1Opf",
+      "status": "tagged"
+    },
+    {
+      "email": "cmoore@bfca.com",
+      "contactId": "xM6NNLsMTOEjmOkOP5u4",
+      "status": "tagged"
+    },
+    {
+      "email": "cmundy@messner.com",
+      "contactId": "71ZwD5vXODMaUWAAoOAC",
+      "status": "tagged"
+    },
+    {
+      "email": "cneidig@pureohiowellness.com",
+      "contactId": "m9wHzMHAWw2ZruRZGenS",
+      "status": "tagged"
+    },
+    {
+      "email": "cody.elliott@millernash.com",
+      "contactId": "NeTgp5hDcsenYzFuvx5h",
+      "status": "tagged"
+    },
+    {
+      "email": "cody@purefireco.ca",
+      "contactId": "eQaUcjaTWBJoe20mlwoi",
+      "status": "tagged"
+    },
+    {
+      "email": "coffmand27@gmail.com",
+      "contactId": "7BinKYHXp8pxsm71TGnd",
+      "status": "tagged"
+    },
+    {
+      "email": "colby@dreamgreene.com",
+      "contactId": "FCbK36FEO9Wtmmud5D5e",
+      "status": "tagged"
+    },
+    {
+      "email": "colin.jones@trawamn.com",
+      "contactId": "tO9hLuzlsPmfmuZVxIoJ",
+      "status": "tagged"
+    },
+    {
+      "email": "colin@goldflora.com",
+      "contactId": "80D6Dbm3DhVbcynIi6zb",
+      "status": "tagged"
+    },
+    {
+      "email": "collier@weatheredislands.com",
+      "contactId": "fzzxICJtSsl1ULcPCv55",
+      "status": "tagged"
+    },
+    {
+      "email": "complianceleadership@ethoscannabis.com",
+      "contactId": "3yorCASa7VqZRwlrjaQN",
+      "status": "tagged"
+    },
+    {
+      "email": "connie.rowley@axisinsurance.ca",
+      "contactId": "VbC8WBgwt33NkCle3mnB",
+      "status": "tagged"
+    },
+    {
+      "email": "connollye25@gmail.com",
+      "contactId": "CqwoZFDlpcvcZPvY74qP",
+      "status": "tagged"
+    },
+    {
+      "email": "connor@opuscg.com",
+      "contactId": "Iiejaoh7DgwtgD19Ydcl",
+      "status": "tagged"
+    },
+    {
+      "email": "constantinossalonidis@foleyhoag.com",
+      "contactId": "bVili2zFBNLGGrETUc1k",
+      "status": "tagged"
+    },
+    {
+      "email": "corey@greenwaymedic.com",
+      "contactId": "LqE9Nragco05Sc8twFzP",
+      "status": "tagged"
+    },
+    {
+      "email": "corey@phocasseeds.com",
+      "contactId": "oM3v8B5VgioPmfP87b5B",
+      "status": "tagged"
+    },
+    {
+      "email": "courtney.salt@mnp.ca",
+      "contactId": "ZIBNBcySfT55PrhXQKfF",
+      "status": "tagged"
+    },
+    {
+      "email": "cozette.trancaffee@millernash.com",
+      "contactId": "F08Dr01qjyTE4CMylnq7",
+      "status": "tagged"
+    },
+    {
+      "email": "craig.bloom@mnp.ca",
+      "contactId": "5saNMxouxyqPvg0J0Hou",
+      "status": "tagged"
+    },
+    {
+      "email": "craig.chamberlain@millernash.com",
+      "contactId": "mkl0QAyH5MtyILUdTxzj",
+      "status": "tagged"
+    },
+    {
+      "email": "craig.gorczyca@ewma.com",
+      "contactId": "926yXMjn8he8snFewsag",
+      "status": "tagged"
+    },
+    {
+      "email": "craig.varn@verano.com",
+      "contactId": "mVlrOameUVMYlLkzYScm",
+      "status": "tagged"
+    },
+    {
+      "email": "craig@c4pharms.com",
+      "contactId": "i89Q1RxMVbbmReFSFtkt",
+      "status": "tagged"
+    },
+    {
+      "email": "craig@dopediagnostics.com",
+      "contactId": "aTUF5pA8WE8rlAapYPMf",
+      "status": "tagged"
+    },
+    {
+      "email": "creed@leafinfusions.com",
+      "contactId": "cNJPpRwaRN9MM6vNpyx0",
+      "status": "tagged"
+    },
+    {
+      "email": "cristen.kogl@zebra.com",
+      "contactId": "DSCopH1wkiK3f0wj2mNR",
+      "status": "tagged"
+    },
+    {
+      "email": "cristobal@stokeip.com",
+      "contactId": "itkkaPAf33Y1Rmkzz9WW",
+      "status": "tagged"
+    },
+    {
+      "email": "crystal@pharmtotableor.com",
+      "contactId": "1d4j0B2Q863PlbJsLXTq",
+      "status": "tagged"
+    },
+    {
+      "email": "csailey@moleculartestinglabs.com",
+      "contactId": "lZ7vqrmknSiSJ388d7Ww",
+      "status": "tagged"
+    },
+    {
+      "email": "cscott@hinckleyallen.com",
+      "contactId": "2HBqGUfllNogXcKyCWAV",
+      "status": "tagged"
+    },
+    {
+      "email": "cstarts@reminger.com",
+      "contactId": "V9m8xZUdU77CoywIPFJc",
+      "status": "tagged"
+    },
+    {
+      "email": "cstough@frontierrisk.com",
+      "contactId": "OqDGQozOaCTMMcPC80UX",
+      "status": "tagged"
+    },
+    {
+      "email": "cstrich@mi.bank",
+      "contactId": "ymmlx5j5gtZWABH57rIP",
+      "status": "tagged"
+    },
+    {
+      "email": "ctonge@advancedgrowlabs.com",
+      "contactId": "VhEtbjINsO4xGzvWsYQ3",
+      "status": "tagged"
+    },
+    {
+      "email": "curleytwo@gmail.com",
+      "contactId": "GEUzbcKtZosHtczHSGag",
+      "status": "tagged"
+    },
+    {
+      "email": "cvello@gardenremedies.com",
+      "contactId": "YIOYNi3UH7pF8ViXeRH3",
+      "status": "tagged"
+    },
+    {
+      "email": "cweinberger@710labs.com",
+      "contactId": "VJkb0oUXEI59V5xPGo98",
+      "status": "tagged"
+    },
+    {
+      "email": "cwillging@pire.org",
+      "contactId": "PFWVewq5lOebdDKb5Zbn",
+      "status": "tagged"
+    },
+    {
+      "email": "cwillits@reminger.com",
+      "contactId": "EZJ9iWLIYFsJvAC0rsSe",
+      "status": "tagged"
+    },
+    {
+      "email": "d.lukito@ecologicallabs.com",
+      "contactId": "F7CBjU76B0VAMBLcycwd",
+      "status": "tagged"
+    },
+    {
+      "email": "d.mchugh@segevllp.com",
+      "contactId": "Y7Q2erCKCxxB7fyy20Sf",
+      "status": "tagged"
+    },
+    {
+      "email": "d.ullian@vicentellp.com",
+      "contactId": "VYbn4ETEhIzIyQHurpRA",
+      "status": "tagged"
+    },
+    {
+      "email": "dai@kronicrelief.com",
+      "contactId": "ioggf51Ow43rlse7bY4y",
+      "status": "tagged"
+    },
+    {
+      "email": "daj589@gmail.com",
+      "contactId": "isXXaHW2vq5aWiD5PdFW",
+      "status": "tagged"
+    },
+    {
+      "email": "dakota@dancingbeesapothecary.com",
+      "contactId": "GApoLcJ5eGGYeYy6QxYP",
+      "status": "tagged"
+    },
+    {
+      "email": "dakota@hurleygrown.com",
+      "contactId": "JKBDcGlrFmzbYxljBQH4",
+      "status": "tagged"
+    },
+    {
+      "email": "damianmartinesq@gmail.com",
+      "contactId": "VMUQuojS8gNPjZabxTrG",
+      "status": "tagged"
+    },
+    {
+      "email": "damonhebert@ubiqd.com",
+      "contactId": "jI20B4U4pH8g2Acj1kxZ",
+      "status": "tagged"
+    },
+    {
+      "email": "dan.edwards@commoncitizen.com",
+      "contactId": "LsTjOTqSGKdX5v6Cbtva",
+      "status": "tagged"
+    },
+    {
+      "email": "dan.mcdermid@src.sk.ca",
+      "contactId": "rfA2iibJhpgdW1mOo4cc",
+      "status": "tagged"
+    },
+    {
+      "email": "dan@harris-sliwoski.com",
+      "contactId": "wn2kz00undX30X6w5yKM",
+      "status": "tagged"
+    },
+    {
+      "email": "dan@purplelotuspatientcenter.com",
+      "contactId": "jaLTgVzLrpdJHHppSnpB",
+      "status": "tagged"
+    },
+    {
+      "email": "daniel.burger@airgas.com",
+      "contactId": "pV6WaOAzSLKN66duBHlx",
+      "status": "tagged"
+    },
+    {
+      "email": "daniel.coyle@usda.gov",
+      "contactId": "zF9uYqGkC6uXYIw9Muhz",
+      "status": "tagged"
+    },
+    {
+      "email": "daniel.leger@sndl.com",
+      "contactId": "2hAkhAgWhKoQDGylBl6E",
+      "status": "tagged"
+    },
+    {
+      "email": "daniel.wittlinger@citizenbyklutch.com",
+      "contactId": "fseWZGLmYG79lQaiECwA",
+      "status": "tagged"
+    },
+    {
+      "email": "daniel@torrcann.com",
+      "contactId": "0u5oWfrhIm1fwgREMKuW",
+      "status": "tagged"
+    },
+    {
+      "email": "danielle.uy.314@my.csun.edu",
+      "contactId": "ixpVc9d9Mgl0rDfa1ZQ2",
+      "status": "tagged"
+    },
+    {
+      "email": "danielle@gpcannabis.com",
+      "contactId": "iwm3OUHOCVykLlHTY7xU",
+      "status": "tagged"
+    },
+    {
+      "email": "darcy.marciniuk@usask.ca",
+      "contactId": "QvgC4FTEVEKTosY282I1",
+      "status": "tagged"
+    },
+    {
+      "email": "darren.demchuk@mnp.ca",
+      "contactId": "5bTuybglK1pH19evQoSW",
+      "status": "tagged"
+    },
+    {
+      "email": "dasser@messner.com",
+      "contactId": "882Hytjh4soDzBzQ9LkY",
+      "status": "tagged"
+    },
+    {
+      "email": "dave@sugarleafconsulting.ca",
+      "contactId": "bUmP7pztrznJsELt8dWn",
+      "status": "tagged"
+    },
+    {
+      "email": "dave@tricalyx.ca",
+      "contactId": "pVT8KvU0OXMXfKu5kGJp",
+      "status": "tagged"
+    },
+    {
+      "email": "davecolvin@cox.net",
+      "contactId": "yShPOdtPrM2P5RuArnb2",
+      "status": "tagged"
+    },
+    {
+      "email": "david.blake@catpumps.co",
+      "contactId": "2EAS7syyWKdTzkIXIBND",
+      "status": "tagged"
+    },
+    {
+      "email": "david.bronfein@curiowellness.com",
+      "contactId": "IRR3fg33QfJEmOEHDDyD",
+      "status": "tagged"
+    },
+    {
+      "email": "david.brown@yolocounty.gov",
+      "contactId": null,
+      "status": "missing_contact"
+    },
+    {
+      "email": "david.buckman@aus.com",
+      "contactId": "00gpupyXyT6QEge9UOrh",
+      "status": "tagged"
+    },
+    {
+      "email": "david.dipersio@mynslc.com",
+      "contactId": "lSfzeuqrKvDKB3bFX0ZN",
+      "status": "tagged"
+    },
+    {
+      "email": "david.fisher@instagram.com",
+      "contactId": "Wsj9RTp2NwDrIsfbSuvJ",
+      "status": "tagged"
+    },
+    {
+      "email": "david.foraker@millernash.com",
+      "contactId": "qIB5THwX7rjFZ4ayOcoS",
+      "status": "tagged"
+    },
+    {
+      "email": "david.kapko@gmail.com",
+      "contactId": "QMTmQIp962qUjTJle81N",
+      "status": "tagged"
+    },
+    {
+      "email": "david.nation@parabit.com",
+      "contactId": "nMIcn9X6PC4CmiTIMBRh",
+      "status": "tagged"
+    },
+    {
+      "email": "david.peterson@pac.com",
+      "contactId": "p6BpB7iviSiRr1i26gEF",
+      "status": "tagged"
+    },
+    {
+      "email": "david.post@millernash.com",
+      "contactId": "JbeJqdwd0UZVwVv0CN8G",
+      "status": "tagged"
+    },
+    {
+      "email": "david.semple@wilsonelser.com",
+      "contactId": "KzK2ppmN2X13mv8f1OjI",
+      "status": "tagged"
+    },
+    {
+      "email": "davidkulberg23@gmail.com",
+      "contactId": "SlNmvNkOjxtVaKB1rXKo",
+      "status": "tagged"
+    },
+    {
+      "email": "davidmann@vandelaw.com",
+      "contactId": "wI6bViSpqe7X642yqm83",
+      "status": "tagged"
+    },
+    {
+      "email": "dawn.wallin@usask.ca",
+      "contactId": "zEQnMoHtvidbvkjlRfLP",
+      "status": "tagged"
+    },
+    {
+      "email": "dchojnowski@howardandhoward.com",
+      "contactId": "WU6aejNL3iM38CRqr2ZM",
+      "status": "tagged"
+    },
+    {
+      "email": "dclevenger@foleyhoag.com",
+      "contactId": "2Kib4xnr0HPcc97d8GBb",
+      "status": "tagged"
+    },
+    {
+      "email": "dcossaart@cbh.com",
+      "contactId": "bigdVi1e2EBYz5WKawK9",
+      "status": "tagged"
+    },
+    {
+      "email": "ddachille@roselawfirm.com",
+      "contactId": "ipCCfMZHc2mzcAuyZ57j",
+      "status": "tagged"
+    },
+    {
+      "email": "ddanner@mcglinchey.com",
+      "contactId": "oUkcaRbSFegerpuJ069P",
+      "status": "tagged"
+    },
+    {
+      "email": "ddeubel@firstquality.com",
+      "contactId": "YDUEnlu8X8SWJ2cznYlu",
+      "status": "tagged"
+    },
+    {
+      "email": "ddibiagio@altasciences.com",
+      "contactId": "dNbi5NKf9zzg0SeNwYpJ",
+      "status": "tagged"
+    },
+    {
+      "email": "debby.core@mungerfarms.com",
+      "contactId": "bLgTgngfn6hmdVgCRUHK",
+      "status": "tagged"
+    },
+    {
+      "email": "deborah.l.steiner@rrd.com",
+      "contactId": "1m4kfQDmipxjF9cMNhHr",
+      "status": "tagged"
+    },
+    {
+      "email": "degger@reminger.com",
+      "contactId": "gtLsPLvCGFOFc2BtRVs7",
+      "status": "tagged"
+    },
+    {
+      "email": "denise@battelle.org",
+      "contactId": "3lusueCcoX3HccgJNYLX",
+      "status": "tagged"
+    },
+    {
+      "email": "denise@puralabs.ca",
+      "contactId": "ehitq4OXsnY8V2Y0dtpT",
+      "status": "tagged"
+    },
+    {
+      "email": "derek.dilley@wholesome.co",
+      "contactId": "SJMqFz2zGuePfpWP9svh",
+      "status": "tagged"
+    },
+    {
+      "email": "designbynature@gmail.com",
+      "contactId": "bxevA20cHTR3Tne9Rjjb",
+      "status": "tagged"
+    },
+    {
+      "email": "devan@goatridgehemp.com",
+      "contactId": "FJKTJtyfeAGXgsKte3aD",
+      "status": "tagged"
+    },
+    {
+      "email": "devoy.dubuque@schwazze.com",
+      "contactId": "wgTph4kJzZvQ98FXfJjh",
+      "status": "tagged"
+    },
+    {
+      "email": "dgeiger@foleyhoag.com",
+      "contactId": "YHqTNui8zEotUu1XURBJ",
+      "status": "tagged"
+    },
+    {
+      "email": "dgemmel@villagefarms.com",
+      "contactId": "S5YDEvgqlP3GiSUqzczd",
+      "status": "tagged"
+    },
+    {
+      "email": "dgordon@foleyhoag.com",
+      "contactId": "ihQGeSz681V4xJVEqswr",
+      "status": "tagged"
+    },
+    {
+      "email": "dgregoire@altasciences.com",
+      "contactId": "Dbak51g4MJDguNmqZPMe",
+      "status": "tagged"
+    },
+    {
+      "email": "dhalstead@foleyhoag.com",
+      "contactId": "panouzIxFn2IeRbRn91f",
+      "status": "tagged"
+    },
+    {
+      "email": "dhirsch@hinckleyallen.com",
+      "contactId": "kbpEB0f46NyxxIMm0WSd",
+      "status": "tagged"
+    },
+    {
+      "email": "dhunt@fsglawyers.com",
+      "contactId": "iPFH8Cqc6RTHepzHozPe",
+      "status": "tagged"
+    },
+    {
+      "email": "dillon@greenhorizons.io",
+      "contactId": "l18hJUqyB7kZRzfhhXkm",
+      "status": "tagged"
+    },
+    {
+      "email": "dipak65@gmail.com",
+      "contactId": "vK9lIlbFYyZZQrciw1gr",
+      "status": "tagged"
+    },
+    {
+      "email": "dj@buddyboyfarm.com",
+      "contactId": "9m1yLPag0yqaKb0VrtJ5",
+      "status": "tagged"
+    },
+    {
+      "email": "djackson@thehippocraticgrowth.com",
+      "contactId": "r2DTz0lhnHlucbeX482z",
+      "status": "tagged"
+    },
+    {
+      "email": "djossel@cjbs.com",
+      "contactId": "zYKAhfiXHPoQuefkV3mw",
+      "status": "tagged"
+    },
+    {
+      "email": "dkeller@messner.com",
+      "contactId": "SFPUwtyXgg4vWXDPJq2P",
+      "status": "tagged"
+    },
+    {
+      "email": "dkline@goodwinlaw.com",
+      "contactId": "4nNwoSAz6v88PGWw4yMN",
+      "status": "tagged"
+    },
+    {
+      "email": "dlawrence@710labs.com",
+      "contactId": "ZH9qkzOIqOX2yBLgU63X",
+      "status": "tagged"
+    },
+    {
+      "email": "dlazarus@foleyhoag.com",
+      "contactId": "mURMo2oqGPGEuOuuwnMA",
+      "status": "tagged"
+    },
+    {
+      "email": "dlevin@cohnreznick.com",
+      "contactId": "AQHAwX5xdXWxD3fJgWrh",
+      "status": "tagged"
+    },
+    {
+      "email": "dlinn@universalbackground.com",
+      "contactId": "BxUF84fiRdrlZwgXJAqD",
+      "status": "tagged"
+    },
+    {
+      "email": "dljohnston35@hotmail.com",
+      "contactId": "GJoXTwMvAkmuFRA9AUbE",
+      "status": "tagged"
+    },
+    {
+      "email": "dmccay@mirickoconnell.com",
+      "contactId": "LINpFUSzJ9wp5g7pQtgs",
+      "status": "tagged"
+    },
+    {
+      "email": "dmcduffie@constangy.com",
+      "contactId": "Wc5g7mRHppQFwIU7T3EG",
+      "status": "tagged"
+    },
+    {
+      "email": "dnonis@needhambank.com",
+      "contactId": "M7Ws6xmGkMokEQRARltI",
+      "status": "tagged"
+    },
+    {
+      "email": "doleary@brocku.ca",
+      "contactId": null,
+      "status": "missing_contact"
+    },
+    {
+      "email": "dominique.sawko@firstinsurancefunding.com",
+      "contactId": "3dfK8UTdfkbAvR3iW69h",
+      "status": "tagged"
+    },
+    {
+      "email": "donaldware@foleyhoag.com",
+      "contactId": "Uy03SsfFUdYcgHNaGvT0",
+      "status": "tagged"
+    },
+    {
+      "email": "donna.hargrove@amwins.com",
+      "contactId": "oQmbPAzpIeLIWPiwpqDm",
+      "status": "tagged"
+    },
+    {
+      "email": "donna@greenbaxmarketplace.io",
+      "contactId": "RqpmcFz2fn0WjSJGw9B1",
+      "status": "tagged"
+    },
+    {
+      "email": "doug.cobos@metergroup.com",
+      "contactId": "GhAzdHMhiM0g47qYJ8Mt",
+      "status": "tagged"
+    },
+    {
+      "email": "doug.karcher@osu.edu",
+      "contactId": "AYbp7sAgiSdiReN7DRic",
+      "status": "tagged"
+    },
+    {
+      "email": "doug.stambaugh@promachbuilt.com",
+      "contactId": "PMWgggbEOEeYRVresERH",
+      "status": "tagged"
+    },
+    {
+      "email": "douggoodner@cox.net",
+      "contactId": "BSOQU4SEOUUhDebH21Lq",
+      "status": "tagged"
+    },
+    {
+      "email": "douglas.ng@mnp.ca",
+      "contactId": "29wWbM7jXsWq3rQhOvF7",
+      "status": "tagged"
+    },
+    {
+      "email": "douglas.varacalli@law.nyls.edu",
+      "contactId": "NIFCRPr8k5jUklelumxp",
+      "status": "tagged"
+    },
+    {
+      "email": "dpierson@foleyhoag.com",
+      "contactId": "fanjnj7ZqsGltr2tnrQa",
+      "status": "tagged"
+    },
+    {
+      "email": "dpilotto@muchlaw.com",
+      "contactId": "nMnqreDPvXm3HIW83BmQ",
+      "status": "tagged"
+    },
+    {
+      "email": "drew@jettyextracts.com",
+      "contactId": "nWb8CMdOjbGu0b4vTcjU",
+      "status": "tagged"
+    },
+    {
+      "email": "drewbowden@verizon.net",
+      "contactId": "SU1qlk0xWQcvux6MA9XJ",
+      "status": "tagged"
+    },
+    {
+      "email": "drgreenorganics@gmail.com",
+      "contactId": "tDKknOC4geJAhS7b4rHl",
+      "status": "tagged"
+    },
+    {
+      "email": "drobstock@advancedgrowlabs.com",
+      "contactId": "j2A4OAQyqnNhHymQcT78",
+      "status": "tagged"
+    },
+    {
+      "email": "dross@reminger.com",
+      "contactId": "rnmgqI2JTK26CAt07qg8",
+      "status": "tagged"
+    },
+    {
+      "email": "dryan@hinshawlaw.com",
+      "contactId": "kxbujot3axJUQ4unZkFH",
+      "status": "tagged"
+    },
+    {
+      "email": "dsalas@turnberry.com",
+      "contactId": "YqDgYM4dy5OfDzdKh8qV",
+      "status": "tagged"
+    },
+    {
+      "email": "dschultz@hinshawlaw.com",
+      "contactId": "bjvIf3lGJkRhYw1z4IFA",
+      "status": "tagged"
+    },
+    {
+      "email": "dsilva@saul.com",
+      "contactId": "a5tQS5xBHlBsGo0luzqn",
+      "status": "tagged"
+    },
+    {
+      "email": "dsirolly@col-care.com",
+      "contactId": "EbRr0Waey3E7LoDCD8E0",
+      "status": "tagged"
+    },
+    {
+      "email": "dsmith@foleyhoag.com",
+      "contactId": "SRai8I9lAXQLIb01CkTA",
+      "status": "tagged"
+    },
+    {
+      "email": "dsolomon@lplegal.com",
+      "contactId": "tG62KpsUkkP3ZPYV5GXm",
+      "status": "tagged"
+    },
+    {
+      "email": "dsorel@heritagecann.com",
+      "contactId": "9iW87xzBp17YAOicmpiz",
+      "status": "tagged"
+    },
+    {
+      "email": "dstandard@gloriouscanna.com",
+      "contactId": "BcdO0YYLbh2HIoyle3dh",
+      "status": "tagged"
+    },
+    {
+      "email": "dsurprenant@mirickoconnell.com",
+      "contactId": "VDEuSZszldpInflQXNGK",
+      "status": "tagged"
+    },
+    {
+      "email": "dtomaski@drivengrow.com",
+      "contactId": "oadlcEFUQuQ7oz74JO2F",
+      "status": "tagged"
+    },
+    {
+      "email": "dtye@princelobel.com",
+      "contactId": "FqlyuINwEoYauJZPKVwq",
+      "status": "tagged"
+    },
+    {
+      "email": "duncan.cameron@airobrands.com",
+      "contactId": "gxQm58zEas52RC3c7FZS",
+      "status": "tagged"
+    },
+    {
+      "email": "dustin@greenwaymedic.com",
+      "contactId": "R8n3Uwkr5Hi0xjf4ykS1",
+      "status": "tagged"
+    },
+    {
+      "email": "dustin@sacredsunfarms.org",
+      "contactId": "kQkBvBHvmtSNdc5b3XCQ",
+      "status": "tagged"
+    },
+    {
+      "email": "dvalent@reminger.com",
+      "contactId": "6jnEtZmXwaFf6cj1m3O9",
+      "status": "tagged"
+    },
+    {
+      "email": "dwight.pouteaux@mnp.ca",
+      "contactId": "s5jechC1AaO9ozrMTR3Z",
+      "status": "tagged"
+    },
+    {
+      "email": "dwolanske@messner.com",
+      "contactId": "d5P9GAXEb81n3vwWmsps",
+      "status": "tagged"
+    },
+    {
+      "email": "dwoolman@hennep.com",
+      "contactId": "pbqKqElkiGjf5ZUj3yXX",
+      "status": "tagged"
+    },
+    {
+      "email": "dylan.hughes@mnp.ca",
+      "contactId": "STifZzH5jPCD15QAeDmW",
+      "status": "tagged"
+    },
+    {
+      "email": "dylanlstokes11@gmail.com",
+      "contactId": "zxeQ3RJab3JbAsNk3r1q",
+      "status": "tagged"
+    },
+    {
+      "email": "dzmitry@apollo.io",
+      "contactId": "qZziaS85dOb96bC8jw8C",
+      "status": "tagged"
+    },
+    {
+      "email": "e.sibal01@gmail.com",
+      "contactId": "5OWYip0MbKZT9XgpeWFz",
+      "status": "tagged"
+    },
+    {
+      "email": "ebanach@foleyhoag.com",
+      "contactId": "XP6uutgfe5p7iSCjSCmB",
+      "status": "tagged"
+    },
+    {
+      "email": "ebelsley@foleyhoag.com",
+      "contactId": "UfgssaFwsRREKLthQPnG",
+      "status": "tagged"
+    },
+    {
+      "email": "eblais@goodwinlaw.com",
+      "contactId": "2WauQ86N14AZ3SSzgEKn",
+      "status": "tagged"
+    },
+    {
+      "email": "eblaze@lplegal.com",
+      "contactId": "SuCpj3xnHgGOZMqYejhS",
+      "status": "tagged"
+    },
+    {
+      "email": "echittim@tncc.ca",
+      "contactId": "msQ43cerebl6vneEdVp3",
+      "status": "tagged"
+    },
+    {
+      "email": "ecohen@paulweiss.com",
+      "contactId": "R08RkF2irY5JzIKkOPr2",
+      "status": "tagged"
+    },
+    {
+      "email": "ecohen@sff-law.com",
+      "contactId": "HpjLFzIQGeCYjI2wj2mz",
+      "status": "tagged"
+    },
+    {
+      "email": "ed.casper@lifeplus.com",
+      "contactId": "CRSDGnHomNVuHTgzQwO8",
+      "status": "tagged"
+    },
+    {
+      "email": "ed.s.pak@gmail.com",
+      "contactId": "Mxk9dMf5Uldh8g4hFeqG",
+      "status": "tagged"
+    },
+    {
+      "email": "ed@sweetwaterfarmsmj.com",
+      "contactId": "1jpdYNHBaFLKJCeeDZ0Y",
+      "status": "tagged"
+    },
+    {
+      "email": "edalmani@foleyhoag.com",
+      "contactId": "GeO9rH4HpOaJW7UZ1O8t",
+      "status": "tagged"
+    },
+    {
+      "email": "edavis@hunterfan.com",
+      "contactId": "fXKxyF4cZL1dElwr0isy",
+      "status": "tagged"
+    },
+    {
+      "email": "eddie@kingpalm.com",
+      "contactId": "SxAndKJ0eSQfxaXvY7RD",
+      "status": "tagged"
+    },
+    {
+      "email": "eduard@faomtholly.com",
+      "contactId": "WDFGldnvzQEbZw4SIdFm",
+      "status": "tagged"
+    },
+    {
+      "email": "eduardo@greatesthitscc.com",
+      "contactId": "SXXQT9ynbnqW6asVaegO",
+      "status": "tagged"
+    },
+    {
+      "email": "edward.castro@kidder.com",
+      "contactId": "QYIsB0rPwjkSjT6EzbiZ",
+      "status": "tagged"
+    },
+    {
+      "email": "edward.decker@millernash.com",
+      "contactId": "bzRcbDAQpeKTJpyFNK3k",
+      "status": "tagged"
+    },
+    {
+      "email": "edward.spiegel@morganstanley.com",
+      "contactId": "dy8RB1HDSEEYo4gGYPnC",
+      "status": "tagged"
+    },
+    {
+      "email": "eessian@cbh.com",
+      "contactId": "hWpYFRbWZSt0IKcmF8la",
+      "status": "tagged"
+    },
+    {
+      "email": "egenin@muchlaw.com",
+      "contactId": "TULIeyFn2Kf0FfvnCuct",
+      "status": "tagged"
+    },
+    {
+      "email": "egreene@miricklaw.com",
+      "contactId": "bLS0AC74NfTESpeyJ6Gd",
+      "status": "tagged"
+    },
+    {
+      "email": "eklein@foleyhoag.com",
+      "contactId": "B8mxhOdAIGHdNYTpHNas",
+      "status": "tagged"
+    },
+    {
+      "email": "elena.ruttan@mnp.ca",
+      "contactId": "CDaPg0mGTRPlDA4jQVku",
+      "status": "tagged"
+    },
+    {
+      "email": "elena_theodor@hotmail.com",
+      "contactId": "FYLSvfiI2c7lf3d71nVK",
+      "status": "tagged"
+    },
+    {
+      "email": "elissahambrecht@gmail.com",
+      "contactId": "sgz9elbVHoK3D9YKpzaN",
+      "status": "tagged"
+    },
+    {
+      "email": "elizabeth.maclennan@roselifescience.ca",
+      "contactId": "mNSGhz4bWd0jVWddZvqe",
+      "status": "tagged"
+    },
+    {
+      "email": "emanuel.adler@blankrome.com",
+      "contactId": "kLW63up4qCxfDYK1gzDV",
+      "status": "tagged"
+    },
+    {
+      "email": "emichael@nfp.com",
+      "contactId": "cavbFA9xi9cqxKJxQR9J",
+      "status": "tagged"
+    },
+    {
+      "email": "emily.coe@diteba.com",
+      "contactId": "VqD61SHu4GTbKkMu6RVC",
+      "status": "tagged"
+    },
+    {
+      "email": "emilynachlas@gmail.com",
+      "contactId": "8URUwtS0RFdIYAoDS8rN",
+      "status": "tagged"
+    },
+    {
+      "email": "emma.lapierre@crescolabs.com",
+      "contactId": "3oGEbKQCa9E5Ahbi62gO",
+      "status": "tagged"
+    },
+    {
+      "email": "emmanuel.brown777.eb@gmail.com",
+      "contactId": "XPpTTKoYc2eX7ZkQdN91",
+      "status": "tagged"
+    },
+    {
+      "email": "emmanuel_utpa@hotmail.com",
+      "contactId": "nMMTQHXgqM8pDBXWKXVc",
+      "status": "tagged"
+    },
+    {
+      "email": "emorrisem66@gmail.com",
+      "contactId": "xJj6jnpSAimPL2YLHRE6",
+      "status": "tagged"
+    },
+    {
+      "email": "eness@sesenergy.org",
+      "contactId": "o8HKjy16RrctyYIaFU4j",
+      "status": "tagged"
+    },
+    {
+      "email": "epwendt@gmail.com",
+      "contactId": "W6Ih73AvaQJg1KxuFN6R",
+      "status": "tagged"
+    },
+    {
+      "email": "eric.beaver@hotmail.com",
+      "contactId": "XZFPeMtBdfjE1pFvPdlz",
+      "status": "tagged"
+    },
+    {
+      "email": "eric.hildenbrand@mclaneco.com",
+      "contactId": "dXxxYmwHJX6rKWO7tegl",
+      "status": "tagged"
+    },
+    {
+      "email": "eric.pauly@imacorp.com",
+      "contactId": "zxXqf5qsK3JZ2n2acoMV",
+      "status": "tagged"
+    },
+    {
+      "email": "eric.powers@trulieve.com",
+      "contactId": "drIwdOA4uMdbAlGSAAbT",
+      "status": "tagged"
+    },
+    {
+      "email": "eric@happyhead.com",
+      "contactId": "KYdcf0JILzzZZemCf5B8",
+      "status": "tagged"
+    },
+    {
+      "email": "erica.clausen@millernash.com",
+      "contactId": "RPgEU3rs8xHFo3yiVp4n",
+      "status": "tagged"
+    },
+    {
+      "email": "ericb@centralprocessorsny.com",
+      "contactId": "CvENTs1NjpCHnBeXUNKk",
+      "status": "tagged"
+    },
+    {
+      "email": "erich.merrill@millernash.com",
+      "contactId": "BUaFzHhvSxIBjLTugT15",
+      "status": "tagged"
+    },
+    {
+      "email": "ericm@humboldt-alchemy-group.com",
+      "contactId": "gps3G9F8oaamIvIcg0Ez",
+      "status": "tagged"
+    },
+    {
+      "email": "erik.carlson@sustaininnovate.com",
+      "contactId": "KfbnqnYUSKiBckmur8s4",
+      "status": "tagged"
+    },
+    {
+      "email": "erik@tricollagardens.com",
+      "contactId": "EozqsZrlkC3CtZiHwMRY",
+      "status": "tagged"
+    },
+    {
+      "email": "erikhuestis@foleyhoag.com",
+      "contactId": "GXqPd399XyvbIoFyGHJb",
+      "status": "tagged"
+    },
+    {
+      "email": "erin.burris@millernash.com",
+      "contactId": "Jl6MP6LKsI94gAsZAZQW",
+      "status": "tagged"
+    },
+    {
+      "email": "erin.dubcak@ethoscannabis.com",
+      "contactId": "WKVxIZkl5d4lptzMCjRj",
+      "status": "tagged"
+    },
+    {
+      "email": "erin.wiggins@rrd.com",
+      "contactId": "ShJYoT03SG3dw6V1YK09",
+      "status": "tagged"
+    },
+    {
+      "email": "ernie.newell@promachbuilt.com",
+      "contactId": "sTerzhBvkIQpTQQ88yOP",
+      "status": "tagged"
+    },
+    {
+      "email": "erno.ranta@vaisala.com",
+      "contactId": "6fo8QL63DDus0NbrSjLx",
+      "status": "tagged"
+    },
+    {
+      "email": "eroman@getsunmed.com",
+      "contactId": "JRfPJqjkmFgLDEerNxr1",
+      "status": "tagged"
+    },
+    {
+      "email": "esther@flavorsandspecialties.com",
+      "contactId": "qr3FiPLpOnCnx72Tc0vf",
+      "status": "tagged"
+    },
+    {
+      "email": "estrain@marimedinc.com",
+      "contactId": "uLFCfi1qdoHLX6wg4awL",
+      "status": "tagged"
+    },
+    {
+      "email": "eszeto@isolvedhcm.com",
+      "contactId": "3NQm54SyVkNnpmOLqNS5",
+      "status": "tagged"
+    },
+    {
+      "email": "etaylor384@gmail.com",
+      "contactId": "sAtHUVyebq3i4Bdp9I1E",
+      "status": "tagged"
+    },
+    {
+      "email": "ethan.zaharia@trulieve.com",
+      "contactId": "5304bOYxLUthOC1UW2oA",
+      "status": "tagged"
+    },
+    {
+      "email": "evan@righteousherbnm.com",
+      "contactId": "hVBEXrSoDqTTijpmn3Xk",
+      "status": "tagged"
+    },
+    {
+      "email": "evansickle@carltonfieldsccg.com",
+      "contactId": "P1VIkhANqzE1EanupBQZ",
+      "status": "tagged"
+    },
+    {
+      "email": "ewalter@atllp.com",
+      "contactId": "ufUVSZTIJtEQbrWr1Z3w",
+      "status": "tagged"
+    },
+    {
+      "email": "fangeleri@centriconsulting.com",
+      "contactId": "V12GVUMAo5VYh70llGLM",
+      "status": "tagged"
+    },
+    {
+      "email": "farai.madziva@curiowellness.com",
+      "contactId": "DpwOshO1hIwAg84F136a",
+      "status": "tagged"
+    },
+    {
+      "email": "fauver@crescolabs.com",
+      "contactId": "VyD8Sq8eQr1crqPyAhfQ",
+      "status": "tagged"
+    },
+    {
+      "email": "fleonetti@reminger.com",
+      "contactId": "dlOPKsAgYiNuko8yUbLS",
+      "status": "tagged"
+    },
+    {
+      "email": "fmouzonemuniologistics.com",
+      "contactId": null,
+      "status": "missing_contact"
+    },
+    {
+      "email": "fonarovatanya@hotmail.com",
+      "contactId": "kkzX8JL8ggZlpxT4q8ao",
+      "status": "tagged"
+    },
+    {
+      "email": "francesco@apotex.com",
+      "contactId": "kkE2IPARK5QlyHVWGuGv",
+      "status": "tagged"
+    },
+    {
+      "email": "frank.bear@gtigrows.com",
+      "contactId": "VPzU5MjTLn5iW04Vlb9W",
+      "status": "tagged"
+    },
+    {
+      "email": "frankmontoya1@yahoo.com",
+      "contactId": "YimDDImK5FxEWPeFUlPr",
+      "status": "tagged"
+    },
+    {
+      "email": "fvillatoro@ball.com",
+      "contactId": "ko15Tf0JQae8I3NNktn8",
+      "status": "tagged"
+    },
+    {
+      "email": "gabe@nwconfections.com",
+      "contactId": "4vkOFhTUtZeHafIR9qTf",
+      "status": "tagged"
+    },
+    {
+      "email": "gabriel.judd@gmail.com",
+      "contactId": "YOxygPZmT3rYlxU9wmMg",
+      "status": "tagged"
+    },
+    {
+      "email": "gamet@hotmail.com",
+      "contactId": "L9nq4VEdE4afCJVlckkT",
+      "status": "tagged"
+    },
+    {
+      "email": "gardenmandirect@gmail.com",
+      "contactId": "bEu5BXtOig8iDzmTRAmr",
+      "status": "tagged"
+    },
+    {
+      "email": "garrett.ledgerwood@millernash.com",
+      "contactId": "VSy4kcux0RgkI4xI11Om",
+      "status": "tagged"
+    },
+    {
+      "email": "gary.baragona@kidder.com",
+      "contactId": "XyQgzzLwuvJBWeWZnsxN",
+      "status": "tagged"
+    },
+    {
+      "email": "gary.christensen@millernash.com",
+      "contactId": "A3VePDfnlBrgJ6xXemRD",
+      "status": "tagged"
+    },
+    {
+      "email": "garybnusinov@gmail.com",
+      "contactId": "ulG4sJq7s3gZ4Wlu6UCO",
+      "status": "tagged"
+    },
+    {
+      "email": "gavin.delainey@noblegrowthcorp.com",
+      "contactId": "eYhAoZ9XALGajCZI0kBL",
+      "status": "tagged"
+    },
+    {
+      "email": "gbennett@advanceautoparts.com",
+      "contactId": "ThTDd4zcZI4MUMLtHfdb",
+      "status": "tagged"
+    },
+    {
+      "email": "gblackman1@mac.com",
+      "contactId": "4d8jQZtTEsfn4lpV1mrx",
+      "status": "tagged"
+    },
+    {
+      "email": "gbulington@lplegal.com",
+      "contactId": "HudNDux6d5Dkr65hNogT",
+      "status": "tagged"
+    },
+    {
+      "email": "gdennis@centriconsulting.com",
+      "contactId": "Fk6UdM8FYLLQQE7Ix9cx",
+      "status": "tagged"
+    },
+    {
+      "email": "george.stephens@nowcfo.com",
+      "contactId": "Cyg9FDPjdHmP8gtku3BD",
+      "status": "tagged"
+    },
+    {
+      "email": "geremygreens@gmail.com",
+      "contactId": "IC53c5SvIqObn0kNICKV",
+      "status": "tagged"
+    },
+    {
+      "email": "ggluckman@illicitgardens.com",
+      "contactId": "28X7g1atVvQgLUFMowm2",
+      "status": "tagged"
+    },
+    {
+      "email": "gguice@reminger.com",
+      "contactId": "FwM7I87iU59TtT14NHc5",
+      "status": "tagged"
+    },
+    {
+      "email": "ghaase1@comcast.net",
+      "contactId": "B1oAn7E70qFpZtFtUqt3",
+      "status": "tagged"
+    },
+    {
+      "email": "gib.masters@millernash.com",
+      "contactId": "oyWRJXVV6DrgpW7wzOqe",
+      "status": "tagged"
+    },
+    {
+      "email": "gillian.dagan@amspecgroup.com",
+      "contactId": "gUzYlWqS4xNB6vKuRULS",
+      "status": "tagged"
+    },
+    {
+      "email": "gina.fazio@dime.com",
+      "contactId": "SL9Ao0WW35Z7i1k4elmj",
+      "status": "tagged"
+    },
+    {
+      "email": "gina.thornton@mnp.ca",
+      "contactId": "rC5jNoMTpx6e3itH8TmN",
+      "status": "tagged"
+    },
+    {
+      "email": "giovanni.worsley@mnp.ca",
+      "contactId": "ARIvwtVXS4KpDzmeqIjL",
+      "status": "tagged"
+    },
+    {
+      "email": "glea@kinsaleins.com",
+      "contactId": "O7vm41EfzEQ5VBHdiwVR",
+      "status": "tagged"
+    },
+    {
+      "email": "gmillner@cteh.com",
+      "contactId": "xGtXebG8Z4QckRQIr69S",
+      "status": "tagged"
+    },
+    {
+      "email": "gor.chailyan@2riverlabs.com",
+      "contactId": "SL5cp0C7F80vqx6c1Sn5",
+      "status": "tagged"
+    },
+    {
+      "email": "gorana.lakic@auroramj.com",
+      "contactId": "xRhpNHcFfS58ChSe4EjM",
+      "status": "tagged"
+    },
+    {
+      "email": "gordon@arborbotanicals.com",
+      "contactId": "hMJBWFeYjD5HE20HFykO",
+      "status": "tagged"
+    },
+    {
+      "email": "gowtham@leafinfusions.com",
+      "contactId": "Q0M9qbjAaaK60gX8ocnF",
+      "status": "tagged"
+    },
+    {
+      "email": "gpark@mauigrown.com",
+      "contactId": "KVkB3Y0YBNegLR6orplV",
+      "status": "tagged"
+    },
+    {
+      "email": "grace@districtcannabis.us",
+      "contactId": "Djl1N6xRmkJhHXejUwzp",
+      "status": "tagged"
+    },
+    {
+      "email": "grayson@xtractvt.com",
+      "contactId": "m4yYR4pVM1sTL1wN6iyO",
+      "status": "tagged"
+    },
+    {
+      "email": "greg.jacob@promachbuilt.com",
+      "contactId": "9F47isdxu8CE5S5Vkgyc",
+      "status": "tagged"
+    },
+    {
+      "email": "greg.newland@absciex.com",
+      "contactId": "8rAoXIh9p531qM4lq60A",
+      "status": "tagged"
+    },
+    {
+      "email": "greg@cloudwalkerfarm.com",
+      "contactId": "tZU7sOWsJjGtntEZ4OZg",
+      "status": "tagged"
+    },
+    {
+      "email": "greg@thriveagritech.com",
+      "contactId": "hJ4URtMVSJwKUHsJjN9D",
+      "status": "tagged"
+    },
+    {
+      "email": "greggory.barta@kohls.com",
+      "contactId": "LZueKcPndrBKRLKpqTeW",
+      "status": "tagged"
+    },
+    {
+      "email": "gregory@shophighseason.com",
+      "contactId": "2ZT1sTODwn1ybOdwfoPQ",
+      "status": "tagged"
+    },
+    {
+      "email": "groessler@mirickoconnell.com",
+      "contactId": "iJoirJPtkdbC7KC7UnSd",
+      "status": "tagged"
+    },
+    {
+      "email": "gsell@highbridgepremium.com",
+      "contactId": "xKAcJdXuaXsU5oErRqWw",
+      "status": "tagged"
+    },
+    {
+      "email": "gui.bittencourt@rubiconorganics.com",
+      "contactId": "LOt1ZgK5Br6GnQ3bwLfV",
+      "status": "tagged"
+    },
+    {
+      "email": "guillaume.gignac@intertek.com",
+      "contactId": "4cYEYLEgrwPnyEp49KC7",
+      "status": "tagged"
+    },
+    {
+      "email": "gul@vertosa.com",
+      "contactId": "fmJZyAa1kKBtsQ1bpcas",
+      "status": "tagged"
+    },
+    {
+      "email": "haigbaghdassarian@sbcglobal.net",
+      "contactId": "yhfNdbaR2fBB09xULgux",
+      "status": "tagged"
+    },
+    {
+      "email": "hall.de@husky.neu.edu",
+      "contactId": "7YStBndq22d40KfB5F1V",
+      "status": "tagged"
+    },
+    {
+      "email": "hall.murdoch@mnp.ca",
+      "contactId": "j3ffzMZUZHJE9zBpfsRr",
+      "status": "tagged"
+    },
+    {
+      "email": "hannah.kropp@verano.com",
+      "contactId": "gzSZkBNtHebSfoBiz6aI",
+      "status": "tagged"
+    },
+    {
+      "email": "hannah@alchemypure.com",
+      "contactId": "n1ff9PjwrUh2yaZabXaD",
+      "status": "tagged"
+    },
+    {
+      "email": "harold@newbreedseed.com",
+      "contactId": "iYaDvgGmiGAOjVy4APVE",
+      "status": "tagged"
+    },
+    {
+      "email": "harold@vertosa.com",
+      "contactId": "hQeKi2ihBTZTgg0Ck8AM",
+      "status": "tagged"
+    },
+    {
+      "email": "havona@bombora.com",
+      "contactId": "lC8O0LnozZaZkPff3tCE",
+      "status": "tagged"
+    },
+    {
+      "email": "helen.martin@organigram.ca",
+      "contactId": "eU7NwuQDbCAtupV9kboN",
+      "status": "tagged"
+    },
+    {
+      "email": "hgroce@sanctuarymed.com",
+      "contactId": "nWJjeMFNoXU5qPbB9eib",
+      "status": "tagged"
+    },
+    {
+      "email": "hlim@tyco.com",
+      "contactId": "PRfWuJnBZf53iYbUetJy",
+      "status": "tagged"
+    },
+    {
+      "email": "hm@bu.edu",
+      "contactId": "v5xGOJWbXlW9qZ7nl71q",
+      "status": "tagged"
+    },
+    {
+      "email": "hrussell@foleyhoag.com",
+      "contactId": "qH6iGVZdnNx2rKQPp06s",
+      "status": "tagged"
+    },
+    {
+      "email": "hsexauer@highfidelitybrands.com",
+      "contactId": "TRwAjXT3Ct4mM3eAhgI2",
+      "status": "tagged"
+    },
+    {
+      "email": "hslegers@skymintbrands.com",
+      "contactId": "8k40P5azI7X80mwrCpq7",
+      "status": "tagged"
+    },
+    {
+      "email": "hypermike60@aol.com",
+      "contactId": "DjMj9hD1P3Y0JvOIC8RU",
+      "status": "tagged"
+    },
+    {
+      "email": "ianlgross@gmail.com",
+      "contactId": "4esK5oQ4ZsAM5LZhxlfx",
+      "status": "tagged"
+    },
+    {
+      "email": "ifarrell@jushico.com",
+      "contactId": "tBX0omXVbTiORneoLXKz",
+      "status": "tagged"
+    },
+    {
+      "email": "iklaus@liveparallel.com",
+      "contactId": "qq6o8HrRlHqGVDgWcmew",
+      "status": "tagged"
+    },
+    {
+      "email": "issam.benmoussa@cannara.ca",
+      "contactId": "5dAo1yxhUV6ebLCjTNSx",
+      "status": "tagged"
+    },
+    {
+      "email": "ivan@sweetspotfarms.com",
+      "contactId": "jFASbpY4X7nRmGNQ01wy",
+      "status": "tagged"
+    },
+    {
+      "email": "j_saville_peck@hotmail.com",
+      "contactId": "UEntyKjn1V21gk0Yv2CY",
+      "status": "tagged"
+    },
+    {
+      "email": "jake.warsavage@verilife.com",
+      "contactId": "B7FugXrZBh1F6z99Pj1j",
+      "status": "tagged"
+    },
+    {
+      "email": "jake@c3industries.com",
+      "contactId": "HgTA9RxovgwIj0Luxp2N",
+      "status": "tagged"
+    },
+    {
+      "email": "james.kocis@eviolabs.com",
+      "contactId": "oGXm6ULexi3MvVuB3Fiu",
+      "status": "tagged"
+    },
+    {
+      "email": "james.leventis@verano.com",
+      "contactId": "gDVDwb84lUYSol57VQsl",
+      "status": "tagged"
+    },
+    {
+      "email": "james@farmhouse.delivery",
+      "contactId": "KXI8VGPUFAPqyjt4ZBmJ",
+      "status": "tagged"
+    },
+    {
+      "email": "james@rmblaze.com",
+      "contactId": "XRPJTzEpZwyaObzRzQ0o",
+      "status": "tagged"
+    },
+    {
+      "email": "jamesroush@gmail.com",
+      "contactId": "V8vBkMKjj9HCYaVuJHHt",
+      "status": "tagged"
+    },
+    {
+      "email": "jay.kirkwood@2riverlabs.com",
+      "contactId": "tVJ6qSqeIjvIEb6eVPpP",
+      "status": "tagged"
+    },
+    {
+      "email": "jay@topcropor.com",
+      "contactId": "qv2LgofKNmI0tT6fp8aW",
+      "status": "tagged"
+    },
+    {
+      "email": "jbowe@sallybeauty.com",
+      "contactId": "fLpmz5OBIF9647Kp5g46",
+      "status": "tagged"
+    },
+    {
+      "email": "jdennis@awholdings.com",
+      "contactId": "js38ynAvKblmkg6ySe8K",
+      "status": "tagged"
+    },
+    {
+      "email": "jdonahue@skymint.com",
+      "contactId": "7j55ePAbAICpJoJrJ6lk",
+      "status": "tagged"
+    },
+    {
+      "email": "jeff@ptsgrows.com",
+      "contactId": "m7eulszlkiFEALuOJ30Z",
+      "status": "tagged"
+    },
+    {
+      "email": "jei.oberaifo@entouragehealthcorp.com",
+      "contactId": "R8pG9Grwmqaw3ti1un0y",
+      "status": "tagged"
+    },
+    {
+      "email": "jennielee@weedme.ca",
+      "contactId": "9JG08gIv3RbArEHACMqU",
+      "status": "tagged"
+    },
+    {
+      "email": "jennifer.bearden@eeoc.gov",
+      "contactId": "EG1xhhikVYsUdDmshjdn",
+      "status": "tagged"
+    },
+    {
+      "email": "jeremy.kacuba19@gmail.com",
+      "contactId": "P4lSzBPONFpPlJ2uRmAb",
+      "status": "tagged"
+    },
+    {
+      "email": "jeremy.unruh@pharmacann.com",
+      "contactId": "4EhRwRJkxugAkAjdyotg",
+      "status": "tagged"
+    },
+    {
+      "email": "jess.alvillar@verano.com",
+      "contactId": "85NvxmHX5AQz2rxIa7t0",
+      "status": "tagged"
+    },
+    {
+      "email": "jessica.reuven@yumaway.com",
+      "contactId": "eHSMlKpYbezul21tNtf4",
+      "status": "tagged"
+    },
+    {
+      "email": "jessie.kater@curaleaf.com",
+      "contactId": "XklGXJofKARtSX8x9b6z",
+      "status": "tagged"
+    },
+    {
+      "email": "jet.phabmixay@usda.gov",
+      "contactId": "aX0EZeVoP46QjRHoGKiX",
+      "status": "tagged"
+    },
+    {
+      "email": "jmcbride@grassmonkeycc.com",
+      "contactId": "jsSSFQY9wLsYwV72OcQB",
+      "status": "tagged"
+    },
+    {
+      "email": "joey@kejboulegal.com",
+      "contactId": "EFsGBVAFkH3b8MgkGy5l",
+      "status": "tagged"
+    },
+    {
+      "email": "joey@theflowery.co",
+      "contactId": "xGnBXhv2SijrwfJbgJd9",
+      "status": "tagged"
+    },
+    {
+      "email": "john.schetz@crescolabs.com",
+      "contactId": "mb4CteL4jxluipF9Sn51",
+      "status": "tagged"
+    },
+    {
+      "email": "john@novafarms.com",
+      "contactId": "gPuDD4wimocZGxAKY2iz",
+      "status": "tagged"
+    },
+    {
+      "email": "johndmueller@gmail.com",
+      "contactId": "eTcpeGVw2vsmcFl7sbXd",
+      "status": "tagged"
+    },
+    {
+      "email": "jon.hulsey@greenlightdispensary.com",
+      "contactId": "aSvXivAVaYbiKwjzRck7",
+      "status": "tagged"
+    },
+    {
+      "email": "jonl@leaflinelabs.com",
+      "contactId": "nyDg2S0Hfamq4qZrd3jK",
+      "status": "tagged"
+    },
+    {
+      "email": "jonnytougeryang@hotmail.com",
+      "contactId": "AwoCdJnHF6xKbRzEEqWU",
+      "status": "tagged"
+    },
+    {
+      "email": "joshua.cason@standardwellness.com",
+      "contactId": "qKe5QkEv5vo6zH97zMux",
+      "status": "tagged"
+    },
+    {
+      "email": "joshua@sclabs.com",
+      "contactId": "gn7rhYJ0hwu9Z1X6KKBz",
+      "status": "tagged"
+    },
+    {
+      "email": "joshuaferranto@gmail.com",
+      "contactId": "9X1ClzDF3iuqvUq6HV0x",
+      "status": "tagged"
+    },
+    {
+      "email": "joyavzar@hotmail.com",
+      "contactId": "UkDsathhcf8DADNnDCNX",
+      "status": "tagged"
+    },
+    {
+      "email": "jpreston@smithers.com",
+      "contactId": "3a0HHV2ykQcpRd2W0RcC",
+      "status": "tagged"
+    },
+    {
+      "email": "jquick@cannapiece.ca",
+      "contactId": "qpkSv9zI5wWN7bBulrhn",
+      "status": "tagged"
+    },
+    {
+      "email": "jshimada@kivaconfections.com",
+      "contactId": "dEmQXFSxwQHK3LpUAvUH",
+      "status": "tagged"
+    },
+    {
+      "email": "judge@theorywellness.org",
+      "contactId": "vJl3Dw9C79jKryZVU87s",
+      "status": "tagged"
+    },
+    {
+      "email": "julien@awholdings.com",
+      "contactId": "DFHrmhWeek6F5SrTSVkQ",
+      "status": "tagged"
+    },
+    {
+      "email": "k-boniface@hotmail.com",
+      "contactId": "hRwkMi9CaQI351YeaBJq",
+      "status": "tagged"
+    },
+    {
+      "email": "kainsworth@cannabiscopack.com",
+      "contactId": "QiLp0vQERsvWsPdZtCng",
+      "status": "tagged"
+    },
+    {
+      "email": "kaitlyn.martin@verano.com",
+      "contactId": "p6xDy34jDJufLif6NlIX",
+      "status": "tagged"
+    },
+    {
+      "email": "kaleb.jones@verano.com",
+      "contactId": "U3MGHAhgCaCTgb0sSozh",
+      "status": "tagged"
+    },
+    {
+      "email": "kate.lloyd@gtigrows.com",
+      "contactId": "d0czsKdxZQT4k1GDIrTF",
+      "status": "tagged"
+    },
+    {
+      "email": "katie.rodrigues@norcalcann.com",
+      "contactId": "mC3Pk6M7hsSoUisGR9SS",
+      "status": "tagged"
+    },
+    {
+      "email": "katie@gnc.com",
+      "contactId": "yusa4NCJFmrsf8CXNv1r",
+      "status": "tagged"
+    },
+    {
+      "email": "kayann.tyssee@curaleaf.com",
+      "contactId": "JsxdlGjKQI9Mg87eAUDm",
+      "status": "tagged"
+    },
+    {
+      "email": "kcawley@foleyhoag.com",
+      "contactId": "zosvIcUR8rtw5ODmBHAV",
+      "status": "tagged"
+    },
+    {
+      "email": "kcompagna@marimedinc.com",
+      "contactId": "hs6ZDQqR2GoNEM1UIMzP",
+      "status": "tagged"
+    },
+    {
+      "email": "kcross@gooddayfarm.com",
+      "contactId": "AoYJ7IH9Rq7H29FRbQts",
+      "status": "tagged"
+    },
+    {
+      "email": "keeley.peckham@getfluent.com",
+      "contactId": "1tJqj0aa0d7yK73OAr24",
+      "status": "tagged"
+    },
+    {
+      "email": "keisha.wallis@2riverlabs.com",
+      "contactId": "k7I1UrFlNlAwjTH9MlGt",
+      "status": "tagged"
+    },
+    {
+      "email": "kevan.fisher@verano.com",
+      "contactId": "J754NFc1thBuSwWiuBmV",
+      "status": "tagged"
+    },
+    {
+      "email": "kevin.kuethe@instagram.com",
+      "contactId": "Oz7mhlIdjW44nfvZdBKd",
+      "status": "tagged"
+    },
+    {
+      "email": "kevin@organigram.ca",
+      "contactId": "XeuqpYPLZnMnZdjLmTJ1",
+      "status": "tagged"
+    },
+    {
+      "email": "kgorgin@awholdings.com",
+      "contactId": "u9fxHALhXmJNVW48aG3C",
+      "status": "tagged"
+    },
+    {
+      "email": "kmarsh@smithers.com",
+      "contactId": "CoTANtpOaJ4AjY8hRNNM",
+      "status": "tagged"
+    },
+    {
+      "email": "koziol@crescolabs.com",
+      "contactId": "jchJ67lJDeINxwXq0GZd",
+      "status": "tagged"
+    },
+    {
+      "email": "krampelberg@awholdings.com",
+      "contactId": "PfCmPdYv84GBoMKFp2Ck",
+      "status": "tagged"
+    },
+    {
+      "email": "krivera@col-care.com",
+      "contactId": "8D4SkOtvGFb4pnGJ7E5Z",
+      "status": "tagged"
+    },
+    {
+      "email": "kyle.landrum@trulieve.com",
+      "contactId": "05go2W0lOwlpXKPMII7M",
+      "status": "tagged"
+    },
+    {
+      "email": "l.sheckler@acreageholdings.com",
+      "contactId": "PL8alCxC27wNC1yCaUDp",
+      "status": "tagged"
+    },
+    {
+      "email": "landon@partakecannabis.ca",
+      "contactId": "h1Qf2lwGfCjXRnJ9vZpm",
+      "status": "tagged"
+    },
+    {
+      "email": "laura.kalesnik@verano.com",
+      "contactId": "dxOC9bYOG9cwAPPIwPn7",
+      "status": "tagged"
+    },
+    {
+      "email": "lauren.forenza@curaleaf.com",
+      "contactId": "FmsnlTuTatYtXU1j3zq1",
+      "status": "tagged"
+    },
+    {
+      "email": "lee@looshbrands.com",
+      "contactId": "GDDDmXbMlHBHPmhg5Crx",
+      "status": "tagged"
+    },
+    {
+      "email": "lembley@purecare.com",
+      "contactId": "o5swvB6cpM6uB32lhSjj",
+      "status": "tagged"
+    },
+    {
+      "email": "leslieb@jcgreen.ca",
+      "contactId": "ofzgqddjZuca0h3OyQyi",
+      "status": "tagged"
+    },
+    {
+      "email": "lhaley@darkhorsemedicinals.com",
+      "contactId": "hbcQFKlWR6m5jWXPaisC",
+      "status": "tagged"
+    },
+    {
+      "email": "lord@gripcannabis.com",
+      "contactId": "Ez80BdQGjCDALW0AnFZ1",
+      "status": "tagged"
+    },
+    {
+      "email": "lqhenry@gmail.com",
+      "contactId": "M1XMGJlw5hgs9ibOpO9b",
+      "status": "tagged"
+    },
+    {
+      "email": "lsebald@illicitgardens.com",
+      "contactId": "ScPtRKmvITyac8XGvQ3e",
+      "status": "tagged"
+    },
+    {
+      "email": "lucas.chapman@crescolabs.com",
+      "contactId": "o2ooJlAEMzY7D8T2wRsx",
+      "status": "tagged"
+    },
+    {
+      "email": "lverbeem@agmedica.ca",
+      "contactId": "H5UvXBettMdAFSp5Gkww",
+      "status": "tagged"
+    },
+    {
+      "email": "lynchchrisj@gmail.com",
+      "contactId": "X2dtUf5khn7YuWx55Psk",
+      "status": "tagged"
+    },
+    {
+      "email": "lynngefen@yahoo.com",
+      "contactId": "Wou4NZ1569apbzdm9NFB",
+      "status": "tagged"
+    },
+    {
+      "email": "mackenzie.wilcox@pharmacann.com",
+      "contactId": "nBgPd3j8Ic7OvdAN1No5",
+      "status": "tagged"
+    },
+    {
+      "email": "magicmarleygreenreleaf@gmail.com",
+      "contactId": "jnaJIuq9SM5H3QCpdq5o",
+      "status": "tagged"
+    },
+    {
+      "email": "mallen@countyofcolusaca.gov",
+      "contactId": "EbQDNfWWKRjS1piW2TEZ",
+      "status": "tagged"
+    },
+    {
+      "email": "marcel.bonn-miller@charlottesweb.com",
+      "contactId": "il9CV026smSLhErnMyqF",
+      "status": "tagged"
+    },
+    {
+      "email": "margaret.r@globalwidget.com",
+      "contactId": "tUuEYDeDd7rI34zCQD5U",
+      "status": "tagged"
+    },
+    {
+      "email": "mark@stiiizy.com",
+      "contactId": "ZU0gQ5iJPQXVvJusHvif",
+      "status": "tagged"
+    },
+    {
+      "email": "marta@organigram.ca",
+      "contactId": "8arg93scG08BdWdcDixA",
+      "status": "tagged"
+    },
+    {
+      "email": "mascohoran@gmail.com",
+      "contactId": "0NQQcaY44nftKWuZ4EBo",
+      "status": "tagged"
+    },
+    {
+      "email": "matt@ayrwellness.com",
+      "contactId": "JMYjT4i0JuKgbAqI3SXo",
+      "status": "tagged"
+    },
+    {
+      "email": "matthew.husson@sndl.com",
+      "contactId": "LTx31i5SchX7w9UbtIMx",
+      "status": "tagged"
+    },
+    {
+      "email": "maxwell.salinger@crescolabs.com",
+      "contactId": "aNOge93g0J2sj2PWEHPY",
+      "status": "tagged"
+    },
+    {
+      "email": "mbowman@ftemo.com",
+      "contactId": "stTUBYaInoSuypZWpjE6",
+      "status": "tagged"
+    },
+    {
+      "email": "medshop405@gmail.com",
+      "contactId": "QvtchaMXlomRnKMhvbPM",
+      "status": "tagged"
+    },
+    {
+      "email": "mejias@jamesriverlaw.com",
+      "contactId": "2Uw8h9ujzPqCuoRxd9vW",
+      "status": "tagged"
+    },
+    {
+      "email": "melissa.polak@auroramj.com",
+      "contactId": "bEucjEB9QaD7AuIaNXaA",
+      "status": "tagged"
+    },
+    {
+      "email": "melissa.reilly@judiciary.state.nj.us",
+      "contactId": "9Y5IQ6kY2S1csSzfAXy9",
+      "status": "tagged"
+    },
+    {
+      "email": "melvyn.mina@redwhitebloom.com",
+      "contactId": "oHnMHpitM6SX1NzUeG5r",
+      "status": "tagged"
+    },
+    {
+      "email": "mgoulet@mtlcannabis.ca",
+      "contactId": "BGkWSxb5Eyu9LJD7MPZI",
+      "status": "tagged"
+    },
+    {
+      "email": "michael.schower@ianthus.com",
+      "contactId": "hyA5q6iMTzAV49Q6kRCP",
+      "status": "tagged"
+    },
+    {
+      "email": "michael.sosso@bp.com",
+      "contactId": "CJEIXLvKLBK62vyAjDND",
+      "status": "tagged"
+    },
+    {
+      "email": "michael.sun@decibelcc.com",
+      "contactId": "fvBuXZv0xdJfKaFNNaHo",
+      "status": "tagged"
+    },
+    {
+      "email": "michael@millerfamco.com",
+      "contactId": "R1szyKVu4PTTt1SsnSyV",
+      "status": "tagged"
+    },
+    {
+      "email": "michelle.garcia@verano.com",
+      "contactId": "SjkOQKnCr2e8o9PKIH3W",
+      "status": "tagged"
+    },
+    {
+      "email": "mike@cookies.co",
+      "contactId": "unXsCHZJhW6J14aqXcgf",
+      "status": "tagged"
+    },
+    {
+      "email": "mikky@rubiconorganics.com",
+      "contactId": "rNfloH9jGOM1wSgQVlXX",
+      "status": "tagged"
+    },
+    {
+      "email": "milesorourke@gmail.com",
+      "contactId": "745WYE1AfJtcJCxzPCr9",
+      "status": "tagged"
+    },
+    {
+      "email": "miller@saul.com",
+      "contactId": "CwDbxsOsZX0e8j1nm2Ym",
+      "status": "tagged"
+    },
+    {
+      "email": "mitchel.kay@ptsgrows.com",
+      "contactId": "ADdvpwrTOHwRMIXsCmmx",
+      "status": "tagged"
+    },
+    {
+      "email": "mitchell.gendel@tilray.com",
+      "contactId": "SAR5as1PGoYohIRixJ80",
+      "status": "tagged"
+    },
+    {
+      "email": "mleeth@jushico.com",
+      "contactId": "QOm7rQlvziKIKCkUQRvH",
+      "status": "tagged"
+    },
+    {
+      "email": "mmartinez@charlottesweb.com",
+      "contactId": "Vn6OdorCmYBIXeIDAyBi",
+      "status": "tagged"
+    },
+    {
+      "email": "mmclaurin@gooddayfarm.com",
+      "contactId": "EnwZUMqbotxnPUvRpRXU",
+      "status": "tagged"
+    },
+    {
+      "email": "mstevens@tgscolorado.com",
+      "contactId": "qif1g8F6GPg1I0z2in0r",
+      "status": "tagged"
+    },
+    {
+      "email": "mtolmie20@gmail.com",
+      "contactId": "H4rxtA7ZpJfMFqLD9C3X",
+      "status": "tagged"
+    },
+    {
+      "email": "mweinstein@gloriouscanna.com",
+      "contactId": "KMaIplGvJmrdd3UPgF9Z",
+      "status": "tagged"
+    },
+    {
+      "email": "najat@elitemich.com",
+      "contactId": "BpuFmvW17VjJIUMvn2Fi",
+      "status": "tagged"
+    },
+    {
+      "email": "narek@shevinlaw.com",
+      "contactId": "nCV0oHGLykSlXTbqWxK1",
+      "status": "tagged"
+    },
+    {
+      "email": "nate.fete@pharmacann.com",
+      "contactId": "PuZja8POiPnGGRxfAAMT",
+      "status": "tagged"
+    },
+    {
+      "email": "nate@jettyextracts.com",
+      "contactId": "ezvRzusQfiFobQNBUjXF",
+      "status": "tagged"
+    },
+    {
+      "email": "nathalie.clark@auroramj.com",
+      "contactId": "YrLHiM2tfAkIwGqBIWnp",
+      "status": "tagged"
+    },
+    {
+      "email": "nathan.gerhardt@charlottesweb.com",
+      "contactId": "YfD5rb40vrjAjNm1AUzt",
+      "status": "tagged"
+    },
+    {
+      "email": "natureslabextracts@gmail.com",
+      "contactId": "UJcbl38KNbiTAOXN7Aye",
+      "status": "tagged"
+    },
+    {
+      "email": "neal.karkhanis@verano.com",
+      "contactId": "A2sK3JhUrOYHVSJjEZIS",
+      "status": "tagged"
+    },
+    {
+      "email": "neil.hagen@4frontventures.com",
+      "contactId": "DVPZ8ycY8yA3S73Q1Y0F",
+      "status": "tagged"
+    },
+    {
+      "email": "nicholas.scavio@asu.edu",
+      "contactId": "jPv7EVVcYu3a11N4S11P",
+      "status": "tagged"
+    },
+    {
+      "email": "nichole.geary@verano.com",
+      "contactId": "uWpmso6WrTMoCP10MEJT",
+      "status": "tagged"
+    },
+    {
+      "email": "nick@v3-capital.com",
+      "contactId": "P3J89bN58uBasTJOfwuK",
+      "status": "tagged"
+    },
+    {
+      "email": "nina.fergus@curiowellness.com",
+      "contactId": "AxpesE08TQDDPq9e96ss",
+      "status": "tagged"
+    },
+    {
+      "email": "nischt@citizenbyklutch.com",
+      "contactId": "8BEunv0OYuV5NS8L6Aov",
+      "status": "tagged"
+    },
+    {
+      "email": "nkipper@finalbell.com",
+      "contactId": "L0X2qZyxel7jPdcADq83",
+      "status": "tagged"
+    },
+    {
+      "email": "noafalsabah@yahoo.com",
+      "contactId": "8qFfY4lsA4u8dw0UOZhT",
+      "status": "tagged"
+    },
+    {
+      "email": "npento@elevatecannabis.com",
+      "contactId": "Uw2MftyhWsE1B0sZmqrN",
+      "status": "tagged"
+    },
+    {
+      "email": "nsteel@gooddayfarm.com",
+      "contactId": "IoBaB7LKNWU6AIyvdoaV",
+      "status": "tagged"
+    },
+    {
+      "email": "okcdisp@yahoo.com",
+      "contactId": "uvXuQpvFgwIlLyyqa2iy",
+      "status": "tagged"
+    },
+    {
+      "email": "oklagromies@gmail.com",
+      "contactId": "FLizAMCCnU7Q45K2AmHo",
+      "status": "tagged"
+    },
+    {
+      "email": "p@shulmanrogers.com",
+      "contactId": "RaHMaDGrYxPw0ChSPXFQ",
+      "status": "tagged"
+    },
+    {
+      "email": "pamela@communitynewspapers.com",
+      "contactId": "lualaLSdI9vW28A84dgm",
+      "status": "tagged"
+    },
+    {
+      "email": "paul.ochsner@crescolabs.com",
+      "contactId": "Q0DIAquRi3gJ9roH6FN8",
+      "status": "tagged"
+    },
+    {
+      "email": "paul@rockinextracts.com",
+      "contactId": "K9ehKRpaJfLJ78KTb5pr",
+      "status": "tagged"
+    },
+    {
+      "email": "pclateman@curaleaf.com",
+      "contactId": "JAdxTNmhDF1rrvhLGqP7",
+      "status": "tagged"
+    },
+    {
+      "email": "pcordery@gloriouscanna.com",
+      "contactId": "MWS69oenDfMe1m89kYIk",
+      "status": "tagged"
+    },
+    {
+      "email": "peibob@gmail.com",
+      "contactId": "pBEEjdK2rhbxhYbkGkXG",
+      "status": "tagged"
+    },
+    {
+      "email": "peter@bloommedicinals.com",
+      "contactId": "ypXXY4h7IcdGLVr0PcBO",
+      "status": "tagged"
+    },
+    {
+      "email": "pharris@liveparallel.com",
+      "contactId": "L9RTZVnK90VHz93e6du2",
+      "status": "tagged"
+    },
+    {
+      "email": "phil.huff@gtigrows.com",
+      "contactId": "ZLsLpmrQ9WRfNTyVkMY8",
+      "status": "tagged"
+    },
+    {
+      "email": "phillip.hague@goldflora.com",
+      "contactId": "oyVlnWASVZ8x6E6mlOK7",
+      "status": "tagged"
+    },
+    {
+      "email": "phitson@carltonfields.com",
+      "contactId": "KVKG4UESldXR3Z90PeCF",
+      "status": "tagged"
+    },
+    {
+      "email": "pmcmillan84@gmail.com",
+      "contactId": "ZcAfadWpDwrxzkKfqxLD",
+      "status": "tagged"
+    },
+    {
+      "email": "porschedockaplan@gmail.com",
+      "contactId": "K5fgGRFXpg1SCpP0eyGm",
+      "status": "tagged"
+    },
+    {
+      "email": "puzzled@mail.com",
+      "contactId": "VHv9rnyOvUlzWcyjyAtU",
+      "status": "tagged"
+    },
+    {
+      "email": "quinn@haloco.com",
+      "contactId": "7cHdMEycOD7qbWUftTHy",
+      "status": "tagged"
+    },
+    {
+      "email": "rachell@leaflinelabs.com",
+      "contactId": "nTEDcHWplxLmLav9LJcJ",
+      "status": "tagged"
+    },
+    {
+      "email": "rafael@greenscientificlabs.com",
+      "contactId": "Y1FoUBcu1Hq0sE0EHB8S",
+      "status": "tagged"
+    },
+    {
+      "email": "ranjit@sensibrands.ca",
+      "contactId": "soGMEAn9eqWw9vBd0GTz",
+      "status": "tagged"
+    },
+    {
+      "email": "ray.sitorius@charlottesweb.com",
+      "contactId": "GpE5yuFAouhbFozo7xrn",
+      "status": "tagged"
+    },
+    {
+      "email": "rbaca@unrivaledbrands.com",
+      "contactId": "tWbpn24BHRqZcKvMROu1",
+      "status": "tagged"
+    },
+    {
+      "email": "rbaldwin@puresunfarms.com",
+      "contactId": "670mhVA7WiwXwfwrfQzA",
+      "status": "tagged"
+    },
+    {
+      "email": "rene@naturemedmo.com",
+      "contactId": "84tvXgpI4iwdVS1dmgsZ",
+      "status": "tagged"
+    },
+    {
+      "email": "renee.gomez@bp.com",
+      "contactId": "Xm8zx0Yx9Ysb5NhAnWuH",
+      "status": "tagged"
+    },
+    {
+      "email": "rey.lopez@curaleaf.com",
+      "contactId": "k0S5iwcn7GY3jZwvsj5f",
+      "status": "tagged"
+    },
+    {
+      "email": "rich.freeman@gtigrows.com",
+      "contactId": "CZm7yK8HtngynpYQ3UAP",
+      "status": "tagged"
+    },
+    {
+      "email": "richard@710labs.com",
+      "contactId": "EtSQPXYPV3GIiZ4kwYuw",
+      "status": "tagged"
+    },
+    {
+      "email": "richard@goldflora.com",
+      "contactId": "DaeTviEExDRjwVdDANF9",
+      "status": "tagged"
+    },
+    {
+      "email": "rmastropietro@tgod.ca",
+      "contactId": "D1gFt8nIaGgIgWt4GhMy",
+      "status": "tagged"
+    },
+    {
+      "email": "robert.nichols@siriusxm.com",
+      "contactId": "nfFiF63234qrZQC4v9qn",
+      "status": "tagged"
+    },
+    {
+      "email": "robert.wiebe2@loblaw.ca",
+      "contactId": "iTNn6bafIF9UJrcygPQw",
+      "status": "tagged"
+    },
+    {
+      "email": "robert.zuidervaartii@curaleaf.com",
+      "contactId": "HtobrfLwavje31XfyoIg",
+      "status": "tagged"
+    },
+    {
+      "email": "rupa.das@charlottesweb.com",
+      "contactId": "CxtuSBZ2WgHTpcAMFXQw",
+      "status": "tagged"
+    },
+    {
+      "email": "russ.thomas@sndl.com",
+      "contactId": "Z9i5Qwk8vBluHw3HG52M",
+      "status": "tagged"
+    },
+    {
+      "email": "rwfreeman2010@gmail.com",
+      "contactId": "UtpjBWg70Pwl0URTZRXL",
+      "status": "tagged"
+    },
+    {
+      "email": "ryan.bradley@organigram.ca",
+      "contactId": "aFNdKjvi9OpCpsPJSJeH",
+      "status": "tagged"
+    },
+    {
+      "email": "ryan.ewing@verano.com",
+      "contactId": "UGKUXGiJVFQQASAlknUj",
+      "status": "tagged"
+    },
+    {
+      "email": "ryan@verano.com",
+      "contactId": "cs8h9a0gU1Ni3IIX0dxa",
+      "status": "tagged"
+    },
+    {
+      "email": "sam.khichi@cvshealth.com",
+      "contactId": "I2aYkSiJlNIMJfJPH6C5",
+      "status": "tagged"
+    },
+    {
+      "email": "samantha.fisk@holisticindustries.com",
+      "contactId": "EM2DbB5kTnSN9x1niNTK",
+      "status": "tagged"
+    },
+    {
+      "email": "samer@gleaf.com",
+      "contactId": "fMRmwljsm6myt2PpEljM",
+      "status": "tagged"
+    },
+    {
+      "email": "sarah.eskandari@canopygrowth.com",
+      "contactId": "zaocDcgxhqsrYxfSHilt",
+      "status": "tagged"
+    },
+    {
+      "email": "sarah@trulieve.com",
+      "contactId": "oOGh7sVXp2LcDUfmxmtM",
+      "status": "tagged"
+    },
+    {
+      "email": "scernicek@manasupply.com",
+      "contactId": "5D5MqUVO97BIy5kK195h",
+      "status": "tagged"
+    },
+    {
+      "email": "scott@mcrlabs.com",
+      "contactId": "gswFwIif0nokb9S1Z18R",
+      "status": "tagged"
+    },
+    {
+      "email": "scottie.gordon@curaleaf.com",
+      "contactId": "ZInizyIHxrhzUjSlriQz",
+      "status": "tagged"
+    },
+    {
+      "email": "seseras@labware.com",
+      "contactId": "aBkyUQaJjDOvpQXMAJ8x",
+      "status": "tagged"
+    },
+    {
+      "email": "sgarner02@gmail.com",
+      "contactId": "Dt9id3IUQSCNbSzMjVJZ",
+      "status": "tagged"
+    },
+    {
+      "email": "sgoldman@kaychalabs.com",
+      "contactId": "oSSW6E4WuYxUeWtCvk8z",
+      "status": "tagged"
+    },
+    {
+      "email": "shawn.hebert@awholdings.com",
+      "contactId": "ZyAZdwWYcEuecwPREeOK",
+      "status": "tagged"
+    },
+    {
+      "email": "shawn@canopygrowth.com",
+      "contactId": "SAh9e9RAtSkQkIRnDhib",
+      "status": "tagged"
+    },
+    {
+      "email": "shoshanna.robinson@trulieve.com",
+      "contactId": "Dxx4HSbBsbsSzRc7kl1a",
+      "status": "tagged"
+    },
+    {
+      "email": "simone@canopygrowth.com",
+      "contactId": "tdRQzog3U1eiTphwQaTl",
+      "status": "tagged"
+    },
+    {
+      "email": "sjnicholls@sjlabsandanalytics.com",
+      "contactId": "RUpWu6fF5yzAKg0HIBiU",
+      "status": "tagged"
+    },
+    {
+      "email": "smith@sclabs.com",
+      "contactId": "nCX7MG5i96Qpez55XzDQ",
+      "status": "tagged"
+    },
+    {
+      "email": "soudabeh.tabrizi@cannara.ca",
+      "contactId": "CnVBPK092GsqUJGQdvAD",
+      "status": "tagged"
+    },
+    {
+      "email": "soufyan@edenenterprises.com",
+      "contactId": "1D0FcstbtKHKvvpNdvOS",
+      "status": "tagged"
+    },
+    {
+      "email": "sscott@ppr.bio",
+      "contactId": "5UUOyuQZYdgeFnpIl4ZZ",
+      "status": "tagged"
+    },
+    {
+      "email": "ssherman@sallybeauty.com",
+      "contactId": "CBQ2bOXXaLY2YqKhgigk",
+      "status": "tagged"
+    },
+    {
+      "email": "stacialyons@letsascend.com",
+      "contactId": "EidTzKGJEY4EiUPv2wxE",
+      "status": "tagged"
+    },
+    {
+      "email": "stephanie.daley@wanabrands.com",
+      "contactId": "EqXQlBnBVHXkOxNZblTB",
+      "status": "tagged"
+    },
+    {
+      "email": "steven.dorry@amspecgroup.com",
+      "contactId": "TNOSgnNyihJ4RZTIJrUM",
+      "status": "tagged"
+    },
+    {
+      "email": "tatevoganyan@gmail.com",
+      "contactId": "CVqjesyWBskqfT5EIjn8",
+      "status": "tagged"
+    },
+    {
+      "email": "tatiana.calvo@columbia.care",
+      "contactId": "LDBkEdZYDLxupUgfO8u7",
+      "status": "tagged"
+    },
+    {
+      "email": "tb@trichomeanalytical.com",
+      "contactId": "1zytz0arsU00ZoUKFMO8",
+      "status": "tagged"
+    },
+    {
+      "email": "tdoucet@thecronosgroup.com",
+      "contactId": "Ra0ExoPl32g1fnA3QrNq",
+      "status": "tagged"
+    },
+    {
+      "email": "teddyeblum@gmail.com",
+      "contactId": "BlvEelkLcaNUtihrS8qd",
+      "status": "tagged"
+    },
+    {
+      "email": "tessa.barnes@trulieve.com",
+      "contactId": "TlihZ7n4d1A3W2nYx6Sr",
+      "status": "tagged"
+    },
+    {
+      "email": "thecurecannabisco@gmail.com",
+      "contactId": "CpDxppUg8gw5jwUiykEo",
+      "status": "tagged"
+    },
+    {
+      "email": "thelindmans@gmail.com",
+      "contactId": "LbYYxGQzcigoqwk0Bjw2",
+      "status": "tagged"
+    },
+    {
+      "email": "thomasfpe@gmail.com",
+      "contactId": "1LHfcvPqEF1hzzwdXi5w",
+      "status": "tagged"
+    },
+    {
+      "email": "tiffany.newbern-johnson@gtigrows.com",
+      "contactId": "pghkxoBJoTQv6pP1Skwv",
+      "status": "tagged"
+    },
+    {
+      "email": "tig@shakecolab.com",
+      "contactId": "ZFgu4MWgQ7m1uLooe4ro",
+      "status": "tagged"
+    },
+    {
+      "email": "tkeefer@gtigrows.com",
+      "contactId": "Ms3TQBHCALGvmXtlYFjj",
+      "status": "tagged"
+    },
+    {
+      "email": "tlcoleman4@gmail.com",
+      "contactId": "Lqxmtko1YsPCoZz6z8mM",
+      "status": "tagged"
+    },
+    {
+      "email": "tobi_lebowitz@beaerospace.com",
+      "contactId": "5tTW3grs0PfHXzb4NoUX",
+      "status": "tagged"
+    },
+    {
+      "email": "todd@tidalhealth.ca",
+      "contactId": "YqdVulQGt2x34KLoavlf",
+      "status": "tagged"
+    },
+    {
+      "email": "tommy@5points.ca",
+      "contactId": "8MvOaJYsRKn0jbjmv2KN",
+      "status": "tagged"
+    },
+    {
+      "email": "tommynafso@gmail.com",
+      "contactId": "VKANEFv8cYECnrD31lt9",
+      "status": "tagged"
+    },
+    {
+      "email": "tonygeisler@vireohealth.com",
+      "contactId": "KOnqRQ8RYDw11JlRL5kg",
+      "status": "tagged"
+    },
+    {
+      "email": "topshelf@tsgrowers.com",
+      "contactId": "d3H6xPnfOqQXxrMvqWxt",
+      "status": "tagged"
+    },
+    {
+      "email": "travis.anderson@auroramj.com",
+      "contactId": "P4liud61En7JWlqb9LtV",
+      "status": "tagged"
+    },
+    {
+      "email": "troscetti@kraft.com",
+      "contactId": "5fQvjPpNbGuzGoovh52g",
+      "status": "tagged"
+    },
+    {
+      "email": "troyhenkel@sprouts.com",
+      "contactId": "G4l8Ng3f9KgQcoMyOwVF",
+      "status": "tagged"
+    },
+    {
+      "email": "tstuard@cannabiscured.com",
+      "contactId": "cxEOYeXJGWYfxzAtcoVN",
+      "status": "tagged"
+    },
+    {
+      "email": "tvaughan@liveparallel.com",
+      "contactId": "RMJ5Ev4rVc9CRUzIEPht",
+      "status": "tagged"
+    },
+    {
+      "email": "twoods@airfieldsupplyco.com",
+      "contactId": "sI7Buarg0DTtLU5mDmoD",
+      "status": "tagged"
+    },
+    {
+      "email": "valentin.rossel@amspecgroup.com",
+      "contactId": "cQnC4wKYU3UihwcIBPe1",
+      "status": "tagged"
+    },
+    {
+      "email": "vanessa.deschambault@cannara.ca",
+      "contactId": "r6WpKWdEAqUBJeiXK2Xh",
+      "status": "tagged"
+    },
+    {
+      "email": "vangeer@mtaonline.net",
+      "contactId": "qwX0JW2YPaNXCDAgCfam",
+      "status": "tagged"
+    },
+    {
+      "email": "victor.nascimento@gtigrows.com",
+      "contactId": "iMMltYYVIV6Yvdw7zdhO",
+      "status": "tagged"
+    },
+    {
+      "email": "victoria@carmelcannabis.ca",
+      "contactId": "q8nq5YMByJyokgiWLbnV",
+      "status": "tagged"
+    },
+    {
+      "email": "waseem@narcannabis.com",
+      "contactId": "Lqkxq82yRDzOUH5RgqHZ",
+      "status": "tagged"
+    },
+    {
+      "email": "william@bloomnetwork.io",
+      "contactId": "I9Yxd6pAeO4ophnN3e4N",
+      "status": "tagged"
+    },
+    {
+      "email": "wmullen@gooddayfarm.com",
+      "contactId": "vo02BXgkNAQX1M2fZvHW",
+      "status": "tagged"
+    },
+    {
+      "email": "yannicktremblay@labenvironex.com",
+      "contactId": "6DBZxHukpvJQCODZaKif",
+      "status": "tagged"
+    },
+    {
+      "email": "zachary@starbuds.us",
+      "contactId": "76iqFCpLz5CDyU1L8gZg",
+      "status": "tagged"
+    },
+    {
+      "email": "zobrist.caleb@gmail.com",
+      "contactId": "WVkaPbahZAmg1c7RUcY8",
+      "status": "tagged"
+    }
+  ]
+}

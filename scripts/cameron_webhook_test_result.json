@@ -1,0 +1,5 @@
+{
+  "ok": false,
+  "error": "missing_text",
+  "message": "Provide text/message/smsBody or a valid templateKey"
+}

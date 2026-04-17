@@ -13,6 +13,28 @@
 - Keep config values centralized in service `.env` files so future domain cutovers are small changes.
 
 ## Agent Tooling
+
+- This environment has MCP access to the live `n8n` instance via the `n8n-lt` MCP server entry in Codex config.
+- For this project, use `n8n-lt` as the canonical n8n MCP. Do not assume a generic `n8n` MCP target.
+- When workflow state or runtime behavior is relevant, use the `n8n-lt` MCP tools to verify actual instance state instead of guessing from local files.
+- This environment also has GHL MCP access.
+- Preferred GHL MCP for this location: `ghl_official`. Treat it as the primary MCP that is working against the valid PIT for the `Live Transparent` location.
+- Secondary GHL MCP: `ghl_workflows`. It is available and useful, but some endpoints may fail there even when the PIT itself is valid.
+- If a GHL MCP call returns scope/auth errors for an endpoint that should be available, verify whether the same endpoint works through direct GHL API before assuming the PIT is bad.
+- **Opencode MCP servers (persisted in `opencode.json`):**
+  - `ghl-lt` – GHL server using the PIT from `.env` (`pit-8a0de81d-3555-4909-a8eb-afecd3794828`).
+  - `n8n_mcp` – Remote n8n MCP (`https://automation.katwillservices.com.au/mcp-server/http`).
+  - `n8n_rest` – Local n8n REST MCP (`@leonardsellem/n8n-mcp-server`).
+  - `ref_http` – Reference HTTP MCP (`https://api.ref.tools/mcp`).
+  - `exa` – EXA AI MCP (`https://mcp.exa.ai/mcp`).
+  - `n8n-lt` – Live n8n instance (`https://automations.livetransparent.com/api/v1`).
+  - `apollo_io` – Apollo.io MCP (currently disabled).
+  - `ghl_official` – Primary GHL MCP (uses PIT and location ID from `.env`).
+  - `browsermcp` – Browser MCP (disabled).
+  - `ghl_workflows` – Secondary GHL MCP (uses same PIT, different wrapper).
+  - `chrome_devtools` – Chrome DevTools MCP.
+  - `playwright` – Playwright MCP.
+- The MCP definitions are stored in `C:\Users\edmon\.config\opencode\opencode.json` and will be retained across Opencode session restarts, ensuring that future sessions retain full context of available MCP servers.
 - This environment has MCP access to the live `n8n` instance via the `n8n-lt` MCP server entry in Codex config.
 - For this project, use `n8n-lt` as the canonical n8n MCP. Do not assume a generic `n8n` MCP target.
 - When workflow state or runtime behavior is relevant, use the `n8n-lt` MCP tools to verify actual instance state instead of guessing from local files.
@@ -107,6 +129,30 @@
   - Not committed to version control
   - Created: 2026-03-31
 - `GHL Live Transparent CRM/RB2B_Website_Visitor_Intake_Workflow.md`: Technical runbook for RB2B webhook intake, GHL reconciliation/tagging, Postgres upsert, and John follow-up task creation.
+- `Simpletext Automation description for adding into agents md later.md`: Technical summary of the GHL to n8n SMS enrollment workflow architecture.
+
+## SimpleTexting SMS Enrollment (Current)
+- **Objective**: Automatically enroll contacts into SMS sequences based on GHL opportunity stage changes in the `Sales Outreach` pipeline.
+- **GHL Workflow**: `WL - SMS Enrollment - Sales Outreach Stage Change`
+  - **Triggers**: Stage changed to `New`, `Attempting Contact 1st Attempt`, `2nd attempt`, or `3rd attempt`.
+  - **Eligibility Gates**: Has phone, NOT `Do Not Contact`, NOT `simpletext_stop`.
+  - **Apollo Enrichment Gate**: If not enriched, sets `Enrich Phone Via Apollo = Yes`, waits 1 minute, and re-checks before proceeding.
+  - **Segment Routing**: 8 branches mapping clean segment tags (e.g., `mso_executive`) to specific `templateKey` (e.g., `emerald_mso_executive_intro`) and `addTags` (e.g., `sms_sent_emerald_mso_executive_intro`).
+- **Tag Mapping (Clean)**:
+  - `MSO Executive` -> `mso_executive`
+  - `SSO Executive` -> `sso_executive`
+  - `MSO Marketing` -> `mso_marketing`
+  - `SSO Marketing` -> `sso_marketing`
+  - `MSO Finance` -> `mso_finance`
+  - `SSO Finance` -> `sso_finance`
+  - `MSO Retail & Sales` -> `mso_retail_sales`
+  - `SSO Retail & Sales` -> `sso_retail_sales`
+- **n8n Delivery Adapter**: `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`)
+  - **Webhook**: `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`
+  - **Business Hours**: Mon–Fri, 10am–5pm ET (enforced in n8n; outside hours = `outside_business_hours` error/block).
+  - **Idempotency**: Prevents duplicates via `sms_sent_*` tags checked in GHL and queue logic in n8n.
+  - **Logging**: Outbound/Inbound SMS and delivery events are logged to GHL contact notes.
+  - **Success Action**: `addTags` from the webhook payload are applied to the GHL contact only after a successful send.
 
 ## Emerald Canonical (Current)
 - Treat this section as the compact operational summary for Emerald. Keep deeper design detail in:
@@ -461,7 +507,7 @@
 - n8n workflow `LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)` (`0jDKgG8VvmfyORQn`) - inactive (seeded 2026-03-27, 20165 rows).
 
 **SimpleTexting Workflows (7):**
-- n8n workflow `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) - inactive/staged. Canonical outbound SimpleTexting delivery adapter. Receives webhook payloads, resolves `templateKey`, sends via SimpleTexting, and can sync GHL notes/tags.
+- n8n workflow `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) - **ACTIVE**. Canonical outbound SimpleTexting delivery adapter and SMS enrollment handler. Receives webhook payloads from GHL, enforces ET business hours, resolves `templateKey`, sends via SimpleTexting, logs to GHL notes, and adds success tags.
 - n8n workflow `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`) - active, `defaultDryRun=false`. Handles inbound reply callbacks from SimpleTexting and writes back to GHL.
 - n8n workflow `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`) - active, `defaultDryRun=false`. Handles delivery-status callbacks from SimpleTexting and is the right place to branch invalid-number remediation into Apollo phone enrichment.
 - n8n workflow `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`) - active, `defaultDryRun=false`. Handles unsubscribe callbacks and applies the stop-state back to GHL.
@@ -585,6 +631,7 @@
 - Validate/test active n8n warm intake tag webhooks; set `defaultDryRun=false` (or pass `dryRun=false`) only when ready for live intake tag writes.
 - Restart Codex/MCP session after updating `N8N_WEBHOOK_USERNAME` and `N8N_WEBHOOK_PASSWORD` in `~/.codex/config.toml` so `run_webhook` can execute authenticated tests.
 - End-to-end booking-path validation is complete for the regulated ads flow; continue to treat unrelated booking paths as unverified until checked live.
+- GHL workflow `WL - SMS Enrollment - Sales Outreach Stage Change`: **ACTIVE**. Automatically enrolls contacts into SimpleTexting sequences when their opportunity stage changes in the Sales Outreach pipeline. Features business hours gating, Apollo enrichment re-checks, and segment-based routing.
 
 ### n8n Intake Runtime Status (Verified `2026-02-26` via `n8n-lt`)
 - Website intake webhooks (active):

@@ -231,6 +231,12 @@ function bucketFromTags(tags) {
   if (raw.includes('cannabis-retail-sso-marketing-1')) {
     return { bucket: 'marketing_sso', queueTag: 'Enrollment Queue - Emerald - Marketing SSO' };
   }
+  if (raw.includes('cannabis-retail-mso-finance-1')) {
+    return { bucket: 'finance_mso', queueTag: 'Enrollment Queue - Emerald - Finance MSO' };
+  }
+  if (raw.includes('cannabis-retail-sso-finance-1')) {
+    return { bucket: 'finance_sso', queueTag: 'Enrollment Queue - Emerald - Finance SSO' };
+  }
   return { bucket: null, queueTag: null };
 }
 
@@ -415,7 +421,9 @@ ORDER BY
     WHEN 'executives_sso' THEN 2
     WHEN 'marketing_mso' THEN 3
     WHEN 'marketing_sso' THEN 4
-    ELSE 5
+    WHEN 'finance_mso' THEN 5
+    WHEN 'finance_sso' THEN 6
+    ELSE 7
   END ASC,
   campaign_row_id ASC
 LIMIT {{$item(0).$node["Config"].json.candidateLimit}};"""
@@ -463,6 +471,8 @@ const queueTagByBucket = {
   executives_sso: 'Enrollment Queue - Emerald - Executives SSO',
   marketing_mso: 'Enrollment Queue - Emerald - Marketing MSO',
   marketing_sso: 'Enrollment Queue - Emerald - Marketing SSO',
+  finance_mso: 'Enrollment Queue - Emerald - Finance MSO',
+  finance_sso: 'Enrollment Queue - Emerald - Finance SSO',
 };
 
 if (!locationId) throw new Error('Missing locationId');

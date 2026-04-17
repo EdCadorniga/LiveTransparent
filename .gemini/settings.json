@@ -1,4 +1,27 @@
 {
+  {
+    "modelProviders": {
+      "openai": [
+        {
+          "id": "openrouter",
+          "name": "OpenRouter",
+          "baseURL": "${env:OPENAI_BASE_URL}",
+          "apiKey": "${env:OPENAI_API_KEY}",
+          "models": [
+            {
+              "id": "qwen/qwen-2.5-72b-instruct",
+              "displayName": "Qwen 2.5 72B"
+            },
+            {
+              "id": "qwen/qwen-3.6-plus",
+              "displayName": "Qwen 3.6 Plus"
+            }
+          ]
+        }
+      ]
+    },
+    "defaultModel": "qwen/qwen-3.6-plus"
+  },
   "mcpServers": {
     "ref-http": {
       "url": "https://api.ref.tools/mcp?apiKey=ref-03da25e5b7f5b0dff139"
@@ -16,10 +39,26 @@
         "--streamableHttp",
         "https://automations.livetransparent.com/mcp-server/http",
         "--header",
-        "authorization:Bearer %N8N_MCP_ACCESS_TOKEN%"
+        "Authorization: Bearer %N8N_MCP_ACCESS_TOKEN%"
       ],
       "env": {
-        "N8N_MCP_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NjFmYjY1NS1iMTc2LTRkNjMtYTRlZC0zY2M2NmUyNzk2NDIiLCJpc3MiOiJuOG4iLCJhdWQiOiJtY3Atc2VydmVyLWFwaSIsImp0aSI6Ijg2OTUxNWNlLTEyMDktNDUwNy05ZTk4LWRjZDM2YzJhMmQ3ZiIsImlhdCI6MTc3NDU1ODExMH0.GyKyuFwB9M08p738izYTUy1tnqDugPP7wtPqV2xpFnQ"
+        "N8N_MCP_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NjFmYjY1NS1iMTc2LTRkNjMtYTRlZC0zY2M2NmUyNzk2NDIiLCJpc3MiOiJuOG4iLCJhdWQiOiJtY3Atc2VydmVyLWFwaSIsImp0aSI6IjliOWJjYjViLTdjMGMtNGNjMC1hMDcwLWRkODVmNTA2MDUyMCIsImlhdCI6MTc3NTgzOTYwNn0.f31LYQjm86A347BPUc8Ze8ljp55IyY7J6704Czfu108"
+      }
+    },
+    "n8n-katwill": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "supergateway",
+        "--streamableHttp",
+        "https://automation.katwillservices.com.au/mcp-server/http",
+        "--header",
+        "authorization:Bearer %N8N_KATWILL_MCP_ACCESS_TOKEN%"
+      ],
+      "env": {
+        "N8N_KATWILL_MCP_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkOWJhNDc2NC0yYjI2LTRjOGMtODYyZi0zNjBiZWU3NWRlMjMiLCJpc3MiOiJuOG4iLCJhdWQiOiJtY3Atc2VydmVyLWFwaSIsImp0aSI6IjA5NDAzZGQ3LTYyYzYtNGQzYy1hMTU3LTg0ZjQzMDA3OWM0MCIsImlhdCI6MTc3NTcxMzE1MX0.UVKkSY6Sm-6zExqDdw5b-eKJIXQBB9845gpkbNdhFso"
       }
     },
     "ghl-official": {
@@ -40,7 +79,7 @@
         "GHL_PIT": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
       }
     },
-    "chrome-devtools": {
+   "chrome-devtools": {
       "command": "cmd",
       "args": [
         "/c",
@@ -49,15 +88,15 @@
         "chrome-devtools-mcp@latest"
       ]
     },
-    "playwright": {
+    "playwright-cli": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest"
+        "@playwright/cli"
       ]
     }
   },
   "disabledMcpServers": {
-    "n8n-mcp": {
+    "n8n_mcp": {
       "command": "cmd",
       "args": [
         "/c",

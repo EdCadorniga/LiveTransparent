@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "dryRun": false,
+  "action": "message_sent",
+  "provider": "SimpleTexting",
+  "endpoint": "messages",
+  "contactPhone": "7144696406",
+  "accountPhone": "",
+  "campaignKey": "",
+  "externalId": "",
+  "senderLabel": "SimpleTexting",
+  "templateKey": "john_sms4",
+  "templateName": "John SMS 4 - Last Follow-up",
+  "textLength": 79,
+  "mediaItems": [],
+  "providerResponse": {
+    "id": "69e119064da1da386d789776",
+    "credits": 499
+  },
+  "providerMessageId": "69e119064da1da386d789776",
+  "ghlNoteSync": {
+    "attempted": true,
+    "contactId": "OSpiqFuZ1ISq3xEwh6rA",
+    "resolvedVia": "phone_lookup",
+    "ok": true,
+    "details": {
+      "id": "AMpTEQrGY8vUQWWnXfe2",
+      "body": "SMS sent via SimpleTexting\nSent At: 2026-04-16T17:14:46.613Z\nTo: +1 714-469-6406\nProvider Message ID: 69e119064da1da386d789776\nTemplate: John SMS 4 - Last Follow-up\nMessage:\nHi —last follow-up on cannabis ads. Is it timing, or is there a better contact?",
+      "bodyText": "SMS sent via SimpleTexting\nSent At: 2026-04-16T17:14:46.613Z\nTo: +1 714-469-6406\nProvider Message ID: 69e119064da1da386d789776\nTemplate: John SMS 4 - Last Follow-up\nMessage:\nHi —last follow-up on cannabis ads. Is it timing, or is there a better contact?",
+      "userId": null,
+      "dateAdded": "2026-04-16T17:14:46.708Z",
+      "contactId": "OSpiqFuZ1ISq3xEwh6rA",
+      "pinned": false,
+      "relations": []
+    }
+  },
+  "ghlTagSync": {
+    "attempted": false,
+    "contactId": "OSpiqFuZ1ISq3xEwh6rA",
+    "added": [],
+    "removed": [],
+    "addOk": false,
+    "removeOk": false
+  }
+}
