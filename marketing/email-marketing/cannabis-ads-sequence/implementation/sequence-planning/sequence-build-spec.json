@@ -1,0 +1,216 @@
+{
+  "build_spec": {
+    "spec_version": "1.0.0",
+    "sequence_key": "seq_{{NAME_SLUG}}",
+    "location_id": "{{LOCATION_ID}}",
+    "sequence": {
+      "name": "{{NAME}}",
+      "status": "draft",
+      "timezone": "{{TZ}}",
+      "audience_definition": "{{AUDIENCE}}",
+      "business_context": "{{CONTEXT}}",
+      "compliance_notes": "{{COMPLIANCE}}",
+      "settings": {
+        "from_name": "{{FROM_NAME}}",
+        "from_email": "{{FROM_EMAIL}}",
+        "reply_to": "{{REPLY_TO}}",
+        "sending_domain": "{{SENDING_DOMAIN}}",
+        "stop_on_reply": true,
+        "stop_on_bounce": true,
+        "max_emails_per_day": "{{N}}"
+      }
+    },
+    "steps": [
+      {
+        "step_key": "step_01_email",
+        "type": "email",
+        "delay": {
+          "unit": "minutes",
+          "value": 0
+        },
+        "email": {
+          "template_key": "tmpl_step_01",
+          "subject": "{{SUBJECT_1}}",
+          "preview_text": "{{PREVIEW_1}}",
+          "body_text": "Hi {{contact.first_name | default:'there'}},\n\n{{EMAIL_1_PLAIN_BODY}}\n\n{{FROM_NAME}}",
+          "body_html": "<!doctype html><html><body><p>Hi {{contact.first_name | default:'there'}},</p><p>{{EMAIL_1_HTML_BODY}}</p><p>{{FROM_NAME}}</p></body></html>"
+        }
+      },
+      {
+        "step_key": "step_02_wait",
+        "type": "wait",
+        "delay": {
+          "unit": "hours",
+          "value": "{{HOURS_1}}"
+        }
+      },
+      {
+        "step_key": "step_03_email",
+        "type": "email",
+        "delay": {
+          "unit": "minutes",
+          "value": 0
+        },
+        "email": {
+          "template_key": "tmpl_step_03",
+          "subject": "{{SUBJECT_2}}",
+          "preview_text": "{{PREVIEW_2}}",
+          "body_text": "Hi {{contact.first_name | default:'there'}},\n\n{{EMAIL_2_PLAIN_BODY}}\n\n{{FROM_NAME}}",
+          "body_html": "<!doctype html><html><body><p>Hi {{contact.first_name | default:'there'}},</p><p>{{EMAIL_2_HTML_BODY}}</p><p>{{FROM_NAME}}</p></body></html>"
+        }
+      },
+      {
+        "step_key": "step_04_wait",
+        "type": "wait",
+        "delay": {
+          "unit": "hours",
+          "value": "{{HOURS_2}}"
+        }
+      },
+      {
+        "step_key": "step_05_email",
+        "type": "email",
+        "delay": {
+          "unit": "minutes",
+          "value": 0
+        },
+        "email": {
+          "template_key": "tmpl_step_05",
+          "subject": "{{SUBJECT_3}}",
+          "preview_text": "{{PREVIEW_3}}",
+          "body_text": "Hi {{contact.first_name | default:'there'}},\n\n{{EMAIL_3_PLAIN_BODY}}\n\n{{FROM_NAME}}",
+          "body_html": "<!doctype html><html><body><p>Hi {{contact.first_name | default:'there'}},</p><p>{{EMAIL_3_HTML_BODY}}</p><p>{{FROM_NAME}}</p></body></html>"
+        }
+      }
+    ]
+  },
+  "validation_rules": {
+    "required_fields": [
+      "location_id",
+      "sequence.name",
+      "sequence.timezone",
+      "sequence.settings.from_name",
+      "sequence.settings.from_email",
+      "sequence.settings.reply_to",
+      "sequence.settings.sending_domain",
+      "sequence.settings.stop_on_reply",
+      "sequence.settings.stop_on_bounce",
+      "sequence.settings.max_emails_per_day",
+      "sequence.audience_definition",
+      "sequence.business_context",
+      "sequence.compliance_notes",
+      "steps"
+    ],
+    "constraints": {
+      "location_id": {
+        "type": "string",
+        "min_length": 1
+      },
+      "sequence.name": {
+        "type": "string",
+        "min_length": 3,
+        "max_length": 120
+      },
+      "sequence.timezone": {
+        "type": "string",
+        "format": "iana_timezone"
+      },
+      "sequence.settings.from_email": {
+        "type": "string",
+        "format": "email"
+      },
+      "sequence.settings.reply_to": {
+        "type": "string",
+        "format": "email"
+      },
+      "sequence.settings.sending_domain": {
+        "type": "string",
+        "format": "hostname",
+        "must_not_include_protocol": true
+      },
+      "sequence.settings.stop_on_reply": {
+        "type": "boolean",
+        "equals": true
+      },
+      "sequence.settings.stop_on_bounce": {
+        "type": "boolean",
+        "equals": true
+      },
+      "sequence.settings.max_emails_per_day": {
+        "type": "integer",
+        "min": 1,
+        "max": 5000
+      },
+      "steps": {
+        "type": "array",
+        "exact_length": 5,
+        "step_order_must_equal": [
+          "step_01_email",
+          "step_02_wait",
+          "step_03_email",
+          "step_04_wait",
+          "step_05_email"
+        ]
+      },
+      "steps[*].step_key": {
+        "type": "string",
+        "pattern": "^step_[0-9]{2}_(email|wait)$",
+        "unique": true
+      },
+      "steps[type=email]": {
+        "required_fields": [
+          "email.subject",
+          "email.preview_text",
+          "email.body_text",
+          "email.body_html",
+          "email.template_key"
+        ]
+      },
+      "steps[type=email].email.subject": {
+        "type": "string",
+        "min_length": 3,
+        "max_length": 120
+      },
+      "steps[type=email].email.preview_text": {
+        "type": "string",
+        "min_length": 0,
+        "max_length": 150
+      },
+      "steps[type=email].email.body_text": {
+        "type": "string",
+        "min_length": 20
+      },
+      "steps[type=email].email.body_html": {
+        "type": "string",
+        "must_include": [
+          "<html",
+          "</html>"
+        ]
+      },
+      "steps[type=wait].delay.unit": {
+        "type": "string",
+        "allowed_values": [
+          "hours"
+        ]
+      },
+      "steps[type=wait].delay.value": {
+        "type": "integer",
+        "min": 1,
+        "max": 720
+      },
+      "step_01_email.delay.value": {
+        "type": "integer",
+        "equals": 0
+      },
+      "compliance_guardrails": {
+        "must_reference": [
+          "sequence.compliance_notes"
+        ],
+        "forbidden_patterns_in_email": [
+          "(?i)guaranteed results",
+          "(?i)risk[- ]free earnings"
+        ]
+      }
+    }
+  }
+}

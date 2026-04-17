@@ -1,0 +1,139 @@
+{
+  "preflight_report": {
+    "report_version": "1.0.0",
+    "source_spec_path": "ghl create sequence plan/sequence-build-spec.json",
+    "status": "blocked_waiting_for_concrete_values",
+    "timestamp_utc": "2026-02-11T00:00:00Z",
+    "blocking_reasons": [
+      "build_spec.location_id is a placeholder: {{LOCATION_ID}}",
+      "build_spec.sequence.name is a placeholder: {{NAME}}",
+      "build_spec.sequence.settings.from_email is a placeholder: {{FROM_EMAIL}}",
+      "build_spec.sequence.settings.reply_to is a placeholder: {{REPLY_TO}}",
+      "build_spec.sequence.settings.sending_domain is a placeholder: {{SENDING_DOMAIN}}",
+      "wait delays contain placeholders: {{HOURS_1}}, {{HOURS_2}}"
+    ],
+    "checks": {
+      "location_exists_and_accessible": {
+        "status": "blocked",
+        "tool": "mcp__ghl_official__locations_get-location",
+        "required_runtime_value": "path_locationId"
+      },
+      "sending_domain_verified": {
+        "status": "not_supported_by_exposed_mcp_tools",
+        "details": "No exposed GHL MCP endpoint in this session verifies LC email sending-domain authentication status."
+      },
+      "from_email_allowed_supported": {
+        "status": "blocked_or_indirect_only",
+        "details": "No direct exposed GHL MCP validator for allowed sender identity in this session; can only infer during template send/create operations once concrete values are supplied."
+      },
+      "required_assets_exist_or_will_be_created": {
+        "status": "partial",
+        "details": "Email templates can be searched/created via exposed tools. Sequence/campaign/step creation tools are not exposed."
+      },
+      "sequence_name_collision": {
+        "status": "not_supported_by_exposed_mcp_tools",
+        "details": "No exposed sequence/campaign list/search endpoint to detect collisions by sequence name."
+      },
+      "unsupported_fields_vs_exposed_tools": {
+        "status": "complete",
+        "unsupported_or_unmappable_fields": [
+          "build_spec.sequence.status (draft sequence state not mappable without sequence endpoints)",
+          "build_spec.sequence.timezone (no sequence endpoint exposed)",
+          "build_spec.sequence.audience_definition (no sequence enroll/audience endpoint exposed)",
+          "build_spec.sequence.business_context (content input only)",
+          "build_spec.sequence.compliance_notes (content/policy input only)",
+          "build_spec.sequence.settings.stop_on_reply (no sequence control endpoint exposed)",
+          "build_spec.sequence.settings.stop_on_bounce (no sequence control endpoint exposed)",
+          "build_spec.sequence.settings.max_emails_per_day (no sequence throttle endpoint exposed)",
+          "build_spec.steps[*] as sequence steps (no sequence step CRUD endpoints exposed)"
+        ],
+        "supported_fields_with_exposed_tools": [
+          "location_id via locations_get-location",
+          "email template data via emails_fetch-template and emails_create-template"
+        ]
+      }
+    }
+  },
+  "deterministic_execution_plan": [
+    {
+      "order": 1,
+      "tool": "mcp__ghl_official__locations_get-location",
+      "mode": "read",
+      "params": {
+        "path_locationId": "{{LOCATION_ID}}"
+      },
+      "purpose": "Validate location exists and access is permitted."
+    },
+    {
+      "order": 2,
+      "tool": "mcp__ghl_official__emails_fetch-template",
+      "mode": "read",
+      "params": {
+        "query_locationId": "{{LOCATION_ID}}",
+        "query_search": "{{NAME}}",
+        "query_limit": "100",
+        "query_offset": "0"
+      },
+      "purpose": "Detect potential template naming collisions and existing reusable assets."
+    },
+    {
+      "order": 3,
+      "tool": "mcp__ghl_official__emails_create-template",
+      "mode": "write",
+      "params": {
+        "body_type": "html",
+        "body_importProvider": "mailchimp",
+        "body_locationId": "{{LOCATION_ID}}",
+        "body_name": "{{NAME}} - Step 01",
+        "body_title": "{{SUBJECT_1}}"
+      },
+      "purpose": "Create template for step_01_email if absent.",
+      "execute_condition": "only_if_missing"
+    },
+    {
+      "order": 4,
+      "tool": "mcp__ghl_official__emails_create-template",
+      "mode": "write",
+      "params": {
+        "body_type": "html",
+        "body_importProvider": "mailchimp",
+        "body_locationId": "{{LOCATION_ID}}",
+        "body_name": "{{NAME}} - Step 03",
+        "body_title": "{{SUBJECT_2}}"
+      },
+      "purpose": "Create template for step_03_email if absent.",
+      "execute_condition": "only_if_missing"
+    },
+    {
+      "order": 5,
+      "tool": "mcp__ghl_official__emails_create-template",
+      "mode": "write",
+      "params": {
+        "body_type": "html",
+        "body_importProvider": "mailchimp",
+        "body_locationId": "{{LOCATION_ID}}",
+        "body_name": "{{NAME}} - Step 05",
+        "body_title": "{{SUBJECT_3}}"
+      },
+      "purpose": "Create template for step_05_email if absent.",
+      "execute_condition": "only_if_missing"
+    },
+    {
+      "order": 6,
+      "tool": "UNAVAILABLE_IN_EXPOSED_GHL_MCP",
+      "mode": "write",
+      "params": {
+        "sequence_name": "{{NAME}}",
+        "step_graph": [
+          "step_01_email",
+          "step_02_wait",
+          "step_03_email",
+          "step_04_wait",
+          "step_05_email"
+        ]
+      },
+      "purpose": "Create sequence and steps.",
+      "blocking_reason": "No sequence/campaign/step/workflow enroll endpoints are exposed in current GHL MCP toolset."
+    }
+  ]
+}

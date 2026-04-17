@@ -1,0 +1,25 @@
+﻿{
+    "generated_at_utc":  "2026-02-20T04:11:00.4802210Z",
+    "workbook":  "C:\\Users\\edmon\\OneDrive\\Documents\\Projects\\LiveTransparent\\Cold-outreach contacts.xlsx",
+    "total_rows":  1430,
+    "dedup_rows":  1413,
+    "duplicate_rows":  17,
+    "unique_email_keys":  1413,
+    "sheets":  [
+                   {
+                       "tag_default":  "100M+, cold-outreach",
+                       "name":  "100m+$",
+                       "rows":  1207
+                   },
+                   {
+                       "tag_default":  "10-100M, cold-outreach",
+                       "name":  "10-100m$",
+                       "rows":  223
+                   }
+               ],
+    "outputs":  {
+                    "report_dir":  "C:\\Users\\edmon\\OneDrive\\Documents\\Projects\\LiveTransparent\\cold-outreach-prep\\reports",
+                    "ghl_dir":  "C:\\Users\\edmon\\OneDrive\\Documents\\Projects\\LiveTransparent\\cold-outreach-prep\\ghl",
+                    "postgres_dir":  "C:\\Users\\edmon\\OneDrive\\Documents\\Projects\\LiveTransparent\\cold-outreach-prep\\postgres"
+                }
+}

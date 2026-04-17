@@ -89,13 +89,58 @@
 - Keep Docker and service-specific assets under their service folders (for example, `n8n/` and `postgres/`).
 - Place service docs close to the service they describe.
 - Keep knowledgebase deployment assets under `bookstack/`.
+- Keep marketing assets under `marketing/`:
+  - `marketing/strategy/` for brand, ICP, funnel, and positioning docs
+  - `marketing/email-marketing/` for email batches, templates, and implementation notes
+  - `marketing/sms-marketing/` for SMS batches, consent copy, and delivery notes
+  - `marketing/automation/` for shared marketing helper scripts and workflow patch utilities
+  - `marketing/website/` for website chatbot plans and website asset libraries
+- The old root-level marketing workspaces were consolidated into the new hierarchy and should not be recreated at the repo root:
+  - `Marketing Docs/` -> `marketing/strategy/`
+  - `EMAIL templates/` -> `marketing/email-marketing/cannabis-ads-sequence/source/`
+  - `email-templates/` -> `marketing/email-marketing/contact-list-v5/email-templates/`
+  - `ghl create sequence plan/` -> `marketing/email-marketing/cannabis-ads-sequence/implementation/sequence-planning/`
+  - `contact-list-v5/` -> `marketing/email-marketing/contact-list-v5/`
+  - `Emerald Contacts/` -> `marketing/email-marketing/emerald-contacts/`
+  - `emerald-email-campaign/` -> `marketing/email-marketing/emerald-email-campaign/`
+  - `Forms for GHL/` -> `marketing/sms-marketing/forms/`
+  - `TrainingDocs/` -> `marketing/email-marketing/training/`
+  - `scripts/` -> `marketing/automation/`
+  - `Website AI Chatbot/` -> `marketing/website/ai-chatbot/`
+  - `livetransparent_Images/` -> `marketing/website/assets/livetransparent-images/`
+  - `GHL Live Transparent CRM/` remains for operational CRM docs only
 
 ## File Map
 - `AGENTS.md`: Agent rules and project operating notes.
 - `.env`: Root/shared environment values (non-service-specific).
-- `Marketing Docs/Transparent_eCom_Brand_Voice_And_Foundation.docx`: Canonical brand narrative, mission, values, and voice/tone.
-- `Marketing Docs/Transparent_eCom_Core_Customer_ICP.docx`: Ideal client profile, decision makers, pain points, and core offer-fit reasons.
-- `Marketing Docs/Transparent_eCom_Strategic_Priority_Segments.docx`: Tiered segment priorities and explicit "not for" exclusions.
+- `marketing/README.md`: Top-level marketing index and layout guide.
+- `marketing/strategy/README.md`: Strategy docs index.
+- `marketing/email-marketing/README.md`: Email marketing batches index.
+- `marketing/sms-marketing/README.md`: SMS marketing batches index.
+- `marketing/strategy/Transparent_eCom_Brand_Voice_And_Foundation.docx`: Canonical brand narrative, mission, values, and voice/tone.
+- `marketing/strategy/Transparent_eCom_Core_Customer_ICP.docx`: Ideal client profile, decision makers, pain points, and core offer-fit reasons.
+- `marketing/strategy/Transparent_eCom_Strategic_Priority_Segments.docx`: Tiered segment priorities and explicit "not for" exclusions.
+- `marketing/strategy/Transparent_eCom_Funnel_Plan.docx`: Funnel positioning, page, and conversion planning notes.
+- `marketing/email-marketing/cannabis-ads-sequence/source/`: Cannabis ads email source assets and HTML templates.
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/`: Cannabis ads A/B delivery packages and sequence build specs.
+- `marketing/email-marketing/contact-list-v5/`: Contact List v5 email templates, do-not-contact, ED mapping, and email import helpers.
+- `marketing/email-marketing/emerald-email-campaign/`: Emerald email campaign snapshot, rollout docs, and artifacts.
+- `marketing/email-marketing/emerald-contacts/`: Emerald contact source CSVs and import helpers.
+- `marketing/email-marketing/cold-outreach-prep/`: Cold outreach prep workspace, exports, reports, and scripts.
+- `marketing/email-marketing/john-follow-up/source/`: John follow-up email assets and working copy.
+- `marketing/email-marketing/john-follow-up/implementation/`: John follow-up email implementation notes and automation docs.
+- `marketing/email-marketing/training/`: Email follow-up training guides and reference docs.
+- `marketing/automation/`: Shared marketing helper scripts and workflow patch utilities.
+- `marketing/website/ai-chatbot/README.md`: Website chatbot workspace index.
+- `marketing/website/ai-chatbot/plans/AI_Agent_Knowledgebase_Setup_Process.md`: Knowledgebase setup and deployment process for the website chatbot.
+- `marketing/website/ai-chatbot/plans/Chatbot_Prompt_and_Behavior_Spec.md`: Chatbot prompt and behavior spec.
+- `marketing/website/ai-chatbot/plans/Website_AI_Chatbot_V1_Implementation_Spec.md`: Website chatbot V1 implementation spec.
+- `marketing/website/assets/livetransparent-images/`: Website/home-page image library and branded visual assets.
+- `marketing/sms-marketing/john-follow-up/source/`: John follow-up SMS copy.
+- `marketing/sms-marketing/contact-list-v5/`: Contact List v5 SMS payloads and SMS collection docs.
+- `marketing/sms-marketing/forms/`: SMS consent and related form copy.
+- `marketing/sms-marketing/simpletexting/source/`: SMS consent/copy source files.
+- `marketing/sms-marketing/simpletexting/implementation/`: SimpleTexting SMS campaign design and automation notes.
 - `n8n/docker-compose.yml`: n8n service definition, environment wiring, and Traefik labels.
 - `n8n/.env`: n8n runtime secrets and host/webhook/editor URL environment values.
 - `n8n/nodes/apollo/REFERENCE.md`: Apollo node/API reference map used in this repo.
@@ -105,23 +150,32 @@
 - `bookstack/docker-compose.yml`: BookStack + MariaDB service definition and Traefik labels.
 - `bookstack/.env.example`: BookStack environment template for Coolify.
 - `bookstack/README.md`: BookStack deployment and hardening notes.
-- `EMAIL templates/Cannabis Ads Sequence/`: Source HTML email templates for the cannabis ads sequence.
-- `ghl create sequence plan/`: Working folder for sequence build specs, MCP preflight artifacts, and rollout checklists.
-- `ghl create sequence plan/ab-sequence-enrollment-checklist.md`: Execution checklist for 50/50 A/B enrollment, stop rules, tracking fields, and sender warm-up ramp.
-- `ghl create sequence plan/create_sequence_plan.md`: Prompt-driven sequence planning instructions and MCP execution guidance.
-- `ghl create sequence plan/sequence-build-spec.json`: Sequence build specification artifact for deterministic workflow/template creation.
-- `ghl create sequence plan/preflight-report.json`: Preflight validation output for sequence creation/update readiness.
-- `ghl create sequence plan/ghl-mcp-tool-inventory.json`: MCP capability inventory snapshot used for tool/endpoint validation.
-- `ghl create sequence plan/email-templates-cannabis-ads/Order A/`: Ordered HTML package for A path upload/copy.
-- `ghl create sequence plan/email-templates-cannabis-ads/Order B/`: Ordered HTML package for B path upload/copy.
-- `Email Sequence.docx`: Source sequence copy used to rebuild HTML templates.
-- `emerald-email-campaign/`: Canonical workspace for the Emerald email campaign snapshot, rollout docs, and artifacts.
-- `emerald-email-campaign/Exported Emerald Contacts.csv`: Fixed GHL-exported Emerald cohort snapshot used to seed the campaign dispatch table.
-- `emerald-email-campaign/plan.md`: Emerald campaign architecture and locked decisions.
-- `emerald-email-campaign/dispatcher-plan.md`: Emerald sender-dispatch and Postgres release rules.
-- `emerald-email-campaign/workflow-mapping.md`: Mapping between Emerald queue tags, source tags, and the 4 GHL workflows.
-- `Emerald Contacts/build_ghl_import.py`: Canonical Emerald CSV merger and GHL import generator.
-- `Emerald Contacts/README.md`: Repeatable Emerald merge, dedupe, and GHL import runbook.
+- `marketing/email-marketing/cannabis-ads-sequence/source/`: Source HTML email templates for the cannabis ads sequence.
+- `marketing/email-marketing/cannabis-ads-sequence/source/Email Sequence.docx`: Source sequence copy used to rebuild HTML templates.
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/email-templates-cannabis-ads/Order A/`: Ordered HTML package for A path upload/copy.
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/email-templates-cannabis-ads/Order B/`: Ordered HTML package for B path upload/copy.
+- `marketing/email-marketing/john-follow-up/source/`: John follow-up email HTML templates.
+- `marketing/email-marketing/john-follow-up/source/john-email-templates.txt`: John follow-up email copy notes.
+- `marketing/email-marketing/john-follow-up/implementation/Email_Open_3x_Assign_John_Automation.md`: Email-open routing automation notes for John.
+- `marketing/email-marketing/john-follow-up/implementation/`: Additional John email planning docs.
+- `marketing/sms-marketing/john-follow-up/source/john-sms-messages.txt`: John follow-up SMS copy.
+- `marketing/email-marketing/contact-list-v5/README.md`: Contact List v5 email asset index.
+- `marketing/email-marketing/contact-list-v5/email-templates/`: Contact List v5 email templates.
+- `marketing/email-marketing/contact-list-v5/do-not-contact/`: Do-not-contact import artifacts and reports.
+- `marketing/email-marketing/contact-list-v5/ed-mapping/`: Email mapping/tagging helpers for Contact List v5.
+- `marketing/sms-marketing/contact-list-v5/sms-webhook-payloads.md`: Payload-ready SMS copy for Contact List v5.
+- `marketing/sms-marketing/contact-list-v5/Contact List.v5 SMS Collection.docx`: SMS collection source for Contact List v5.
+- `marketing/sms-marketing/forms/HERO_FORM_CONSENT_COPY.md`: Hero form consent copy.
+- `marketing/sms-marketing/simpletexting/source/SMS_CONSENT_COPY_WITH_WORKING_LINKS_2026-03-24.md`: SMS consent and working-link copy.
+- `marketing/sms-marketing/simpletexting/implementation/SimpleTexting_n8n_Campaign_Design.md`: SimpleTexting SMS campaign design notes.
+- `marketing/email-marketing/emerald-email-campaign/`: Canonical workspace for the Emerald email campaign snapshot, rollout docs, and artifacts.
+- `marketing/email-marketing/emerald-email-campaign/Exported Emerald Contacts.csv`: Fixed GHL-exported Emerald cohort snapshot used to seed the campaign dispatch table.
+- `marketing/email-marketing/emerald-email-campaign/plan.md`: Emerald campaign architecture and locked decisions.
+- `marketing/email-marketing/emerald-email-campaign/dispatcher-plan.md`: Emerald sender-dispatch and Postgres release rules.
+- `marketing/email-marketing/emerald-email-campaign/workflow-mapping.md`: Mapping between Emerald queue tags, source tags, and the 4 GHL workflows.
+- `marketing/email-marketing/emerald-contacts/build_ghl_import.py`: Canonical Emerald CSV merger and GHL import generator.
+- `marketing/email-marketing/emerald-contacts/README.md`: Repeatable Emerald merge, dedupe, and GHL import runbook.
+- `marketing/automation/`: Shared marketing helper scripts and workflow patch utilities.
 - `Backup of all n8n workflows/`: Full-instance n8n workflow JSON backups (one file per workflow) plus export `manifest.json`.
   - Latest full refresh: `2026-03-31`, `23` workflows exported, `0` failures.
 - `Backup of n8n workflows UNTRACKED/`: Gitignored workflow backups for local/development use.
@@ -129,7 +183,7 @@
   - Not committed to version control
   - Created: 2026-03-31
 - `GHL Live Transparent CRM/RB2B_Website_Visitor_Intake_Workflow.md`: Technical runbook for RB2B webhook intake, GHL reconciliation/tagging, Postgres upsert, and John follow-up task creation.
-- `Simpletext Automation description for adding into agents md later.md`: Technical summary of the GHL to n8n SMS enrollment workflow architecture.
+- `marketing/sms-marketing/simpletexting/implementation/SimpleTexting_n8n_Campaign_Design.md`: Technical summary of the GHL to n8n SMS enrollment workflow architecture.
 
 ## SimpleTexting SMS Enrollment (Current)
 - **Objective**: Automatically enroll contacts into SMS sequences based on GHL opportunity stage changes in the `Sales Outreach` pipeline.
@@ -156,12 +210,12 @@
 
 ## Emerald Canonical (Current)
 - Treat this section as the compact operational summary for Emerald. Keep deeper design detail in:
-  - `emerald-email-campaign/plan.md`
-  - `emerald-email-campaign/dispatcher-plan.md`
-  - `emerald-email-campaign/workflow-mapping.md`
+  - `marketing/email-marketing/emerald-email-campaign/plan.md`
+  - `marketing/email-marketing/emerald-email-campaign/dispatcher-plan.md`
+  - `marketing/email-marketing/emerald-email-campaign/workflow-mapping.md`
 
 ### Emerald Campaign Architecture
-- Canonical source snapshot: `emerald-email-campaign/Exported Emerald Contacts.csv`
+- Canonical source snapshot: `marketing/email-marketing/emerald-email-campaign/Exported Emerald Contacts.csv`
 - Stable release pool: Postgres table `Emerald_Campaign_Contacts`
 - Durable company-research cache: Postgres table `Emerald_Company_Research_Cache`
 - Delivery system: GHL workflows
@@ -289,7 +343,7 @@
 ### Emerald Reset / Backfill Notes
 - Use targeted resets for bad cache rows rather than clearing the whole campaign blindly when possible.
 - Helper script for temporary reset workflow creation:
-  - `scripts/rerun_bad_emerald_sso_companies.py`
+  - `marketing/automation/rerun_bad_emerald_sso_companies.py`
 - Temporary live reset workflow for full Executive SSO company-sync reruns:
   - `TMP - Reset Emerald Executive SSO Company Sync Queue` (`v2eMeP05wjxqCTFe`)
   - manual trigger only, inactive by default
@@ -359,7 +413,7 @@
   - build the full code string locally
   - push one clean replacement
   - avoid many incremental MCP edits that can leave nodes or connections half-updated
-- If a direct patch or workaround is important enough to repeat, save it under `scripts/` and document it in this file or a nearby runbook.
+- If a direct patch or workaround is important enough to repeat, save it under `marketing/automation/` and document it in this file or a nearby runbook.
 
 ## Emerald SSO Company Sync (Current Learnings)
 - Workflow: `LT - Emerald Executive SSO -> Company Sync (Staged)` (`GHVYyYmhfNiZ7bbN`)
@@ -399,16 +453,16 @@
     - candidate internal-page discovery
     - cannabis signal extraction
 - Temporary targeted cache reset helper exists locally:
-  - [scripts/rerun_bad_emerald_sso_companies.py](/C:/Users/edmon/OneDrive/Documents/Projects/LiveTransparent/scripts/rerun_bad_emerald_sso_companies.py)
+  - [marketing/automation/rerun_bad_emerald_sso_companies.py](/C:/Users/edmon/OneDrive/Documents/Projects/LiveTransparent/marketing/automation/rerun_bad_emerald_sso_companies.py)
   - it was used to delete selected cache rows from `Emerald_Company_Research_Cache` and reset matching `Emerald_Contacts` rows back to `pending`
 
 ## Marketing Docs Map (Canonical)
 - Purpose: these are the source-of-truth docs for marketing copy and contact-facing messaging.
-- Primary folder: `Marketing Docs/`
+- Primary folder: `marketing/strategy/`
 - Doc mapping:
-- `Marketing Docs/Transparent_eCom_Brand_Voice_And_Foundation.docx`: use for brand story, tone, positioning language, and high-level offer framing.
-- `Marketing Docs/Transparent_eCom_Core_Customer_ICP.docx`: use for persona targeting, pain-point framing, objections, and value proposition alignment.
-- `Marketing Docs/Transparent_eCom_Strategic_Priority_Segments.docx`: use for segment prioritization, qualification filters, and disqualification language.
+- `marketing/strategy/Transparent_eCom_Brand_Voice_And_Foundation.docx`: use for brand story, tone, positioning language, and high-level offer framing.
+- `marketing/strategy/Transparent_eCom_Core_Customer_ICP.docx`: use for persona targeting, pain-point framing, objections, and value proposition alignment.
+- `marketing/strategy/Transparent_eCom_Strategic_Priority_Segments.docx`: use for segment prioritization, qualification filters, and disqualification language.
 - Required usage:
 - For funnel page copy (landing, qualification, booking, thank-you), reference these docs before drafting or revising copy.
 - For contact communications (email, SMS, DM, nurture/outreach copy, internal message templates), align language and claims to these docs.
@@ -535,7 +589,7 @@
 - Training guide: `GHL Live Transparent CRM/Pipeline_Process_Training_Guide.md`
 - Quick reference: `GHL Live Transparent CRM/Pipeline_Quick_Reference.md`
 - GHL webhook sender checklist: `GHL Live Transparent CRM/GHL_Intake_Webhook_Sender_Automations_Checklist.md`
-- AI agent process: `Website AI Chatbot/plans/AI_Agent_Knowledgebase_Setup_Process.md`
+- AI agent process: `marketing/website/ai-chatbot/plans/AI_Agent_Knowledgebase_Setup_Process.md`
 - BookStack deploy guide: `bookstack/README.md`
 
 ## Contact Field Status (Current)
@@ -711,22 +765,22 @@
 
 ## Session Notes (2026-02-17)
 - Objective for today: set up Sales Outreach email sequence assets and prepare direct workflow build capability.
-- Source content reviewed: `Email Sequence.docx`.
+- Source content reviewed: `marketing/email-marketing/cannabis-ads-sequence/source/Email Sequence.docx`.
 - Local template assets created and organized under:
-- `EMAIL templates/Cannabis Ads Sequence/`
+- `marketing/email-marketing/cannabis-ads-sequence/source/`
 - `01-cannabis-ads-1-v5.html`
 - `02-cannabis-ads-3-v5.html`
 - `03-cannabis-ads-1-v1.html`
 - `04-cannabis-ads-5-v1.html`
 - `05-cannabis-ads-4-v1.html`
 - A/B testing delivery folders prepared under:
-- `ghl create sequence plan/email-templates-cannabis-ads/Order A/`
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/email-templates-cannabis-ads/Order A/`
 - `01-cannabis-ads-1-v5.html`
 - `02-cannabis-ads-1-v1.html`
 - `03-cannabis-ads-3-v5.html`
 - `04-cannabis-ads-4-v1.html`
 - `05-cannabis-ads-5-v1.html`
-- `ghl create sequence plan/email-templates-cannabis-ads/Order B/`
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/email-templates-cannabis-ads/Order B/`
 - `01-cannabis-ads-1-v5.html`
 - `02-cannabis-ads-3-v5.html`
 - `03-cannabis-ads-1-v1.html`
@@ -751,8 +805,8 @@
 - Greeting merge field standardized to `{{contact.first_name}}`
 - Calendly link normalized to base URL above for both body hyperlink text and button (no `?month=...` query)
 - Greeting/body line-break spacing fixed in:
-- `ghl create sequence plan/email-templates-cannabis-ads/Order A/04-cannabis-ads-4-v1.html`
-- `ghl create sequence plan/email-templates-cannabis-ads/Order B/05-cannabis-ads-4-v1.html`
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/email-templates-cannabis-ads/Order A/04-cannabis-ads-4-v1.html`
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/email-templates-cannabis-ads/Order B/05-cannabis-ads-4-v1.html`
 - n8n full workflow backup exported to:
 - `Backup of all n8n workflows/`
 - Export scope and format:
@@ -944,10 +998,10 @@
 
 ## Session Notes (2026-03-25)
 - Emerald contact import process is now documented and repeatable:
-  - generator: `Emerald Contacts/build_ghl_import.py`
-  - runbook: `Emerald Contacts/README.md`
+  - generator: `marketing/email-marketing/emerald-contacts/build_ghl_import.py`
+  - runbook: `marketing/email-marketing/emerald-contacts/README.md`
 - Current Emerald merge process:
-  - reads all source CSVs from `Emerald Contacts/`
+  - reads all source CSVs from `marketing/email-marketing/emerald-contacts/`
   - maps standard GHL fields plus planned `Em_*` preservation fields
   - sets `Batch_Upload` to the original source CSV name without `.csv`
   - dedupes by email first, then name/company, then phone
@@ -969,7 +1023,7 @@
 - Operational lesson:
   - if MCP mutation calls ignore `active`, fail schema validation on large payloads, or do not persist edits, stop retrying them and switch to the direct REST update path, then verify through `n8n-lt`
 - Additional Emerald setup completed:
-  - reviewed all six source CSVs under `Emerald Contacts/`
+  - reviewed all six source CSVs under `marketing/email-marketing/emerald-contacts/`
   - created the Emerald source tags in GHL:
     - `emerald`
     - `cannabis-retail-mso-executive-1`
@@ -1000,11 +1054,11 @@
 
 ## Session Notes (2026-03-27)
 - Emerald campaign workspace created:
-  - `emerald-email-campaign/`
-  - `emerald-email-campaign/Exported Emerald Contacts.csv`
-  - `emerald-email-campaign/plan.md`
-  - `emerald-email-campaign/dispatcher-plan.md`
-  - `emerald-email-campaign/workflow-mapping.md`
+  - `marketing/email-marketing/emerald-email-campaign/`
+  - `marketing/email-marketing/emerald-email-campaign/Exported Emerald Contacts.csv`
+  - `marketing/email-marketing/emerald-email-campaign/plan.md`
+  - `marketing/email-marketing/emerald-email-campaign/dispatcher-plan.md`
+  - `marketing/email-marketing/emerald-email-campaign/workflow-mapping.md`
 - n8n access status:
   - `n8n-lt` is reachable at `https://automations.livetransparent.com/mcp-server/http`
   - working MCP flow: `POST initialize` followed by `tools/list` over streamable HTTP
@@ -1076,7 +1130,7 @@
     - sender cap ramp now `300/day` in week 1, `400/day` in week 2, `500/day` in week 3 and beyond
     - warmup start date set to `2026-03-27`
 - Emerald campaign snapshot seeded into Postgres:
-  - source file: `emerald-email-campaign/Exported Emerald Contacts.csv`
+  - source file: `marketing/email-marketing/emerald-email-campaign/Exported Emerald Contacts.csv`
   - result: `20165` rows written into `Emerald_Campaign_Contacts`
   - snapshot ingest workflow was deactivated again after the seed run
 
@@ -1091,15 +1145,15 @@
 ## Session Notes (2026-02-20)
 - Cold outreach workbook prep completed from `Cold-outreach contacts.xlsx`.
 - Generated import artifacts and reports under:
-- `cold-outreach-prep/ghl/`
-- `cold-outreach-prep/postgres/`
-- `cold-outreach-prep/reports/`
+- `marketing/email-marketing/cold-outreach-prep/ghl/`
+- `marketing/email-marketing/cold-outreach-prep/postgres/`
+- `marketing/email-marketing/cold-outreach-prep/reports/`
 - Primary import files:
-- `cold-outreach-prep/ghl/cold-outreach-all.dedup-email.ghl.csv`
-- `cold-outreach-prep/postgres/cold-outreach-all.dedup-email.workflow-input.csv`
+- `marketing/email-marketing/cold-outreach-prep/ghl/cold-outreach-all.dedup-email.ghl.csv`
+- `marketing/email-marketing/cold-outreach-prep/postgres/cold-outreach-all.dedup-email.workflow-input.csv`
 - Generated runbook/checklist:
-- `cold-outreach-prep/reports/GHL-import-mapping-checklist.md`
-- `cold-outreach-prep/reports/n8n-staged-workflows-runbook.md`
+- `marketing/email-marketing/cold-outreach-prep/reports/GHL-import-mapping-checklist.md`
+- `marketing/email-marketing/cold-outreach-prep/reports/n8n-staged-workflows-runbook.md`
 - Staged n8n workflows created:
 - `LT - Cold Outreach CSV -> Postgres Ingest (Staged)` (`kVCTmy1m8fEyP6Q7`)
 - `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` (`T28iLcm4Hszo19MG`)
@@ -1121,9 +1175,9 @@
 - Added `Company Address` -> `address1` mapping.
 - Added fallback aliases for `Company City`/`Company State`/`Company Country` -> `city`/`state`/`country`.
 - Updated reusable mapping spec:
-- `cold-outreach-prep/mapping/apollo_csv_mappings.json`
+- `marketing/email-marketing/cold-outreach-prep/mapping/apollo_csv_mappings.json`
 - Updated reusable validator behavior:
-- `cold-outreach-prep/scripts/validate_apollo_csv_mapping.py`
+- `marketing/email-marketing/cold-outreach-prep/scripts/validate_apollo_csv_mapping.py`
 - Validator now treats alias-covered headers as matched coverage (prevents false unmatched-header reporting for synonym columns).
 - Regenerated validation reports after mapping/validator updates.
 - n8n API access retest (same day):
@@ -1153,9 +1207,9 @@
 - Current verified sender status (as of `2026-02-20`):
 - `cameron@livetransparent.com` verified in GHL.
 - Added implementation runbook:
-- `GHL Live Transparent CRM/Cannabis_Ads_Sender_Routing_Runbook.md`
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/Cannabis_Ads_Sender_Routing_Runbook.md`
 - Updated checklist artifact:
-- `ghl create sequence plan/ab-sequence-enrollment-checklist.md`
+- `marketing/email-marketing/cannabis-ads-sequence/implementation/ab-sequence-enrollment-checklist.md`
 - New n8n staged automation created for sender-capped release:
 - `LT - Cold Outreach Sender Release Dispatcher (Staged)` (`NTpQnMrpjzusPXHX`)
 - Purpose:
@@ -1179,13 +1233,13 @@
 - queue routing validated downstream in GHL sequence workflows
 - Live GHL import test completed (`2026-02-20`):
 - Triggered `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` (`T28iLcm4Hszo19MG`) with `dryRun=false` using 10-row batch from:
-- `cold-outreach-prep/ghl/cold-outreach-10_100m.ghl.csv`
+- `marketing/email-marketing/cold-outreach-prep/ghl/cold-outreach-10_100m.ghl.csv`
 - Result:
 - `sourceRecords=10`, `imported=10`, `errors=0`, `missingCustomFields=[]`.
 - Artifacts:
-- `cold-outreach-prep/reports/live-run-ghl-10-request-20260220T095512Z.json`
-- `cold-outreach-prep/reports/live-run-ghl-10-response-20260220T095512Z.json`
-- `cold-outreach-prep/reports/live-run-ghl-10-response-raw-20260220T095512Z.txt`
+- `marketing/email-marketing/cold-outreach-prep/reports/live-run-ghl-10-request-20260220T095512Z.json`
+- `marketing/email-marketing/cold-outreach-prep/reports/live-run-ghl-10-response-20260220T095512Z.json`
+- `marketing/email-marketing/cold-outreach-prep/reports/live-run-ghl-10-response-raw-20260220T095512Z.txt`
 
 ## WSL Transition Plan (Historical - Completed)
 This block is preserved as execution history. Current operational state is now live and verified:
