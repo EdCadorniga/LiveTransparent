@@ -635,10 +635,10 @@
           sidebarButtons.forEach((btn) => {
             const btnView = String(btn.dataset.view || "").trim().toLowerCase();
             const btnSection = String((btn.dataset.scroll || "").replace(/^#/, "") || "").trim().toLowerCase();
+            const isOverviewRoot = !normalizedSection || normalizedSection === "section-overview";
             const isActive = btnView === normalizedView && (
-              !normalizedSection ||
-              btnSection === normalizedSection ||
-              (normalizedView === "overview" && btnSection === "section-overview")
+              (isOverviewRoot && btnSection === "section-overview") ||
+              (!isOverviewRoot && btnSection === normalizedSection)
             );
             btn.classList.toggle("active", isActive);
           });
