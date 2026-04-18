@@ -45,11 +45,11 @@ if ([string]::IsNullOrWhiteSpace($currentJsonStr)) { $currentJson = @{} } else {
 Write-Host "Merging new john_sms templates into templateRegistryJson"
 
 $newEntries = @{
-    john_sms1 = @{ name = 'John SMS 1 - Initial Outreach'; message = "Hi this is John, just gave you a call. Saw you were interested in learning about cannabis ads on social/search.\n\nWe run ads for Mood, Cookies, and more! Interested in learning how?" }
-    john_sms2 = @{ name = 'John SMS 2 - Locked Out?'; message = "Hey {{contact.first_name}}! Are you locked out of ads, or just avoiding them because of the horror stories?\n\nI can show you how top cannabis brands are doing it in 10 mins." }
+    john_sms1 = @{ name = 'John SMS 1 - Initial Outreach'; message = "Hi this is John, just gave you a call. Saw you were interested in learning about ads for regulated industries on social/search.\n\nWe run ads for Mood, Cookies, and more! Interested in learning how?" }
+    john_sms2 = @{ name = 'John SMS 2 - Locked Out?'; message = "Hey {{contact.first_name}}! Are you locked out of ads, or just avoiding them because of the horror stories?\n\nI can show you how top regulated-industry brands are doing it in 10 mins." }
     john_sms3 = @{ name = 'John SMS 3 - Scale Year'; message = "Hi {{contact.first_name}} this could be the year you scale your brand on social/search! Interested in how we do it for Mood, Cookies, and more?" }
-    john_sms4 = @{ name = 'John SMS 4 - Last Follow-up'; message = "Hi {{contact.first_name}}—last follow-up on cannabis ads. Is it timing, or is there a better contact?" }
-    john_sms5 = @{ name = 'John SMS 5 - Engaged Follow-up'; message = "Good chatting about cannabis ads earlier—based on what you shared, this looks like a strong fit.\n\nWe’re onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}" }
+    john_sms4 = @{ name = 'John SMS 4 - Last Follow-up'; message = "Hi {{contact.first_name}}—last follow-up on ads for regulated industries. Is it timing, or is there a better contact?" }
+    john_sms5 = @{ name = 'John SMS 5 - Engaged Follow-up'; message = "Good chatting about ads for regulated industries earlier—based on what you shared, this looks like a strong fit.\n\nWe’re onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}" }
 }
 
 foreach ($k in $newEntries.Keys) {
