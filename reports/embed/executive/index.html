@@ -400,29 +400,29 @@
 
         <div class="nav-group">
           <div class="nav-title">Overview</div>
-          <button class="nav-item active"><span class="nav-dot"></span> Executive report</button>
-          <button class="nav-item"><span class="nav-dot"></span> Intake</button>
-          <button class="nav-item"><span class="nav-dot"></span> Leads</button>
-          <button class="nav-item"><span class="nav-dot"></span> Sales</button>
+          <button class="nav-item active" type="button" data-view="overview" data-scroll="#section-overview"><span class="nav-dot"></span> Executive report</button>
+          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-intake"><span class="nav-dot"></span> Intake</button>
+          <button class="nav-item" type="button" data-view="leads" data-scroll="#section-leads"><span class="nav-dot"></span> Leads</button>
+          <button class="nav-item" type="button" data-view="sales" data-scroll="#section-sales"><span class="nav-dot"></span> Sales</button>
         </div>
 
         <div class="nav-group">
           <div class="nav-title">Channels</div>
-          <button class="nav-item"><span class="nav-dot"></span> Meta ads</button>
-          <button class="nav-item"><span class="nav-dot"></span> Google ads</button>
-          <button class="nav-item"><span class="nav-dot"></span> Organic social</button>
-          <button class="nav-item"><span class="nav-dot"></span> Email / SMS</button>
-          <button class="nav-item"><span class="nav-dot"></span> LinkedIn DM</button>
+          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="meta-ads"><span class="nav-dot"></span> Meta ads</button>
+          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="google-ads"><span class="nav-dot"></span> Google ads</button>
+          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="organic-social"><span class="nav-dot"></span> Organic social</button>
+          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="email-sms"><span class="nav-dot"></span> Email / SMS</button>
+          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="linkedin-dm"><span class="nav-dot"></span> LinkedIn DM</button>
         </div>
 
         <div class="nav-group">
           <div class="nav-title">Settings</div>
-          <button class="nav-item"><span class="nav-dot"></span> Integrations</button>
+          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-source-health"><span class="nav-dot"></span> Integrations</button>
         </div>
       </aside>
 
       <main class="content">
-        <div class="topbar">
+        <div class="topbar" id="section-overview">
           <div class="title-wrap">
             <h1>Executive report</h1>
             <p id="subtitle">April 2026 · GHL only · Sources: GHL</p>
@@ -435,7 +435,7 @@
           </div>
         </div>
 
-        <section class="grid core-grid" aria-label="core questions">
+        <section class="grid core-grid" aria-label="core questions" id="section-intake">
           <div class="question">
             <strong>Is intake flowing?</strong>
             <div class="answer good" data-core="intake">GHL ready</div>
@@ -453,8 +453,8 @@
           </div>
         </section>
 
-        <section class="grid kpi-grid" style="margin-top:16px;">
-          <div class="panel">
+        <section class="grid kpi-grid" style="margin-top:16px;" id="section-leads">
+          <div class="panel" id="section-sales">
             <div class="panel-head">
               <h2>Intake overview</h2>
               <span>GHL</span>
@@ -497,8 +497,8 @@
           </div>
         </section>
 
-        <section class="grid two-col" style="margin-top:16px;">
-          <div class="panel">
+        <section class="grid two-col" style="margin-top:16px;" id="section-channels">
+          <div class="panel" id="section-pipeline">
             <div class="panel-head">
               <h2>Channel breakdown</h2>
               <span>Source-labeled</span>
@@ -564,7 +564,7 @@
           </div>
         </section>
 
-        <section class="grid" style="margin-top:16px;">
+        <section class="grid" style="margin-top:16px;" id="section-source-health">
           <div class="panel">
             <div class="panel-head">
               <h2>Source health</h2>
@@ -589,6 +589,8 @@
         const range = params.get("range") || "30d";
         const from = params.get("from");
         const to = params.get("to");
+        const section = params.get("section") || "";
+        const channel = params.get("channel") || "";
         const subtitle = document.getElementById("subtitle");
         const channelsEl = document.getElementById("channels");
         const pipelineGridEl = document.getElementById("pipeline-grid");
@@ -596,6 +598,7 @@
         const salesQualityGridEl = document.getElementById("sales-quality-grid");
         const healthGridEl = document.getElementById("health-grid");
         const rangeButtons = Array.from(document.querySelectorAll("[data-range]"));
+        const sidebarButtons = Array.from(document.querySelectorAll(".nav-item[data-view]"));
 
         const parts = ["April 2026"];
         if (view) parts.push(view);
@@ -626,12 +629,38 @@
           });
         }
 
+        function setActiveSidebar(nextSection) {
+          const normalizedSection = String(nextSection || "").trim().toLowerCase();
+          const normalizedView = String(view || "overview").trim().toLowerCase();
+          sidebarButtons.forEach((btn) => {
+            const btnView = String(btn.dataset.view || "").trim().toLowerCase();
+            const btnSection = String((btn.dataset.scroll || "").replace(/^#/, "") || "").trim().toLowerCase();
+            const isActive = btnView === normalizedView && (
+              !normalizedSection ||
+              btnSection === normalizedSection ||
+              (normalizedView === "overview" && btnSection === "section-overview")
+            );
+            btn.classList.toggle("active", isActive);
+          });
+        }
+
         function navigateToRange(nextRange) {
           const next = new URL(window.location.href);
           next.searchParams.set("view", view);
           next.searchParams.set("range", nextRange);
           next.searchParams.delete("from");
           next.searchParams.delete("to");
+          window.location.href = next.toString();
+        }
+
+        function navigateToView(nextView, nextSection, nextChannel) {
+          const next = new URL(window.location.href);
+          next.searchParams.set("view", nextView || "overview");
+          next.searchParams.set("range", range || "30d");
+          if (from) next.searchParams.set("from", from); else next.searchParams.delete("from");
+          if (to) next.searchParams.set("to", to); else next.searchParams.delete("to");
+          if (nextSection) next.searchParams.set("section", nextSection); else next.searchParams.delete("section");
+          if (nextChannel) next.searchParams.set("channel", nextChannel); else next.searchParams.delete("channel");
           window.location.href = next.toString();
         }
 
@@ -775,8 +804,25 @@
           });
         });
 
+        sidebarButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const nextView = btn.dataset.view || "overview";
+            const nextSection = String(btn.dataset.scroll || "").replace(/^#/, "");
+            const nextChannel = btn.dataset.channel || "";
+            navigateToView(nextView, nextSection, nextChannel);
+          });
+        });
+
         setActiveRange(range);
+        setActiveSidebar(section || (view === "overview" ? "section-overview" : ""));
         loadReport();
+
+        if (section) {
+          window.setTimeout(() => {
+            const target = document.querySelector(section.startsWith("#") ? section : `#${section}`);
+            if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 150);
+        }
       })();
     </script>
   </body>
