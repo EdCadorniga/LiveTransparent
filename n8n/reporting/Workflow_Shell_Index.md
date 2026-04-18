@@ -7,8 +7,8 @@ Note:
 - Several reporting workflows are now live and active in n8n.
 - `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report QA and Alerts`, and `LT - Report Executive Summary API` are active.
 - `LT - Report Postgres Bootstrap Apply` is active as the one-time bootstrap helper.
-- `LT - GSC Daily Ingest`, `LT - GA4 Daily Ingest`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, and `LT - GHL Executive Report Menu Sync` remain staged or pending their external inputs.
-- Keep GA4 and GSC deferred until the corresponding property/access inputs are finalized.
+- `LT - GSC Daily Ingest`, `LT - GA4 Daily Ingest`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, and `LT - GHL Executive Report Menu Sync` remain staged or pending their later-phase inputs.
+- Keep GA4 and GSC deferred until the reporting scope expands beyond GHL-only.
 
 ## Shells To Create
 
@@ -34,13 +34,13 @@ Note:
 - Trigger: Cron
 - First nodes: Trigger -> Set Config -> Code Normalize -> HTTP Request -> Postgres Upsert
 - Live n8n ID: `if0Siw6KzlBItEbd`
-- Status: created in n8n, inactive, blocked pending Search Console property access
+- Status: created in n8n, inactive, deferred for a later phase
 
 ### `LT - GA4 Daily Ingest`
 - Trigger: Cron
 - First nodes: Trigger -> Set Config -> Code Guard -> HTTP Request -> Postgres Upsert
 - Live n8n ID: `6pCSGzFmrMDFL5Yq`
-- Status: created in n8n, inactive, blocked on GA4 property ID
+- Status: created in n8n, inactive, deferred for a later phase
 
 ### `LT - Report Attribution Bridge`
 - Trigger: After raw ingest
@@ -89,5 +89,5 @@ Note:
 
 ## Preparation Rule
 
-- Keep GA4 and GSC staged until the external inputs arrive.
+- Keep GA4 and GSC staged until the reporting scope expands beyond the current GHL-only build.
 - The GHL reporting path and summary API are live and can continue to evolve independently.

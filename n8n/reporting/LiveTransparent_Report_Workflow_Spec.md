@@ -2,7 +2,7 @@
 
 ## Purpose
 This document turns the report plan into a concrete n8n build spec.
-Use it to implement the GA4, Search Console, and GHL pipeline in a way that is:
+Use it to implement the current GHL reporting pipeline first, with GA4 and Search Console deferred for later, in a way that is:
 
 - source-isolated
 - idempotent
@@ -11,7 +11,8 @@ Use it to implement the GA4, Search Console, and GHL pipeline in a way that is:
 
 ## Scope
 The report pipeline is not a GHL-native dashboard.
-It is an n8n-orchestrated ingestion and rollup system with Postgres as the reporting store and GHL as the CRM source of truth for leads and sales.
+The current phase is an n8n-orchestrated GHL ingestion and rollup system with Postgres as the reporting store and GHL as the CRM source of truth for leads and sales.
+GA4 and Search Console stay deferred until the reporting scope expands.
 
 ## Repo Context
 
@@ -21,15 +22,15 @@ It is an n8n-orchestrated ingestion and rollup system with Postgres as the repor
 - Embedded host spec: `n8n/reporting/Embedded_Report_Host_Spec.md`
 - Reporting index: `n8n/reporting/README.md`
 - Workflow shell index: `n8n/reporting/Workflow_Shell_Index.md`
-- GA4 reference: `n8n/nodes/google-analytics/REFERENCE.md`
-- Search Console reference: `n8n/nodes/search-console/REFERENCE.md`
+- GA4 reference: `n8n/nodes/google-analytics/REFERENCE.md` (later phase)
+- Search Console reference: `n8n/nodes/search-console/REFERENCE.md` (later phase)
 - GHL reference: `n8n/nodes/ghl/REFERENCE.md`
 - Postgres reference: `n8n/nodes/postgres/REFERENCE.md`
 
 ## Live n8n Context
 
-The live workflow inventory currently has no reporting pipeline in place.
-That means this build should create new workflows rather than modifying the existing lead-intake or SMS workflows.
+The live workflow inventory now has the GHL reporting pipeline in place.
+That means this build should extend the live reporting workflows rather than modifying the existing lead-intake or SMS workflows.
 
 Current n8n conventions already in use:
 
@@ -40,11 +41,11 @@ Current n8n conventions already in use:
 
 ## Design Rules
 
-1. Keep GA4, Search Console, and GHL pulls isolated.
+1. Keep GHL pulls isolated from later-phase traffic/search sources.
 2. Write raw rows before any bridge or rollup work.
 3. Use deterministic source keys so reruns do not duplicate rows.
-4. Reprocess a small sliding window every day to absorb late-arriving traffic and CRM updates.
-5. Keep unmatched traffic and unmatched CRM rows instead of forcing joins.
+4. Reprocess a small sliding window every day to absorb late-arriving CRM updates.
+5. Keep unmatched source rows instead of forcing joins.
 6. Push failures into ops tables and alerts, not into the main dashboard tables.
 
 ## Suggested Daily Schedule
@@ -52,23 +53,22 @@ Current n8n conventions already in use:
 Use the `America/Los_Angeles` timezone for all report windows.
 Run on the most recent complete day by default, with a small backfill overlap:
 
-- GA4 ingest: re-pull the last 3 complete days
-- Search Console ingest: re-pull the last 7 complete days
 - GHL leads ingest: re-pull the last 3 complete days plus watermark
 - GHL sales ingest: re-pull the last 3 complete days plus watermark
 - Bridge and rollups: recompute the last 7 days
+- GA4 and Search Console later, when those sources are reintroduced
 
 Suggested order:
 
 1. `LT - Report Config Sync`
-2. `LT - GA4 Daily Ingest`
-3. `LT - GSC Daily Ingest`
-4. `LT - GHL Daily Leads Ingest`
-5. `LT - GHL Daily Sales Ingest`
-6. `LT - Report Attribution Bridge`
-7. `LT - Report Daily Rollups`
-8. `LT - Report QA and Alerts`
-9. `LT - Report Publish Refresh`
+2. `LT - GHL Daily Leads Ingest`
+3. `LT - GHL Daily Sales Ingest`
+4. `LT - Report Attribution Bridge`
+5. `LT - Report Daily Rollups`
+6. `LT - Report QA and Alerts`
+7. `LT - Report Publish Refresh`
+8. `LT - GA4 Daily Ingest` (deferred)
+9. `LT - GSC Daily Ingest` (deferred)
 
 ## Workflow-by-Workflow Spec
 
@@ -113,10 +113,10 @@ Implementation shape:
 - `Postgres` node to upsert config rows
 - `Respond to Webhook` or `NoOp` summary if manual
 
-### 2) `LT - GA4 Daily Ingest`
+### 2) `LT - GA4 Daily Ingest` (Deferred)
 
 Purpose:
-- Pull traffic and engagement data from GA4.
+- Pull traffic and engagement data from GA4 once that phase is re-enabled.
 
 Trigger:
 - Cron after the data-day boundary in `America/Los_Angeles`
@@ -162,13 +162,13 @@ Failure handling:
 Windowing rule:
 - Pull a 3-day overlap every day so late GA4 events can be corrected.
 
-### 3) `LT - GSC Daily Ingest`
+### 3) `LT - GSC Daily Ingest` (Deferred)
 
 Purpose:
 - Pull organic visibility and search performance data from Search Console.
 
 Trigger:
-- Cron after GA4 ingest
+- Cron after GA4 ingest, once that phase is re-enabled
 
 Reads:
 - Search Console API
@@ -215,7 +215,7 @@ Purpose:
 - Pull contacts, form submissions, and attribution fields from GHL.
 
 Trigger:
-- Cron after traffic ingest
+- Cron after the config sync or the previous GHL reporting stage
 
 Reads:
 - GHL API
@@ -306,24 +306,18 @@ Windowing rule:
 ### 6) `LT - Report Attribution Bridge`
 
 Purpose:
-- Match traffic records to leads and leads to sales.
+- Match GHL source and attribution records to leads and leads to sales.
 
 Trigger:
 - Run after all raw ingest workflows succeed or partially succeed
 
 Reads:
-- `report_raw_ga4_sessions`
-- `report_raw_ga4_pages`
-- `report_raw_ga4_events`
-- `report_raw_gsc_queries`
-- `report_raw_gsc_pages`
 - `report_raw_ghl_contacts`
 - `report_raw_ghl_forms`
 - `report_raw_ghl_opportunities`
 - `report_raw_ghl_pipeline_history`
 
 Writes:
-- `report_bridge_traffic_to_lead`
 - `report_bridge_lead_to_sale`
 - `report_bridge_identity_map`
 - `report_sync_runs`
@@ -331,7 +325,7 @@ Writes:
 
 Matching rules:
 - Prefer exact email or phone matches when available.
-- Fall back to UTM source / medium / campaign plus landing page.
+- Fall back to GHL source / medium / campaign plus landing page.
 - Use time-window logic when the source signals are strong but the identity is partial.
 - Preserve unmatched rows with a reason code.
 
@@ -371,14 +365,13 @@ Writes:
 - `report_sync_errors`
 
 Rollup outputs to include:
-- Traffic headline cards
 - Lead headline cards
 - Sales headline cards
 - Channel breakdown
 - Funnel conversion rates
 - Pipeline stage drop-off
-- Landing page performance
 - UTM performance
+- Capture and attribution quality metrics
 
 Recommended n8n structure:
 - `Cron` or chained execution
@@ -418,7 +411,6 @@ Checks to run:
 - Stale watermark detection
 - Schema drift detection
 - Unexpected row-count drop
-- Missing property / site coverage detection
 - Failed source-slice detection
 
 Recommended n8n structure:
@@ -477,27 +469,27 @@ Ops tables:
 
 1. Create the Postgres schema and operational tables.
 2. Build `LT - Report Config Sync`.
-3. Build `LT - GA4 Daily Ingest`.
-4. Build `LT - GSC Daily Ingest`.
-5. Build `LT - GHL Daily Leads Ingest`.
-6. Build `LT - GHL Daily Sales Ingest`.
-7. Build `LT - Report Attribution Bridge`.
-8. Build `LT - Report Daily Rollups`.
-9. Build `LT - Report QA and Alerts`.
-10. Build `LT - Report Publish Refresh`.
+3. Build `LT - GHL Daily Leads Ingest`.
+4. Build `LT - GHL Daily Sales Ingest`.
+5. Build `LT - Report Attribution Bridge`.
+6. Build `LT - Report Daily Rollups`.
+7. Build `LT - Report QA and Alerts`.
+8. Build `LT - Report Publish Refresh`.
+9. Add `LT - GA4 Daily Ingest` later if traffic reporting returns.
+10. Add `LT - GSC Daily Ingest` later if search reporting returns.
 11. Connect the dashboard surface to GHL.
 
 ## Missing Inputs
 
-- GA4 property ID from Cameron
-- GSC property / site coverage confirmation
+- GA4 property ID from Cameron, only if traffic reporting is reintroduced
+- GSC property / site coverage confirmation, only if search reporting is reintroduced
 - final dashboard host choice
 - whether the dashboard is embedded in GHL or linked out
 
 ## Acceptance Criteria
 
 - Every dashboard metric can be traced to a raw record.
-- GA4, GSC, and GHL ingest independently.
+- GHL ingest independently now; GA4 and GSC can be layered in later.
 - A failure in one source does not block the others.
 - Backfills are safe to rerun.
 - Rollups can be regenerated from raw data.

@@ -3,7 +3,7 @@
 ## Purpose
 
 Define the external dashboard surface that GHL loads inside an iframe.
-The dashboard should be read-only and backed by Postgres.
+The dashboard should be read-only, GHL-first, and backed by Postgres.
 
 ## Canonical Host
 
@@ -20,7 +20,7 @@ The dashboard should be read-only and backed by Postgres.
 
 ## Suggested Query Parameters
 
-- `view=overview|traffic|leads|sales`
+- `view=overview|leads|sales|pipeline`
 - `range=7d|30d|90d|custom`
 - `from=YYYY-MM-DD`
 - `to=YYYY-MM-DD`
@@ -29,7 +29,7 @@ The dashboard should be read-only and backed by Postgres.
 
 ## Behavior
 
-- Render a read-only executive report.
+- Render a read-only executive report with GHL metrics first.
 - Read from Postgres summary tables only.
 - Never expose write actions in the iframe surface.
 - Keep the URL stable so GHL can embed it without churn.
@@ -52,4 +52,4 @@ The dashboard should be read-only and backed by Postgres.
 
 - The host reads KPI and detail data from the Postgres reporting tables.
 - It should expect the rollup tables to be refreshed by n8n.
-- It should not call GA4 directly.
+- It should not call GA4 or GSC directly in the current phase.

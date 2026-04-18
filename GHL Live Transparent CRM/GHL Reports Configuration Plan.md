@@ -1,7 +1,7 @@
 # GHL Reports Configuration Plan
 
 ## Purpose
-Create the GHL-side reporting shell now, even while the GA4 property ID is still pending.
+Create the GHL-side reporting shell now, while GA4 stays deferred.
 
 This plan covers the GHL configuration that can be completed immediately and the boundaries between GHL, Postgres, and n8n.
 
@@ -73,7 +73,7 @@ Use one canonical dashboard host and keep the report path stable:
 
 Optional query values when needed:
 
-- `view=overview|traffic|leads|sales`
+- `view=overview|leads|sales|pipeline`
 - `range=7d|30d|90d|custom`
 - `from=YYYY-MM-DD`
 - `to=YYYY-MM-DD`
@@ -122,7 +122,7 @@ The live GHL build already has the key structures needed for reporting:
 
 - Postgres reporting tables
 - n8n ingest and rollup workflows
-- GA4 and GSC raw pulls
+- GA4 and GSC raw pulls, deferred for later
 - The actual executive dashboard rendering logic
 - Signed-user auth and report session control, if needed
 

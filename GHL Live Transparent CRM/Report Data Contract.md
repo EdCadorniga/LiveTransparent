@@ -2,18 +2,18 @@
 
 ## Purpose
 This document defines the minimum data contract for the executive report.
-Use it as the bridge between GA4, GSC, GHL, and the Postgres rollup layer.
+Use it as the bridge between GHL and the Postgres rollup layer now, with GA4 and GSC reserved for later expansion.
 
 ## Source Systems
-- GA4: traffic and on-site engagement
-- GSC: organic search visibility
-- GHL: leads, opportunities, pipeline movement, and revenue
+- GHL: leads, opportunities, pipeline movement, forms, and revenue
+- GA4: traffic and on-site engagement, deferred for later
+- GSC: organic search visibility, deferred for later
 
 ## Required Identifiers
-- GA4 property ID: pending from Cameron
+- GHL location ID: `Zwz4relUXVPxx8uohnjV`
+- GA4 property ID: pending from Cameron, only if traffic reporting is reintroduced
 - GA4 measurement ID: `G-YYF078K942`
 - GA4 stream ID: `7792630179`
-- GHL location ID: `Zwz4relUXVPxx8uohnjV`
 
 ## Reporting Dimensions
 - report date
@@ -130,31 +130,32 @@ These live workflow families create or mutate the records the report reads:
   - regulated ads booking automation for `Regulated Ads On Social/Search`
 - Reporting support:
   - `LT - Report Config Sync`
-  - `LT - GA4 Daily Ingest`
-  - `LT - GSC Daily Ingest`
   - `LT - GHL Daily Leads Ingest`
   - `LT - GHL Daily Sales Ingest`
   - `LT - Report Attribution Bridge`
   - `LT - Report Daily Rollups`
   - `LT - Report QA and Alerts`
   - `LT - Report Publish Refresh`
+  - `LT - GHL Executive Report Menu Sync`
 
 ## Raw Tables
+- `report_raw_ghl_contacts`
+- `report_raw_ghl_opportunities`
+- `report_raw_ghl_pipeline_history`
+- `report_raw_ghl_forms`
+
+## Deferred Later-Phase Tables
 - `report_raw_ga4_sessions`
 - `report_raw_ga4_pages`
 - `report_raw_ga4_events`
 - `report_raw_gsc_queries`
 - `report_raw_gsc_pages`
 - `report_raw_gsc_site`
-- `report_raw_ghl_contacts`
-- `report_raw_ghl_opportunities`
-- `report_raw_ghl_pipeline_history`
-- `report_raw_ghl_forms`
 
 ## Bridge Tables
-- `report_bridge_traffic_to_lead`
 - `report_bridge_lead_to_sale`
 - `report_bridge_identity_map`
+- `report_bridge_traffic_to_lead` (deferred)
 
 ## Rollup Tables
 - `report_daily_summary`
@@ -175,14 +176,14 @@ These live workflow families create or mutate the records the report reads:
 - Keep raw pulls append-only.
 - Do not invent joins when attribution is ambiguous.
 - Preserve unmatched rows in explicit unmatched buckets.
-- Keep traffic, search, and CRM pulls isolated so one failure does not block the rest.
+- Keep GHL pulls isolated so one failure does not block the rest.
+- Keep traffic/search sources isolated too, when those later phases return.
 - Write raw data first, then bridge rows, then rollups.
 
 ## Minimum V1 Output
-- GA4 sessions by channel
-- GA4 landing pages
-- GSC clicks and impressions
 - GHL contacts created
+- GHL form submissions
 - GHL opportunities created
 - GHL closed won revenue
+- GHL pipeline movement and stage drop-off
 - One dashboard surface with source labels

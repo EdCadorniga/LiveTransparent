@@ -13,6 +13,5 @@ This folder contains the LiveTransparent reporting schema bootstrap.
 
 ## Intended Result
 
-- The reporting stack can write raw GA4, Search Console, and GHL data without waiting for the GA4 property ID.
-- The only missing traffic input remains the GA4 property ID itself.
-
+- The reporting stack can write the GHL reporting data immediately.
+- GA4 and Search Console remain available for later expansion if traffic reporting returns to scope.

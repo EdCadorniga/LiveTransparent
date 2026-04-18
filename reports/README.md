@@ -13,9 +13,10 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.
 - n8n writes the raw data, bridge rows, rollups, QA rows, and publish markers.
-- The live executive summary webhook is now wired to the report host and serves JSON from the Postgres reporting tables.
+- The live executive summary webhook is wired to the report host and serves JSON from the Postgres reporting tables.
 - The Postgres reporting bootstrap has been applied to the live database.
-- GHL leads/sales/report workflows are live; GA4 ingest still waits for the Property ID from Cameron.
+- GHL leads/sales/report workflows are live and active.
+- GA4 and GSC are deferred to a later phase.
 - The GHL sidebar menu record is already live in GHL.
 
 ## Expected Runtime Flow
@@ -23,13 +24,14 @@ This folder holds the external dashboard surface that GHL will load inside an if
 1. GHL sidebar item opens the embedded report URL.
 2. The host page reads `view`, `range`, `from`, `to`, `embed`, and `locationId` query params.
 3. The host fetches executive report data from a Postgres-backed API.
-4. The page renders KPI cards, funnel panels, and drilldowns in read-only mode.
+4. The page renders GHL KPI cards, pipeline panels, and drilldowns in read-only mode.
 
 ## GHL Fit
 
 - This host is designed to stay external while being embedded inside GHL.
 - That keeps the dashboard flexible while leaving CRM, navigation, and user access inside HighLevel.
 - If the team later wants a dashboard-page view instead, the same host can also be embedded through a GHL dashboard widget.
+- GA4/GSC sections can be added later without changing the GHL menu entry or the report URL.
 
 ## Planned API Contract
 

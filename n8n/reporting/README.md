@@ -11,8 +11,8 @@ It is intended to be the handoff point between the written plan and the live bui
 - Live GHL summary/report workflows for leads, sales, bridge, rollups, QA, and the executive summary API
 - GHL menu provisioner workflow for the report entry point
 - External report host scaffold in `reports/embed/executive/index.html`
-- Search Console and GHL references
-- GA4 references, with the property ID still pending
+- GHL references and the live GHL summary/report workflows
+- GA4 and Search Console references remain available for later expansion
 - Live Postgres bootstrap apply workflow used to initialize the reporting schema in the database
 
 ## File Index
@@ -39,8 +39,8 @@ It is intended to be the handoff point between the written plan and the live bui
 2. Finalize the embedded report host deployment from the `reports/` scaffold.
 3. Create the GHL sidebar entry.
 4. The live n8n workflow shells already exist; finish replacing the remaining shells with the real nodes.
-5. Enable GA4 ingest once the property ID arrives from Cameron.
+5. Add GA4/GSC later if the business wants traffic reporting in the same embed.
 
 ## Remaining External Dependency
 
-- GA4 property ID
+- GA4 property ID, only if traffic reporting is reintroduced in this phase
