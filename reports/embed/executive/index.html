@@ -428,9 +428,9 @@
             <p id="subtitle">April 2026 · GHL only · Sources: GHL</p>
           </div>
           <div class="controls" aria-label="report controls">
-            <button class="chip">7d</button>
-            <button class="chip active">30d</button>
-            <button class="chip">90d</button>
+            <button class="chip" data-range="7d" type="button">7d</button>
+            <button class="chip active" data-range="30d" type="button">30d</button>
+            <button class="chip" data-range="90d" type="button">90d</button>
             <button class="button">Export</button>
           </div>
         </div>
@@ -595,6 +595,7 @@
         const captureGapsGridEl = document.getElementById("capture-gaps-grid");
         const salesQualityGridEl = document.getElementById("sales-quality-grid");
         const healthGridEl = document.getElementById("health-grid");
+        const rangeButtons = Array.from(document.querySelectorAll("[data-range]"));
 
         const parts = ["April 2026"];
         if (view) parts.push(view);
@@ -617,6 +618,21 @@
           if (!Number.isFinite(num)) return "0%";
           const pct = num <= 1 ? num * 100 : num;
           return `${pct.toFixed(pct >= 10 ? 0 : 1)}%`;
+        }
+
+        function setActiveRange(nextRange) {
+          rangeButtons.forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.range === nextRange);
+          });
+        }
+
+        function navigateToRange(nextRange) {
+          const next = new URL(window.location.href);
+          next.searchParams.set("view", view);
+          next.searchParams.set("range", nextRange);
+          next.searchParams.delete("from");
+          next.searchParams.delete("to");
+          window.location.href = next.toString();
         }
 
         function setCard(selector, value) {
@@ -750,6 +766,16 @@
           );
         }
 
+        rangeButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const nextRange = btn.dataset.range || "30d";
+            if (nextRange === range) return;
+            setActiveRange(nextRange);
+            navigateToRange(nextRange);
+          });
+        });
+
+        setActiveRange(range);
         loadReport();
       })();
     </script>
