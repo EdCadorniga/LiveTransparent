@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Transparent | Executive Report</title>
+    <meta name="color-scheme" content="dark" />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #12192d;
+        --panel-2: #161f36;
+        --panel-3: #1a2440;
+        --line: rgba(255, 255, 255, 0.08);
+        --text: #eef2ff;
+        --muted: #9aa4bf;
+        --faint: #7380a3;
+        --green: #37d67a;
+        --blue: #4f8cff;
+        --amber: #f3b63f;
+        --red: #ff6b6b;
+        --purple: #8f7cff;
+        --teal: #2fc7b5;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top left, rgba(79, 140, 255, 0.16), transparent 26%),
+          radial-gradient(circle at top right, rgba(143, 124, 255, 0.12), transparent 22%),
+          linear-gradient(180deg, #090d19 0%, #0b1020 100%);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        display: grid;
+        place-items: stretch;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 248px 1fr;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--line);
+        background: rgba(7, 11, 24, 0.78);
+        backdrop-filter: blur(18px);
+        padding: 24px 16px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px 22px;
+      }
+
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--blue), var(--purple));
+        box-shadow: 0 10px 30px rgba(79, 140, 255, 0.35);
+      }
+
+      .brand-copy {
+        display: grid;
+        gap: 2px;
+      }
+
+      .brand-copy strong {
+        font-size: 0.92rem;
+        letter-spacing: 0.03em;
+      }
+
+      .brand-copy span {
+        font-size: 0.76rem;
+        color: var(--muted);
+      }
+
+      .nav-group {
+        margin-top: 18px;
+      }
+
+      .nav-title {
+        padding: 0 12px 8px;
+        font-size: 0.7rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        padding: 11px 12px;
+        border-radius: 12px;
+        text-align: left;
+        font: inherit;
+      }
+
+      .nav-item.active {
+        background: rgba(79, 140, 255, 0.14);
+        color: var(--text);
+      }
+
+      .nav-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 28px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 22px;
+      }
+
+      .title-wrap h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+        line-height: 1.1;
+      }
+
+      .title-wrap p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .chip, .button {
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+        padding: 10px 14px;
+        font: inherit;
+      }
+
+      .chip.active {
+        background: rgba(79, 140, 255, 0.18);
+        border-color: rgba(79, 140, 255, 0.36);
+      }
+
+      .button {
+        background: linear-gradient(135deg, rgba(79, 140, 255, 0.18), rgba(143, 124, 255, 0.18));
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .core-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 18px 0;
+      }
+
+      .panel-head h2 {
+        margin: 0;
+        font-size: 0.96rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .panel-head span {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .panel-body {
+        padding: 18px;
+      }
+
+      .question {
+        padding: 18px;
+        border-radius: 16px;
+        min-height: 114px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .question strong {
+        display: block;
+        color: var(--muted);
+        font-size: 0.82rem;
+        margin-bottom: 10px;
+      }
+
+      .question .answer {
+        font-size: 1.2rem;
+        line-height: 1.35;
+      }
+
+      .answer.good { color: var(--green); }
+      .answer.warn { color: var(--amber); }
+      .answer.bad { color: var(--red); }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.018));
+      }
+
+      .card .label {
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+      }
+
+      .card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .card .sub {
+        margin-top: 10px;
+        color: var(--faint);
+        font-size: 0.86rem;
+      }
+
+      .stat {
+        display: grid;
+        gap: 8px;
+      }
+
+      .bar-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .bar-item {
+        display: grid;
+        grid-template-columns: 180px 1fr 68px;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .bar-label {
+        color: var(--text);
+        font-size: 0.92rem;
+      }
+
+      .bar-track {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: inherit;
+        width: var(--w);
+        background: linear-gradient(90deg, var(--c1), var(--c2));
+      }
+
+      .bar-value {
+        text-align: right;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .two-col {
+        grid-template-columns: 1.3fr 1fr;
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .mini {
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .mini strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .mini div {
+        font-size: 1.3rem;
+        font-weight: 700;
+      }
+
+      .footer-note {
+        margin-top: 16px;
+        color: var(--faint);
+        font-size: 0.82rem;
+      }
+
+      .loading {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      @media (max-width: 1100px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .core-grid,
+        .kpi-grid,
+        .cards,
+        .mini-grid,
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+
+        .bar-item {
+          grid-template-columns: 1fr;
+        }
+
+        .bar-value {
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-copy">
+            <strong>HighLevel</strong>
+            <span>Reporting / Executive Dashboard</span>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-title">Overview</div>
+          <button class="nav-item active"><span class="nav-dot"></span> Executive report</button>
+          <button class="nav-item"><span class="nav-dot"></span> Traffic</button>
+          <button class="nav-item"><span class="nav-dot"></span> Leads</button>
+          <button class="nav-item"><span class="nav-dot"></span> Sales</button>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-title">Channels</div>
+          <button class="nav-item"><span class="nav-dot"></span> Meta ads</button>
+          <button class="nav-item"><span class="nav-dot"></span> Google ads</button>
+          <button class="nav-item"><span class="nav-dot"></span> Organic social</button>
+          <button class="nav-item"><span class="nav-dot"></span> Email / SMS</button>
+          <button class="nav-item"><span class="nav-dot"></span> LinkedIn DM</button>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-title">Settings</div>
+          <button class="nav-item"><span class="nav-dot"></span> Integrations</button>
+        </div>
+      </aside>
+
+      <main class="content">
+        <div class="topbar">
+          <div class="title-wrap">
+            <h1>Executive report</h1>
+            <p id="subtitle">April 2026 · All channels · Sources: GHL + GA4 + GSC</p>
+          </div>
+          <div class="controls" aria-label="report controls">
+            <button class="chip">7d</button>
+            <button class="chip active">30d</button>
+            <button class="chip">90d</button>
+            <button class="button">Export</button>
+          </div>
+        </div>
+
+        <section class="grid core-grid" aria-label="core questions">
+          <div class="question">
+            <strong>Attracting traffic?</strong>
+            <div class="answer good">Yes</div>
+            <div class="footer-note">GA4 + GSC feed the traffic side once the property ID is connected.</div>
+          </div>
+          <div class="question">
+            <strong>Traffic → leads?</strong>
+            <div class="answer warn">Partial</div>
+            <div class="footer-note">GHL attribution and bridge logic are ready; GA4 is still pending.</div>
+          </div>
+          <div class="question">
+            <strong>Leads → sales?</strong>
+            <div class="answer good">Yes</div>
+            <div class="footer-note">Sales pipeline and lead/sales ingest shells exist now.</div>
+          </div>
+        </section>
+
+        <section class="grid kpi-grid" style="margin-top:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Traffic overview</h2>
+              <span>GA4 + GSC</span>
+            </div>
+            <div class="panel-body">
+              <div class="card stat">
+                <div class="label">Traffic</div>
+                <div class="value loading" data-metric="traffic">Waiting for GA4 property ID</div>
+                <div class="sub">Sessions and channel mix will populate after GA4 ingest is enabled.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Leads</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="card stat">
+                <div class="label">Leads</div>
+                <div class="value loading" data-metric="leads">Waiting for reporting sync</div>
+                <div class="sub">Contacts, forms, and routing fields will come from the GHL lead ingest.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Sales</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="card stat">
+                <div class="label">Closed Won</div>
+                <div class="value loading" data-metric="sales">Waiting for rollups</div>
+                <div class="sub">Revenue and stage movement will come from the sales ingest + rollups.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid two-col" style="margin-top:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Channel breakdown</h2>
+              <span>Source-labeled</span>
+            </div>
+            <div class="panel-body">
+              <div class="bar-list" id="channels">
+                <div class="bar-item" style="--w: 58%; --c1: #4f8cff; --c2: #8f7cff;">
+                  <div class="bar-label">Google ads</div>
+                  <div class="bar-track"><div class="bar-fill"></div></div>
+                  <div class="bar-value">—</div>
+                </div>
+                <div class="bar-item" style="--w: 46%; --c1: #2fc7b5; --c2: #37d67a;">
+                  <div class="bar-label">Meta ads</div>
+                  <div class="bar-track"><div class="bar-fill"></div></div>
+                  <div class="bar-value">—</div>
+                </div>
+                <div class="bar-item" style="--w: 38%; --c1: #f3b63f; --c2: #ff8b5b;">
+                  <div class="bar-label">Email / SMS</div>
+                  <div class="bar-track"><div class="bar-fill"></div></div>
+                  <div class="bar-value">—</div>
+                </div>
+                <div class="bar-item" style="--w: 24%; --c1: #8f7cff; --c2: #4f8cff;">
+                  <div class="bar-label">Organic social</div>
+                  <div class="bar-track"><div class="bar-fill"></div></div>
+                  <div class="bar-value">—</div>
+                </div>
+                <div class="bar-item" style="--w: 16%; --c1: #9aa4bf; --c2: #7380a3;">
+                  <div class="bar-label">LinkedIn DM</div>
+                  <div class="bar-track"><div class="bar-fill"></div></div>
+                  <div class="bar-value">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Pipeline stage drop-off</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid">
+                <div class="mini"><strong>Warm</strong><div>—</div></div>
+                <div class="mini"><strong>Sales Outreach</strong><div>—</div></div>
+                <div class="mini"><strong>Sales</strong><div>—</div></div>
+              </div>
+              <div class="footer-note" style="margin-top:14px;">
+                Once the rollup tables are connected, these cards will show daily stage movement and drop-off.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid two-col" style="margin-top:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Traffic gaps</h2>
+              <span>GA4 + GSC</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid">
+                <div class="mini"><strong>Sessions</strong><div>—</div></div>
+                <div class="mini"><strong>Landing pages</strong><div>—</div></div>
+                <div class="mini"><strong>Search clicks</strong><div>—</div></div>
+              </div>
+              <div class="footer-note">
+                These metrics are intentionally left blank until the traffic sources are live, so the embed URL can stay stable.
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Sales quality</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid">
+                <div class="mini"><strong>Avg. cycle length</strong><div>—</div></div>
+                <div class="mini"><strong>Best channel</strong><div>—</div></div>
+                <div class="mini"><strong>Top loss reason</strong><div>—</div></div>
+              </div>
+              <div class="footer-note">
+                This will come from the sales ingest + pipeline summary rollups.
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const view = params.get("view") || "overview";
+        const range = params.get("range") || "30d";
+        const from = params.get("from");
+        const to = params.get("to");
+        const subtitle = document.getElementById("subtitle");
+
+        const parts = ["April 2026"];
+        if (view) parts.push(view);
+        if (range) parts.push(range);
+        if (from && to) parts.push(`${from} to ${to}`);
+        parts.push("Sources: GHL + GA4 + GSC");
+        subtitle.textContent = parts.join(" · ");
+
+        async function loadReport() {
+          const base = "/api/report/executive";
+          const url = `${base}/summary?view=${encodeURIComponent(view)}&range=${encodeURIComponent(range)}${from ? `&from=${encodeURIComponent(from)}` : ""}${to ? `&to=${encodeURIComponent(to)}` : ""}`;
+
+          try {
+            const res = await fetch(url, { headers: { Accept: "application/json" } });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            render(data);
+          } catch (err) {
+            document.querySelectorAll("[data-metric]").forEach((el) => {
+              if (el.dataset.metric === "traffic") el.textContent = "GA4 pending";
+              if (el.dataset.metric === "leads") el.textContent = "GHL ready";
+              if (el.dataset.metric === "sales") el.textContent = "GHL ready";
+            });
+          }
+        }
+
+        function render(data) {
+          if (!data || typeof data !== "object") return;
+          const traffic = document.querySelector('[data-metric="traffic"]');
+          const leads = document.querySelector('[data-metric="leads"]');
+          const sales = document.querySelector('[data-metric="sales"]');
+          if (traffic && data.traffic) traffic.textContent = data.traffic;
+          if (leads && data.leads) leads.textContent = data.leads;
+          if (sales && data.sales) sales.textContent = data.sales;
+        }
+
+        loadReport();
+      })();
+    </script>
+  </body>
+</html>

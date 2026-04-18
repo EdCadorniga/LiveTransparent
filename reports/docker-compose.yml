@@ -1,0 +1,21 @@
+services:
+  reports:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=coolify-shared'
+      - 'traefik.http.routers.reports-livetransparent.rule=Host(`reports.livetransparent.com`)'
+      - 'traefik.http.routers.reports-livetransparent.entrypoints=https'
+      - 'traefik.http.routers.reports-livetransparent.tls=true'
+      - 'traefik.http.routers.reports-livetransparent.service=reports-livetransparent'
+      - 'traefik.http.services.reports-livetransparent.loadbalancer.server.port=80'
+    networks:
+      coolify-shared:
+        aliases:
+          - reports
+networks:
+  coolify-shared:
+    external: true

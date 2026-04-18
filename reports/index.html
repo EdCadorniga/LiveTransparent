@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content="0; url=/embed/executive/?view=overview&range=30d&embed=1" />
+    <title>LiveTransparent Reports</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0d1020;
+        --panel: #151a2e;
+        --text: #e8ebf3;
+        --muted: #9ba3b8;
+        --accent: #5f7dff;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top, rgba(95, 125, 255, 0.18), transparent 34%),
+          linear-gradient(180deg, #101327 0%, #0d1020 100%);
+        color: var(--text);
+        font-family: Inter, "Segoe UI", Arial, sans-serif;
+      }
+
+      main {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .card {
+        width: min(640px, 100%);
+        background: rgba(21, 26, 46, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      p {
+        margin: 0 0 12px;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .meta {
+        margin-top: 18px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card">
+        <h1>LiveTransparent Reports</h1>
+        <p>The executive report host is being redirected to the dashboard embed.</p>
+        <p>
+          If the redirect does not trigger automatically, open
+          <a href="/embed/executive/?view=overview&range=30d&embed=1">the executive report</a>.
+        </p>
+        <div class="meta">Postgres-backed reporting surface for GHL.</div>
+      </section>
+    </main>
+  </body>
+</html>
