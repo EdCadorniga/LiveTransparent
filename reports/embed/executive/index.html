@@ -437,17 +437,17 @@
         <section class="grid core-grid" aria-label="core questions">
           <div class="question">
             <strong>Attracting traffic?</strong>
-            <div class="answer good">Yes</div>
+            <div class="answer good" data-core="traffic">GA4 pending</div>
             <div class="footer-note">GA4 + GSC feed the traffic side once the property ID is connected.</div>
           </div>
           <div class="question">
             <strong>Traffic → leads?</strong>
-            <div class="answer warn">Partial</div>
+            <div class="answer warn" data-core="traffic-to-leads">Pending</div>
             <div class="footer-note">GHL attribution and bridge logic are ready; GA4 is still pending.</div>
           </div>
           <div class="question">
             <strong>Leads → sales?</strong>
-            <div class="answer good">Yes</div>
+            <div class="answer good" data-core="leads-to-sales">Partial</div>
             <div class="footer-note">Sales pipeline and lead/sales ingest shells exist now.</div>
           </div>
         </section>
@@ -504,31 +504,7 @@
             </div>
             <div class="panel-body">
               <div class="bar-list" id="channels">
-                <div class="bar-item" style="--w: 58%; --c1: #4f8cff; --c2: #8f7cff;">
-                  <div class="bar-label">Google ads</div>
-                  <div class="bar-track"><div class="bar-fill"></div></div>
-                  <div class="bar-value">—</div>
-                </div>
-                <div class="bar-item" style="--w: 46%; --c1: #2fc7b5; --c2: #37d67a;">
-                  <div class="bar-label">Meta ads</div>
-                  <div class="bar-track"><div class="bar-fill"></div></div>
-                  <div class="bar-value">—</div>
-                </div>
-                <div class="bar-item" style="--w: 38%; --c1: #f3b63f; --c2: #ff8b5b;">
-                  <div class="bar-label">Email / SMS</div>
-                  <div class="bar-track"><div class="bar-fill"></div></div>
-                  <div class="bar-value">—</div>
-                </div>
-                <div class="bar-item" style="--w: 24%; --c1: #8f7cff; --c2: #4f8cff;">
-                  <div class="bar-label">Organic social</div>
-                  <div class="bar-track"><div class="bar-fill"></div></div>
-                  <div class="bar-value">—</div>
-                </div>
-                <div class="bar-item" style="--w: 16%; --c1: #9aa4bf; --c2: #7380a3;">
-                  <div class="bar-label">LinkedIn DM</div>
-                  <div class="bar-track"><div class="bar-fill"></div></div>
-                  <div class="bar-value">—</div>
-                </div>
+                <div class="loading">Waiting for GHL summary rows.</div>
               </div>
             </div>
           </div>
@@ -539,10 +515,10 @@
               <span>GHL</span>
             </div>
             <div class="panel-body">
-              <div class="mini-grid">
-                <div class="mini"><strong>Warm</strong><div>—</div></div>
-                <div class="mini"><strong>Sales Outreach</strong><div>—</div></div>
-                <div class="mini"><strong>Sales</strong><div>—</div></div>
+              <div class="mini-grid" id="pipeline-grid">
+                <div class="mini"><strong>Warm</strong><div>0</div></div>
+                <div class="mini"><strong>Sales Outreach</strong><div>0</div></div>
+                <div class="mini"><strong>Sales</strong><div>0</div></div>
               </div>
               <div class="footer-note" style="margin-top:14px;">
                 Once the rollup tables are connected, these cards will show daily stage movement and drop-off.
@@ -558,10 +534,10 @@
               <span>GA4 + GSC</span>
             </div>
             <div class="panel-body">
-              <div class="mini-grid">
-                <div class="mini"><strong>Sessions</strong><div>—</div></div>
-                <div class="mini"><strong>Landing pages</strong><div>—</div></div>
-                <div class="mini"><strong>Search clicks</strong><div>—</div></div>
+              <div class="mini-grid" id="traffic-gaps-grid">
+                <div class="mini"><strong>Sessions</strong><div>0</div></div>
+                <div class="mini"><strong>Landing pages</strong><div>0</div></div>
+                <div class="mini"><strong>Search clicks</strong><div>0</div></div>
               </div>
               <div class="footer-note">
                 These metrics are intentionally left blank until the traffic sources are live, so the embed URL can stay stable.
@@ -575,13 +551,29 @@
               <span>GHL</span>
             </div>
             <div class="panel-body">
-              <div class="mini-grid">
+              <div class="mini-grid" id="sales-quality-grid">
                 <div class="mini"><strong>Avg. cycle length</strong><div>—</div></div>
-                <div class="mini"><strong>Best channel</strong><div>—</div></div>
-                <div class="mini"><strong>Top loss reason</strong><div>—</div></div>
+                <div class="mini"><strong>Best channel</strong><div>GHL ready</div></div>
+                <div class="mini"><strong>Top loss reason</strong><div>No response</div></div>
               </div>
               <div class="footer-note">
                 This will come from the sales ingest + pipeline summary rollups.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid" style="margin-top:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Source health</h2>
+              <span>n8n + Postgres</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="health-grid">
+                <div class="mini"><strong>GA4</strong><div>Pending</div></div>
+                <div class="mini"><strong>GSC</strong><div>Pending</div></div>
+                <div class="mini"><strong>GHL</strong><div>Ready</div></div>
               </div>
             </div>
           </div>
@@ -597,6 +589,11 @@
         const from = params.get("from");
         const to = params.get("to");
         const subtitle = document.getElementById("subtitle");
+        const channelsEl = document.getElementById("channels");
+        const pipelineGridEl = document.getElementById("pipeline-grid");
+        const trafficGapsGridEl = document.getElementById("traffic-gaps-grid");
+        const salesQualityGridEl = document.getElementById("sales-quality-grid");
+        const healthGridEl = document.getElementById("health-grid");
 
         const parts = ["April 2026"];
         if (view) parts.push(view);
@@ -604,6 +601,63 @@
         if (from && to) parts.push(`${from} to ${to}`);
         parts.push("Sources: GHL + GA4 + GSC");
         subtitle.textContent = parts.join(" · ");
+
+        function formatNumber(value, digits = 0) {
+          const num = Number(value);
+          if (!Number.isFinite(num)) return "0";
+          return new Intl.NumberFormat("en-US", {
+            maximumFractionDigits: digits,
+            minimumFractionDigits: digits > 0 ? digits : 0,
+          }).format(num);
+        }
+
+        function formatPercent(value) {
+          const num = Number(value);
+          if (!Number.isFinite(num)) return "0%";
+          const pct = num <= 1 ? num * 100 : num;
+          return `${pct.toFixed(pct >= 10 ? 0 : 1)}%`;
+        }
+
+        function setCard(selector, value) {
+          const el = document.querySelector(selector);
+          if (!el) return;
+          el.textContent = value;
+          el.classList.remove("loading");
+        }
+
+        function renderBars(container, items, emptyLabel) {
+          if (!container) return;
+          if (!Array.isArray(items) || items.length === 0) {
+            container.innerHTML = `<div class="loading">${emptyLabel}</div>`;
+            return;
+          }
+          const max = Math.max(1, ...items.map((item) => Number(item.sessions || item.value || 0)));
+          container.innerHTML = items.map((item, index) => {
+            const label = item.label || item.channel || item.pipeline || item.stage || `Item ${index + 1}`;
+            const value = Number(item.sessions || item.value || item.leads || 0);
+            const width = Math.max(3, Math.round((value / max) * 100));
+            return `
+              <div class="bar-item" style="--w: ${width}%; --c1: #4f8cff; --c2: #8f7cff;">
+                <div class="bar-label">${label}</div>
+                <div class="bar-track"><div class="bar-fill"></div></div>
+                <div class="bar-value">${formatNumber(value)}</div>
+              </div>
+            `;
+          }).join("");
+        }
+
+        function renderMiniGrid(container, items, fallbackItems) {
+          if (!container) return;
+          if (!Array.isArray(items) || items.length === 0) {
+            container.innerHTML = fallbackItems.map((item) => `
+              <div class="mini"><strong>${item.label}</strong><div>${item.value}</div></div>
+            `).join("");
+            return;
+          }
+          container.innerHTML = items.map((item) => `
+            <div class="mini"><strong>${item.label}</strong><div>${item.value}</div></div>
+          `).join("");
+        }
 
         async function loadReport() {
           const base = "/api/report/executive";
@@ -620,17 +674,79 @@
               if (el.dataset.metric === "leads") el.textContent = "GHL ready";
               if (el.dataset.metric === "sales") el.textContent = "GHL ready";
             });
+            setCard('[data-core="traffic"]', 'GA4 pending');
+            setCard('[data-core="traffic-to-leads"]', 'Pending');
+            setCard('[data-core="leads-to-sales"]', 'Partial');
           }
         }
 
         function render(data) {
           if (!data || typeof data !== "object") return;
-          const traffic = document.querySelector('[data-metric="traffic"]');
-          const leads = document.querySelector('[data-metric="leads"]');
-          const sales = document.querySelector('[data-metric="sales"]');
-          if (traffic && data.traffic) traffic.textContent = data.traffic;
-          if (leads && data.leads) leads.textContent = data.leads;
-          if (sales && data.sales) sales.textContent = data.sales;
+          const summary = data.summary || {};
+          const trafficValue = data.traffic ?? summary.traffic ?? "GA4 pending";
+          const leadsValue = data.leads ?? summary.leads ?? "0";
+          const salesValue = data.sales ?? summary.sales ?? "0";
+
+          setCard('[data-metric="traffic"]', trafficValue);
+          setCard('[data-metric="leads"]', leadsValue);
+          setCard('[data-metric="sales"]', salesValue);
+
+          setCard('[data-core="traffic"]', String(data.coreQuestions?.attractingTraffic || trafficValue || 'GA4 pending'));
+          setCard('[data-core="traffic-to-leads"]', String(data.coreQuestions?.trafficToLeads || 'Pending'));
+          setCard('[data-core="leads-to-sales"]', String(data.coreQuestions?.leadsToSales || 'Partial'));
+
+          renderBars(
+            channelsEl,
+            Array.isArray(data.channelBreakdown) ? data.channelBreakdown.map((item) => ({
+              label: item.label || item.channel || 'Channel',
+              sessions: item.sessions || item.value || 0,
+            })) : [],
+            "Waiting for GHL summary rows."
+          );
+
+          renderMiniGrid(
+            pipelineGridEl,
+            Array.isArray(data.pipelineDropoff) ? data.pipelineDropoff.map((item) => ({
+              label: item.label || item.pipeline || 'Pipeline',
+              value: formatNumber(item.leads || item.value || 0),
+            })) : [],
+            [
+              { label: "Warm", value: "0" },
+              { label: "Sales Outreach", value: "0" },
+              { label: "Sales", value: "0" },
+            ]
+          );
+
+          renderMiniGrid(
+            trafficGapsGridEl,
+            [
+              { label: "Sessions", value: formatNumber(data.trafficGaps?.sessions ?? summary.trafficNumeric ?? 0) },
+              { label: "Landing pages", value: formatNumber(data.trafficGaps?.landingPages ?? 0) },
+              { label: "Search clicks", value: formatNumber(data.trafficGaps?.searchClicks ?? summary.gscClicks ?? 0) },
+            ]
+          );
+
+          renderMiniGrid(
+            salesQualityGridEl,
+            [
+              { label: "Avg. cycle length", value: data.salesQuality?.avgCycleLengthDays ? `${formatNumber(data.salesQuality.avgCycleLengthDays)} days` : "—" },
+              { label: "Best channel", value: data.salesQuality?.bestChannel || "GHL ready" },
+              { label: "Top loss reason", value: data.salesQuality?.topLossReason || "No response" },
+            ]
+          );
+
+          renderMiniGrid(
+            healthGridEl,
+            Array.isArray(data.health) && data.health.length > 0 ? data.health.map((item) => ({
+              label: item.source_system || item.source || 'Source',
+              value: item.status || 'Unknown',
+            })) : [],
+            [
+              { label: "GA4", value: "Pending" },
+              { label: "GSC", value: "Pending" },
+              { label: "GHL", value: "Ready" },
+            ]
+          );
         }
 
         loadReport();

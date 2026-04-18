@@ -13,7 +13,9 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.
 - n8n writes the raw data, bridge rows, rollups, QA rows, and publish markers.
-- GA4 ingest still waits for the Property ID from Cameron.
+- The live executive summary webhook is now wired to the report host and serves JSON from the Postgres reporting tables.
+- The Postgres reporting bootstrap has been applied to the live database.
+- GHL leads/sales/report workflows are live; GA4 ingest still waits for the Property ID from Cameron.
 - The GHL sidebar menu record is already live in GHL.
 
 ## Expected Runtime Flow
@@ -36,7 +38,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - `GET /api/report/executive/pipeline-dropoff`
 - `GET /api/report/executive/health`
 
-Those endpoints are not implemented in this repo yet. The HTML shell is written so it can consume them later without changing the GHL embed URL.
+The summary endpoint is implemented through n8n and proxied by nginx. The other endpoints remain reserved for future expansion, but the HTML shell is already written to consume the summary payload without changing the GHL embed URL.
 
 ## Files
 
