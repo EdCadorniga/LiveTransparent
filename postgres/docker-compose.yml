@@ -8,6 +8,7 @@ services:
       POSTGRES_DB: postgres
     volumes:
       - 'postgres_data:/var/lib/postgresql/data'
+      - './reporting-bootstrap.sql:/docker-entrypoint-initdb.d/10-reporting-bootstrap.sql:ro'
     networks:
       coolify-shared:
         aliases:

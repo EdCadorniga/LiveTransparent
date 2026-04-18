@@ -323,7 +323,7 @@ Locked on: `2026-02-12`
 - Pipeline ID: `dhdlf3O4tymxFtHk4aqq`
 - Stages:
 - `New` -> `3529dd3d-cab0-4279-967c-1aea203de4fb`
-- `Attempting Contact` -> `b97e42b1-b4c2-4759-8212-33596a085cf2`
+- `Attempting Contact 1st Attempt` -> `b97e42b1-b4c2-4759-8212-33596a085cf2`
 - `Engaged` -> `9ced8010-dfd7-4d5b-aa9c-c2eb58fca94d`
 - `Meeting Requested` -> `1ab47457-c945-4d16-9dd7-305583823114`
 - `Booked` -> `1f95dd0a-1cf2-4d31-abad-825d97d3ef69`
@@ -384,7 +384,7 @@ Node sequence:
 - Move to `Sales Outreach` -> `New`.
 - Start outreach sequence if `LT Outreach Active` absent.
 - Direct reply (Email/SMS/LinkedIn DM):
-- Move to `Sales Outreach` -> `Attempting Contact`.
+- Move to `Sales Outreach` -> `Attempting Contact 1st Attempt`.
 - Start direct follow-up if not active.
 - Website/Traffic/Remarketing:
 - Move to `Warm` -> `Nurture Active`.
@@ -408,7 +408,7 @@ ID bindings (must use IDs, not names):
 - Warm `Nurture Active`: `98775f02-0018-4629-9e69-0b1fcab293eb`
 - Sales Outreach pipeline: `dhdlf3O4tymxFtHk4aqq`
 - Sales Outreach `New`: `3529dd3d-cab0-4279-967c-1aea203de4fb`
-- Sales Outreach `Attempting Contact`: `b97e42b1-b4c2-4759-8212-33596a085cf2`
+- Sales Outreach `Attempting Contact 1st Attempt`: `b97e42b1-b4c2-4759-8212-33596a085cf2`
 - Sales pipeline: `MThKauqlvnEFuFmAkyWX`
 - Sales `Discovery Scheduled`: `6f5aa304-a190-40da-8556-7c65bbc52733`
 

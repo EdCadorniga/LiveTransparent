@@ -17,7 +17,7 @@
 
 ## Sales Outreach
 1. `New`: Entered outreach queue, no first touch yet.
-2. `Attempting Contact`: Active outbound attempts in progress.
+2. `Attempting Contact 1st Attempt`: Active outbound attempts in progress.
 3. `Engaged`: Two-way interaction confirmed.
 4. `Meeting Requested`: Scheduling discussion active.
 5. `Booked`: Meeting confirmed (handoff to Sales).
@@ -72,7 +72,7 @@
 
 ## Daily Rep Checklist
 1. Clear all records in `New` (Sales Outreach).
-2. Progress active records in `Attempting Contact`.
+2. Progress active records in `Attempting Contact 1st Attempt`.
 3. Push engaged leads toward `Meeting Requested` and `Booked`.
 4. Close stale opportunities to correct terminal stage (`Unresponsive` or `Closed Lost`).
 5. Verify no opportunity is left without owner or next action.

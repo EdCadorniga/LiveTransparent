@@ -77,7 +77,7 @@ Entry criteria:
 Exit criteria:
 - First outreach attempt is completed.
 
-#### 2. `Attempting Contact`
+#### 2. `Attempting Contact 1st Attempt`
 Definition:
 - Active attempts underway (email, SMS, call, DM).
 Entry criteria:
