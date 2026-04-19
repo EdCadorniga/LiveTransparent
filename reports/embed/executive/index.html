@@ -400,24 +400,24 @@
 
         <div class="nav-group">
           <div class="nav-title">Overview</div>
-          <button class="nav-item active" type="button" data-view="overview" data-scroll="#section-overview"><span class="nav-dot"></span> Executive report</button>
-          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-intake"><span class="nav-dot"></span> Intake</button>
-          <button class="nav-item" type="button" data-view="leads" data-scroll="#section-leads"><span class="nav-dot"></span> Leads</button>
-          <button class="nav-item" type="button" data-view="sales" data-scroll="#section-sales"><span class="nav-dot"></span> Sales</button>
+          <a class="nav-item active" href="?view=overview&range=30d&embed=1&section=section-overview" data-view="overview" data-scroll="#section-overview"><span class="nav-dot"></span> Executive report</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-intake" data-view="overview" data-scroll="#section-intake"><span class="nav-dot"></span> Intake</a>
+          <a class="nav-item" href="?view=leads&range=30d&embed=1&section=section-leads" data-view="leads" data-scroll="#section-leads"><span class="nav-dot"></span> Leads</a>
+          <a class="nav-item" href="?view=sales&range=30d&embed=1&section=section-sales" data-view="sales" data-scroll="#section-sales"><span class="nav-dot"></span> Sales</a>
         </div>
 
         <div class="nav-group">
           <div class="nav-title">Channels</div>
-          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="meta-ads"><span class="nav-dot"></span> Meta ads</button>
-          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="google-ads"><span class="nav-dot"></span> Google ads</button>
-          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="organic-social"><span class="nav-dot"></span> Organic social</button>
-          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="email-sms"><span class="nav-dot"></span> Email / SMS</button>
-          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-channels" data-channel="linkedin-dm"><span class="nav-dot"></span> LinkedIn DM</button>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=meta-ads" data-view="overview" data-scroll="#section-channels" data-channel="meta-ads"><span class="nav-dot"></span> Meta ads</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=google-ads" data-view="overview" data-scroll="#section-channels" data-channel="google-ads"><span class="nav-dot"></span> Google ads</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=organic-social" data-view="overview" data-scroll="#section-channels" data-channel="organic-social"><span class="nav-dot"></span> Organic social</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=email-sms" data-view="overview" data-scroll="#section-channels" data-channel="email-sms"><span class="nav-dot"></span> Email / SMS</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=linkedin-dm" data-view="overview" data-scroll="#section-channels" data-channel="linkedin-dm"><span class="nav-dot"></span> LinkedIn DM</a>
         </div>
 
         <div class="nav-group">
           <div class="nav-title">Settings</div>
-          <button class="nav-item" type="button" data-view="overview" data-scroll="#section-source-health"><span class="nav-dot"></span> Integrations</button>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-source-health" data-view="overview" data-scroll="#section-source-health"><span class="nav-dot"></span> Integrations</a>
         </div>
       </aside>
 
@@ -428,9 +428,9 @@
             <p id="subtitle">April 2026 · GHL only · Sources: GHL</p>
           </div>
           <div class="controls" aria-label="report controls">
-            <button class="chip" data-range="7d" type="button">7d</button>
-            <button class="chip active" data-range="30d" type="button">30d</button>
-            <button class="chip" data-range="90d" type="button">90d</button>
+            <a class="chip" href="?view=overview&range=7d&embed=1" data-range="7d">7d</a>
+            <a class="chip active" href="?view=overview&range=30d&embed=1" data-range="30d">30d</a>
+            <a class="chip" href="?view=overview&range=90d&embed=1" data-range="90d">90d</a>
             <button class="button">Export</button>
           </div>
         </div>
@@ -629,6 +629,29 @@
           });
         }
 
+        function buildUrl({ nextView = view || "overview", nextRange = range || "30d", nextSection = section || "", nextChannel = channel || "" } = {}) {
+          const next = new URL(window.location.href);
+          next.searchParams.set("view", nextView || "overview");
+          next.searchParams.set("range", nextRange || "30d");
+          next.searchParams.set("embed", "1");
+          if (nextSection) next.searchParams.set("section", nextSection); else next.searchParams.delete("section");
+          if (nextChannel) next.searchParams.set("channel", nextChannel); else next.searchParams.delete("channel");
+          return next.toString();
+        }
+
+        function syncNavLinks() {
+          rangeButtons.forEach((btn) => {
+            const nextRange = btn.dataset.range || "30d";
+            btn.setAttribute("href", buildUrl({ nextRange, nextSection: "", nextChannel: "" }));
+          });
+          sidebarButtons.forEach((btn) => {
+            const nextView = btn.dataset.view || "overview";
+            const nextSection = String(btn.dataset.scroll || "").replace(/^#/, "");
+            const nextChannel = btn.dataset.channel || "";
+            btn.setAttribute("href", buildUrl({ nextView, nextRange: range || "30d", nextSection, nextChannel }));
+          });
+        }
+
         function setActiveSidebar(nextSection) {
           const normalizedSection = String(nextSection || "").trim().toLowerCase();
           const normalizedView = String(view || "overview").trim().toLowerCase();
@@ -795,6 +818,7 @@
           );
         }
 
+        syncNavLinks();
         rangeButtons.forEach((btn) => {
           btn.addEventListener("click", () => {
             const nextRange = btn.dataset.range || "30d";
