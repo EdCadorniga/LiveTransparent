@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-04-19-force-redeploy -->
+    <!-- build-stamp: 2026-04-21-nav-no-intercept-v2 -->
     <meta name="color-scheme" content="dark" />
     <style>
       :root {
@@ -53,6 +53,8 @@
       }
 
       .sidebar {
+        position: relative;
+        z-index: 20;
         border-right: 1px solid var(--line);
         background: rgba(7, 11, 24, 0.78);
         backdrop-filter: blur(18px);
@@ -129,6 +131,8 @@
       }
 
       .content {
+        position: relative;
+        z-index: 1;
         padding: 28px;
       }
 
@@ -157,6 +161,21 @@
         flex-wrap: wrap;
         gap: 10px;
         justify-content: flex-end;
+        position: relative;
+        z-index: 20;
+      }
+
+      .build-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(79, 140, 255, 0.4);
+        background: rgba(79, 140, 255, 0.12);
+        color: #c9d8ff;
+        font-size: 0.78rem;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
       }
 
       .chip, .button {
@@ -166,6 +185,12 @@
         color: var(--text);
         padding: 10px 14px;
         font: inherit;
+      }
+
+      .nav-item,
+      .chip {
+        pointer-events: auto;
+        cursor: pointer;
       }
 
       .chip.active {
@@ -428,6 +453,7 @@
             <p id="subtitle">April 2026 · GHL only · Sources: GHL</p>
           </div>
           <div class="controls" aria-label="report controls">
+            <span class="build-badge" id="build-badge">build: pending</span>
             <a class="chip" href="?view=overview&range=7d&embed=1" data-range="7d">7d</a>
             <a class="chip active" href="?view=overview&range=30d&embed=1" data-range="30d">30d</a>
             <a class="chip" href="?view=overview&range=90d&embed=1" data-range="90d">90d</a>
@@ -521,8 +547,11 @@
                 <div class="mini"><strong>Sales Outreach</strong><div>0</div></div>
                 <div class="mini"><strong>Sales</strong><div>0</div></div>
               </div>
+              <div class="bar-list" id="stage-movement-list" style="margin-top:14px;">
+                <div class="loading">Waiting for stage movement data.</div>
+              </div>
               <div class="footer-note" style="margin-top:14px;">
-                Once the rollup tables are connected, these cards will show daily stage movement and drop-off.
+                Stage counts and moved-in / moved-out values come from GHL rollups.
               </div>
             </div>
           </div>
@@ -584,16 +613,20 @@
 
     <script>
       (function () {
+        const BUILD_STAMP = "2026-04-21-nav-no-intercept-v2";
         const params = new URLSearchParams(window.location.search);
         const view = params.get("view") || "overview";
-        const range = params.get("range") || "30d";
+        const validRanges = new Set(["7d", "30d", "90d"]);
+        const range = validRanges.has(params.get("range")) ? params.get("range") : "30d";
         const from = params.get("from");
         const to = params.get("to");
         const section = params.get("section") || "";
         const channel = params.get("channel") || "";
         const subtitle = document.getElementById("subtitle");
+        const buildBadge = document.getElementById("build-badge");
         const channelsEl = document.getElementById("channels");
         const pipelineGridEl = document.getElementById("pipeline-grid");
+        const stageMovementListEl = document.getElementById("stage-movement-list");
         const captureGapsGridEl = document.getElementById("capture-gaps-grid");
         const salesQualityGridEl = document.getElementById("sales-quality-grid");
         const healthGridEl = document.getElementById("health-grid");
@@ -606,6 +639,7 @@
         if (from && to) parts.push(`${from} to ${to}`);
         parts.push("Sources: GHL");
         subtitle.textContent = parts.join(" · ");
+        if (buildBadge) buildBadge.textContent = `build: ${BUILD_STAMP}`;
 
         function formatNumber(value, digits = 0) {
           const num = Number(value);
@@ -639,6 +673,12 @@
           return next.toString();
         }
 
+        function scrollToSection(nextSection) {
+          if (!nextSection) return;
+          const target = document.querySelector(nextSection.startsWith("#") ? nextSection : `#${nextSection}`);
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
         function syncNavLinks() {
           rangeButtons.forEach((btn) => {
             const nextRange = btn.dataset.range || "30d";
@@ -665,26 +705,6 @@
             );
             btn.classList.toggle("active", isActive);
           });
-        }
-
-        function navigateToRange(nextRange) {
-          const next = new URL(window.location.href);
-          next.searchParams.set("view", view);
-          next.searchParams.set("range", nextRange);
-          next.searchParams.delete("from");
-          next.searchParams.delete("to");
-          window.location.href = next.toString();
-        }
-
-        function navigateToView(nextView, nextSection, nextChannel) {
-          const next = new URL(window.location.href);
-          next.searchParams.set("view", nextView || "overview");
-          next.searchParams.set("range", range || "30d");
-          if (from) next.searchParams.set("from", from); else next.searchParams.delete("from");
-          if (to) next.searchParams.set("to", to); else next.searchParams.delete("to");
-          if (nextSection) next.searchParams.set("section", nextSection); else next.searchParams.delete("section");
-          if (nextChannel) next.searchParams.set("channel", nextChannel); else next.searchParams.delete("channel");
-          window.location.href = next.toString();
         }
 
         function setCard(selector, value) {
@@ -777,13 +797,22 @@
             pipelineGridEl,
             Array.isArray(data.pipelineDropoff) ? data.pipelineDropoff.map((item) => ({
               label: item.label || item.pipeline || 'Pipeline',
-              value: formatNumber(item.leads || item.value || 0),
+              value: formatNumber(item.opportunities || item.leads || item.value || 0),
             })) : [],
             [
               { label: "Warm", value: "0" },
               { label: "Sales Outreach", value: "0" },
               { label: "Sales", value: "0" },
             ]
+          );
+
+          renderBars(
+            stageMovementListEl,
+            Array.isArray(data.stageDropoff) ? data.stageDropoff.map((item) => ({
+              label: `${item.pipeline || "Pipeline"} · ${item.stage || "Stage"} (in ${formatNumber(item.moved_in_count || 0)} / out ${formatNumber(item.moved_out_count || 0)})`,
+              value: Number(item.stage_count || 0),
+            })) : [],
+            "Waiting for stage movement data."
           );
 
           renderMiniGrid(
@@ -818,35 +847,15 @@
           );
         }
 
+        // Keep navigation anchor-driven for resilience in embedded contexts.
+        // We only update href targets and visual active states here.
         syncNavLinks();
-        rangeButtons.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const nextRange = btn.dataset.range || "30d";
-            if (nextRange === range) return;
-            setActiveRange(nextRange);
-            navigateToRange(nextRange);
-          });
-        });
-
-        sidebarButtons.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const nextView = btn.dataset.view || "overview";
-            const nextSection = String(btn.dataset.scroll || "").replace(/^#/, "");
-            const nextChannel = btn.dataset.channel || "";
-            navigateToView(nextView, nextSection, nextChannel);
-          });
-        });
 
         setActiveRange(range);
         setActiveSidebar(section || (view === "overview" ? "section-overview" : ""));
         loadReport();
 
-        if (section) {
-          window.setTimeout(() => {
-            const target = document.querySelector(section.startsWith("#") ? section : `#${section}`);
-            if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-          }, 150);
-        }
+        if (section) window.setTimeout(() => scrollToSection(section), 150);
       })();
     </script>
   </body>
