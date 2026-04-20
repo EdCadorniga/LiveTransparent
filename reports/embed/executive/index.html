@@ -547,6 +547,11 @@
                 <div class="mini"><strong>Sales Outreach</strong><div>0</div></div>
                 <div class="mini"><strong>Sales</strong><div>0</div></div>
               </div>
+              <div class="mini-grid" id="stage-top-grid" style="margin-top:12px;">
+                <div class="mini"><strong>Stage 1</strong><div>0</div></div>
+                <div class="mini"><strong>Stage 2</strong><div>0</div></div>
+                <div class="mini"><strong>Stage 3</strong><div>0</div></div>
+              </div>
               <div class="bar-list" id="stage-movement-list" style="margin-top:14px;">
                 <div class="loading">Waiting for stage movement data.</div>
               </div>
@@ -626,6 +631,7 @@
         const buildBadge = document.getElementById("build-badge");
         const channelsEl = document.getElementById("channels");
         const pipelineGridEl = document.getElementById("pipeline-grid");
+        const stageTopGridEl = document.getElementById("stage-top-grid");
         const stageMovementListEl = document.getElementById("stage-movement-list");
         const captureGapsGridEl = document.getElementById("capture-gaps-grid");
         const salesQualityGridEl = document.getElementById("sales-quality-grid");
@@ -813,6 +819,19 @@
               value: Number(item.stage_count || 0),
             })) : [],
             "Waiting for stage movement data."
+          );
+
+          renderMiniGrid(
+            stageTopGridEl,
+            Array.isArray(data.stageDropoff) ? data.stageDropoff.slice(0, 3).map((item) => ({
+              label: `${item.pipeline || "Pipeline"} · ${item.stage || "Stage"}`,
+              value: formatNumber(item.stage_count || 0),
+            })) : [],
+            [
+              { label: "Stage 1", value: "0" },
+              { label: "Stage 2", value: "0" },
+              { label: "Stage 3", value: "0" },
+            ]
           );
 
           renderMiniGrid(
