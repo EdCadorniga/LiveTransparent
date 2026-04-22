@@ -16,6 +16,8 @@ It is operational, phase-based, and safe to use before the GA4 property ID arriv
 Report workflow shells have now been created in n8n, and the GHL-side reporting path is live. `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report QA and Alerts`, and `LT - Report Executive Summary API` are active.
 Update: `LT - Report Postgres Bootstrap Apply` is also active and was used to initialize the reporting schema in Postgres.
 Update: `LT - GSC Daily Ingest`, `LT - GA4 Daily Ingest`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, and `LT - GHL Executive Report Menu Sync` remain staged or pending external inputs.
+Current status: the patched GHL ingest workflows have already been rerun, and the report summary now shows different lead totals for `7d` / `30d` / `90d`.
+Current remaining question: `opportunitiesCreated` still reads `193` across all windows while closed-won sales remain `0`, so the next step is to inspect whether that is intended, whether the sales ingest is truncating the opportunity set, or whether the opportunity date filter still needs tightening.
 
 ## Live Pattern To Reuse
 The live workflows in this repo generally follow this shape:
@@ -62,6 +64,8 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
 - Notes:
   - This can run now.
   - Use it to validate report shape before GA4 is connected.
+  - The live workflow has been patched to derive `report_date` from source contact timestamps; rerun it before checking rollups.
+  - The workflow has already been manually rerun after the patch.
 
 ### 3. `LT - GHL Daily Sales Ingest`
 - Status: not blocked by GA4.
@@ -75,6 +79,8 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - This can run now.
   - Keep sales ingest separate from lead ingest.
   - The live workflow is now scaffolded in n8n and remains inactive.
+  - The live workflow has been patched to derive row dates from opportunity timestamps; rerun it before checking rollups.
+  - The workflow has already been manually rerun after the patch.
 
 ### 4. `LT - GA4 Daily Ingest`
 - Status: blocked until GA4 property ID arrives.
@@ -210,6 +216,8 @@ For GA4 and GSC, prefer HTTP Request plus a normalization Code step.
 - [ ] Decide where report snapshots will live in GHL, if any.
 - [ ] Confirm the Search Console property and access level.
 - [ ] Define the daily report date window and timezone rule.
+- [ ] Inspect whether `opportunitiesCreated` should stay at `193` across all ranges or be range-filtered, and verify the sales ingest is not dropping later pages.
+- [ ] Confirm whether the zero sales total is expected for the current dataset.
 
 ### After GA4 property ID arrives
 - [ ] Enable GA4 ingest with the property id.

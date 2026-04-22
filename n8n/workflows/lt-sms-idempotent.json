@@ -1,0 +1,273 @@
+{
+  "name": "LT - SMS Idempotent Send",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "lt-sms-send",
+        "httpMethod": "POST",
+        "responseMode": "lastNode"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 250]
+    },
+    {
+      "parameters": {
+        "functionCode": "const crypto = require('crypto');\nconst contact_id = $json.contact_id?.toString() ?? '';\nconst workflow_id = $json.workflow_id?.toString() ?? '';\nconst template_id = $json.template_id?.toString() ?? '';\nconst d = new Date();\nconst yyyy = d.getFullYear().toString();\nconst mm = (d.getMonth()+1).toString().padStart(2,'0');\nconst dd = d.getDate().toString().padStart(2,'0');\nconst yyyymmdd = yyyy + mm + dd;\nconst message_hash = crypto.createHash('sha1').update(contact_id + '|' + workflow_id + '|' + template_id + '|' + yyyymmdd).digest('hex');\nreturn [{ json: { ...$json, message_hash, yyyymmdd } }];"
+      },
+      "name": "Compute Hash",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 250]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO report_sms_sent (contact_id, phone, workflow_id, template_id, message_hash) VALUES ('{{ $json.contact_id }}', '{{ $json.phone }}', '{{ $json.workflow_id }}', '{{ $json.template_id }}', '{{ $json.message_hash }}') ON CONFLICT (contact_id, workflow_id, message_hash) DO NOTHING RETURNING id, sent_at"
+      },
+      "name": "Insert SMS Row",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [700, 250],
+      "credentials": {
+        "postgres": {
+          "id": "Reporting Postgres",
+          "name": "Reporting Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json[0] && $json[0].id !== undefined }}",
+              "operation": "isTrue"
+            }
+          ]
+        }
+      },
+      "name": "Inserted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [950, 250]
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [],
+          "number": [],
+          "string": [],
+          "json": [
+            {
+              "name": "provider_response",
+              "value": "={ {\"id\": \"stubsim\", \"status\": \"queued\"} }"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Simulated Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1200, 150]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.simpletexting.com/v1/messages",
+        "options": {},
+        "method": "POST",
+        "bodyParametersJson": "={ { to: $json.phone, message: $json.message_body } }",
+        "jsonParameters": true,
+        "responseFormat": "json",
+        "headerParameters": [
+          {
+            "name": "Authorization",
+            "value": "=Bearer $env.SIMPLETEXTING_API_KEY"
+          },
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "name": "Send SimpleTexting",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1200, 350]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE report_sms_sent SET provider_response = $1 WHERE id = $2 RETURNING id, provider_response",
+        "values": ["={{ JSON.stringify($json.provider_response || $json[0]?.json || $json) }}", "={{ $('Insert SMS Row').json[0]?.id || $('Insert SMS Row').json.id }}"]
+      },
+      "name": "Update Provider Response",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1450, 250],
+      "credentials": {
+        "postgres": {
+          "id": "Reporting Postgres",
+          "name": "Reporting Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "=sent"
+            },
+            {
+              "name": "id",
+              "value": "={{ $('Insert SMS Row').json[0]?.id || $('Insert SMS Row').json.id }}"
+            }
+          ]
+        }
+      },
+      "name": "Return Sent",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1700, 250]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT sent_at FROM report_sms_sent WHERE message_hash = '{{ $json.message_hash }}' LIMIT 1"
+      },
+      "name": "Query Existing",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1200, 550],
+      "credentials": {
+        "postgres": {
+          "id": "Reporting Postgres",
+          "name": "Reporting Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "=duplicate"
+            },
+            {
+              "name": "sent_at",
+              "value": "={{ $('Query Existing').json[0]?.sent_at || $('Query Existing').json.sent_at }}"
+            }
+          ]
+        }
+      },
+      "name": "Return Duplicate",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1450, 550]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Compute Hash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Hash": {
+      "main": [
+        [
+          {
+            "node": "Insert SMS Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert SMS Row": {
+      "main": [
+        [
+          {
+            "node": "Inserted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inserted?": {
+      "main": [
+        [
+          {
+            "node": "Simulated Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Query Existing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simulated Response": {
+      "main": [
+        [
+          {
+            "node": "Update Provider Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SimpleTexting": {
+      "main": [
+        [
+          {
+            "node": "Update Provider Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Provider Response": {
+      "main": [
+        [
+          {
+            "node": "Return Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Existing": {
+      "main": [
+        [
+          {
+            "node": "Return Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

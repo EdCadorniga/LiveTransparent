@@ -9,6 +9,10 @@ Note:
 - `LT - Report Postgres Bootstrap Apply` is active as the one-time bootstrap helper.
 - `LT - GSC Daily Ingest`, `LT - GA4 Daily Ingest`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, and `LT - GHL Executive Report Menu Sync` remain staged or pending their later-phase inputs.
 - Keep GA4 and GSC deferred until the reporting scope expands beyond GHL-only.
+- Current live issue: the summary endpoint is up, but the report windows still need a fresh GHL ingest rerun so the 7d / 30d / 90d outputs separate correctly.
+- Current live state: the GHL ingest chain has already been rerun, and the summary now separates lead counts by window.
+- Remaining question: `opportunitiesCreated` still reports `193` across all windows, so confirm whether that is intentional and whether the sales ingest is complete before changing the sales filter.
+- Next execution order: inspect opportunity range semantics -> confirm zero-sales behavior -> verify sales-ingest completeness -> keep GA4 deferred.
 
 ## Shells To Create
 

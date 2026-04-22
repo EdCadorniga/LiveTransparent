@@ -14,6 +14,8 @@ It is intended to be the handoff point between the written plan and the live bui
 - GHL references and the live GHL summary/report workflows
 - GA4 and Search Console references remain available for later expansion
 - Live Postgres bootstrap apply workflow used to initialize the reporting schema in the database
+- Current live state: the patched GHL ingest workflows have been rerun and lead counts now separate correctly by window.
+- Remaining question: `opportunitiesCreated` still reads `193` across all windows, so confirm whether that is intended pipeline behavior and whether the sales ingest is complete before changing filters again.
 
 ## File Index
 
@@ -40,6 +42,7 @@ It is intended to be the handoff point between the written plan and the live bui
 3. Create the GHL sidebar entry.
 4. The live n8n workflow shells already exist; finish replacing the remaining shells with the real nodes.
 5. Add GA4/GSC later if the business wants traffic reporting in the same embed.
+6. Before GA4 returns to scope, inspect the opportunity range semantics, confirm the zero-sales result for the GHL-only dataset, and verify sales-ingest completeness.
 
 ## Remaining External Dependency
 

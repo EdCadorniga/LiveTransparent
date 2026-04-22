@@ -480,3 +480,22 @@ SET source_name = EXCLUDED.source_name,
     enabled = EXCLUDED.enabled,
     notes = EXCLUDED.notes,
     updated_at = NOW();
+
+-- Idempotent SMS send log
+-- Records each attempted send and prevents duplicate sends for the same
+-- (contact_id, workflow_id, message_hash) combination.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS report_sms_sent (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  contact_id text NOT NULL,
+  phone text NOT NULL,
+  workflow_id text NOT NULL,
+  template_id text,
+  message_hash text NOT NULL,
+  sent_at timestamptz NOT NULL DEFAULT now(),
+  provider_response jsonb,
+  CONSTRAINT ux_report_sms_unique UNIQUE (contact_id, workflow_id, message_hash)
+);
+
+CREATE INDEX IF NOT EXISTS idx_report_sms_sent_sent_at ON report_sms_sent (sent_at);

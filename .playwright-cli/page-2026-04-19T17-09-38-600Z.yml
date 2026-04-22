@@ -1,0 +1,100 @@
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e9]:
+        - generic [ref=e11]:
+          - generic [ref=e14]:
+            - link "Personal" [ref=e16] [cursor=pointer]:
+              - /url: /projects/4Vzf1F1ukTvP58LF
+              - generic [ref=e18]:
+                - generic "Personal" [ref=e19]:
+                  - img [ref=e20]
+                - generic "Personal" [ref=e24]
+            - generic [ref=e25]: /
+            - generic "LT - GHL Daily Sales Ingest" [ref=e26]:
+              - generic [ref=e28] [cursor=pointer]: LT - GHL Daily Sales Ingest
+          - generic [ref=e30]: + Add tag
+          - generic [ref=e31]:
+            - generic [ref=e33] [cursor=pointer]:
+              - generic: 0 / 3
+            - generic [ref=e34]:
+              - generic [ref=e36]:
+                - button "Publish" [disabled] [ref=e761]:
+                  - generic [ref=e42]: Publish
+                - button "More actions" [ref=e45] [cursor=pointer]:
+                  - img [ref=e47]
+              - link "Version History" [ref=e50] [cursor=pointer]:
+                - /url: /workflow/aYT5oHcgmBALzHy5/history
+                - button "Version History" [ref=e51]:
+                  - img [ref=e53]
+              - button "Actions" [ref=e60] [cursor=pointer]:
+                - img [ref=e62]
+        - radiogroup [ref=e68]:
+          - radio "Editor" [ref=e69]:
+            - generic [ref=e70] [cursor=pointer]: Editor
+          - radio "Executions" [checked] [active] [ref=e71]:
+            - generic [ref=e72] [cursor=pointer]: Executions
+          - radio "Evaluations" [ref=e73]:
+            - generic [ref=e74] [cursor=pointer]: Evaluations
+      - complementary [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e78]:
+            - link [ref=e79] [cursor=pointer]:
+              - /url: /home
+              - generic [ref=e80]:
+                - img [ref=e81]
+                - img [ref=e83]
+            - menubar [ref=e86]:
+              - menuitem "Add new item" [ref=e87]:
+                - button "Add new item" [ref=e89] [cursor=pointer]:
+                  - img [ref=e91]
+            - button "Open command palette" [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+            - button "Toggle sidebar" [ref=e101] [cursor=pointer]:
+              - img [ref=e103]
+          - generic [ref=e111]:
+            - menuitem "Overview" [ref=e113] [cursor=pointer]:
+              - img [ref=e115]
+              - generic [ref=e120]: Overview
+            - menuitem "Chat" [ref=e122] [cursor=pointer]:
+              - img [ref=e124]
+              - generic [ref=e126]:
+                - generic [ref=e127]: Chat
+                - generic [ref=e128]: beta
+          - generic [ref=e130]:
+            - menuitem "Templates" [ref=e132] [cursor=pointer]:
+              - img [ref=e134]
+              - generic [ref=e140]: Templates
+            - menuitem "Insights" [ref=e142] [cursor=pointer]:
+              - img [ref=e144]
+              - generic [ref=e147]: Insights
+            - menuitem "Help" [ref=e149] [cursor=pointer]:
+              - img [ref=e151]
+              - generic [ref=e156]: Help
+              - img [ref=e157]
+            - menuitem "Settings" [ref=e160] [cursor=pointer]:
+              - img [ref=e162]
+              - generic [ref=e167]: Settings
+              - img [ref=e168]
+      - main [ref=e170]:
+        - generic [ref=e898]:
+          - generic [ref=e899]:
+            - heading "Executions" [level=2] [ref=e901]
+            - generic [ref=e902]:
+              - generic [ref=e903] [cursor=pointer]:
+                - checkbox "Auto refresh" [checked] [ref=e904]:
+                  - generic:
+                    - img
+                - generic [ref=e905]: Auto refresh
+              - button "Filters" [ref=e906] [cursor=pointer]:
+                - img [ref=e908]
+            - generic [ref=e912]: No executions found
+            - generic [ref=e915] [cursor=pointer]:
+              - generic [ref=e916]: Which executions is this workflow saving?
+              - img [ref=e917]
+          - generic [ref=e922]:
+            - heading "Nothing here yet" [level=2] [ref=e923]
+            - generic [ref=e925] [cursor=pointer]:
+              - generic [ref=e926]: Which executions is this workflow saving?
+              - img [ref=e927]
+  - complementary

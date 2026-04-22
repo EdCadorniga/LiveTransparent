@@ -294,6 +294,7 @@ Recommended n8n structure:
 - `Postgres` node to write raw opportunity rows
 - `Postgres` node to write pipeline history rows
 - `Code` node to update sale-bridge candidates
+- Paginate the opportunity search until the source set is exhausted; do not assume the first page is complete.
 
 Failure handling:
 - Keep opportunity data and stage history separate.

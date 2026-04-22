@@ -1,0 +1,918 @@
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e54]:
+      - complementary [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e58]:
+            - link [ref=e59] [cursor=pointer]:
+              - /url: /home
+              - generic [ref=e60]:
+                - img [ref=e61]
+                - img [ref=e63]
+            - menubar [ref=e66]:
+              - menuitem "Add new item" [ref=e67]:
+                - button "Add new item" [ref=e69] [cursor=pointer]:
+                  - img [ref=e71]
+            - button "Open command palette" [ref=e74] [cursor=pointer]:
+              - img [ref=e76]
+            - button "Toggle sidebar" [ref=e81] [cursor=pointer]:
+              - img [ref=e83]
+          - generic [ref=e91]:
+            - menuitem "Overview" [ref=e93] [cursor=pointer]:
+              - img [ref=e95]
+              - generic [ref=e100]: Overview
+            - menuitem "Chat" [ref=e102] [cursor=pointer]:
+              - img [ref=e104]
+              - generic [ref=e106]:
+                - generic [ref=e107]: Chat
+                - generic [ref=e108]: beta
+          - generic [ref=e110]:
+            - menuitem "Templates" [ref=e112] [cursor=pointer]:
+              - img [ref=e114]
+              - generic [ref=e120]: Templates
+            - menuitem "Insights" [ref=e122] [cursor=pointer]:
+              - img [ref=e124]
+              - generic [ref=e127]: Insights
+            - menuitem "Help" [ref=e129] [cursor=pointer]:
+              - img [ref=e131]
+              - generic [ref=e136]: Help
+              - img [ref=e137]
+            - menuitem "Settings" [ref=e140] [cursor=pointer]:
+              - img [ref=e142]
+              - generic [ref=e147]: Settings
+              - img [ref=e148]
+      - main [ref=e150]:
+        - generic [ref=e152]:
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - generic [ref=e156]:
+                - heading "Overview" [level=2] [ref=e157]
+                - generic [ref=e158]: All the workflows, credentials and data tables you have access to
+              - generic [ref=e161]:
+                - button "Create workflow" [ref=e162] [cursor=pointer]:
+                  - generic [ref=e164]: Create workflow
+                - button [ref=e167] [cursor=pointer]:
+                  - img [ref=e169]
+            - list [ref=e173]:
+              - listitem [ref=e174]:
+                - link "Prod. executions 2,993 142.35%" [ref=e175] [cursor=pointer]:
+                  - /url: /insights/total
+                  - strong [ref=e176]:
+                    - generic: Prod. executions
+                  - generic [ref=e177]:
+                    - emphasis [ref=e178]: 2,993
+                    - generic [ref=e179]:
+                      - img [ref=e180]
+                      - generic: 142.35%
+              - listitem [ref=e182]:
+                - link "Failed prod. executions 241 4,720%" [ref=e183] [cursor=pointer]:
+                  - /url: /insights/failed
+                  - strong [ref=e184]:
+                    - generic: Failed prod. executions
+                  - generic [ref=e185]:
+                    - emphasis [ref=e186]: "241"
+                    - generic [ref=e187]:
+                      - img [ref=e188]
+                      - generic: 4,720%
+              - listitem [ref=e190]:
+                - link "Failure rate 8.1 % 7.7pp" [ref=e191] [cursor=pointer]:
+                  - /url: /insights/failureRate
+                  - strong [ref=e192]:
+                    - generic: Failure rate
+                  - generic [ref=e193]:
+                    - emphasis [ref=e194]:
+                      - text: "8.1"
+                      - generic [ref=e195]: "%"
+                    - generic [ref=e196]:
+                      - img [ref=e197]
+                      - generic [ref=e199]: 7.7pp
+              - listitem [ref=e200]:
+                - link "Time saved --" [ref=e201] [cursor=pointer]:
+                  - /url: /insights/timeSaved
+                  - strong [ref=e202]:
+                    - generic [ref=e203]: Time saved
+                  - generic [ref=e204]:
+                    - emphasis [ref=e205]: "--"
+                    - img [ref=e206]
+              - listitem [ref=e210]:
+                - link "Run time (avg.) 11.93 s 9.35s" [ref=e211] [cursor=pointer]:
+                  - /url: /insights/averageRunTime
+                  - strong [ref=e212]:
+                    - generic: Run time (avg.)
+                  - generic [ref=e213]:
+                    - emphasis [ref=e214]:
+                      - text: "11.93"
+                      - generic [ref=e215]: s
+                    - generic [ref=e216]:
+                      - img [ref=e217]
+                      - generic: 9.35s
+            - generic [ref=e221]:
+              - link "Workflows" [ref=e223] [cursor=pointer]:
+                - /url: /home/workflows
+                - generic [ref=e224]: Workflows
+              - link "Credentials" [ref=e226] [cursor=pointer]:
+                - /url: /home/credentials
+                - generic [ref=e227]: Credentials
+              - link "Executions" [ref=e229] [cursor=pointer]:
+                - /url: /home/executions
+                - generic [ref=e230]: Executions
+              - link "Variables" [ref=e232] [cursor=pointer]:
+                - /url: /home/variables
+                - generic [ref=e233]: Variables
+              - link "Data tables" [ref=e235] [cursor=pointer]:
+                - /url: /home/datatables
+                - generic [ref=e236]: Data tables
+          - main [ref=e237]:
+            - generic [ref=e239]:
+              - generic [ref=e242]:
+                - generic [ref=e244]:
+                  - img [ref=e246]
+                  - textbox "Search" [ref=e250]
+                - generic [ref=e256]:
+                  - combobox "Select" [ref=e257] [cursor=pointer]: Sort by last updated
+                  - img [ref=e260] [cursor=pointer]
+                - generic [ref=e262]:
+                  - button "Filters" [ref=e265] [cursor=pointer]:
+                    - img [ref=e267]
+                  - button "Add folder" [ref=e270] [cursor=pointer]:
+                    - img [ref=e272]
+              - generic [ref=e277]:
+                - generic [ref=e278]:
+                  - generic [ref=e281] [cursor=pointer]:
+                    - generic [ref=e282]:
+                      - heading "LT - GHL Daily Sales Ingest" [level=2] [ref=e284]
+                      - generic [ref=e286]:
+                        - generic [ref=e287]: Last updated 1 minute ago |
+                        - generic [ref=e288]: Created 18 April
+                    - generic [ref=e290]:
+                      - generic [ref=e293]:
+                        - img [ref=e294]
+                        - text: "1"
+                      - generic [ref=e300]:
+                        - img [ref=e302]
+                        - link "Personal" [ref=e306]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e309]: Published
+                      - button [ref=e312]:
+                        - img [ref=e313]
+                  - generic [ref=e320] [cursor=pointer]:
+                    - generic [ref=e321]:
+                      - heading "LT - GHL Daily Leads Ingest" [level=2] [ref=e323]
+                      - generic [ref=e325]:
+                        - generic [ref=e326]: Last updated 1 hour ago |
+                        - generic [ref=e327]: Created 18 April |
+                        - img [ref=e330]
+                    - generic [ref=e334]:
+                      - generic [ref=e337]:
+                        - img [ref=e338]
+                        - text: "1"
+                      - generic [ref=e344]:
+                        - img [ref=e346]
+                        - link "Personal" [ref=e350]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e353]: Published
+                      - button [ref=e356]:
+                        - img [ref=e357]
+                  - generic [ref=e364] [cursor=pointer]:
+                    - generic [ref=e365]:
+                      - heading "LT - Report Daily Rollups" [level=2] [ref=e367]
+                      - generic [ref=e369]:
+                        - generic [ref=e370]: Last updated 1 hour ago |
+                        - generic [ref=e371]: Created 18 April |
+                        - img [ref=e374]
+                    - generic [ref=e378]:
+                      - generic [ref=e381]:
+                        - img [ref=e382]
+                        - text: "1"
+                      - generic [ref=e388]:
+                        - img [ref=e390]
+                        - link "Personal" [ref=e394]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e397]: Published
+                      - button [ref=e400]:
+                        - img [ref=e401]
+                  - generic [ref=e408] [cursor=pointer]:
+                    - generic [ref=e409]:
+                      - heading "LT - Report Attribution Bridge" [level=2] [ref=e411]
+                      - generic [ref=e413]:
+                        - generic [ref=e414]: Last updated 1 hour ago |
+                        - generic [ref=e415]: Created 18 April
+                    - generic [ref=e417]:
+                      - generic [ref=e420]:
+                        - img [ref=e421]
+                        - text: "1"
+                      - generic [ref=e427]:
+                        - img [ref=e429]
+                        - link "Personal" [ref=e433]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e436]: Published
+                      - button [ref=e439]:
+                        - img [ref=e440]
+                  - generic [ref=e447] [cursor=pointer]:
+                    - generic [ref=e448]:
+                      - heading "LT - Report Executive Summary API" [level=2] [ref=e450]
+                      - generic [ref=e452]:
+                        - generic [ref=e453]: Last updated 22 hours ago |
+                        - generic [ref=e454]: Created 19 April |
+                        - img [ref=e457]
+                    - generic [ref=e461]:
+                      - generic [ref=e464]:
+                        - img [ref=e465]
+                        - text: "1"
+                      - generic [ref=e471]:
+                        - img [ref=e473]
+                        - link "Personal" [ref=e477]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e480]: Published
+                      - button [ref=e483]:
+                        - img [ref=e484]
+                  - generic [ref=e491] [cursor=pointer]:
+                    - generic [ref=e492]:
+                      - heading "LT - Report Postgres Bootstrap Apply" [level=2] [ref=e494]
+                      - generic [ref=e496]:
+                        - generic [ref=e497]: Last updated 23 hours ago |
+                        - generic [ref=e498]: Created 19 April
+                    - generic [ref=e500]:
+                      - generic [ref=e503]:
+                        - img [ref=e504]
+                        - text: "1"
+                      - generic [ref=e510]:
+                        - img [ref=e512]
+                        - link "Personal" [ref=e516]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e519]: Published
+                      - button [ref=e522]:
+                        - img [ref=e523]
+                  - generic [ref=e530] [cursor=pointer]:
+                    - generic [ref=e531]:
+                      - heading "LT - GHL Executive Report Menu Sync" [level=2] [ref=e533]
+                      - generic [ref=e535]:
+                        - generic [ref=e536]: Last updated 1 day ago |
+                        - generic [ref=e537]: Created 18 April
+                    - generic [ref=e539]:
+                      - generic [ref=e542]:
+                        - img [ref=e544]
+                        - link "Personal" [ref=e548]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e551]:
+                        - img [ref=e552]
+                  - generic [ref=e559] [cursor=pointer]:
+                    - generic [ref=e560]:
+                      - heading "LT - GA4 Daily Ingest" [level=2] [ref=e562]
+                      - generic [ref=e564]:
+                        - generic [ref=e565]: Last updated 1 day ago |
+                        - generic [ref=e566]: Created 18 April
+                    - generic [ref=e568]:
+                      - generic [ref=e571]:
+                        - img [ref=e572]
+                        - text: "1"
+                      - generic [ref=e578]:
+                        - img [ref=e580]
+                        - link "Personal" [ref=e584]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e587]:
+                        - img [ref=e588]
+                  - generic [ref=e595] [cursor=pointer]:
+                    - generic [ref=e596]:
+                      - heading "LT - GSC Daily Ingest" [level=2] [ref=e598]
+                      - generic [ref=e600]:
+                        - generic [ref=e601]: Last updated 1 day ago |
+                        - generic [ref=e602]: Created 18 April
+                    - generic [ref=e604]:
+                      - generic [ref=e607]:
+                        - img [ref=e608]
+                        - text: "1"
+                      - generic [ref=e614]:
+                        - img [ref=e616]
+                        - link "Personal" [ref=e620]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e623]:
+                        - img [ref=e624]
+                  - generic [ref=e631] [cursor=pointer]:
+                    - generic [ref=e632]:
+                      - heading "LT - Report Publish Refresh" [level=2] [ref=e634]
+                      - generic [ref=e636]:
+                        - generic [ref=e637]: Last updated 1 day ago |
+                        - generic [ref=e638]: Created 18 April
+                    - generic [ref=e640]:
+                      - generic [ref=e643]:
+                        - img [ref=e644]
+                        - text: "1"
+                      - generic [ref=e650]:
+                        - img [ref=e652]
+                        - link "Personal" [ref=e656]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e659]:
+                        - img [ref=e660]
+                  - generic [ref=e667] [cursor=pointer]:
+                    - generic [ref=e668]:
+                      - heading "LT - Report QA and Alerts" [level=2] [ref=e670]
+                      - generic [ref=e672]:
+                        - generic [ref=e673]: Last updated 1 day ago |
+                        - generic [ref=e674]: Created 18 April
+                    - generic [ref=e676]:
+                      - generic [ref=e679]:
+                        - img [ref=e680]
+                        - text: "1"
+                      - generic [ref=e686]:
+                        - img [ref=e688]
+                        - link "Personal" [ref=e692]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e695]: Published
+                      - button [ref=e698]:
+                        - img [ref=e699]
+                  - generic [ref=e706] [cursor=pointer]:
+                    - generic [ref=e707]:
+                      - heading "LT - Report Config Sync" [level=2] [ref=e709]
+                      - generic [ref=e711]:
+                        - generic [ref=e712]: Last updated 1 day ago |
+                        - generic [ref=e713]: Created 18 April
+                    - generic [ref=e715]:
+                      - generic [ref=e718]:
+                        - img [ref=e719]
+                        - text: "1"
+                      - generic [ref=e725]:
+                        - img [ref=e727]
+                        - link "Personal" [ref=e731]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e734]:
+                        - img [ref=e735]
+                  - generic [ref=e742] [cursor=pointer]:
+                    - generic [ref=e743]:
+                      - heading "LT - SimpleTexting SMS Send (Webhook, Staged)" [level=2] [ref=e745]
+                      - generic [ref=e747]:
+                        - generic [ref=e748]: Last updated 1 day ago |
+                        - generic [ref=e749]: Created 17 March
+                    - generic [ref=e751]:
+                      - generic [ref=e754]:
+                        - img [ref=e756]
+                        - link "Personal" [ref=e760]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e763]: Published
+                      - button [ref=e766]:
+                        - img [ref=e767]
+                  - generic [ref=e774] [cursor=pointer]:
+                    - generic [ref=e775]:
+                      - heading "LT - SimpleTexting Inbound Reply (Webhook, Staged)" [level=2] [ref=e777]
+                      - generic [ref=e779]:
+                        - generic [ref=e780]: Last updated 1 day ago |
+                        - generic [ref=e781]: Created 17 March |
+                        - img [ref=e784]
+                    - generic [ref=e788]:
+                      - generic [ref=e791]:
+                        - img [ref=e793]
+                        - link "Personal" [ref=e797]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e800]: Published
+                      - button [ref=e803]:
+                        - img [ref=e804]
+                  - generic [ref=e811] [cursor=pointer]:
+                    - generic [ref=e812]:
+                      - heading "LT - SimpleTexting Pool Dispatcher (Staged)" [level=2] [ref=e814]
+                      - generic [ref=e816]:
+                        - generic [ref=e817]: Last updated 1 day ago |
+                        - generic [ref=e818]: Created 5 April |
+                        - img [ref=e821]
+                    - generic [ref=e825]:
+                      - generic [ref=e828]:
+                        - img [ref=e829]
+                        - text: "2"
+                      - generic [ref=e835]:
+                        - img [ref=e837]
+                        - link "Personal" [ref=e841]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e844]:
+                        - img [ref=e845]
+                  - generic [ref=e852] [cursor=pointer]:
+                    - generic [ref=e853]:
+                      - heading "LT - Emerald Campaign Sender Release Dispatcher (Staged)" [level=2] [ref=e855]
+                      - generic [ref=e857]:
+                        - generic [ref=e858]: Last updated 4 days ago |
+                        - generic [ref=e859]: Created 24 March |
+                        - img [ref=e862]
+                    - generic [ref=e866]:
+                      - generic [ref=e869]:
+                        - img [ref=e870]
+                        - text: "1"
+                      - generic [ref=e876]:
+                        - img [ref=e878]
+                        - link "Personal" [ref=e882]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e885]: Published
+                      - button [ref=e888]:
+                        - img [ref=e889]
+                  - generic [ref=e896] [cursor=pointer]:
+                    - generic [ref=e897]:
+                      - heading "LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)" [level=2] [ref=e899]
+                      - generic [ref=e901]:
+                        - generic [ref=e902]: Last updated 5 days ago |
+                        - generic [ref=e903]: Created 27 March |
+                        - img [ref=e906]
+                    - generic [ref=e910]:
+                      - generic [ref=e913]:
+                        - img [ref=e914]
+                        - text: "1"
+                      - generic [ref=e920]:
+                        - img [ref=e922]
+                        - link "Personal" [ref=e926]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e929]:
+                        - img [ref=e930]
+                  - generic [ref=e937] [cursor=pointer]:
+                    - generic [ref=e938]:
+                      - heading "LT - Emerald Intro Sent -> P2 Queue Dispatcher (Staged)" [level=2] [ref=e940]
+                      - generic [ref=e942]:
+                        - generic [ref=e943]: Last updated 6 days ago |
+                        - generic [ref=e944]: Created 12 April |
+                        - img [ref=e947]
+                    - generic [ref=e951]:
+                      - generic [ref=e954]:
+                        - img [ref=e955]
+                        - text: "1"
+                      - generic [ref=e961]:
+                        - img [ref=e963]
+                        - link "Personal" [ref=e967]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e970]: Published
+                      - button [ref=e973]:
+                        - img [ref=e974]
+                  - generic [ref=e981] [cursor=pointer]:
+                    - generic [ref=e982]:
+                      - heading "Form Submissions from Website with no downloads" [level=2] [ref=e984]
+                      - generic [ref=e986]:
+                        - generic [ref=e987]: Last updated 1 week ago |
+                        - generic [ref=e988]: Created 11 April |
+                        - img [ref=e991]
+                    - generic [ref=e995]:
+                      - generic [ref=e998]:
+                        - img [ref=e1000]
+                        - link "Personal" [ref=e1004]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1007]: Published
+                      - button [ref=e1010]:
+                        - img [ref=e1011]
+                  - generic [ref=e1018] [cursor=pointer]:
+                    - generic [ref=e1019]:
+                      - heading "LT - Emerald Intro Backfill Tagger (Staged)" [level=2] [ref=e1021]
+                      - generic [ref=e1023]:
+                        - generic [ref=e1024]: Last updated 1 week ago |
+                        - generic [ref=e1025]: Created 10 April |
+                        - img [ref=e1028]
+                    - generic [ref=e1032]:
+                      - generic [ref=e1035]:
+                        - img [ref=e1036]
+                        - text: "1"
+                      - generic [ref=e1042]:
+                        - img [ref=e1044]
+                        - link "Personal" [ref=e1048]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1051]: Published
+                      - button [ref=e1054]:
+                        - img [ref=e1055]
+                  - generic [ref=e1062] [cursor=pointer]:
+                    - generic [ref=e1063]:
+                      - heading "PDF Download from Form on Website" [level=2] [ref=e1065]
+                      - generic [ref=e1067]:
+                        - generic [ref=e1068]: Last updated 1 week ago |
+                        - generic [ref=e1069]: Created 11 April |
+                        - img [ref=e1072]
+                    - generic [ref=e1076]:
+                      - generic [ref=e1079]:
+                        - img [ref=e1081]
+                        - link "Personal" [ref=e1085]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1088]: Published
+                      - button [ref=e1091]:
+                        - img [ref=e1092]
+                  - generic [ref=e1099] [cursor=pointer]:
+                    - generic [ref=e1100]:
+                      - heading "LT - SimpleTexting Campaign Sequencer (Staged)" [level=2] [ref=e1102]
+                      - generic [ref=e1104]:
+                        - generic [ref=e1105]: Last updated 1 week ago |
+                        - generic [ref=e1106]: Created 5 April |
+                        - img [ref=e1109]
+                    - generic [ref=e1113]:
+                      - generic [ref=e1116]:
+                        - img [ref=e1117]
+                        - text: "2"
+                      - generic [ref=e1123]:
+                        - img [ref=e1125]
+                        - link "Personal" [ref=e1129]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e1132]:
+                        - img [ref=e1133]
+                  - generic [ref=e1140] [cursor=pointer]:
+                    - generic [ref=e1141]:
+                      - heading "LT - Emerald Executive SSO -> Company Sync (Staged)" [level=2] [ref=e1143]
+                      - generic [ref=e1145]:
+                        - generic [ref=e1146]: Last updated 1 week ago |
+                        - generic [ref=e1147]: Created 31 March |
+                        - img [ref=e1150]
+                    - generic [ref=e1154]:
+                      - generic [ref=e1157]:
+                        - img [ref=e1158]
+                        - text: "2"
+                      - generic [ref=e1164]:
+                        - img [ref=e1166]
+                        - link "Personal" [ref=e1170]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1173]: Published
+                      - button [ref=e1176]:
+                        - img [ref=e1177]
+                  - generic [ref=e1184] [cursor=pointer]:
+                    - generic [ref=e1185]:
+                      - heading "TMP - Reset Emerald Executive SSO Company Sync Queue" [level=2] [ref=e1187]
+                      - generic [ref=e1189]:
+                        - generic [ref=e1190]: Last updated 2 weeks ago |
+                        - generic [ref=e1191]: Created 5 April |
+                        - img [ref=e1194]
+                    - generic [ref=e1198]:
+                      - generic [ref=e1201]:
+                        - img [ref=e1202]
+                        - text: "1"
+                      - generic [ref=e1208]:
+                        - img [ref=e1210]
+                        - link "Personal" [ref=e1214]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e1217]:
+                        - img [ref=e1218]
+                  - generic [ref=e1225] [cursor=pointer]:
+                    - generic [ref=e1226]:
+                      - heading "LT - SimpleTexting Unsubscribe Events (Webhook, Staged)" [level=2] [ref=e1228]
+                      - generic [ref=e1230]:
+                        - generic [ref=e1231]: Last updated 2 weeks ago |
+                        - generic [ref=e1232]: Created 17 March |
+                        - img [ref=e1235]
+                    - generic [ref=e1239]:
+                      - generic [ref=e1242]:
+                        - img [ref=e1244]
+                        - link "Personal" [ref=e1248]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1251]: Published
+                      - button [ref=e1254]:
+                        - img [ref=e1255]
+                  - generic [ref=e1262] [cursor=pointer]:
+                    - generic [ref=e1263]:
+                      - heading "LT - SimpleTexting Delivery Events (Webhook, Staged)" [level=2] [ref=e1265]
+                      - generic [ref=e1267]:
+                        - generic [ref=e1268]: Last updated 2 weeks ago |
+                        - generic [ref=e1269]: Created 17 March |
+                        - img [ref=e1272]
+                    - generic [ref=e1276]:
+                      - generic [ref=e1279]:
+                        - img [ref=e1281]
+                        - link "Personal" [ref=e1285]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1288]: Published
+                      - button [ref=e1291]:
+                        - img [ref=e1292]
+                  - generic [ref=e1299] [cursor=pointer]:
+                    - generic [ref=e1300]:
+                      - heading "LT - Emerald CSV -> GHL Import (DryRun, Staged)" [level=2] [ref=e1302]
+                      - generic [ref=e1304]:
+                        - generic [ref=e1305]: Last updated 2 weeks ago |
+                        - generic [ref=e1306]: Created 24 March |
+                        - img [ref=e1309]
+                    - generic [ref=e1313]:
+                      - generic [ref=e1316]:
+                        - img [ref=e1318]
+                        - link "Personal" [ref=e1322]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e1325]:
+                        - img [ref=e1326]
+                  - generic [ref=e1333] [cursor=pointer]:
+                    - generic [ref=e1334]:
+                      - heading "LT - Emerald CSV -> Postgres Ingest (Staged)" [level=2] [ref=e1336]
+                      - generic [ref=e1338]:
+                        - generic [ref=e1339]: Last updated 2 weeks ago |
+                        - generic [ref=e1340]: Created 24 March |
+                        - img [ref=e1343]
+                    - generic [ref=e1347]:
+                      - generic [ref=e1350]:
+                        - img [ref=e1351]
+                        - text: "1"
+                      - generic [ref=e1357]:
+                        - img [ref=e1359]
+                        - link "Personal" [ref=e1363]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - button [ref=e1366]:
+                        - img [ref=e1367]
+                  - generic [ref=e1374] [cursor=pointer]:
+                    - generic [ref=e1375]:
+                      - heading "WL - Webhook to Slack Channel Update" [level=2] [ref=e1377]
+                      - generic [ref=e1379]:
+                        - generic [ref=e1380]: Last updated 2 weeks ago |
+                        - generic [ref=e1381]: Created 18 February |
+                        - img [ref=e1384]
+                    - generic [ref=e1388]:
+                      - generic [ref=e1391]:
+                        - img [ref=e1393]
+                        - link "Personal" [ref=e1397]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1400]: Published
+                      - button [ref=e1403]:
+                        - img [ref=e1404]
+                  - generic [ref=e1411] [cursor=pointer]:
+                    - generic [ref=e1412]:
+                      - heading "LT - Cold Outreach Sender Release Dispatcher (Staged)" [level=2] [ref=e1414]
+                      - generic [ref=e1416]:
+                        - generic [ref=e1417]: Last updated 2 weeks ago |
+                        - generic [ref=e1418]: Created 20 February |
+                        - img [ref=e1421]
+                    - generic [ref=e1425]:
+                      - generic [ref=e1428]:
+                        - img [ref=e1429]
+                        - text: "1"
+                      - generic [ref=e1435]:
+                        - img [ref=e1437]
+                        - link "Personal" [ref=e1441]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1444]: Published
+                      - button [ref=e1447]:
+                        - img [ref=e1448]
+                  - generic [ref=e1455] [cursor=pointer]:
+                    - generic [ref=e1456]:
+                      - heading "GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)" [level=2] [ref=e1458]
+                      - generic [ref=e1460]:
+                        - generic [ref=e1461]: Last updated 3 weeks ago |
+                        - generic [ref=e1462]: Created 3 March |
+                        - img [ref=e1465]
+                    - generic [ref=e1469]:
+                      - generic [ref=e1472]:
+                        - img [ref=e1474]
+                        - link "Personal" [ref=e1478]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1481]: Published
+                      - button [ref=e1484]:
+                        - img [ref=e1485]
+                  - generic [ref=e1492] [cursor=pointer]:
+                    - generic [ref=e1493]:
+                      - heading "rb2b leads" [level=2] [ref=e1495]
+                      - generic [ref=e1497]:
+                        - generic [ref=e1498]: Last updated 1 month ago |
+                        - generic [ref=e1499]: Created 10 March |
+                        - img [ref=e1502]
+                    - generic [ref=e1506]:
+                      - generic [ref=e1509]:
+                        - img [ref=e1510]
+                        - text: "1"
+                      - generic [ref=e1516]:
+                        - img [ref=e1518]
+                        - link "Personal" [ref=e1522]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1525]: Published
+                      - button [ref=e1528]:
+                        - img [ref=e1529]
+                  - generic [ref=e1536] [cursor=pointer]:
+                    - generic [ref=e1537]:
+                      - heading "GHL Apollo Phone Enrichment - Callback Handler" [level=2] [ref=e1539]
+                      - generic [ref=e1541]:
+                        - generic [ref=e1542]: Last updated 1 month ago |
+                        - generic [ref=e1543]: Created 26 February |
+                        - img [ref=e1546]
+                    - generic [ref=e1550]:
+                      - generic [ref=e1553]:
+                        - img [ref=e1555]
+                        - link "Personal" [ref=e1559]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1562]: Published
+                      - button [ref=e1565]:
+                        - img [ref=e1566]
+                  - generic [ref=e1573] [cursor=pointer]:
+                    - generic [ref=e1574]:
+                      - heading "GHL Apollo Enrichment - Phone Webhook Intake (Staged)" [level=2] [ref=e1576]
+                      - generic [ref=e1578]:
+                        - generic [ref=e1579]: Last updated 1 month ago |
+                        - generic [ref=e1580]: Created 26 February |
+                        - img [ref=e1583]
+                    - generic [ref=e1587]:
+                      - generic [ref=e1590]:
+                        - img [ref=e1591]
+                        - text: "2"
+                      - generic [ref=e1597]:
+                        - img [ref=e1599]
+                        - link "Personal" [ref=e1603]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1606]: Published
+                      - button [ref=e1609]:
+                        - img [ref=e1610]
+                  - generic [ref=e1617] [cursor=pointer]:
+                    - generic [ref=e1618]:
+                      - heading "GHL Apollo Enrichment - Webhook Intake (Sheet First)" [level=2] [ref=e1620]
+                      - generic [ref=e1622]:
+                        - generic [ref=e1623]: Last updated 1 month ago |
+                        - generic [ref=e1624]: Created 13 February |
+                        - img [ref=e1627]
+                    - generic [ref=e1631]:
+                      - generic [ref=e1634]:
+                        - img [ref=e1635]
+                        - text: "2"
+                      - generic [ref=e1641]:
+                        - img [ref=e1643]
+                        - link "Personal" [ref=e1647]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1650]: Published
+                      - button [ref=e1653]:
+                        - img [ref=e1654]
+                  - generic [ref=e1661] [cursor=pointer]:
+                    - generic [ref=e1662]:
+                      - heading "GHL Apollo Phone Enrichment - Callback Handler V4" [level=2] [ref=e1664]
+                      - generic [ref=e1666]:
+                        - generic [ref=e1667]: Last updated 1 month ago |
+                        - generic [ref=e1668]: Created 4 March |
+                        - img [ref=e1671]
+                    - generic [ref=e1675]:
+                      - generic [ref=e1678]:
+                        - img [ref=e1680]
+                        - link "Personal" [ref=e1684]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1687]: Published
+                      - button [ref=e1690]:
+                        - img [ref=e1691]
+                  - generic [ref=e1698] [cursor=pointer]:
+                    - generic [ref=e1699]:
+                      - heading "Website Lead Intake from Hero form" [level=2] [ref=e1701]
+                      - generic [ref=e1703]:
+                        - generic [ref=e1704]: Last updated 1 month ago |
+                        - generic [ref=e1705]: Created 17 February |
+                        - img [ref=e1708]
+                    - generic [ref=e1712]:
+                      - generic [ref=e1715]:
+                        - img [ref=e1717]
+                        - link "Personal" [ref=e1721]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1724]: Published
+                      - button [ref=e1727]:
+                        - img [ref=e1728]
+                  - generic [ref=e1735] [cursor=pointer]:
+                    - generic [ref=e1736]:
+                      - heading "Website Lead Intake from Footer Form" [level=2] [ref=e1738]
+                      - generic [ref=e1740]:
+                        - generic [ref=e1741]: Last updated 1 month ago |
+                        - generic [ref=e1742]: Created 17 February |
+                        - img [ref=e1745]
+                    - generic [ref=e1749]:
+                      - generic [ref=e1752]:
+                        - img [ref=e1754]
+                        - link "Personal" [ref=e1758]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1761]: Published
+                      - button [ref=e1764]:
+                        - img [ref=e1765]
+                  - generic [ref=e1772] [cursor=pointer]:
+                    - generic [ref=e1773]:
+                      - heading "GHL Warm Intake - Email Inbound Tag (Webhook)" [level=2] [ref=e1775]
+                      - generic [ref=e1777]:
+                        - generic [ref=e1778]: Last updated 1 month ago |
+                        - generic [ref=e1779]: Created 16 February |
+                        - img [ref=e1782]
+                    - generic [ref=e1786]:
+                      - generic [ref=e1789]:
+                        - img [ref=e1791]
+                        - link "Personal" [ref=e1795]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1798]: Published
+                      - button [ref=e1801]:
+                        - img [ref=e1802]
+                  - generic [ref=e1809] [cursor=pointer]:
+                    - generic [ref=e1810]:
+                      - heading "GHL Warm Intake - Add Intake Tag (Webhook)" [level=2] [ref=e1812]
+                      - generic [ref=e1814]:
+                        - generic [ref=e1815]: Last updated 1 month ago |
+                        - generic [ref=e1816]: Created 16 February |
+                        - img [ref=e1819]
+                    - generic [ref=e1823]:
+                      - generic [ref=e1826]:
+                        - img [ref=e1828]
+                        - link "Personal" [ref=e1832]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1835]: Published
+                      - button [ref=e1838]:
+                        - img [ref=e1839]
+                  - generic [ref=e1846] [cursor=pointer]:
+                    - generic [ref=e1847]:
+                      - heading "GHL Warm Intake - Email Outbound Tag (Webhook)" [level=2] [ref=e1849]
+                      - generic [ref=e1851]:
+                        - generic [ref=e1852]: Last updated 1 month ago |
+                        - generic [ref=e1853]: Created 16 February |
+                        - img [ref=e1856]
+                    - generic [ref=e1860]:
+                      - generic [ref=e1863]:
+                        - img [ref=e1865]
+                        - link "Personal" [ref=e1869]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1872]: Published
+                      - button [ref=e1875]:
+                        - img [ref=e1876]
+                  - generic [ref=e1883] [cursor=pointer]:
+                    - generic [ref=e1884]:
+                      - heading "GHL Warm Intake - Referral Tag (Webhook)" [level=2] [ref=e1886]
+                      - generic [ref=e1888]:
+                        - generic [ref=e1889]: Last updated 1 month ago |
+                        - generic [ref=e1890]: Created 16 February |
+                        - img [ref=e1893]
+                    - generic [ref=e1897]:
+                      - generic [ref=e1900]:
+                        - img [ref=e1902]
+                        - link "Personal" [ref=e1906]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1909]: Published
+                      - button [ref=e1912]:
+                        - img [ref=e1913]
+                  - generic [ref=e1920] [cursor=pointer]:
+                    - generic [ref=e1921]:
+                      - heading "GHL Warm Intake - SMS Tag (Webhook)" [level=2] [ref=e1923]
+                      - generic [ref=e1925]:
+                        - generic [ref=e1926]: Last updated 1 month ago |
+                        - generic [ref=e1927]: Created 16 February |
+                        - img [ref=e1930]
+                    - generic [ref=e1934]:
+                      - generic [ref=e1937]:
+                        - img [ref=e1939]
+                        - link "Personal" [ref=e1943]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1946]: Published
+                      - button [ref=e1949]:
+                        - img [ref=e1950]
+                  - generic [ref=e1957] [cursor=pointer]:
+                    - generic [ref=e1958]:
+                      - heading "WL - Webhook to Slack Channel - Form Submission" [level=2] [ref=e1960]
+                      - generic [ref=e1962]:
+                        - generic [ref=e1963]: Last updated 1 month ago |
+                        - generic [ref=e1964]: Created 25 February |
+                        - img [ref=e1967]
+                    - generic [ref=e1971]:
+                      - generic [ref=e1974]:
+                        - img [ref=e1976]
+                        - link "Personal" [ref=e1980]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e1983]: Published
+                      - button [ref=e1986]:
+                        - img [ref=e1987]
+                  - generic [ref=e1994] [cursor=pointer]:
+                    - generic [ref=e1995]:
+                      - heading "WL - Webhook to Slack Channel - Website Visitor" [level=2] [ref=e1997]
+                      - generic [ref=e1999]:
+                        - generic [ref=e2000]: Last updated 1 month ago |
+                        - generic [ref=e2001]: Created 25 February |
+                        - img [ref=e2004]
+                    - generic [ref=e2008]:
+                      - generic [ref=e2011]:
+                        - img [ref=e2013]
+                        - link "Personal" [ref=e2017]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e2020]: Published
+                      - button [ref=e2023]:
+                        - img [ref=e2024]
+                  - generic [ref=e2031] [cursor=pointer]:
+                    - generic [ref=e2032]:
+                      - heading "LT - Cold Outreach CSV -> Postgres Ingest (Staged)" [level=2] [ref=e2034]
+                      - generic [ref=e2036]:
+                        - generic [ref=e2037]: Last updated 1 month ago |
+                        - generic [ref=e2038]: Created 20 February |
+                        - img [ref=e2041]
+                    - generic [ref=e2045]:
+                      - generic [ref=e2048]:
+                        - img [ref=e2049]
+                        - text: "1"
+                      - generic [ref=e2055]:
+                        - img [ref=e2057]
+                        - link "Personal" [ref=e2061]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e2064]: Published
+                      - button [ref=e2067]:
+                        - img [ref=e2068]
+                  - generic [ref=e2075] [cursor=pointer]:
+                    - generic [ref=e2076]:
+                      - heading "LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)" [level=2] [ref=e2078]
+                      - generic [ref=e2080]:
+                        - generic [ref=e2081]: Last updated 1 month ago |
+                        - generic [ref=e2082]: Created 20 February |
+                        - img [ref=e2085]
+                    - generic [ref=e2089]:
+                      - generic [ref=e2092]:
+                        - img [ref=e2094]
+                        - link "Personal" [ref=e2098]:
+                          - /url: /projects/4Vzf1F1ukTvP58LF/workflows
+                      - generic [ref=e2101]: Published
+                      - button [ref=e2104]:
+                        - img [ref=e2105]
+                - generic [ref=e2111]:
+                  - generic [ref=e2112]: Total 47
+                  - button "Go to previous page" [disabled] [ref=e2113]:
+                    - generic [ref=e2114]:
+                      - img
+                  - list [ref=e2115]:
+                    - listitem "page 1" [ref=e2116]: "1"
+                  - button "Go to next page" [disabled] [ref=e2117]:
+                    - generic [ref=e2118]:
+                      - img
+                  - generic [ref=e2123]:
+                    - combobox "Select" [ref=e2124] [cursor=pointer]: 50/page
+                    - img [ref=e2127] [cursor=pointer]
+  - complementary
+  - alert [ref=e2129] [cursor=pointer]:
+    - generic [ref=e2130]:
+      - heading "One click credential setup" [level=2] [ref=e2131]
+      - paragraph [ref=e2133]: Setting up credentials on n8n Cloud is easier for supported services.
+      - img [ref=e2135]

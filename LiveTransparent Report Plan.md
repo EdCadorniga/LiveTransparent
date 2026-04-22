@@ -289,9 +289,56 @@ Recommended operational fields:
 - Do not start the GA4 Data API wiring until that property ID is confirmed.
 - Keep the measurement ID and stream ID in the setup notes, but treat them as separate from the property ID.
 
+### GA4 service account & Coolify secrets
+
+When GA4 ingest is enabled we require a GCP service account and a secure way to provide its JSON key to the runtime. Recommended delivery and runtime wiring:
+
+- Create a service account (example name: `livetransparent-ga4-ingest`) in the GCP project that owns the GA4 property.
+- Enable the Google Analytics Data API in that project.
+- In the GA UI (Admin → Property → Property Access Management) add the service account email with role: Analytics Viewer.
+- Create and download a JSON key for the service account. Do NOT commit this JSON to the repo or share it insecurely.
+- In Coolify (n8n service) add the following environment entries (plain KEY=VALUE). Mark the JSON value as a secret/protected value and do not commit it:
+
+  - GA4_PROPERTY_ID=434472183
+  - GA4_MEASUREMENT_ID=G-YYF078K942
+  - GA4_STREAM_ID=7792630179
+  - GA4_SERVICE_ACCOUNT_JSON_PATH=/etc/ga4/sa.json
+  - GA4_INGEST_ENABLED=false
+  - GA4_USE_UNIPILE=false
+  - UNIPILE_API_BASE=
+  - GA4_SERVICE_ACCOUNT_JSON=<paste full service account JSON here; mark secret>
+
+- Startup snippet (prepend to the service start command) to write the secret JSON to a file before n8n starts:
+
+  /bin/sh -lc 'mkdir -p /etc/ga4 && if [ -n "$GA4_SERVICE_ACCOUNT_JSON" ]; then printf "%s" "$GA4_SERVICE_ACCOUNT_JSON" > /etc/ga4/sa.json && chmod 600 /etc/ga4/sa.json; fi; export GA4_SERVICE_ACCOUNT_JSON_PATH=/etc/ga4/sa.json; exec <ORIGINAL_CMD>'
+
+  Replace `<ORIGINAL_CMD>` with the existing container start command. This writes the secret into `/etc/ga4/sa.json` and sets `GA4_SERVICE_ACCOUNT_JSON_PATH` so the ingest workflow can authenticate.
+
+- Verification: after deploy confirm the container starts, then (if you have shell access) run `ls -l /etc/ga4 && jq -r .client_email /etc/ga4/sa.json` to confirm the key is present and readable only by the container.
+
+This ensures the GA4 service account key is available to n8n without committing secrets to source control and aligns with the ingest wiring described elsewhere in this plan.
+
 ## Current Status
 
-- The reporting stack is now live for the GHL side end to end, including the executive summary webhook and Postgres bootstrap.
+- The report host is live and secure, and the GHL `Executive Report` menu entry points at it.
+- The executive summary webhook is live and returns GHL-first report JSON from Postgres.
 - GHL-only bridge, rollup, QA, and summary logic are active in n8n.
-- The remaining work after the property ID arrives is to enable the GA4 ingest path, backfill, and verify the traffic-side joins.
-- The preferred GHL delivery pattern is now fixed: custom menu link, embedded iframe, external report host, Postgres-backed data.
+- The lead and sales ingest workflows were patched so `report_date` comes from source timestamps instead of the current day.
+- The manual reruns already completed for:
+  - `LT - GHL Daily Leads Ingest`
+  - `LT - GHL Daily Sales Ingest`
+  - `LT - Report Attribution Bridge`
+  - `LT - Report Daily Rollups`
+- The live summary now separates lead counts by window:
+  - `7d` leads: `21`
+  - `30d` leads: `50`
+  - `90d` leads: `50`
+- The remaining GHL-only task is to inspect why `opportunitiesCreated` stays at `193` across all windows and whether that is intended, then confirm whether the sales ingest needs additional pagination or date scoping before the metric is frozen.
+- GA4 remains deferred until Cameron provides the property ID.
+- The preferred GHL delivery pattern is fixed: custom menu link, embedded iframe, external report host, Postgres-backed data.
+
+## Immediate Execution Sequence
+
+1. Inspect why `opportunitiesCreated` still shows `193` across `7d`, `30d`, and `90d`.
+2. Confirm whether closed-won sales should remain `0` for the current dataset.
+3. If the opportunity count is expected, lock the GHL-only report as stable, verify the sales ingest coverage, and keep GA4 deferred until the property ID arrives.

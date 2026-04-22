@@ -1,0 +1,387 @@
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e9]:
+        - generic [ref=e11]:
+          - generic [ref=e14]:
+            - link "Personal" [ref=e16] [cursor=pointer]:
+              - /url: /projects/4Vzf1F1ukTvP58LF
+              - generic [ref=e18]:
+                - generic "Personal" [ref=e19]:
+                  - img [ref=e20]
+                - generic "Personal" [ref=e24]
+            - generic [ref=e25]: /
+            - generic "LT - GHL Daily Sales Ingest" [ref=e26]:
+              - generic [ref=e28] [cursor=pointer]: LT - GHL Daily Sales Ingest
+          - generic [ref=e30]: + Add tag
+          - generic [ref=e31]:
+            - generic [ref=e33] [cursor=pointer]:
+              - generic: 0 / 3
+            - generic [ref=e34]:
+              - generic [ref=e36]:
+                - button "Publish" [disabled] [ref=e761]:
+                  - generic [ref=e42]: Publish
+                - button "More actions" [ref=e45] [cursor=pointer]:
+                  - img [ref=e47]
+              - link "Version History" [ref=e50] [cursor=pointer]:
+                - /url: /workflow/aYT5oHcgmBALzHy5/history
+                - button "Version History" [ref=e51]:
+                  - img [ref=e53]
+              - button "Actions" [ref=e60] [cursor=pointer]:
+                - img [ref=e62]
+        - radiogroup [ref=e68]:
+          - radio "Editor" [checked] [ref=e69]:
+            - generic [ref=e70] [cursor=pointer]: Editor
+          - radio "Executions" [ref=e71]:
+            - generic [ref=e72] [cursor=pointer]: Executions
+          - radio "Evaluations" [ref=e73]:
+            - generic [ref=e74] [cursor=pointer]: Evaluations
+      - complementary [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e78]:
+            - link [ref=e79] [cursor=pointer]:
+              - /url: /home
+              - generic [ref=e80]:
+                - img [ref=e81]
+                - img [ref=e83]
+            - menubar [ref=e86]:
+              - menuitem "Add new item" [ref=e87]:
+                - button "Add new item" [ref=e89] [cursor=pointer]:
+                  - img [ref=e91]
+            - button "Open command palette" [ref=e94] [cursor=pointer]:
+              - img [ref=e96]
+            - button "Toggle sidebar" [ref=e101] [cursor=pointer]:
+              - img [ref=e103]
+          - generic [ref=e111]:
+            - menuitem "Overview" [ref=e113] [cursor=pointer]:
+              - img [ref=e115]
+              - generic [ref=e120]: Overview
+            - menuitem "Chat" [ref=e122] [cursor=pointer]:
+              - img [ref=e124]
+              - generic [ref=e126]:
+                - generic [ref=e127]: Chat
+                - generic [ref=e128]: beta
+          - generic [ref=e130]:
+            - menuitem "Templates" [ref=e132] [cursor=pointer]:
+              - img [ref=e134]
+              - generic [ref=e140]: Templates
+            - menuitem "Insights" [ref=e142] [cursor=pointer]:
+              - img [ref=e144]
+              - generic [ref=e147]: Insights
+            - menuitem "Help" [ref=e149] [cursor=pointer]:
+              - img [ref=e151]
+              - generic [ref=e156]: Help
+              - img [ref=e157]
+            - menuitem "Settings" [ref=e160] [cursor=pointer]:
+              - img [ref=e162]
+              - generic [ref=e167]: Settings
+              - img [ref=e168]
+      - main [ref=e170]:
+        - generic [ref=e173]:
+          - generic [ref=e175]:
+            - generic [ref=e177]:
+              - generic:
+                - img
+                - img:
+                  - group "Edge from sales_schedule to sales_config" [ref=e178] [cursor=pointer]:
+                    - img
+                - img:
+                  - group "Edge from sales_manual to sales_config" [ref=e182] [cursor=pointer]:
+                    - img
+                - img:
+                  - group "Edge from sales_config to sales_fetch":
+                    - img
+                - img:
+                  - group "Edge from sales_fetch to sales_normalize":
+                    - img
+                - img:
+                  - group "Edge from sales_normalize to sales_upsert":
+                    - img
+                - img:
+                  - group "Edge from sales_upsert to sales_summary":
+                    - img
+                - img:
+                  - group "Edge from sales_summary to sales_finalize_sql":
+                    - img
+                - img:
+                  - group "Edge from sales_finalize_sql to sales_finalize":
+                    - img
+                - img:
+                  - group "Edge from sales_finalize to sales_result":
+                    - img
+                - generic:
+                  - generic:
+                    - generic: 1 item
+                  - generic:
+                    - generic: 1 item
+                - generic:
+                  - group [ref=e186] [cursor=pointer]:
+                    - generic [ref=e187]:
+                      - generic [ref=e192]:
+                        - button "Execute step" [ref=e193]:
+                          - img [ref=e195]
+                        - button "Deactivate" [ref=e197]:
+                          - img [ref=e199]
+                        - button "Delete" [ref=e202]:
+                          - img [ref=e204]
+                        - button "Add to n8n AI" [ref=e207]:
+                          - img [ref=e209]
+                        - button "More actions" [ref=e211]:
+                          - img [ref=e213]
+                      - generic [ref=e215]:
+                        - generic [ref=e218]:
+                          - img
+                        - generic:
+                          - generic: Schedule Trigger
+                        - img [ref=e769]
+                      - generic:
+                        - generic:
+                          - generic:
+                            - img
+                          - button "Execute workflow":
+                            - generic:
+                              - img
+                              - generic: Execute workflow
+                  - group [ref=e219] [cursor=pointer]:
+                    - generic [ref=e220]:
+                      - generic [ref=e225]:
+                        - button "Execute step" [ref=e226]:
+                          - img [ref=e228]
+                        - button "Deactivate" [ref=e230]:
+                          - img [ref=e232]
+                        - button "Delete" [ref=e235]:
+                          - img [ref=e237]
+                        - button "Add to n8n AI" [ref=e240]:
+                          - img [ref=e242]
+                        - button "More actions" [ref=e244]:
+                          - img [ref=e246]
+                      - generic [ref=e248]:
+                        - generic [ref=e251]:
+                          - img
+                        - generic:
+                          - generic: Manual Trigger
+                      - generic:
+                        - generic:
+                          - generic:
+                            - img
+                          - button "Execute workflow":
+                            - generic:
+                              - img
+                              - generic: Execute workflow
+                  - group [ref=e252] [cursor=pointer]:
+                    - generic [ref=e253]:
+                      - generic [ref=e262]:
+                        - button "Execute step" [ref=e263]:
+                          - img [ref=e265]
+                        - button "Deactivate" [ref=e267]:
+                          - img [ref=e269]
+                        - button "Delete" [ref=e272]:
+                          - img [ref=e274]
+                        - button "Add to n8n AI" [ref=e277]:
+                          - img [ref=e279]
+                        - button "More actions" [ref=e281]:
+                          - img [ref=e283]
+                      - generic [ref=e285]:
+                        - generic [ref=e288]:
+                          - img
+                        - generic:
+                          - generic: Config
+                        - img [ref=e772]
+                  - group [ref=e289] [cursor=pointer]:
+                    - generic [ref=e290]:
+                      - generic [ref=e299]:
+                        - button "Execute step" [ref=e300]:
+                          - img [ref=e302]
+                        - button "Deactivate" [ref=e304]:
+                          - img [ref=e306]
+                        - button "Delete" [ref=e309]:
+                          - img [ref=e311]
+                        - button "Add to n8n AI" [ref=e314]:
+                          - img [ref=e316]
+                        - button "More actions" [ref=e318]:
+                          - img [ref=e320]
+                      - generic [ref=e322]:
+                        - generic [ref=e325]:
+                          - img
+                        - generic:
+                          - generic: Fetch Opportunities
+                        - img [ref=e776]
+                  - group [ref=e326] [cursor=pointer]:
+                    - generic [ref=e327]:
+                      - generic [ref=e336]:
+                        - button "Execute step" [ref=e337]:
+                          - img [ref=e339]
+                        - button "Deactivate" [ref=e341]:
+                          - img [ref=e343]
+                        - button "Delete" [ref=e346]:
+                          - img [ref=e348]
+                        - button "Add to n8n AI" [ref=e351]:
+                          - img [ref=e353]
+                        - button "More actions" [ref=e355]:
+                          - img [ref=e357]
+                      - generic [ref=e359]:
+                        - generic [ref=e362]:
+                          - img
+                        - generic:
+                          - generic: Normalize + Build SQL
+                  - group [ref=e363] [cursor=pointer]:
+                    - generic [ref=e364]:
+                      - generic [ref=e373]:
+                        - button "Execute step" [ref=e374]:
+                          - img [ref=e376]
+                        - button "Deactivate" [ref=e378]:
+                          - img [ref=e380]
+                        - button "Delete" [ref=e383]:
+                          - img [ref=e385]
+                        - button "Add to n8n AI" [ref=e388]:
+                          - img [ref=e390]
+                        - button "More actions" [ref=e392]:
+                          - img [ref=e394]
+                      - generic [ref=e396]:
+                        - generic [ref=e399]:
+                          - img
+                        - generic:
+                          - generic: Upsert Raw Sales
+                          - generic: executeQuery
+                  - group [ref=e400] [cursor=pointer]:
+                    - generic [ref=e401]:
+                      - generic [ref=e410]:
+                        - button "Execute step" [ref=e411]:
+                          - img [ref=e413]
+                        - button "Deactivate" [ref=e415]:
+                          - img [ref=e417]
+                        - button "Delete" [ref=e420]:
+                          - img [ref=e422]
+                        - button "Add to n8n AI" [ref=e425]:
+                          - img [ref=e427]
+                        - button "More actions" [ref=e429]:
+                          - img [ref=e431]
+                      - generic [ref=e433]:
+                        - generic [ref=e436]:
+                          - img
+                        - generic:
+                          - generic: Summarize Run
+                  - group [ref=e437] [cursor=pointer]:
+                    - generic [ref=e438]:
+                      - generic [ref=e447]:
+                        - button "Execute step" [ref=e448]:
+                          - img [ref=e450]
+                        - button "Deactivate" [ref=e452]:
+                          - img [ref=e454]
+                        - button "Delete" [ref=e457]:
+                          - img [ref=e459]
+                        - button "Add to n8n AI" [ref=e462]:
+                          - img [ref=e464]
+                        - button "More actions" [ref=e466]:
+                          - img [ref=e468]
+                      - generic [ref=e470]:
+                        - generic [ref=e473]:
+                          - img
+                        - generic:
+                          - generic: Build Finalization SQL
+                  - group [ref=e474] [cursor=pointer]:
+                    - generic [ref=e475]:
+                      - generic [ref=e484]:
+                        - button "Execute step" [ref=e485]:
+                          - img [ref=e487]
+                        - button "Deactivate" [ref=e489]:
+                          - img [ref=e491]
+                        - button "Delete" [ref=e494]:
+                          - img [ref=e496]
+                        - button "Add to n8n AI" [ref=e499]:
+                          - img [ref=e501]
+                        - button "More actions" [ref=e503]:
+                          - img [ref=e505]
+                      - generic [ref=e507]:
+                        - generic [ref=e510]:
+                          - img
+                        - generic:
+                          - generic: Finalize Run Records
+                          - generic: executeQuery
+                  - group [ref=e511] [cursor=pointer]:
+                    - generic [ref=e512]:
+                      - img [ref=e518]
+                      - generic [ref=e526]:
+                        - button "Execute step" [ref=e527]:
+                          - img [ref=e529]
+                        - button "Deactivate" [ref=e531]:
+                          - img [ref=e533]
+                        - button "Delete" [ref=e536]:
+                          - img [ref=e538]
+                        - button "Add to n8n AI" [ref=e541]:
+                          - img [ref=e543]
+                        - button "More actions" [ref=e545]:
+                          - img [ref=e547]
+                      - generic [ref=e549]:
+                        - generic [ref=e552]:
+                          - img
+                        - generic:
+                          - generic: Result
+                  - group [ref=e553] [cursor=pointer]:
+                    - generic [ref=e554]:
+                      - generic [ref=e555]:
+                        - button "Delete" [ref=e556]:
+                          - img [ref=e558]
+                        - generic [ref=e560]:
+                          - generic "Change color" [ref=e561]:
+                            - img [ref=e562]
+                          - textbox: "#000000"
+                        - button "Add to n8n AI" [ref=e570]:
+                          - img [ref=e572]
+                        - button "More actions" [ref=e574]:
+                          - img [ref=e576]
+                      - paragraph [ref=e590]: LT - GHL Daily Sales Ingest\n\nPurpose\n- Pull opportunities and pipeline snapshots from GHL.\n- Write raw opportunity and pipeline-history rows to Postgres.\n- Prepare run, watermark, and source-health records for the reporting stack.\n\nStatus\n- Live starter chain.\n- Ready now; no GA4 dependency.
+            - img [ref=e591]
+            - img [ref=e592]
+            - generic [ref=e594]:
+              - button "Zoom to Fit" [ref=e596] [cursor=pointer]:
+                - img [ref=e598]
+              - button "Zoom In" [ref=e601] [cursor=pointer]:
+                - img [ref=e603]
+              - button "Zoom Out" [ref=e608] [cursor=pointer]:
+                - img [ref=e610]
+              - button "Reset Zoom" [ref=e615] [cursor=pointer]:
+                - img [ref=e617]
+              - button "Tidy Up" [ref=e622] [cursor=pointer]:
+                - img [ref=e624]
+          - generic [ref=e627]:
+            - button "Execute workflow" [ref=e629] [cursor=pointer]:
+              - generic [ref=e630]:
+                - img [ref=e778]
+                - generic [ref=e633]:
+                  - text: Execute workflow
+                  - generic [ref=e634]:
+                    - text: from
+                    - generic [ref=e635]: Schedule Trigger
+            - button "Select trigger node" [ref=e638] [cursor=pointer]:
+              - img [ref=e640]
+          - generic [ref=e642]:
+            - button "Open nodes panel" [ref=e644] [cursor=pointer]:
+              - img [ref=e646]
+            - button "Command bar" [ref=e649] [cursor=pointer]:
+              - img [ref=e651]
+            - button "Add sticky note" [ref=e656] [cursor=pointer]:
+              - img [ref=e658]
+            - button "Open focus panel" [ref=e663] [cursor=pointer]:
+              - img [ref=e665]
+          - generic:
+            - complementary
+        - generic [ref=e677] [cursor=pointer]:
+          - generic [ref=e678]: Logs
+          - generic [ref=e679]:
+            - button "Clear execution" [ref=e781]:
+              - generic [ref=e782]:
+                - img [ref=e783]
+                - text: Clear execution
+            - generic [ref=e680]:
+              - button "Pop out panel" [ref=e682]:
+                - img [ref=e684]
+              - button "Open panel" [ref=e687]:
+                - img [ref=e689]
+  - complementary
+  - alert [ref=e785]:
+    - img [ref=e787]
+    - generic [ref=e789]:
+      - heading "Problem in node ‘Fetch Opportunities‘" [level=2] [ref=e790]
+      - paragraph [ref=e792]: Module 'node:https' is disallowed [line 1]
+      - img [ref=e794] [cursor=pointer]
