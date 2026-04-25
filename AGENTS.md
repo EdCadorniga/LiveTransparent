@@ -14,15 +14,45 @@
 
 ## Current Progress Snapshot
 - The Codex config has been set for this session to full access / no approval prompts via `sandbox_mode = "danger-full-access"` and `approval_policy = "never"`.
+- Local Codex MCP config for `n8n-lt` was corrected on `2026-04-26`:
+  - Previous `n8n-lt` config incorrectly used the public API server package with `N8N_API_KEY`.
+  - `n8n-lt` now points to the remote MCP endpoint `https://automations.livetransparent.com/mcp-server/http`.
+  - The configured MCP token now ends in `u108` and is passed as `N8N_MCP_ACCESS_TOKEN`.
+  - Handshake failure was later traced to `C:\Users\edmon\.codex\config.toml` using Unix-style env expansion (`$N8N_MCP_ACCESS_TOKEN`) under Windows `cmd`, which does not expand in that shell.
+  - `n8n-lt` was updated in `C:\Users\edmon\.codex\config.toml` to use `mcp-remote`, Windows-safe header expansion (`%N8N_MCP_ACCESS_TOKEN%`), and `enabled = true`.
+  - A full Codex restart / fresh session is still required before the corrected `n8n-lt` server can be validated in-tool.
 - The report host is live at `https://reports.livetransparent.com` and the embedded executive report route is live.
 - The GHL `Executive Report` menu entry exists and points at the embedded host.
 - The live report stack is GHL-first for now; GA4 and GSC remain deferred until the later phase.
+- The weekly executive readme page and report link were deployed successfully to the live report host on `2026-04-26`.
 - The report summary API is live and now shows different lead totals by window after the manual reruns:
   - `7d` leads: `21`
   - `30d` leads: `50`
   - `90d` leads: `50`
+- Later live reruns on `2026-04-25` refreshed the report chain again and changed the live summary to:
+  - `7d` leads: `30`
+  - `30d` leads: `99`
+  - `7d` opportunities created: `99`
+  - `30d` opportunities created: `2163`
+  - `closed_won`: `0`
+- Current executive report health as last verified on `2026-04-26`:
+  - Healthy and active:
+    - `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`)
+    - `LT - Report Attribution Bridge` (`Y0TU7Il71JswxOBp`)
+    - `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`)
+    - `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`)
+  - Active but operationally unreliable:
+    - `LT - GHL Daily Leads Ingest` (`OtqWjqGXZC3OcrXP`) still needs trigger migration/publish verification
+    - `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`) still needs trigger migration/publish verification
+  - Inactive / deferred by design:
+    - `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`)
+    - `LT - GSC Daily Ingest` (`if0Siw6KzlBItEbd`)
+    - `LT - Report Config Sync` (`aomO3Z4AXJIgEvvN`)
+    - `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`)
 - The lead and sales ingest workflows were patched to derive `report_date` from source timestamps; the leads/sales ingest, attribution bridge, and daily rollups were manually rerun after that patch.
 - Direct n8n REST API access with the configured API key is currently working for read/write workflow operations.
+- Direct editor API reads at `https://automations.livetransparent.com/rest/workflows/{id}` are working.
+- Draft workflow updates for `OtqWjqGXZC3OcrXP` were successfully written through the editor `PATCH /rest/workflows/{id}` path, but publishing those new versions to the active workflow still needs completion and verification.
 - Live channel attribution patch applied on `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`):
   - Added `tmp_bridge_traffic` from `report_bridge_traffic_to_lead` for attribution-first channel/source/medium resolution.
   - `report_channel_daily_summary` now prefers bridge attribution via contact-linked lateral joins and falls back to contact-derived values only when bridge rows are missing.
@@ -74,9 +104,15 @@
     - `first_name`: optional fallback first name from GHL contact
     - `message`: optional override note; omit to use the default personalized message
     - `send`: boolean; omit or `false` for dry-run, set `true` only for live invite sends
-- Remaining data issue to inspect: `opportunitiesCreated` still reads `193` across the windows while closed-won sales remain `0`; confirm whether that is intended pipeline behavior or if the opportunity date filter still needs tightening.
+- Remaining executive report data issue to inspect:
+  - `opportunitiesCreated` remains too high relative to leads after freshness was restored.
+  - Latest known live example: `30d leads = 99` while `30d opportunitiesCreated = 2163`.
+  - This now looks like a counting semantics/query issue in rollups or the executive summary SQL, not just a stale-ingest issue.
+- SimpleTexting workflows have not yet been audited in this session and should be treated as unverified until their live execution health is checked.
 
 ## Agent Tooling
+- Canonical Codex config lives at `C:\Users\edmon\.codex\config.toml`.
+- The repo-local `config.toml` in `LiveTransparent/` is deprecated and should not be treated as the active Codex config source.
 - Use `n8n-lt` as the canonical n8n MCP for this project.
 - Prefer `n8n-lt` MCP or direct API calls before using any browser-based workflow.
 - Avoid `agent-browser` or other browser automation unless MCP/API/CLI options are not sufficient.
@@ -91,6 +127,7 @@
 - Prefer documented runbooks in `GHL Live Transparent CRM/` before making workflow changes.
 - For n8n workflow edits, verify live state after every mutation.
 - When n8n MCP mutation helpers are unreliable, use the direct n8n REST API path documented in `n8n/`.
+- If `n8n-lt` appears in config but is not callable in-tool, assume the current session needs an MCP reload before falling back to other methods.
 - For direct GHL API testing, use `https://services.leadconnectorhq.com` with the PIT-backed headers already documented in the repo.
 - When the report data needs to be validated end to end, rerun the patched GHL ingest workflows first, then the attribution bridge, then the daily rollups, then the executive summary workflow.
 
@@ -138,12 +175,28 @@
 - `bookstack/docker-compose.yml`: BookStack + MariaDB service definition and Traefik labels.
 
 ## Immediate Next Steps
-1. Create the GHL automation that sends LinkedIn contact data to `LT - UNIPILE LinkedIn Connection Request (Internal Test)` through the n8n webhook.
-2. Start the GHL automation in dry-run mode only (`send: false` or omitted) and validate payload mapping from real GHL contact data, especially `linkedin_url` and fallback `first_name`.
-3. Decide when to allow live sends (`send: true`) and whether that should be a separate GHL automation branch, a guarded condition, or a manual approval step.
-4. Run `LT - Report Daily Rollups` once from n8n UI (or wait for next schedule) so the live channel attribution patch is written into `report_channel_daily_summary`.
-5. Validate `channelBreakdown` in the executive summary API after the run, specifically reduction in `unattributed` share and expected spread across known channels.
-6. Fix and validate `LT - GHL Daily Leads Ingest` schedule/health so leads freshness matches sales/bridge/rollups (daily expected at `0 6 * * *` America/Los_Angeles).
-7. Re-verify `opportunitiesCreated` behavior by range after leads freshness is restored, then confirm if it reflects intended counting semantics.
-8. Confirm whether `closed_won` should remain `0` for current dataset or whether additional sales ingest mapping is needed.
-9. Retry GA4 onboarding once Google access is unblocked, then proceed with deferred GA4/GSC phase.
+1. Fully restart Codex so the corrected `n8n-lt` configuration in `C:\Users\edmon\.codex\config.toml` is actually loaded for the next workflow session.
+2. In the fresh session, verify `n8n-lt` handshake succeeds before making workflow changes.
+3. Use `n8n-lt` first to inspect and update `LT - GHL Daily Leads Ingest` (`OtqWjqGXZC3OcrXP`) and `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`).
+4. For both workflows, confirm the active version uses `Schedule Trigger` plus `Manual Trigger` instead of legacy `Cron`, then verify the trigger connections point into `Config`.
+5. After trigger fixes are published, verify at least one successful run for:
+   - `LT - GHL Daily Leads Ingest`
+   - `LT - Report Attribution Bridge`
+   - `LT - Report Daily Rollups`
+   - `LT - Report QA and Alerts`
+6. Recheck the live executive summary endpoint after the next full chain run and compare:
+   - `7d` leads
+   - `30d` leads
+   - `opportunitiesCreated`
+   - stage movement / pipeline counts
+   - `closed_won`
+7. If `opportunitiesCreated` is still inflated relative to leads, inspect `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`) and rollup SQL for duplicate or cumulative opportunity counting.
+8. Confirm whether `closed_won = 0` is genuinely correct for the current dataset or whether sales ingest / mapping needs adjustment.
+9. Audit all SimpleTexting-related n8n workflows this week:
+   - identify every workflow that uses SimpleTexting credentials, webhook endpoints, or HTTP nodes against the SimpleTexting API
+   - verify each workflow is active/inactive by design, not accidentally disabled
+   - review the last successful and failed executions for the last 7 days
+   - confirm credentials are valid and not rate-limited or expired
+   - test one safe dry-run or non-destructive path where available
+   - document any broken workflows and required fixes
+10. After the executive report chain is stable, return to the LinkedIn/GHL automation work and the deferred GA4/GSC phase.
