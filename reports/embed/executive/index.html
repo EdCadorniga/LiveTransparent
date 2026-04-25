@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-04-21-nav-no-intercept-v2 -->
+    <!-- build-stamp: 2026-04-26-readme-link-v1 -->
     <meta name="color-scheme" content="dark" />
     <style>
       :root {
@@ -426,6 +426,7 @@
         <div class="nav-group">
           <div class="nav-title">Overview</div>
           <a class="nav-item active" href="?view=overview&range=30d&embed=1&section=section-overview" data-view="overview" data-scroll="#section-overview"><span class="nav-dot"></span> Executive report</a>
+          <a class="nav-item" href="/embed/executive/readme/" target="_blank" rel="noopener noreferrer"><span class="nav-dot"></span> Weekly readme</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-intake" data-view="overview" data-scroll="#section-intake"><span class="nav-dot"></span> Intake</a>
           <a class="nav-item" href="?view=leads&range=30d&embed=1&section=section-leads" data-view="leads" data-scroll="#section-leads"><span class="nav-dot"></span> Leads</a>
           <a class="nav-item" href="?view=sales&range=30d&embed=1&section=section-sales" data-view="sales" data-scroll="#section-sales"><span class="nav-dot"></span> Sales</a>
@@ -454,6 +455,7 @@
           </div>
           <div class="controls" aria-label="report controls">
             <span class="build-badge" id="build-badge">build: pending</span>
+            <a class="button" href="/embed/executive/readme/" target="_blank" rel="noopener noreferrer">Weekly readme</a>
             <a class="chip" href="?view=overview&range=7d&embed=1" data-range="7d">7d</a>
             <a class="chip active" href="?view=overview&range=30d&embed=1" data-range="30d">30d</a>
             <a class="chip" href="?view=overview&range=90d&embed=1" data-range="90d">90d</a>
@@ -618,7 +620,7 @@
 
     <script>
       (function () {
-        const BUILD_STAMP = "2026-04-21-nav-no-intercept-v2";
+        const BUILD_STAMP = "2026-04-26-readme-link-v1";
         const params = new URLSearchParams(window.location.search);
         const view = params.get("view") || "overview";
         const validRanges = new Set(["7d", "30d", "90d"]);

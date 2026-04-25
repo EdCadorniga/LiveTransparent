@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Transparent | Weekly Report Readme</title>
+    <meta name="color-scheme" content="dark" />
+    <style>
+      :root {
+        --bg: #09111f;
+        --panel: rgba(10, 17, 31, 0.86);
+        --panel-2: rgba(17, 28, 48, 0.92);
+        --line: rgba(255, 255, 255, 0.1);
+        --text: #ecf2ff;
+        --muted: #9aa7c6;
+        --soft: #c6d5ff;
+        --blue: #5f96ff;
+        --green: #34d399;
+        --amber: #f6bd4a;
+        --red: #ff7a7a;
+        --radius: 22px;
+        --shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(95, 150, 255, 0.16), transparent 24%),
+          radial-gradient(circle at top right, rgba(52, 211, 153, 0.12), transparent 20%),
+          linear-gradient(180deg, #060c16 0%, #09111f 100%);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        padding: 28px;
+      }
+
+      .shell {
+        max-width: 1120px;
+        margin: 0 auto;
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero,
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        padding: 24px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(95, 150, 255, 0.14);
+        border: 1px solid rgba(95, 150, 255, 0.32);
+        color: var(--soft);
+        font-size: 0.82rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 3vw, 3rem);
+        line-height: 1.02;
+      }
+
+      .subtitle {
+        margin: 12px 0 0;
+        max-width: 820px;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 1rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--text);
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .button.primary {
+        background: linear-gradient(135deg, rgba(95, 150, 255, 0.22), rgba(52, 211, 153, 0.18));
+        border-color: rgba(95, 150, 255, 0.32);
+      }
+
+      .grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+
+      .span-4 { grid-column: span 4; }
+      .span-6 { grid-column: span 6; }
+      .span-8 { grid-column: span 8; }
+      .span-12 { grid-column: span 12; }
+
+      .panel {
+        padding: 22px;
+      }
+
+      .panel h2 {
+        margin: 0 0 14px;
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .stat {
+        display: grid;
+        gap: 8px;
+      }
+
+      .stat strong {
+        font-size: 2rem;
+        line-height: 1;
+      }
+
+      .stat span,
+      .list,
+      .note,
+      .loading {
+        color: var(--muted);
+      }
+
+      .list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .list-item {
+        display: grid;
+        gap: 4px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: var(--panel-2);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .list-item strong {
+        font-size: 1rem;
+      }
+
+      .label-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: baseline;
+      }
+
+      .tone-good { color: var(--green); }
+      .tone-warn { color: var(--amber); }
+      .tone-bad { color: var(--red); }
+
+      @media (max-width: 900px) {
+        body { padding: 16px; }
+        .span-4, .span-6, .span-8, .span-12 { grid-column: span 12; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="eyebrow">Weekly executive readme</div>
+        <h1>What happened last week</h1>
+        <p class="subtitle" id="subtitle">Loading the latest 7-day executive summary from the live report API.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="/embed/executive/?view=overview&range=7d&embed=1">Open 7-day report</a>
+          <a class="button" href="/embed/executive/?view=overview&range=30d&embed=1">Back to executive report</a>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="panel span-4">
+          <h2>Leads</h2>
+          <div class="stat">
+            <strong id="leads-value">0</strong>
+            <span id="leads-note" class="loading">Waiting for live data.</span>
+          </div>
+        </article>
+        <article class="panel span-4">
+          <h2>Opportunities</h2>
+          <div class="stat">
+            <strong id="opps-value">0</strong>
+            <span id="opps-note" class="loading">Waiting for live data.</span>
+          </div>
+        </article>
+        <article class="panel span-4">
+          <h2>Closed Won</h2>
+          <div class="stat">
+            <strong id="sales-value">0</strong>
+            <span id="sales-note" class="loading">Waiting for live data.</span>
+          </div>
+        </article>
+
+        <article class="panel span-8">
+          <h2>Plain-Language Summary</h2>
+          <div class="list" id="summary-list">
+            <div class="loading">Building the weekly narrative.</div>
+          </div>
+        </article>
+
+        <article class="panel span-4">
+          <h2>Data Health</h2>
+          <div class="list" id="health-list">
+            <div class="loading">Checking source freshness.</div>
+          </div>
+        </article>
+
+        <article class="panel span-6">
+          <h2>Top Stages</h2>
+          <div class="list" id="stages-list">
+            <div class="loading">Loading stage counts.</div>
+          </div>
+        </article>
+
+        <article class="panel span-6">
+          <h2>Pipeline Movement</h2>
+          <div class="list" id="pipelines-list">
+            <div class="loading">Loading pipeline movement.</div>
+          </div>
+        </article>
+
+        <article class="panel span-12">
+          <h2>Read Before Presenting</h2>
+          <div class="list" id="warnings-list">
+            <div class="loading">Checking whether the report is presentation-ready.</div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        const subtitle = document.getElementById("subtitle");
+        const leadsValue = document.getElementById("leads-value");
+        const oppsValue = document.getElementById("opps-value");
+        const salesValue = document.getElementById("sales-value");
+        const leadsNote = document.getElementById("leads-note");
+        const oppsNote = document.getElementById("opps-note");
+        const salesNote = document.getElementById("sales-note");
+        const summaryList = document.getElementById("summary-list");
+        const healthList = document.getElementById("health-list");
+        const stagesList = document.getElementById("stages-list");
+        const pipelinesList = document.getElementById("pipelines-list");
+        const warningsList = document.getElementById("warnings-list");
+
+        function formatNumber(value) {
+          const num = Number(value);
+          if (!Number.isFinite(num)) return "0";
+          return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(num);
+        }
+
+        function escapeHtml(value) {
+          return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll("\"", "&quot;")
+            .replaceAll("'", "&#39;");
+        }
+
+        function renderList(container, items) {
+          container.innerHTML = items.map((item) => `
+            <div class="list-item">
+              <div class="label-row">
+                <strong>${escapeHtml(item.title)}</strong>
+                ${item.meta ? `<span class="${escapeHtml(item.tone || "")}">${escapeHtml(item.meta)}</span>` : ""}
+              </div>
+              <div>${escapeHtml(item.body)}</div>
+            </div>
+          `).join("");
+        }
+
+        function healthTone(status) {
+          const normalized = String(status || "").toLowerCase();
+          if (normalized === "ready" || normalized === "ok" || normalized === "success") return "tone-good";
+          if (normalized === "blocked" || normalized === "error") return "tone-bad";
+          return "tone-warn";
+        }
+
+        function daysStale(timestamp) {
+          if (!timestamp) return null;
+          const then = new Date(timestamp);
+          const now = new Date();
+          const diff = now.getTime() - then.getTime();
+          if (!Number.isFinite(diff)) return null;
+          return Math.round(diff / 86400000 * 10) / 10;
+        }
+
+        async function load() {
+          const res = await fetch("/api/report/executive/summary?view=overview&range=7d", {
+            headers: { Accept: "application/json" },
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          const summary = data.summary || {};
+          const health = Array.isArray(data.health) ? data.health : [];
+          const stages = Array.isArray(data.stageDropoff) ? data.stageDropoff : [];
+          const pipelines = Array.isArray(data.pipelineDropoff) ? data.pipelineDropoff : [];
+          const leads = Number(data.leads ?? summary.leadsNumeric ?? summary.leads ?? 0) || 0;
+          const sales = Number(data.sales ?? summary.salesNumeric ?? summary.sales ?? 0) || 0;
+          const opportunities = Number(summary.opportunitiesCreated ?? 0) || 0;
+          const from = data.window?.from || "";
+          const to = data.window?.to || "";
+          const topStage = stages[0] || null;
+          const topPipeline = pipelines[0] || null;
+          const staleHealth = health.filter((item) => (daysStale(item.last_success_at) || 0) >= 2);
+          const warningItems = [];
+
+          subtitle.textContent = from && to
+            ? `Live 7-day summary for ${from} to ${to}. This page turns the executive report numbers into a short weekly narrative.`
+            : "Live 7-day summary based on the latest report API response.";
+
+          leadsValue.textContent = formatNumber(leads);
+          oppsValue.textContent = formatNumber(opportunities);
+          salesValue.textContent = formatNumber(summary.closedWonCount ?? sales);
+
+          leadsNote.textContent = leads === 0
+            ? "No leads were recorded in the current 7-day report window."
+            : "Lead volume comes from the executive summary API.";
+          oppsNote.textContent = opportunities > 0 && leads === 0
+            ? "Opportunity volume is higher than lead volume, which needs validation."
+            : "Opportunity volume reflects the current report payload.";
+          salesNote.textContent = Number(summary.closedWonCount ?? sales) === 0
+            ? "No closed-won sales are reported for this week."
+            : "Closed-won sales are present in the current report payload.";
+
+          renderList(summaryList, [
+            {
+              title: "Lead generation",
+              body: leads === 0
+                ? "The report currently shows zero new leads for the last 7 days. That is a reporting problem unless the business truly had no contact creation during the week."
+                : `The report shows ${formatNumber(leads)} leads for the week.`,
+              meta: leads === 0 ? "Needs review" : "Live",
+              tone: leads === 0 ? "tone-bad" : "tone-good",
+            },
+            {
+              title: "Pipeline creation",
+              body: `The report shows ${formatNumber(opportunities)} opportunities created during the same 7-day window.`,
+              meta: opportunities > leads && leads === 0 ? "Mismatch" : "Live",
+              tone: opportunities > leads && leads === 0 ? "tone-warn" : "tone-good",
+            },
+            {
+              title: "Most populated stage",
+              body: topStage
+                ? `${topStage.pipeline || "Pipeline"} -> ${topStage.stage || "Stage"} is the largest visible stage with ${formatNumber(topStage.stage_count || 0)} records.`
+                : "No stage rows were returned.",
+              meta: topStage ? "Live" : "Missing",
+              tone: topStage ? "tone-good" : "tone-warn",
+            },
+            {
+              title: "Sales outcome",
+              body: Number(summary.closedWonCount ?? sales) === 0
+                ? "Closed-won remains at zero, so pipeline activity is not yet converting into reported revenue in this dashboard."
+                : `Closed-won count is ${formatNumber(summary.closedWonCount ?? sales)}.`,
+              meta: Number(summary.closedWonCount ?? sales) === 0 ? "No wins" : "Live",
+              tone: Number(summary.closedWonCount ?? sales) === 0 ? "tone-warn" : "tone-good",
+            },
+          ]);
+
+          renderList(healthList, health.map((item) => ({
+            title: item.source_system || "source",
+            body: item.last_success_at
+              ? `Last success: ${item.last_success_at}`
+              : "No success timestamp recorded.",
+            meta: item.status || "unknown",
+            tone: healthTone(item.status),
+          })));
+
+          renderList(stagesList, stages.slice(0, 6).map((item) => ({
+            title: `${item.pipeline || "Pipeline"} -> ${item.stage || "Stage"}`,
+            body: `Count ${formatNumber(item.stage_count || 0)}. Moved in ${formatNumber(item.moved_in_count || 0)}. Moved out ${formatNumber(item.moved_out_count || 0)}.`,
+            meta: "Live",
+            tone: "tone-good",
+          })));
+
+          renderList(pipelinesList, pipelines.map((item) => ({
+            title: item.label || "Pipeline",
+            body: `Current value ${formatNumber(item.value || 0)}. Stage count ${formatNumber(item.stageCount || 0)}. In ${formatNumber(item.movedIn || 0)} / out ${formatNumber(item.movedOut || 0)}.`,
+            meta: topPipeline && item.label === topPipeline.label ? "Largest" : "Live",
+            tone: topPipeline && item.label === topPipeline.label ? "tone-good" : "",
+          })));
+
+          if (leads === 0 && opportunities > 0) {
+            warningItems.push({
+              title: "Lead ingest is likely stale",
+              body: "The live 7-day report shows zero leads but still shows opportunities and stage counts. That usually means the leads ingest is behind the rest of the reporting chain.",
+              meta: "Critical",
+              tone: "tone-bad",
+            });
+          }
+          if (staleHealth.length) {
+            warningItems.push({
+              title: "One or more sources may be stale",
+              body: `Sources with stale-looking timestamps: ${staleHealth.map((item) => item.source_system).join(", ")}.`,
+              meta: "Review",
+              tone: "tone-warn",
+            });
+          }
+          if (!warningItems.length) {
+            warningItems.push({
+              title: "Current report status",
+              body: "The live health block does not show an obvious freshness problem for the weekly summary.",
+              meta: "Informational",
+              tone: "tone-good",
+            });
+          }
+
+          renderList(warningsList, warningItems);
+        }
+
+        load().catch((error) => {
+          subtitle.textContent = "The weekly readme could not load the live executive summary.";
+          renderList(summaryList, [{
+            title: "Load failure",
+            body: error.message || "Unknown error while fetching the live report API.",
+            meta: "Error",
+            tone: "tone-bad",
+          }]);
+          renderList(healthList, [{
+            title: "API status",
+            body: "Live report data is unavailable for the readme page right now.",
+            meta: "Error",
+            tone: "tone-bad",
+          }]);
+          renderList(stagesList, []);
+          renderList(pipelinesList, []);
+          renderList(warningsList, [{
+            title: "Readme blocked",
+            body: "Fix the report API response first, then reload this page.",
+            meta: "Blocked",
+            tone: "tone-bad",
+          }]);
+        });
+      })();
+    </script>
+  </body>
+</html>
