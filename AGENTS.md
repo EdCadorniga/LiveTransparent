@@ -41,8 +41,8 @@
     - `LT - Report Attribution Bridge` (`Y0TU7Il71JswxOBp`)
     - `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`)
     - `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`)
-  - Active but operationally unreliable:
-    - `LT - GHL Daily Leads Ingest` (`OtqWjqGXZC3OcrXP`) still needs trigger migration/publish verification
+  - Draft-ready but still needs publish / rerun verification:
+    - `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) rebuilt replacement for archived workflow `OtqWjqGXZC3OcrXP`
     - `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`) still needs trigger migration/publish verification
   - Inactive / deferred by design:
     - `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`)
@@ -52,7 +52,8 @@
 - The lead and sales ingest workflows were patched to derive `report_date` from source timestamps; the leads/sales ingest, attribution bridge, and daily rollups were manually rerun after that patch.
 - Direct n8n REST API access with the configured API key is currently working for read/write workflow operations.
 - Direct editor API reads at `https://automations.livetransparent.com/rest/workflows/{id}` are working.
-- Draft workflow updates for `OtqWjqGXZC3OcrXP` were successfully written through the editor `PATCH /rest/workflows/{id}` path, but publishing those new versions to the active workflow still needs completion and verification.
+- The damaged `LT - GHL Daily Leads Ingest` workflow `OtqWjqGXZC3OcrXP` was archived after editor corruption made it unreliable to open or publish.
+- Replacement workflow `osIJOgBmWITF5Yuv` was rebuilt with the original 10-node chain, renamed back to `LT - GHL Daily Leads Ingest`, and is now the canonical replacement draft that still needs publish/runtime verification.
 - Live channel attribution patch applied on `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`):
   - Added `tmp_bridge_traffic` from `report_bridge_traffic_to_lead` for attribution-first channel/source/medium resolution.
   - `report_channel_daily_summary` now prefers bridge attribution via contact-linked lateral joins and falls back to contact-derived values only when bridge rows are missing.
@@ -84,7 +85,8 @@
   - Sales ingest (`aYT5oHcgmBALzHy5`): success at `2026-04-20T18:00:46Z` (exec `9031`).
   - Attribution bridge (`Y0TU7Il71JswxOBp`): success at `2026-04-20T18:00:47Z` (exec `9032`).
   - Rollups (`EUeOiRttoVLQ9zF9`): success at `2026-04-20T18:00:57Z` (exec `9033`).
-  - Leads ingest (`OtqWjqGXZC3OcrXP`): last success is older at `2026-04-18T18:44:27Z` (exec `7818`), so leads are currently behind the other chains.
+  - Archived leads ingest (`OtqWjqGXZC3OcrXP`): last known success before rebuild was `2026-04-18T18:44:27Z` (exec `7818`).
+  - Rebuilt leads ingest replacement (`osIJOgBmWITF5Yuv`): fresh post-rebuild success has not yet been re-established and still needs publish / rerun verification.
 - GA4/Search Console status:
   - GA4 is still not added due to access/login blockage at `analytics.google.com`.
   - GA4 and GSC remain deferred and should be retried once access is unblocked.
@@ -108,7 +110,27 @@
   - `opportunitiesCreated` remains too high relative to leads after freshness was restored.
   - Latest known live example: `30d leads = 99` while `30d opportunitiesCreated = 2163`.
   - This now looks like a counting semantics/query issue in rollups or the executive summary SQL, not just a stale-ingest issue.
-- SimpleTexting workflows have not yet been audited in this session and should be treated as unverified until their live execution health is checked.
+- SimpleTexting workflow audit status as of `2026-04-26`:
+  - Active with recent successful executions:
+    - `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`)
+    - `LT - SimpleTexting Delivery Events (Webhook, Staged)` (`AEi1VCzkLvaYFr4U`)
+  - Active and previously broken, now patched:
+    - `LT - SimpleTexting Inbound Reply (Webhook, Staged)` (`EhAiGey2o7UJT1cv`)
+    - Root cause was a JavaScript syntax error in `Validate + Normalize Reply`; the malformed newline join was fixed on `2026-04-26`.
+  - Active but no recent fetched executions:
+    - `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` (`IyBKMkpYQ7pa0C8V`)
+  - Inactive by design:
+    - `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`)
+    - `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`)
+  - Archived:
+    - `LT - SimpleTexting Warmup Dispatcher (Staged)` (`dZQLlbTLkpE1843X`)
+  - Remaining hardening work:
+    - Move SimpleTexting API tokens, GHL keys, and webhook secrets out of workflow `Config` nodes into credentials or env-backed config.
+- n8n deployment lessons from the `2026-04-26` recovery:
+  - Coolify env duplication can create conflicting runtime values; keep each variable defined once.
+  - The persistent volume requires the original full `N8N_ENCRYPTION_KEY`; truncated or changed values cause a crash loop.
+  - `N8N_PROXY_HOPS=1` is required behind Cloudflare and Traefik to avoid `X-Forwarded-For` / rate-limit issues.
+  - If n8n prompts to create a new user unexpectedly, verify the runtime `DB_*` Postgres variables before completing setup.
 
 ## Agent Tooling
 - Canonical Codex config lives at `C:\Users\edmon\.codex\config.toml`.
@@ -177,10 +199,10 @@
 ## Immediate Next Steps
 1. Fully restart Codex so the corrected `n8n-lt` configuration in `C:\Users\edmon\.codex\config.toml` is actually loaded for the next workflow session.
 2. In the fresh session, verify `n8n-lt` handshake succeeds before making workflow changes.
-3. Use `n8n-lt` first to inspect and update `LT - GHL Daily Leads Ingest` (`OtqWjqGXZC3OcrXP`) and `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`).
+3. Use `n8n-lt` first to inspect and publish rebuilt `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) and verify `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`).
 4. For both workflows, confirm the active version uses `Schedule Trigger` plus `Manual Trigger` instead of legacy `Cron`, then verify the trigger connections point into `Config`.
 5. After trigger fixes are published, verify at least one successful run for:
-   - `LT - GHL Daily Leads Ingest`
+   - `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`)
    - `LT - Report Attribution Bridge`
    - `LT - Report Daily Rollups`
    - `LT - Report QA and Alerts`
@@ -192,11 +214,8 @@
    - `closed_won`
 7. If `opportunitiesCreated` is still inflated relative to leads, inspect `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`) and rollup SQL for duplicate or cumulative opportunity counting.
 8. Confirm whether `closed_won = 0` is genuinely correct for the current dataset or whether sales ingest / mapping needs adjustment.
-9. Audit all SimpleTexting-related n8n workflows this week:
-   - identify every workflow that uses SimpleTexting credentials, webhook endpoints, or HTTP nodes against the SimpleTexting API
-   - verify each workflow is active/inactive by design, not accidentally disabled
-   - review the last successful and failed executions for the last 7 days
-   - confirm credentials are valid and not rate-limited or expired
-   - test one safe dry-run or non-destructive path where available
-   - document any broken workflows and required fixes
+9. Finish the SimpleTexting follow-up work this week:
+   - verify the patched `LT - SimpleTexting Inbound Reply (Webhook, Staged)` stays healthy on the next live inbound events
+   - determine whether zero recent executions for `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` is expected or indicates a webhook/config gap
+   - move SimpleTexting secrets out of workflow `Config` nodes into credentials or env-backed config
 10. After the executive report chain is stable, return to the LinkedIn/GHL automation work and the deferred GA4/GSC phase.

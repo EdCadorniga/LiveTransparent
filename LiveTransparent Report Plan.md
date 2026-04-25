@@ -82,6 +82,8 @@ Build the executive report in the mockup as a repeatable data pipeline:
 4. `LT - GHL Daily Leads Ingest`
    - Pulls new contacts, contact attribution fields, and form-origin data.
    - Writes raw rows to Postgres.
+   - Original workflow `OtqWjqGXZC3OcrXP` was later archived after editor corruption.
+   - Replacement workflow `osIJOgBmWITF5Yuv` was rebuilt with the same node chain and renamed back to the canonical workflow name.
 
 5. `LT - GHL Daily Sales Ingest`
    - Pulls opportunities, stage history, and closed-won revenue data.
@@ -329,16 +331,27 @@ This ensures the GA4 service account key is available to n8n without committing 
   - `LT - GHL Daily Sales Ingest`
   - `LT - Report Attribution Bridge`
   - `LT - Report Daily Rollups`
+- The original `LT - GHL Daily Leads Ingest` workflow `OtqWjqGXZC3OcrXP` was later archived after it became editor-corrupted.
+- Rebuilt replacement `osIJOgBmWITF5Yuv` now holds the canonical `LT - GHL Daily Leads Ingest` name, but still needs publish/runtime verification before it is treated as the stable production ingest.
 - The live summary now separates lead counts by window:
   - `7d` leads: `21`
   - `30d` leads: `50`
   - `90d` leads: `50`
-- The remaining GHL-only task is to inspect why `opportunitiesCreated` stays at `193` across all windows and whether that is intended, then confirm whether the sales ingest needs additional pagination or date scoping before the metric is frozen.
+- Later live reruns changed the current example summary to:
+  - `7d` leads: `30`
+  - `30d` leads: `99`
+  - `7d` opportunitiesCreated: `99`
+  - `30d` opportunitiesCreated: `2163`
+  - `closed_won`: `0`
+- The remaining GHL-only task is now to inspect why `opportunitiesCreated` is still inflated relative to leads after freshness recovery; this looks more like duplicate or cumulative opportunity counting in rollups or executive summary SQL than a stale-ingest problem.
 - GA4 remains deferred until Cameron provides the property ID.
 - The preferred GHL delivery pattern is fixed: custom menu link, embedded iframe, external report host, Postgres-backed data.
 
 ## Immediate Execution Sequence
 
-1. Inspect why `opportunitiesCreated` still shows `193` across `7d`, `30d`, and `90d`.
-2. Confirm whether closed-won sales should remain `0` for the current dataset.
-3. If the opportunity count is expected, lock the GHL-only report as stable, verify the sales ingest coverage, and keep GA4 deferred until the property ID arrives.
+1. Publish and verify rebuilt `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`).
+2. Publish and verify `LT - Report QA and Alerts`.
+3. Rerun the chain in order: leads ingest, attribution bridge, daily rollups, then QA and Alerts.
+4. Recheck the live summary and inspect why `opportunitiesCreated` remains inflated relative to leads.
+5. Confirm whether `closed_won = 0` is actually correct for the current dataset.
+6. If the report is stable after those checks, lock the GHL-only report and keep GA4 deferred until the property ID arrives.

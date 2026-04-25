@@ -81,7 +81,7 @@ Keep these aligned with routing and report logic:
   - `LT - SimpleTexting Delivery Events (Webhook, Staged)`
   - `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)`
   - `LT - SimpleTexting Campaign Sequencer (Staged)`
-  - `LT - SimpleTexting Warmup Dispatcher (Staged)`
+  - Archived: `LT - SimpleTexting Warmup Dispatcher (Staged)`
   - `LT - SimpleTexting Pool Dispatcher (Staged)`
 - Cold outreach:
   - `LT - Cold Outreach CSV -> Postgres Ingest (Staged)`
@@ -99,17 +99,31 @@ Keep these aligned with routing and report logic:
   - `WL - Webhook to Slack Channel Update`
   - `WL - Webhook to Slack Channel - Website Visitor`
   - `WL - Webhook to Slack Channel - Form Submission`
-## Reporting Build Plan
-These workflows are planned for the executive report and are not yet part of the live inventory:
-- `LT - Report Config Sync`
-- `LT - GA4 Daily Ingest`
-- `LT - GSC Daily Ingest`
-- `LT - GHL Daily Leads Ingest`
+## Reporting Workflow Status
+Active in the current live report chain:
 - `LT - GHL Daily Sales Ingest`
 - `LT - Report Attribution Bridge`
 - `LT - Report Daily Rollups`
+- `LT - Report Executive Summary API`
+
+Live but still needing publish / verification follow-up:
+- `LT - GHL Daily Leads Ingest`
+  - Archived damaged workflow ID: `OtqWjqGXZC3OcrXP`
+  - Rebuilt replacement ID: `osIJOgBmWITF5Yuv`
 - `LT - Report QA and Alerts`
+
+Deferred by design:
+- `LT - Report Config Sync`
+- `LT - GA4 Daily Ingest`
+- `LT - GSC Daily Ingest`
 - `LT - Report Publish Refresh`
+
+## SimpleTexting Runtime Status
+- `LT - SimpleTexting SMS Send (Webhook, Staged)` is active and had recent successful webhook executions in the last audit pass.
+- `LT - SimpleTexting Delivery Events (Webhook, Staged)` is active and had recent successful webhook executions in the last audit pass.
+- `LT - SimpleTexting Inbound Reply (Webhook, Staged)` was failing with a syntax error in `Validate + Normalize Reply` and was patched on `2026-04-26`.
+- `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` is active, but no recent executions were returned in the last audit pass.
+- `LT - SimpleTexting Campaign Sequencer (Staged)` and `LT - SimpleTexting Pool Dispatcher (Staged)` are inactive by design.
 
 ## Special Live Rules
 - The regulated ads booking path is the only booking flow that currently auto-hands off into `Sales -> Discovery Scheduled`.
