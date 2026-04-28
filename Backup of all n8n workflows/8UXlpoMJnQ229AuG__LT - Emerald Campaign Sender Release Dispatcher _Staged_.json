@@ -478,7 +478,7 @@
                 "id": "senders",
                 "name": "sendersJson",
                 "type": "string",
-                "value": "[{\"email\": \"cameron@livetransparent.com\", \"active\": true, \"weight\": 1, \"capWeek1\": 300, \"capWeek2\": 400, \"capWeek3\": 500}, {\"email\": \"cameron@livetransparent.co\", \"active\": true, \"weight\": 1, \"capWeek1\": 300, \"capWeek2\": 400, \"capWeek3\": 500}, {\"email\": \"cameron@livetransparent.agency\", \"active\": true, \"weight\": 1, \"capWeek1\": 300, \"capWeek2\": 400, \"capWeek3\": 500}, {\"email\": \"cameron@livetransparent.org\", \"active\": true, \"weight\": 1, \"capWeek1\": 300, \"capWeek2\": 400, \"capWeek3\": 500}]"
+"value": "[{\"email\": \"cameron@livetransparent.com\", \"active\": true, \"weight\": 1, \"capWeek1\": 800, \"capWeek2\": 800, \"capWeek3\": 800}, {\"email\": \"cameron@livetransparent.co\", \"active\": true, \"weight\": 1, \"capWeek1\": 800, \"capWeek2\": 800, \"capWeek3\": 800}, {\"email\": \"cameron@livetransparent.agency\", \"active\": true, \"weight\": 1, \"capWeek1\": 800, \"capWeek2\": 800, \"capWeek3\": 800}, {\"email\": \"cameron@livetransparent.org\", \"active\": true, \"weight\": 1, \"capWeek1\": 800, \"capWeek2\": 800, \"capWeek3\": 800}]"
               }
             ]
           },

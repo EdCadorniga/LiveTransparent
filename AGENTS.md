@@ -145,6 +145,12 @@
 - If a GHL MCP call returns scope/auth errors for an endpoint that should be available, verify the same action through direct GHL API before assuming the PIT is bad.
 - Treat live operational status in docs as last known state and re-verify in-system before making runtime decisions.
 
+## Concise Programming Assistant
+- You are a concise programming assistant. Answer in under 50 words. Do not provide explanations unless asked.
+
+## Concise Programming Assistant
+- You are a concise programming assistant. Answer in under 50 words. Do not provide explanations unless asked.
+
 ## GHL and n8n Rules
 - Prefer documented runbooks in `GHL Live Transparent CRM/` before making workflow changes.
 - For n8n workflow edits, verify live state after every mutation.

@@ -1,0 +1,88 @@
+{
+  "id": "Zt8p2aYtIuY0HK18",
+  "name": "LT - UNIPILE LinkedIn Connection Request (Internal Test)",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "unipile-linkedin-connect-test",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        480
+      ],
+      "webhookId": "lt-unipile-linkedin-connect-test"
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = {\n  unipileApiBaseUrl: 'https://api40.unipile.com:17046/api/v1',\n  unipileApiKey: 'Es8mEoYp.g5m3AwEE5zz17wgEifjbXDAqQpsrUgfUgacoItCOrhc=',\n  unipileAccountId: 'cIhQYvGRS8CFUo5MZ4P9Qw',\n  defaultDryRun: true,\n  testLinkedinUrl: 'https://www.linkedin.com/in/edmundo-c-a06372166/',\n  defaultMessage: \"Hey {first_name} — quick connect. John here with Transparent eCom. We help regulated brands run compliant ads & scale without getting shut down. Thought it might be relevant.\",\n  maxConnectionMessageChars: 300,\n  requireExplicitSendFlag: true,\n  webhookAuthHeaderName: 'x-lt-unipile-key',\n  webhookAuthHeaderValue: 'LtUnipile2026',\n  ghlApiBaseUrl: 'https://services.leadconnectorhq.com',\n  ghlApiKey: 'pit-8a0de81d-3555-4909-a8eb-afecd3794828',\n  ghlSuccessTag: 'linkedin_connection_requested',\n};\n\nconst nodeThis = this;\nconst incoming = $input.first()?.json || {};\nconst body = incoming.body && typeof incoming.body === 'object' ? incoming.body : incoming;\nconst headers = incoming.headers && typeof incoming.headers === 'object' ? incoming.headers : {};\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBool(v, fallback = false) {\n  if (v === true || v === false) return v;\n  const s = clean(v).toLowerCase();\n  if (['true', '1', 'yes', 'y'].includes(s)) return true;\n  if (['false', '0', 'no', 'n'].includes(s)) return false;\n  return fallback;\n}\nfunction headerValue(name) {\n  const wanted = clean(name).toLowerCase();\n  for (const key of Object.keys(headers)) {\n    if (clean(key).toLowerCase() === wanted) return clean(headers[key]);\n  }\n  return '';\n}\nfunction linkedinIdentifier(input) {\n  const raw = clean(input);\n  if (!raw) return '';\n  if (!/^https?:\\/\\//i.test(raw)) return decodeURIComponent(raw).replace(/^@/, '').replace(/\\/$/, '').trim();\n  const withoutScheme = raw.replace(/^https?:\\/\\//i, '');\n  const host = withoutScheme.split('/')[0].split('?')[0].toLowerCase();\n  if (!(host === 'linkedin.com' || host.endsWith('.linkedin.com'))) throw new Error('URL host is not linkedin.com');\n  const path = withoutScheme.slice(withoutScheme.indexOf('/') >= 0 ? withoutScheme.indexOf('/') : withoutScheme.length).split('?')[0].split('#')[0];\n  const parts = path.split('/').filter(Boolean);\n  const inIndex = parts.findIndex((p) => p.toLowerCase() === 'in');\n  const value = inIndex >= 0 && parts[inIndex + 1] ? parts[inIndex + 1] : parts[parts.length - 1];\n  return decodeURIComponent(value || '').replace(/^@/, '').replace(/\\/$/, '').trim();\n}\nasync function request(method, url, bodyPayload, extraHeaders = {}) {\n  const options = {\n    method,\n    url,\n    headers: {\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n      ...extraHeaders,\n    },\n    json: true,\n  };\n  if (bodyPayload !== undefined) options.body = bodyPayload;\n  try {\n    let data;\n    if (typeof $httpRequest === 'function') {\n      data = await $httpRequest(options);\n    } else if (typeof $helpers !== 'undefined' && $helpers.httpRequest) {\n      data = await $helpers.httpRequest(options);\n    } else if (nodeThis && nodeThis.helpers && nodeThis.helpers.httpRequest) {\n      data = await nodeThis.helpers.httpRequest(options);\n    } else {\n      throw new Error('HTTP helper not available');\n    }\n    return { ok: true, statusCode: 200, data };\n  } catch (err) {\n    return {\n      ok: false,\n      statusCode: err?.statusCode || err?.httpCode || err?.response?.statusCode || null,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nif (Object.keys(headers).length > 0 && config.webhookAuthHeaderValue) {\n  const got = headerValue(config.webhookAuthHeaderName);\n  if (got !== config.webhookAuthHeaderValue) {\n    return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid webhook auth header' } }];\n  }\n}\n\nconst apiBaseUrl = clean(config.unipileApiBaseUrl).replace(/\\/$/, '');\nconst apiKey = clean(config.unipileApiKey);\nconst ghlApiBaseUrl = clean(config.ghlApiBaseUrl).replace(/\\/$/, '');\nconst ghlApiKey = clean(config.ghlApiKey);\nconst successTag = clean(config.ghlSuccessTag);\nconst accountId = clean(body.account_id || body.accountId || config.unipileAccountId);\nconst contactId = clean(body.contact_id || body.contactId || '');\nconst linkedinUrl = clean(body.linkedin_url || body.linkedinUrl || body.url || body.profile_url || body.profileUrl || config.testLinkedinUrl);\nconst identifier = linkedinIdentifier(linkedinUrl);\nconst maxMessageChars = Math.max(1, Number(config.maxConnectionMessageChars || 300));\nconst explicitSend = parseBool(body.send, false);\nlet dryRun = body.dryRun === undefined ? parseBool(config.defaultDryRun, true) : parseBool(body.dryRun, true);\nif (explicitSend) dryRun = false;\n\nif (!apiBaseUrl) throw new Error('Missing Unipile API base URL');\nif (!apiKey) throw new Error('Missing Unipile API key');\nif (!accountId) throw new Error('Missing Unipile account ID');\nif (!linkedinUrl) throw new Error('Missing linkedin_url/linkedinUrl/url');\nif (!identifier) throw new Error('Could not derive LinkedIn public identifier from URL');\nif (!dryRun && config.requireExplicitSendFlag && !explicitSend) {\n  throw new Error('Live invite blocked: pass send=true to send a connection request. Dry-run resolves the profile only.');\n}\n\nconst profileUrl = `${apiBaseUrl}/users/${encodeURIComponent(identifier)}?account_id=${encodeURIComponent(accountId)}`;\nconst profile = await request('GET', profileUrl, undefined, { 'X-API-KEY': apiKey });\nconst providerId = clean(profile.data?.provider_id || profile.data?.providerId || profile.data?.id || '');\nconst resolvedFirstName = clean(profile.data?.first_name || profile.data?.firstName || body.first_name || body.firstName || body.contact_first_name || body.contactFirstName || 'there');\nconst messageTemplate = clean(body.message ?? config.defaultMessage ?? '');\nconst personalizedMessageRaw = messageTemplate.replace(/\\{first_name\\}/gi, resolvedFirstName || 'there');\nconst message = personalizedMessageRaw.length > maxMessageChars ? personalizedMessageRaw.slice(0, maxMessageChars) : personalizedMessageRaw;\n\nconst result = {\n  ok: profile.ok,\n  mode: dryRun ? 'dry_run_resolve_only' : 'live_invite',\n  contactId: contactId || null,\n  linkedinUrl,\n  publicIdentifier: identifier,\n  accountId,\n  profileResolved: profile.ok,\n  providerId: providerId || null,\n  profile: profile.ok ? {\n    provider: profile.data?.provider || null,\n    public_identifier: profile.data?.public_identifier || profile.data?.publicIdentifier || identifier,\n    first_name: profile.data?.first_name || profile.data?.firstName || null,\n    last_name: profile.data?.last_name || profile.data?.lastName || null,\n    headline: profile.data?.headline || null,\n  } : null,\n  dryRun,\n  resolvedFirstName: resolvedFirstName || null,\n  messagePreview: message || null,\n  messageLength: message.length,\n  messageTruncated: personalizedMessageRaw.length > maxMessageChars,\n  invite: null,\n  tagSync: null,\n  error: profile.ok ? null : profile.data,\n};\n\nif (!profile.ok || !providerId || dryRun) return [{ json: result }];\n\nconst invitePayload = { account_id: accountId, provider_id: providerId };\nif (message) invitePayload.message = message;\nconst invite = await request('POST', `${apiBaseUrl}/users/invite`, invitePayload, { 'X-API-KEY': apiKey });\nresult.ok = invite.ok;\nresult.invite = invite.ok ? invite.data : null;\nresult.error = invite.ok ? null : invite.data;\n\nif (invite.ok && contactId && ghlApiBaseUrl && ghlApiKey && successTag) {\n  const tagRes = await request(\n    'POST',\n    `${ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/tags`,\n    { tags: [successTag] },\n    {\n      Authorization: `Bearer ${ghlApiKey}`,\n      Version: '2021-07-28',\n    },\n  );\n  result.tagSync = {\n    attempted: true,\n    contactId,\n    tag: successTag,\n    ok: tagRes.ok,\n    error: tagRes.ok ? null : tagRes.data,\n  };\n} else {\n  result.tagSync = {\n    attempted: false,\n    contactId: contactId || null,\n    tag: successTag || null,\n    reason: invite.ok ? 'missing_contact_id_or_ghl_config' : 'invite_failed',\n  };\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "resolve_and_invite",
+      "name": "Resolve Profile + Maybe Send Invite",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "content": "LT - UNIPILE LinkedIn Connection Request (Internal Test)\n\nPurpose:\n- Accept a LinkedIn profile URL or public identifier.\n- Resolve it through Unipile to a LinkedIn provider_id.\n- Personalize the default note with the resolved first name.\n- By default, stop after profile resolution.\n- Only send a connection request when send=true is explicitly provided.\n\nWebhook auth:\n- Header: x-lt-unipile-key\n- Value is stored in the code node config.\n\nRecommended GHL webhook payload:\n{\n  \"linkedin_url\": \"https://www.linkedin.com/in/example/\",\n  \"first_name\": \"Optional fallback if profile lookup lacks a first name\",\n  \"message\": \"Optional override. If omitted, the workflow uses the temporary LiveTransparent intro note.\",\n  \"send\": false\n}\n\nLive send:\n- Set \"send\": true\n- Omit \"message\" to use the default personalized note\n\nGHL contact sourcing is intentionally deferred.",
+        "height": 560,
+        "width": 460
+      },
+      "id": "sticky",
+      "name": "Workflow Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -280,
+        120
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Resolve Profile + Maybe Send Invite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Resolve Profile + Maybe Send Invite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
