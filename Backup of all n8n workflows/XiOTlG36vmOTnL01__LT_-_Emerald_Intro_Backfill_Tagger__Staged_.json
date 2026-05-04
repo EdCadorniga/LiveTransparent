@@ -1,0 +1,477 @@
+{
+  "updatedAt": "2026-04-11T06:32:08.271Z",
+  "createdAt": "2026-04-10T15:32:52.734Z",
+  "id": "XiOTlG36vmOTnL01",
+  "name": "LT - Emerald Intro Backfill Tagger (Staged)",
+  "description": "Backfill tagger with offset paging and release-log checkpointing (backfill_checked).",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "75daff25-c8ec-4d5c-b731-dea0598cadc8",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        224,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "loc",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "base",
+              "name": "ghlApiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "pit",
+              "name": "ghlApiKey",
+              "type": "string",
+              "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+            },
+            {
+              "id": "dry",
+              "name": "defaultDryRun",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "tag_backfill",
+              "name": "backfillTag",
+              "type": "string",
+              "value": "Seq Emerald - Intro Backfill Pending"
+            },
+            {
+              "id": "tag_done",
+              "name": "alreadySentTag",
+              "type": "string",
+              "value": "Seq Emerald - Intro Sent"
+            },
+            {
+              "id": "cutoff",
+              "name": "legacyCutoffTs",
+              "type": "string",
+              "value": "2026-04-03T23:59:59Z"
+            },
+            {
+              "id": "limit",
+              "name": "batchLimit",
+              "type": "number",
+              "value": 500
+            },
+            {
+              "id": "offset",
+              "name": "batchOffset",
+              "type": "number",
+              "value": 0
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "f760d87a-416f-4dc7-8a53-12f1dca525c1",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  NULLIF(TRIM(r.ghl_contact_id), '') AS ghl_contact_id,\n  LOWER(NULLIF(TRIM(r.contact_email), '')) AS contact_email,\n  MIN(r.release_ts) AS first_release_ts\nFROM \"Emerald_Release_Log\" r\nWHERE r.status = 'queued'\n  AND r.release_ts <= CAST('{{$item(0).$node[\"Config\"].json.legacyCutoffTs}}' AS TIMESTAMPTZ)\n  AND (\n    NULLIF(TRIM(r.ghl_contact_id), '') IS NOT NULL\n    OR NULLIF(TRIM(r.contact_email), '') IS NOT NULL\n  )\nGROUP BY NULLIF(TRIM(r.ghl_contact_id), ''), LOWER(NULLIF(TRIM(r.contact_email), ''))\nORDER BY MIN(r.release_ts) ASC\nLIMIT {{$item(0).$node[\"Config\"].json.batchLimit}}\nOFFSET {{$item(0).$node[\"Config\"].json.batchOffset}};",
+        "options": {}
+      },
+      "id": "1b430872-e156-4e04-87db-150bccea1c99",
+      "name": "Fetch Legacy Release Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        288
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $item(0).$node['Config'].json || {};\nconst rows = $items('Fetch Legacy Release Candidates').map((i) => i.json || {});\n\nconst locationId = String(cfg.locationId || '').trim();\nconst apiBaseUrl = String(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.ghlApiKey || '').trim();\nconst backfillTag = String(cfg.backfillTag || 'Seq Emerald - Intro Backfill Pending').trim();\nconst alreadySentTag = String(cfg.alreadySentTag || 'Seq Emerald - Intro Sent').trim().toLowerCase();\nconst dryRun = !!cfg.defaultDryRun;\n\nif (!locationId) throw new Error('Missing Config.locationId');\nif (!dryRun && !apiKey) throw new Error('Missing Config.ghlApiKey for live mode');\n\nfunction clean(v) { return String(v ?? '').trim(); }\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headers = {\n  Authorization: `Bearer ${apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = { method, url: `${apiBaseUrl}${path}`, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nasync function resolveContactId(candidate) {\n  const fromId = clean(candidate.ghl_contact_id);\n  if (fromId) return { ok: true, contactId: fromId, resolvedVia: 'release_log_id' };\n\n  const email = clean(candidate.contact_email).toLowerCase();\n  if (!email) return { ok: false, reason: 'missing_id_and_email' };\n\n  const dup = await apiRequest.call(this, {\n    method: 'GET',\n    path: `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}`,\n  });\n  if (!dup.ok) return { ok: false, reason: 'duplicate_lookup_failed', details: dup.data };\n\n  const id = clean(dup.data?.contact?.id || dup.data?.id || dup.data?.contactId || '');\n  if (!id) return { ok: false, reason: 'email_lookup_no_match' };\n  return { ok: true, contactId: id, resolvedVia: 'email_duplicate_lookup' };\n}\n\nconst dedupe = new Map();\nfor (const row of rows) {\n  const key = clean(row.ghl_contact_id) || clean(row.contact_email).toLowerCase();\n  if (!key) continue;\n  if (!dedupe.has(key)) dedupe.set(key, row);\n}\nconst candidates = Array.from(dedupe.values());\n\nconst results = [];\nconst processedContactIdsSet = new Set();\nfor (const c of candidates) {\n  const resolved = dryRun\n    ? { ok: true, contactId: clean(c.ghl_contact_id) || null, resolvedVia: clean(c.ghl_contact_id) ? 'release_log_id' : 'dryrun_email_only' }\n    : await resolveContactId.call(this, c);\n\n  if (!resolved.ok || !resolved.contactId) {\n    results.push({ status: 'skipped_unresolved', reason: resolved.reason || 'unresolved', contact_email: c.contact_email || null, details: resolved.details || null });\n    continue;\n  }\n\n  processedContactIdsSet.add(String(resolved.contactId));\n\n  if (dryRun) {\n    results.push({ status: 'planned', contactId: resolved.contactId, contact_email: c.contact_email || null, first_release_ts: c.first_release_ts || null, resolvedVia: resolved.resolvedVia });\n    continue;\n  }\n\n  const contactRes = await apiRequest.call(this, { method: 'GET', path: `/contacts/${encodeURIComponent(resolved.contactId)}` });\n  if (!contactRes.ok) {\n    results.push({ status: 'error_contact_read', contactId: resolved.contactId, details: contactRes.data });\n    continue;\n  }\n\n  const tagList = Array.isArray(contactRes.data?.contact?.tags)\n    ? contactRes.data.contact.tags\n    : Array.isArray(contactRes.data?.tags)\n      ? contactRes.data.tags\n      : [];\n  const tagSet = new Set(tagList.map((t) => clean(t).toLowerCase()).filter(Boolean));\n\n  if (tagSet.has(alreadySentTag)) {\n    results.push({ status: 'skipped_already_intro_sent', contactId: resolved.contactId });\n    continue;\n  }\n\n  if (tagSet.has(clean(backfillTag).toLowerCase())) {\n    results.push({ status: 'already_backfill_tagged', contactId: resolved.contactId });\n    continue;\n  }\n\n  const tagRes = await apiRequest.call(this, {\n    method: 'POST',\n    path: `/contacts/${encodeURIComponent(resolved.contactId)}/tags`,\n    body: { tags: [backfillTag] },\n  });\n  if (!tagRes.ok) {\n    results.push({ status: 'error_tag_add', contactId: resolved.contactId, details: tagRes.data });\n    continue;\n  }\n\n  results.push({ status: 'tagged', contactId: resolved.contactId, contact_email: c.contact_email || null });\n}\n\nconst processedContactIds = Array.from(processedContactIdsSet);\n\nconst summary = {\n  ok: true,\n  dryRun,\n  cutoff: cfg.legacyCutoffTs,\n  rowsFromQuery: rows.length,\n  uniqueCandidates: candidates.length,\n  planned: results.filter((r) => r.status === 'planned').length,\n  tagged: results.filter((r) => r.status === 'tagged').length,\n  skippedUnresolved: results.filter((r) => r.status === 'skipped_unresolved').length,\n  skippedAlreadySent: results.filter((r) => r.status === 'skipped_already_intro_sent').length,\n  alreadyBackfillTagged: results.filter((r) => r.status === 'already_backfill_tagged').length,\n  errors: results.filter((r) => String(r.status || '').startsWith('error_')).length,\n};\n\nreturn [{ json: { summary, processedContactIds, sample: results.slice(0, 250) } }];"
+      },
+      "id": "a507f36d-b29a-4c9b-934f-f5e47f49d408",
+      "name": "Tag Contacts (DryRun Safe)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{\n(() => {\n  const dry = !!($json.summary && $json.summary.dryRun);\n  const ids = Array.isArray($json.processedContactIds)\n    ? $json.processedContactIds.map((v) => String(v || '').trim()).filter(Boolean)\n    : [];\n  if (dry || ids.length === 0) return 'SELECT 1;';\n  const quoted = ids.map((id) => \"'\" + id.replace(/'/g, \"''\") + \"'\").join(',');\n  return `UPDATE \"Emerald_Release_Log\"\nSET status = 'backfill_checked'\nWHERE status = 'queued'\n  AND NULLIF(TRIM(ghl_contact_id), '') IN (${quoted});`;\n})()\n}}",
+        "options": {}
+      },
+      "id": "ccb24e8a-f9cb-4513-963d-e6ea052c18eb",
+      "name": "Mark Checked In Release Log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1232,
+        288
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch Legacy Release Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Legacy Release Candidates": {
+      "main": [
+        [
+          {
+            "node": "Tag Contacts (DryRun Safe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Contacts (DryRun Safe)": {
+      "main": [
+        [
+          {
+            "node": "Mark Checked In Release Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "pinData": {},
+  "versionId": "f0ae30e3-1c90-4c47-998a-077f45537bdf",
+  "activeVersionId": "abdbbca1-7850-489a-98e8-102e0ae38c87",
+  "versionCounter": 30,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-10T15:32:52.734Z",
+      "createdAt": "2026-04-10T15:32:52.734Z",
+      "role": "workflow:owner",
+      "workflowId": "XiOTlG36vmOTnL01",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-11T04:03:44.136Z",
+    "createdAt": "2026-04-11T04:03:41.841Z",
+    "versionId": "abdbbca1-7850-489a-98e8-102e0ae38c87",
+    "workflowId": "XiOTlG36vmOTnL01",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "75daff25-c8ec-4d5c-b731-dea0598cadc8",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          224,
+          288
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "loc",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "base",
+                "name": "ghlApiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "pit",
+                "name": "ghlApiKey",
+                "type": "string",
+                "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+              },
+              {
+                "id": "dry",
+                "name": "defaultDryRun",
+                "type": "boolean",
+                "value": false
+              },
+              {
+                "id": "tag_backfill",
+                "name": "backfillTag",
+                "type": "string",
+                "value": "Seq Emerald - Intro Backfill Pending"
+              },
+              {
+                "id": "tag_done",
+                "name": "alreadySentTag",
+                "type": "string",
+                "value": "Seq Emerald - Intro Sent"
+              },
+              {
+                "id": "cutoff",
+                "name": "legacyCutoffTs",
+                "type": "string",
+                "value": "2026-04-03T23:59:59Z"
+              },
+              {
+                "id": "limit",
+                "name": "batchLimit",
+                "type": "number",
+                "value": 500
+              },
+              {
+                "id": "offset",
+                "name": "batchOffset",
+                "type": "number",
+                "value": 0
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "f760d87a-416f-4dc7-8a53-12f1dca525c1",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          448,
+          288
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT\n  NULLIF(TRIM(r.ghl_contact_id), '') AS ghl_contact_id,\n  LOWER(NULLIF(TRIM(r.contact_email), '')) AS contact_email,\n  MIN(r.release_ts) AS first_release_ts\nFROM \"Emerald_Release_Log\" r\nWHERE r.status = 'queued'\n  AND r.release_ts <= CAST('{{$item(0).$node[\"Config\"].json.legacyCutoffTs}}' AS TIMESTAMPTZ)\n  AND (\n    NULLIF(TRIM(r.ghl_contact_id), '') IS NOT NULL\n    OR NULLIF(TRIM(r.contact_email), '') IS NOT NULL\n  )\nGROUP BY NULLIF(TRIM(r.ghl_contact_id), ''), LOWER(NULLIF(TRIM(r.contact_email), ''))\nORDER BY MIN(r.release_ts) ASC\nLIMIT {{$item(0).$node[\"Config\"].json.batchLimit}}\nOFFSET {{$item(0).$node[\"Config\"].json.batchOffset}};",
+          "options": {}
+        },
+        "id": "1b430872-e156-4e04-87db-150bccea1c99",
+        "name": "Fetch Legacy Release Candidates",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          672,
+          288
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const cfg = $item(0).$node['Config'].json || {};\nconst rows = $items('Fetch Legacy Release Candidates').map((i) => i.json || {});\n\nconst locationId = String(cfg.locationId || '').trim();\nconst apiBaseUrl = String(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.ghlApiKey || '').trim();\nconst backfillTag = String(cfg.backfillTag || 'Seq Emerald - Intro Backfill Pending').trim();\nconst alreadySentTag = String(cfg.alreadySentTag || 'Seq Emerald - Intro Sent').trim().toLowerCase();\nconst dryRun = !!cfg.defaultDryRun;\n\nif (!locationId) throw new Error('Missing Config.locationId');\nif (!dryRun && !apiKey) throw new Error('Missing Config.ghlApiKey for live mode');\n\nfunction clean(v) { return String(v ?? '').trim(); }\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nconst headers = {\n  Authorization: `Bearer ${apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nasync function apiRequest({ method, path, body }) {\n  const options = { method, url: `${apiBaseUrl}${path}`, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nasync function resolveContactId(candidate) {\n  const fromId = clean(candidate.ghl_contact_id);\n  if (fromId) return { ok: true, contactId: fromId, resolvedVia: 'release_log_id' };\n\n  const email = clean(candidate.contact_email).toLowerCase();\n  if (!email) return { ok: false, reason: 'missing_id_and_email' };\n\n  const dup = await apiRequest.call(this, {\n    method: 'GET',\n    path: `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}`,\n  });\n  if (!dup.ok) return { ok: false, reason: 'duplicate_lookup_failed', details: dup.data };\n\n  const id = clean(dup.data?.contact?.id || dup.data?.id || dup.data?.contactId || '');\n  if (!id) return { ok: false, reason: 'email_lookup_no_match' };\n  return { ok: true, contactId: id, resolvedVia: 'email_duplicate_lookup' };\n}\n\nconst dedupe = new Map();\nfor (const row of rows) {\n  const key = clean(row.ghl_contact_id) || clean(row.contact_email).toLowerCase();\n  if (!key) continue;\n  if (!dedupe.has(key)) dedupe.set(key, row);\n}\nconst candidates = Array.from(dedupe.values());\n\nconst results = [];\nconst processedContactIdsSet = new Set();\nfor (const c of candidates) {\n  const resolved = dryRun\n    ? { ok: true, contactId: clean(c.ghl_contact_id) || null, resolvedVia: clean(c.ghl_contact_id) ? 'release_log_id' : 'dryrun_email_only' }\n    : await resolveContactId.call(this, c);\n\n  if (!resolved.ok || !resolved.contactId) {\n    results.push({ status: 'skipped_unresolved', reason: resolved.reason || 'unresolved', contact_email: c.contact_email || null, details: resolved.details || null });\n    continue;\n  }\n\n  processedContactIdsSet.add(String(resolved.contactId));\n\n  if (dryRun) {\n    results.push({ status: 'planned', contactId: resolved.contactId, contact_email: c.contact_email || null, first_release_ts: c.first_release_ts || null, resolvedVia: resolved.resolvedVia });\n    continue;\n  }\n\n  const contactRes = await apiRequest.call(this, { method: 'GET', path: `/contacts/${encodeURIComponent(resolved.contactId)}` });\n  if (!contactRes.ok) {\n    results.push({ status: 'error_contact_read', contactId: resolved.contactId, details: contactRes.data });\n    continue;\n  }\n\n  const tagList = Array.isArray(contactRes.data?.contact?.tags)\n    ? contactRes.data.contact.tags\n    : Array.isArray(contactRes.data?.tags)\n      ? contactRes.data.tags\n      : [];\n  const tagSet = new Set(tagList.map((t) => clean(t).toLowerCase()).filter(Boolean));\n\n  if (tagSet.has(alreadySentTag)) {\n    results.push({ status: 'skipped_already_intro_sent', contactId: resolved.contactId });\n    continue;\n  }\n\n  if (tagSet.has(clean(backfillTag).toLowerCase())) {\n    results.push({ status: 'already_backfill_tagged', contactId: resolved.contactId });\n    continue;\n  }\n\n  const tagRes = await apiRequest.call(this, {\n    method: 'POST',\n    path: `/contacts/${encodeURIComponent(resolved.contactId)}/tags`,\n    body: { tags: [backfillTag] },\n  });\n  if (!tagRes.ok) {\n    results.push({ status: 'error_tag_add', contactId: resolved.contactId, details: tagRes.data });\n    continue;\n  }\n\n  results.push({ status: 'tagged', contactId: resolved.contactId, contact_email: c.contact_email || null });\n}\n\nconst processedContactIds = Array.from(processedContactIdsSet);\n\nconst summary = {\n  ok: true,\n  dryRun,\n  cutoff: cfg.legacyCutoffTs,\n  rowsFromQuery: rows.length,\n  uniqueCandidates: candidates.length,\n  planned: results.filter((r) => r.status === 'planned').length,\n  tagged: results.filter((r) => r.status === 'tagged').length,\n  skippedUnresolved: results.filter((r) => r.status === 'skipped_unresolved').length,\n  skippedAlreadySent: results.filter((r) => r.status === 'skipped_already_intro_sent').length,\n  alreadyBackfillTagged: results.filter((r) => r.status === 'already_backfill_tagged').length,\n  errors: results.filter((r) => String(r.status || '').startsWith('error_')).length,\n};\n\nreturn [{ json: { summary, processedContactIds, sample: results.slice(0, 250) } }];"
+        },
+        "id": "a507f36d-b29a-4c9b-934f-f5e47f49d408",
+        "name": "Tag Contacts (DryRun Safe)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          288
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{\n(() => {\n  const dry = !!($json.summary && $json.summary.dryRun);\n  const ids = Array.isArray($json.processedContactIds)\n    ? $json.processedContactIds.map((v) => String(v || '').trim()).filter(Boolean)\n    : [];\n  if (dry || ids.length === 0) return 'SELECT 1;';\n  const quoted = ids.map((id) => \"'\" + id.replace(/'/g, \"''\") + \"'\").join(',');\n  return `UPDATE \"Emerald_Release_Log\"\nSET status = 'backfill_checked'\nWHERE status = 'queued'\n  AND NULLIF(TRIM(ghl_contact_id), '') IN (${quoted});`;\n})()\n}}",
+          "options": {}
+        },
+        "id": "ccb24e8a-f9cb-4513-963d-e6ea052c18eb",
+        "name": "Mark Checked In Release Log",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1232,
+          288
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 6
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          240,
+          64
+        ],
+        "id": "e06dd101-79b8-402f-ad96-26f2434775d5",
+        "name": "Schedule Trigger"
+      }
+    ],
+    "connections": {
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Fetch Legacy Release Candidates",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Legacy Release Candidates": {
+        "main": [
+          [
+            {
+              "node": "Tag Contacts (DryRun Safe)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Tag Contacts (DryRun Safe)": {
+        "main": [
+          [
+            {
+              "node": "Mark Checked In Release Log",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": "Version abdbbca1",
+    "description": "",
+    "autosaved": true,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-11T04:03:44.129Z",
+        "id": 695,
+        "workflowId": "XiOTlG36vmOTnL01",
+        "versionId": "abdbbca1-7850-489a-98e8-102e0ae38c87",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

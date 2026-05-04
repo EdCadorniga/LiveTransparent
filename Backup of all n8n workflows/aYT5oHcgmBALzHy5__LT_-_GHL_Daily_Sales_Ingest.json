@@ -1,0 +1,643 @@
+{
+  "updatedAt": "2026-04-21T16:27:59.835Z",
+  "createdAt": "2026-04-18T13:29:44.278Z",
+  "id": "aYT5oHcgmBALzHy5",
+  "name": "LT - GHL Daily Sales Ingest",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1440
+            }
+          ]
+        }
+      },
+      "id": "sales_schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        160
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "sales_manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    locationId: 'Zwz4relUXVPxx8uohnjV',\n    workflowName: 'LT - GHL Daily Sales Ingest',\n    apiBaseUrl: 'https://services.leadconnectorhq.com',\n    authToken: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86',\n    batchSize: 100,\n    sourceSystem: 'ghl',\n    rawTable: 'report_raw_ghl_opportunities',\n    historyTable: 'report_raw_ghl_pipeline_history',\n    runTable: 'report_sync_runs',\n    watermarkTable: 'report_sync_watermarks',\n    healthTable: 'report_source_health'\n  }\n}];"
+      },
+      "id": "sales_config",
+      "name": "Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const configItems = $input.all();\nconst config = configItems.length ? (configItems[0].json || {}) : {};\nif (!config.authToken || !config.locationId) {\n  throw new Error('Config missing authToken or locationId.');\n}\nconst workflowName = config.workflowName || 'LT - GHL Daily Sales Ingest';\nconst apiBaseUrl = config.apiBaseUrl || 'https://services.leadconnectorhq.com';\nconst authToken = config.authToken || '';\nconst locationId = config.locationId || '';\nconst batchSize = Number(config.batchSize || 100);\nconst sourceSystem = config.sourceSystem || 'ghl';\nconst headers = {\n  Authorization: 'Bearer ' + authToken,\n  Version: '2021-07-28',\n  Accept: 'application/json',\n};\nconst batchId = 'lt-sales-' + new Date().toISOString().replace(/[:.]/g, '-');\nconst items = [];\nconst maxPages = 500;\nconst requestUrl = apiBaseUrl + '/opportunities/search';\nlet requestQs = {\n  location_id: locationId,\n  limit: batchSize,\n  status: 'all',\n  getNotes: false,\n  getTasks: false,\n  getCalendarEvents: false,\n};\nlet page = 0;\n\nfunction extractBatch(body) {\n  if (body && Array.isArray(body.opportunities)) return body.opportunities;\n  if (body && Array.isArray(body.data)) return body.data;\n  if (body && Array.isArray(body.items)) return body.items;\n  return [];\n}\n\nasync function requestJson(url, qs) {\n  try {\n    return await this.helpers.httpRequest({\n      method: 'GET',\n      url,\n      qs,\n      headers,\n      json: true,\n      timeout: 60000,\n    });\n  } catch (error) {\n    const details = (error && error.response && error.response.body)\n      || (error && error.cause && error.cause.response && error.cause.response.body)\n      || error.message\n      || error;\n    throw new Error('GHL opportunities search failed for ' + url + ': ' + (typeof details === 'string' ? details : JSON.stringify(details)));\n  }\n}\n\nfor (;;) {\n  page += 1;\n  if (page > maxPages) {\n    throw new Error('Pagination guard tripped while fetching opportunities after 500 pages.');\n  }\n\n  const body = await requestJson.call(this, requestUrl, requestQs);\n  const batch = extractBatch(body);\n\n  for (const raw of batch) {\n    items.push({\n      json: {\n        ...raw,\n        batchId,\n        workflowName,\n        sourceSystem,\n        sourcePage: page,\n      },\n    });\n  }\n\n  const meta = body && body.meta ? body.meta : {};\n  const nextStartAfter = meta.startAfter;\n  const nextStartAfterId = meta.startAfterId;\n\n  if (!nextStartAfter || !nextStartAfterId || batch.length === 0) break;\n\n  requestQs = {\n    location_id: locationId,\n    limit: batchSize,\n    status: 'all',\n    getNotes: false,\n    getTasks: false,\n    getCalendarEvents: false,\n    startAfter: nextStartAfter,\n    startAfterId: nextStartAfterId,\n  };\n}\n\nif (!items.length) {\n  items.push({\n    json: {\n      kind: 'noop',\n      workflowName,\n      sourceSystem,\n      batchId,\n      reportDate: 'current',\n      sourceKey: 'noop',\n      status: 'open',\n      sql: 'SELECT 1 AS noop;',\n    },\n  });\n}\n\nreturn items;"
+      },
+      "id": "sales_fetch",
+      "name": "Fetch Opportunities",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sourceItems = $input.all();\nconst items = [];\n\nfunction cleanText(value) {\n  const text = String(value == null ? '' : value).trim();\n  return text.length ? text : null;\n}\n\nfunction escapeSql(value) {\n  if (value === null || value === undefined) return 'NULL';\n  if (typeof value === 'number') return Number.isFinite(value) ? String(value) : 'NULL';\n  if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';\n  const text = String(value);\n  return '\\'' + text.replace(/'/g, \"''\") + '\\'';\n}\n\nfunction jsonbLiteral(value) {\n  return escapeSql(JSON.stringify(value || {})) + '::jsonb';\n}\n\nfunction firstText() {\n  for (let i = 0; i < arguments.length; i += 1) {\n    const text = cleanText(arguments[i]);\n    if (text) return text;\n  }\n  return null;\n}\n\nconst workflowName = 'LT - GHL Daily Sales Ingest';\nconst sourceSystem = 'ghl';\nconst batchId = sourceItems.length && sourceItems[0].json && sourceItems[0].json.batchId ? sourceItems[0].json.batchId : 'lt-sales-' + new Date().toISOString().replace(/[:.]/g, '-');\n\nfor (const item of sourceItems) {\n  const raw = item && item.json ? item.json : {};\n  if (raw.kind === 'noop') continue;\n\n  const id = cleanText(raw.id || raw.opportunityId || raw._id);\n  if (!id) continue;\n\n  const contactId = firstText(raw.contactId, raw.contact_id, raw.contact && raw.contact.id, raw.contact && raw.contact.contactId);\n  const pipelineId = firstText(raw.pipelineId, raw.pipeline_id, raw.pipeline && raw.pipeline.id);\n  const pipelineName = firstText(raw.pipelineName, raw.pipeline && raw.pipeline.name);\n  const stageId = firstText(raw.pipelineStageId, raw.pipeline_stage_id, raw.stageId, raw.stage_id, raw.pipelineStage && raw.pipelineStage.id);\n  const stageName = firstText(raw.pipelineStageName, raw.pipeline_stage_name, raw.stageName, raw.stage, raw.pipelineStage && raw.pipelineStage.name);\n  const status = firstText(raw.status) || 'open';\n  const monetaryValue = Number(raw.monetaryValue || raw.amount || raw.value || 0) || 0;\n  const createdAt = firstText(raw.createdAt, raw.created_at, raw.dateAdded, raw.date_added);\n  const updatedAt = firstText(raw.updatedAt, raw.updated_at, raw.lastUpdated, raw.last_updated);\n  const assignedTo = firstText(raw.assignedTo, raw.assigned_to, raw.ownerId, raw.owner_id);\n  const rowReportDate = createdAt ? new Date(createdAt) : null;\n  const reportDateSql = escapeSql((rowReportDate && !Number.isNaN(rowReportDate.getTime()) ? rowReportDate : new Date()).toISOString().slice(0, 10));\n  const dims = {\n    contact_id: contactId,\n    pipeline_id: pipelineId,\n    pipeline_name: pipelineName,\n    pipeline_stage_id: stageId,\n    pipeline_stage_name: stageName,\n    status: status,\n    assigned_to: assignedTo,\n    source_created_at: createdAt,\n    source_updated_at: updatedAt,\n  };\n  const statusLower = String(status).toLowerCase();\n  const metrics = {\n    monetary_value: monetaryValue,\n    is_closed_won: ['won', 'closed_won', 'closed won'].indexOf(statusLower) !== -1,\n    is_closed_lost: ['lost', 'closed_lost', 'closed lost'].indexOf(statusLower) !== -1,\n    is_open: ['open'].indexOf(statusLower) !== -1,\n  };\n  const baseColumns = [\n    'report_date', 'source_system', 'source_key', 'source_window_start', 'source_window_end',\n    'payload_json', 'dimensions_json', 'metrics_json', 'batch_id', 'run_id'\n  ];\n  const buildSql = function(tableName, sourceKey, payloadJson, dimensionsJson, metricsJson) {\n    return [\n      'INSERT INTO \"' + tableName + '\" (',\n      '  ' + baseColumns.map(function(c) { return '\"' + c + '\"'; }).join(', '),\n      ') VALUES (',\n      '  ' + reportDateSql + ',',\n      '  ' + escapeSql(sourceSystem) + ',',\n      '  ' + escapeSql(sourceKey) + ',',\n      '  ' + reportDateSql + ',',\n      '  ' + reportDateSql + ',',\n      '  ' + jsonbLiteral(payloadJson) + ',',\n      '  ' + jsonbLiteral(dimensionsJson) + ',',\n      '  ' + jsonbLiteral(metricsJson) + ',',\n      '  ' + escapeSql(batchId) + ',',\n      '  NULL',\n      ')',\n      'ON CONFLICT (source_system, report_date, source_key) DO UPDATE SET',\n      '  source_window_start = EXCLUDED.source_window_start,',\n      '  source_window_end = EXCLUDED.source_window_end,',\n      '  payload_json = EXCLUDED.payload_json,',\n      '  dimensions_json = EXCLUDED.dimensions_json,',\n      '  metrics_json = EXCLUDED.metrics_json,',\n      '  batch_id = EXCLUDED.batch_id,',\n      '  run_id = EXCLUDED.run_id,',\n      '  loaded_at = NOW();',\n    ].join('\\n');\n  };\n  items.push({ json: { kind: 'opportunity', workflowName: workflowName, reportDate: 'current', batchId: batchId, sourceKey: id, sql: buildSql('report_raw_ghl_opportunities', id, raw, dims, metrics), status: status } });\n  items.push({ json: { kind: 'pipeline_history', workflowName: workflowName, reportDate: 'current', batchId: batchId, sourceKey: id + '::' + new Date().toISOString().slice(0, 10), sql: buildSql('report_raw_ghl_pipeline_history', id + '::' + new Date().toISOString().slice(0, 10), raw, dims, metrics), status: status } });\n}\n\nif (!items.length) {\n  items.push({ json: { kind: 'noop', workflowName: workflowName, reportDate: 'current', batchId: batchId, sourceKey: 'noop', sql: 'SELECT 1 AS noop;', status: 'open' } });\n}\n\nreturn items;"
+      },
+      "id": "sales_normalize",
+      "name": "Normalize + Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{$json.sql}}",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "id": "sales_upsert",
+      "name": "Upsert Raw Sales",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1200,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputItems = $input.all();\nconst normalizedItems = inputItems.some(function(i) { return i && i.json && i.json.kind; })\n  ? inputItems\n  : $items('Normalize + Build SQL');\nconst opportunities = normalizedItems.filter(function(i) { return i.json.kind === 'opportunity'; });\nconst historyRows = normalizedItems.filter(function(i) { return i.json.kind === 'pipeline_history'; });\nconst errorItems = inputItems.filter(function(i) { return i && i.json && i.json.error; });\nconst reportDate = new Date().toISOString().slice(0, 10);\nconst batchId = normalizedItems.length && normalizedItems[0].json && normalizedItems[0].json.batchId ? normalizedItems[0].json.batchId : 'lt-sales-' + Date.now();\nconst opportunitiesWon = opportunities.filter(function(i) { return /won|closed_won|closed won/i.test(String(i.json.status || '')); }).length;\nconst opportunitiesLost = opportunities.filter(function(i) { return /lost|closed_lost|closed lost/i.test(String(i.json.status || '')); }).length;\nconst hasError = errorItems.length > 0;\nconst errorMessage = errorItems.map(function(i) {\n  return String(i.json.error && (i.json.error.message || i.json.error.toString()) || i.json.message || 'Unknown error');\n}).join(' | ');\nreturn [{json:{workflowName:'LT - GHL Daily Sales Ingest',sourceSystem:'ghl',reportDate:reportDate,batchId:batchId,rawOpportunityRows:opportunities.length,rawPipelineHistoryRows:historyRows.length,opportunitiesProcessed:opportunities.length,opportunitiesWon:opportunitiesWon,opportunitiesLost:opportunitiesLost,status:hasError ? 'failed' : 'completed',errorCount:errorItems.length,errorMessage:errorMessage || null,hasError:hasError,note:hasError ? 'Sales ingest reported an error.' : (opportunities.length ? 'Sales raw rows were normalized and written to Postgres.' : 'No sales rows returned from GHL; workflow stayed healthy but wrote a noop record.')}}];"
+      },
+      "id": "sales_summary",
+      "name": "Summarize Run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const s = $node['Summarize Run'].json;\nconst q = function(value) { return `'${String(value == null ? '' : value).replace(/'/g, \"''\")}'`; };\nconst jsonQ = function(value) { return q(JSON.stringify(value)); };\nconst workflowName = s.workflowName || 'LT - GHL Daily Sales Ingest';\nconst sourceSystem = s.sourceSystem || 'ghl';\nconst reportDate = s.reportDate || new Date().toISOString().slice(0, 10);\nconst batchId = s.batchId || 'lt-sales-' + Date.now();\nconst hasError = Boolean(s.hasError || Number(s.errorCount || 0) > 0 || String(s.status || '').toLowerCase() === 'failed');\nconst runStatus = hasError ? 'failed' : (s.status || 'completed');\nconst errorCount = Number(s.errorCount || 0);\nconst errorMessage = hasError ? String(s.errorMessage || 'One or more nodes reported an error.') : null;\nconst metadata = { rawOpportunityRows: s.rawOpportunityRows || 0, rawPipelineHistoryRows: s.rawPipelineHistoryRows || 0, opportunitiesProcessed: s.opportunitiesProcessed || 0, opportunitiesWon: s.opportunitiesWon || 0, opportunitiesLost: s.opportunitiesLost || 0, status: runStatus, hasError: hasError, errorCount: errorCount };\nconst runSql = `INSERT INTO report_sync_runs (\n  workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata\n) VALUES (\n  ${q(workflowName)},\n  ${q(sourceSystem)},\n  ${q(reportDate)}::date,\n  ${q(batchId)},\n  ${q(runStatus)},\n  NOW(),\n  NOW(),\n  ${Number(s.rawOpportunityRows || 0) + Number(s.rawPipelineHistoryRows || 0)},\n  ${errorCount},\n  0,\n  ${q(reportDate)},\n  ${q(errorMessage)},\n  ${jsonQ(metadata)}::jsonb\n);`;\nconst watermarkSql = hasError ? 'SELECT 1 AS skipped_watermark_update;' : `INSERT INTO report_sync_watermarks (\n  workflow_name, source_system, watermark_key, watermark_value, updated_at\n) VALUES (\n  ${q(workflowName)},\n  ${q(sourceSystem)},\n  'latest_report_date',\n  ${q(reportDate)},\n  NOW()\n)\nON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET\n  watermark_value = EXCLUDED.watermark_value,\n  updated_at = NOW();`;\nconst healthSql = `INSERT INTO report_source_health (\n  source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at\n) VALUES (\n  ${q(sourceSystem)},\n  ${q(hasError ? 'error' : 'ready')},\n  ${hasError ? 'NULL' : 'NOW()'},\n  NOW(),\n  ${Number(s.rawOpportunityRows || 0)},\n  48,\n  ${q(errorMessage)},\n  ${jsonQ({ workflowName: workflowName, batchId: batchId, reportDate: reportDate, status: runStatus, errorCount: errorCount })}::jsonb,\n  NOW()\n)\nON CONFLICT (source_system) DO UPDATE SET\n  status = EXCLUDED.status,\n  last_success_at = CASE WHEN EXCLUDED.status = 'ready' THEN EXCLUDED.last_success_at ELSE report_source_health.last_success_at END,\n  last_attempt_at = EXCLUDED.last_attempt_at,\n  last_row_count = EXCLUDED.last_row_count,\n  last_error = EXCLUDED.last_error,\n  metadata = EXCLUDED.metadata,\n  updated_at = NOW();`;\nreturn [{json:{sql:runSql}},{json:{sql:watermarkSql}},{json:{sql:healthSql}}];"
+      },
+      "id": "sales_finalize_sql",
+      "name": "Build Finalization SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{$json.sql}}",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "id": "sales_finalize",
+      "name": "Finalize Run Records",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1920,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const s = $node['Summarize Run'].json;\nreturn [{json:{ok:!s.hasError,workflow:s.workflowName,status:s.status || 'prepared',source:s.sourceSystem,reportDate:s.reportDate,batchId:s.batchId,rawOpportunityRows:s.rawOpportunityRows,rawPipelineHistoryRows:s.rawPipelineHistoryRows,opportunitiesProcessed:s.opportunitiesProcessed,opportunitiesWon:s.opportunitiesWon,opportunitiesLost:s.opportunitiesLost,errorCount:s.errorCount || 0,errorMessage:s.errorMessage || null,note:s.note}}];"
+      },
+      "id": "sales_result",
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "LT - GHL Daily Sales Ingest\\n\\nPurpose\\n- Pull opportunities and pipeline snapshots from GHL.\\n- Write raw opportunity and pipeline-history rows to Postgres.\\n- Prepare run, watermark, and source-health records for the reporting stack.\\n\\nStatus\\n- Live starter chain.\\n- Ready now; no GA4 dependency."
+      },
+      "id": "sales_note",
+      "name": "Shell Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Normalize + Build SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize + Build SQL": {
+      "main": [
+        [
+          {
+            "node": "Upsert Raw Sales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Raw Sales": {
+      "main": [
+        [
+          {
+            "node": "Summarize Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Run": {
+      "main": [
+        [
+          {
+            "node": "Build Finalization SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Finalization SQL": {
+      "main": [
+        [
+          {
+            "node": "Finalize Run Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Run Records": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "57723bc3-4289-4f69-8cb6-820ec1be69dc",
+  "activeVersionId": "57723bc3-4289-4f69-8cb6-820ec1be69dc",
+  "versionCounter": 81,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-18T13:29:44.278Z",
+      "createdAt": "2026-04-18T13:29:44.278Z",
+      "role": "workflow:owner",
+      "workflowId": "aYT5oHcgmBALzHy5",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-20T16:10:15.323Z",
+    "createdAt": "2026-04-20T16:10:15.323Z",
+    "versionId": "57723bc3-4289-4f69-8cb6-820ec1be69dc",
+    "workflowId": "aYT5oHcgmBALzHy5",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 1440
+              }
+            ]
+          }
+        },
+        "id": "sales_schedule",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          160
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "sales_manual",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{\n  json: {\n    locationId: 'Zwz4relUXVPxx8uohnjV',\n    workflowName: 'LT - GHL Daily Sales Ingest',\n    apiBaseUrl: 'https://services.leadconnectorhq.com',\n    authToken: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86',\n    batchSize: 100,\n    sourceSystem: 'ghl',\n    rawTable: 'report_raw_ghl_opportunities',\n    historyTable: 'report_raw_ghl_pipeline_history',\n    runTable: 'report_sync_runs',\n    watermarkTable: 'report_sync_watermarks',\n    healthTable: 'report_source_health'\n  }\n}];"
+        },
+        "id": "sales_config",
+        "name": "Config",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          480,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const configItems = $input.all();\nconst config = configItems.length ? (configItems[0].json || {}) : {};\nif (!config.authToken || !config.locationId) {\n  throw new Error('Config missing authToken or locationId.');\n}\nconst workflowName = config.workflowName || 'LT - GHL Daily Sales Ingest';\nconst apiBaseUrl = config.apiBaseUrl || 'https://services.leadconnectorhq.com';\nconst authToken = config.authToken || '';\nconst locationId = config.locationId || '';\nconst batchSize = Number(config.batchSize || 100);\nconst sourceSystem = config.sourceSystem || 'ghl';\nconst headers = {\n  Authorization: 'Bearer ' + authToken,\n  Version: '2021-07-28',\n  Accept: 'application/json',\n};\nconst batchId = 'lt-sales-' + new Date().toISOString().replace(/[:.]/g, '-');\nconst items = [];\nconst maxPages = 500;\nconst requestUrl = apiBaseUrl + '/opportunities/search';\nlet requestQs = {\n  location_id: locationId,\n  limit: batchSize,\n  status: 'all',\n  getNotes: false,\n  getTasks: false,\n  getCalendarEvents: false,\n};\nlet page = 0;\n\nfunction extractBatch(body) {\n  if (body && Array.isArray(body.opportunities)) return body.opportunities;\n  if (body && Array.isArray(body.data)) return body.data;\n  if (body && Array.isArray(body.items)) return body.items;\n  return [];\n}\n\nasync function requestJson(url, qs) {\n  try {\n    return await this.helpers.httpRequest({\n      method: 'GET',\n      url,\n      qs,\n      headers,\n      json: true,\n      timeout: 60000,\n    });\n  } catch (error) {\n    const details = (error && error.response && error.response.body)\n      || (error && error.cause && error.cause.response && error.cause.response.body)\n      || error.message\n      || error;\n    throw new Error('GHL opportunities search failed for ' + url + ': ' + (typeof details === 'string' ? details : JSON.stringify(details)));\n  }\n}\n\nfor (;;) {\n  page += 1;\n  if (page > maxPages) {\n    throw new Error('Pagination guard tripped while fetching opportunities after 500 pages.');\n  }\n\n  const body = await requestJson.call(this, requestUrl, requestQs);\n  const batch = extractBatch(body);\n\n  for (const raw of batch) {\n    items.push({\n      json: {\n        ...raw,\n        batchId,\n        workflowName,\n        sourceSystem,\n        sourcePage: page,\n      },\n    });\n  }\n\n  const meta = body && body.meta ? body.meta : {};\n  const nextStartAfter = meta.startAfter;\n  const nextStartAfterId = meta.startAfterId;\n\n  if (!nextStartAfter || !nextStartAfterId || batch.length === 0) break;\n\n  requestQs = {\n    location_id: locationId,\n    limit: batchSize,\n    status: 'all',\n    getNotes: false,\n    getTasks: false,\n    getCalendarEvents: false,\n    startAfter: nextStartAfter,\n    startAfterId: nextStartAfterId,\n  };\n}\n\nif (!items.length) {\n  items.push({\n    json: {\n      kind: 'noop',\n      workflowName,\n      sourceSystem,\n      batchId,\n      reportDate: 'current',\n      sourceKey: 'noop',\n      status: 'open',\n      sql: 'SELECT 1 AS noop;',\n    },\n  });\n}\n\nreturn items;"
+        },
+        "id": "sales_fetch",
+        "name": "Fetch Opportunities",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const sourceItems = $input.all();\nconst items = [];\n\nfunction cleanText(value) {\n  const text = String(value == null ? '' : value).trim();\n  return text.length ? text : null;\n}\n\nfunction escapeSql(value) {\n  if (value === null || value === undefined) return 'NULL';\n  if (typeof value === 'number') return Number.isFinite(value) ? String(value) : 'NULL';\n  if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';\n  const text = String(value);\n  return '\\'' + text.replace(/'/g, \"''\") + '\\'';\n}\n\nfunction jsonbLiteral(value) {\n  return escapeSql(JSON.stringify(value || {})) + '::jsonb';\n}\n\nfunction firstText() {\n  for (let i = 0; i < arguments.length; i += 1) {\n    const text = cleanText(arguments[i]);\n    if (text) return text;\n  }\n  return null;\n}\n\nconst workflowName = 'LT - GHL Daily Sales Ingest';\nconst sourceSystem = 'ghl';\nconst batchId = sourceItems.length && sourceItems[0].json && sourceItems[0].json.batchId ? sourceItems[0].json.batchId : 'lt-sales-' + new Date().toISOString().replace(/[:.]/g, '-');\n\nfor (const item of sourceItems) {\n  const raw = item && item.json ? item.json : {};\n  if (raw.kind === 'noop') continue;\n\n  const id = cleanText(raw.id || raw.opportunityId || raw._id);\n  if (!id) continue;\n\n  const contactId = firstText(raw.contactId, raw.contact_id, raw.contact && raw.contact.id, raw.contact && raw.contact.contactId);\n  const pipelineId = firstText(raw.pipelineId, raw.pipeline_id, raw.pipeline && raw.pipeline.id);\n  const pipelineName = firstText(raw.pipelineName, raw.pipeline && raw.pipeline.name);\n  const stageId = firstText(raw.pipelineStageId, raw.pipeline_stage_id, raw.stageId, raw.stage_id, raw.pipelineStage && raw.pipelineStage.id);\n  const stageName = firstText(raw.pipelineStageName, raw.pipeline_stage_name, raw.stageName, raw.stage, raw.pipelineStage && raw.pipelineStage.name);\n  const status = firstText(raw.status) || 'open';\n  const monetaryValue = Number(raw.monetaryValue || raw.amount || raw.value || 0) || 0;\n  const createdAt = firstText(raw.createdAt, raw.created_at, raw.dateAdded, raw.date_added);\n  const updatedAt = firstText(raw.updatedAt, raw.updated_at, raw.lastUpdated, raw.last_updated);\n  const assignedTo = firstText(raw.assignedTo, raw.assigned_to, raw.ownerId, raw.owner_id);\n  const rowReportDate = createdAt ? new Date(createdAt) : null;\n  const reportDateSql = escapeSql((rowReportDate && !Number.isNaN(rowReportDate.getTime()) ? rowReportDate : new Date()).toISOString().slice(0, 10));\n  const dims = {\n    contact_id: contactId,\n    pipeline_id: pipelineId,\n    pipeline_name: pipelineName,\n    pipeline_stage_id: stageId,\n    pipeline_stage_name: stageName,\n    status: status,\n    assigned_to: assignedTo,\n    source_created_at: createdAt,\n    source_updated_at: updatedAt,\n  };\n  const statusLower = String(status).toLowerCase();\n  const metrics = {\n    monetary_value: monetaryValue,\n    is_closed_won: ['won', 'closed_won', 'closed won'].indexOf(statusLower) !== -1,\n    is_closed_lost: ['lost', 'closed_lost', 'closed lost'].indexOf(statusLower) !== -1,\n    is_open: ['open'].indexOf(statusLower) !== -1,\n  };\n  const baseColumns = [\n    'report_date', 'source_system', 'source_key', 'source_window_start', 'source_window_end',\n    'payload_json', 'dimensions_json', 'metrics_json', 'batch_id', 'run_id'\n  ];\n  const buildSql = function(tableName, sourceKey, payloadJson, dimensionsJson, metricsJson) {\n    return [\n      'INSERT INTO \"' + tableName + '\" (',\n      '  ' + baseColumns.map(function(c) { return '\"' + c + '\"'; }).join(', '),\n      ') VALUES (',\n      '  ' + reportDateSql + ',',\n      '  ' + escapeSql(sourceSystem) + ',',\n      '  ' + escapeSql(sourceKey) + ',',\n      '  ' + reportDateSql + ',',\n      '  ' + reportDateSql + ',',\n      '  ' + jsonbLiteral(payloadJson) + ',',\n      '  ' + jsonbLiteral(dimensionsJson) + ',',\n      '  ' + jsonbLiteral(metricsJson) + ',',\n      '  ' + escapeSql(batchId) + ',',\n      '  NULL',\n      ')',\n      'ON CONFLICT (source_system, report_date, source_key) DO UPDATE SET',\n      '  source_window_start = EXCLUDED.source_window_start,',\n      '  source_window_end = EXCLUDED.source_window_end,',\n      '  payload_json = EXCLUDED.payload_json,',\n      '  dimensions_json = EXCLUDED.dimensions_json,',\n      '  metrics_json = EXCLUDED.metrics_json,',\n      '  batch_id = EXCLUDED.batch_id,',\n      '  run_id = EXCLUDED.run_id,',\n      '  loaded_at = NOW();',\n    ].join('\\n');\n  };\n  items.push({ json: { kind: 'opportunity', workflowName: workflowName, reportDate: 'current', batchId: batchId, sourceKey: id, sql: buildSql('report_raw_ghl_opportunities', id, raw, dims, metrics), status: status } });\n  items.push({ json: { kind: 'pipeline_history', workflowName: workflowName, reportDate: 'current', batchId: batchId, sourceKey: id + '::' + new Date().toISOString().slice(0, 10), sql: buildSql('report_raw_ghl_pipeline_history', id + '::' + new Date().toISOString().slice(0, 10), raw, dims, metrics), status: status } });\n}\n\nif (!items.length) {\n  items.push({ json: { kind: 'noop', workflowName: workflowName, reportDate: 'current', batchId: batchId, sourceKey: 'noop', sql: 'SELECT 1 AS noop;', status: 'open' } });\n}\n\nreturn items;"
+        },
+        "id": "sales_normalize",
+        "name": "Normalize + Build SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          960,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{$json.sql}}",
+          "options": {
+            "queryBatching": "independently"
+          }
+        },
+        "id": "sales_upsert",
+        "name": "Upsert Raw Sales",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1200,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const inputItems = $input.all();\nconst normalizedItems = inputItems.some(function(i) { return i && i.json && i.json.kind; })\n  ? inputItems\n  : $items('Normalize + Build SQL');\nconst opportunities = normalizedItems.filter(function(i) { return i.json.kind === 'opportunity'; });\nconst historyRows = normalizedItems.filter(function(i) { return i.json.kind === 'pipeline_history'; });\nconst errorItems = inputItems.filter(function(i) { return i && i.json && i.json.error; });\nconst reportDate = new Date().toISOString().slice(0, 10);\nconst batchId = normalizedItems.length && normalizedItems[0].json && normalizedItems[0].json.batchId ? normalizedItems[0].json.batchId : 'lt-sales-' + Date.now();\nconst opportunitiesWon = opportunities.filter(function(i) { return /won|closed_won|closed won/i.test(String(i.json.status || '')); }).length;\nconst opportunitiesLost = opportunities.filter(function(i) { return /lost|closed_lost|closed lost/i.test(String(i.json.status || '')); }).length;\nconst hasError = errorItems.length > 0;\nconst errorMessage = errorItems.map(function(i) {\n  return String(i.json.error && (i.json.error.message || i.json.error.toString()) || i.json.message || 'Unknown error');\n}).join(' | ');\nreturn [{json:{workflowName:'LT - GHL Daily Sales Ingest',sourceSystem:'ghl',reportDate:reportDate,batchId:batchId,rawOpportunityRows:opportunities.length,rawPipelineHistoryRows:historyRows.length,opportunitiesProcessed:opportunities.length,opportunitiesWon:opportunitiesWon,opportunitiesLost:opportunitiesLost,status:hasError ? 'failed' : 'completed',errorCount:errorItems.length,errorMessage:errorMessage || null,hasError:hasError,note:hasError ? 'Sales ingest reported an error.' : (opportunities.length ? 'Sales raw rows were normalized and written to Postgres.' : 'No sales rows returned from GHL; workflow stayed healthy but wrote a noop record.')}}];"
+        },
+        "id": "sales_summary",
+        "name": "Summarize Run",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const s = $node['Summarize Run'].json;\nconst q = function(value) { return `'${String(value == null ? '' : value).replace(/'/g, \"''\")}'`; };\nconst jsonQ = function(value) { return q(JSON.stringify(value)); };\nconst workflowName = s.workflowName || 'LT - GHL Daily Sales Ingest';\nconst sourceSystem = s.sourceSystem || 'ghl';\nconst reportDate = s.reportDate || new Date().toISOString().slice(0, 10);\nconst batchId = s.batchId || 'lt-sales-' + Date.now();\nconst hasError = Boolean(s.hasError || Number(s.errorCount || 0) > 0 || String(s.status || '').toLowerCase() === 'failed');\nconst runStatus = hasError ? 'failed' : (s.status || 'completed');\nconst errorCount = Number(s.errorCount || 0);\nconst errorMessage = hasError ? String(s.errorMessage || 'One or more nodes reported an error.') : null;\nconst metadata = { rawOpportunityRows: s.rawOpportunityRows || 0, rawPipelineHistoryRows: s.rawPipelineHistoryRows || 0, opportunitiesProcessed: s.opportunitiesProcessed || 0, opportunitiesWon: s.opportunitiesWon || 0, opportunitiesLost: s.opportunitiesLost || 0, status: runStatus, hasError: hasError, errorCount: errorCount };\nconst runSql = `INSERT INTO report_sync_runs (\n  workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata\n) VALUES (\n  ${q(workflowName)},\n  ${q(sourceSystem)},\n  ${q(reportDate)}::date,\n  ${q(batchId)},\n  ${q(runStatus)},\n  NOW(),\n  NOW(),\n  ${Number(s.rawOpportunityRows || 0) + Number(s.rawPipelineHistoryRows || 0)},\n  ${errorCount},\n  0,\n  ${q(reportDate)},\n  ${q(errorMessage)},\n  ${jsonQ(metadata)}::jsonb\n);`;\nconst watermarkSql = hasError ? 'SELECT 1 AS skipped_watermark_update;' : `INSERT INTO report_sync_watermarks (\n  workflow_name, source_system, watermark_key, watermark_value, updated_at\n) VALUES (\n  ${q(workflowName)},\n  ${q(sourceSystem)},\n  'latest_report_date',\n  ${q(reportDate)},\n  NOW()\n)\nON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET\n  watermark_value = EXCLUDED.watermark_value,\n  updated_at = NOW();`;\nconst healthSql = `INSERT INTO report_source_health (\n  source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at\n) VALUES (\n  ${q(sourceSystem)},\n  ${q(hasError ? 'error' : 'ready')},\n  ${hasError ? 'NULL' : 'NOW()'},\n  NOW(),\n  ${Number(s.rawOpportunityRows || 0)},\n  48,\n  ${q(errorMessage)},\n  ${jsonQ({ workflowName: workflowName, batchId: batchId, reportDate: reportDate, status: runStatus, errorCount: errorCount })}::jsonb,\n  NOW()\n)\nON CONFLICT (source_system) DO UPDATE SET\n  status = EXCLUDED.status,\n  last_success_at = CASE WHEN EXCLUDED.status = 'ready' THEN EXCLUDED.last_success_at ELSE report_source_health.last_success_at END,\n  last_attempt_at = EXCLUDED.last_attempt_at,\n  last_row_count = EXCLUDED.last_row_count,\n  last_error = EXCLUDED.last_error,\n  metadata = EXCLUDED.metadata,\n  updated_at = NOW();`;\nreturn [{json:{sql:runSql}},{json:{sql:watermarkSql}},{json:{sql:healthSql}}];"
+        },
+        "id": "sales_finalize_sql",
+        "name": "Build Finalization SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1680,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{$json.sql}}",
+          "options": {
+            "queryBatching": "independently"
+          }
+        },
+        "id": "sales_finalize",
+        "name": "Finalize Run Records",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1920,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const s = $node['Summarize Run'].json;\nreturn [{json:{ok:!s.hasError,workflow:s.workflowName,status:s.status || 'prepared',source:s.sourceSystem,reportDate:s.reportDate,batchId:s.batchId,rawOpportunityRows:s.rawOpportunityRows,rawPipelineHistoryRows:s.rawPipelineHistoryRows,opportunitiesProcessed:s.opportunitiesProcessed,opportunitiesWon:s.opportunitiesWon,opportunitiesLost:s.opportunitiesLost,errorCount:s.errorCount || 0,errorMessage:s.errorMessage || null,note:s.note}}];"
+        },
+        "id": "sales_result",
+        "name": "Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2160,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "content": "LT - GHL Daily Sales Ingest\\n\\nPurpose\\n- Pull opportunities and pipeline snapshots from GHL.\\n- Write raw opportunity and pipeline-history rows to Postgres.\\n- Prepare run, watermark, and source-health records for the reporting stack.\\n\\nStatus\\n- Live starter chain.\\n- Ready now; no GA4 dependency."
+        },
+        "id": "sales_note",
+        "name": "Shell Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          480,
+          80
+        ]
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Fetch Opportunities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Opportunities": {
+        "main": [
+          [
+            {
+              "node": "Normalize + Build SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize + Build SQL": {
+        "main": [
+          [
+            {
+              "node": "Upsert Raw Sales",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Raw Sales": {
+        "main": [
+          [
+            {
+              "node": "Summarize Run",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize Run": {
+        "main": [
+          [
+            {
+              "node": "Build Finalization SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Finalization SQL": {
+        "main": [
+          [
+            {
+              "node": "Finalize Run Records",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Finalize Run Records": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-20T16:10:15.428Z",
+        "id": 825,
+        "workflowId": "aYT5oHcgmBALzHy5",
+        "versionId": "57723bc3-4289-4f69-8cb6-820ec1be69dc",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-20T16:10:15.471Z",
+        "id": 826,
+        "workflowId": "aYT5oHcgmBALzHy5",
+        "versionId": "57723bc3-4289-4f69-8cb6-820ec1be69dc",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-21T16:27:59.898Z",
+        "id": 854,
+        "workflowId": "aYT5oHcgmBALzHy5",
+        "versionId": "57723bc3-4289-4f69-8cb6-820ec1be69dc",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-21T16:27:59.929Z",
+        "id": 855,
+        "workflowId": "aYT5oHcgmBALzHy5",
+        "versionId": "57723bc3-4289-4f69-8cb6-820ec1be69dc",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

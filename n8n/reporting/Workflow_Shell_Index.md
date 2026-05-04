@@ -3,30 +3,33 @@
 This file is the short checklist of reporting workflows that should exist in n8n.
 Use it together with the workflow spec and the Postgres bootstrap.
 
-Note:
-- Several reporting workflows are now live and active in n8n.
-- `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report QA and Alerts`, and `LT - Report Executive Summary API` are active.
-- `LT - Report Postgres Bootstrap Apply` is active as the one-time bootstrap helper.
-- `LT - GSC Daily Ingest`, `LT - GA4 Daily Ingest`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, and `LT - GHL Executive Report Menu Sync` remain staged or pending their later-phase inputs.
-- Keep GA4 and GSC deferred until the reporting scope expands beyond GHL-only.
-- Current live issue: the summary endpoint is up, but the report windows still need a fresh GHL ingest rerun so the 7d / 30d / 90d outputs separate correctly.
-- Current live state: the GHL ingest chain has already been rerun, and the summary now separates lead counts by window.
-- Remaining question: `opportunitiesCreated` still reports `193` across all windows, so confirm whether that is intentional and whether the sales ingest is complete before changing the sales filter.
-- Next execution order: inspect opportunity range semantics -> confirm zero-sales behavior -> verify sales-ingest completeness -> keep GA4 deferred.
+## Current Status (2026-05-02)
+All report workflows are active and published in n8n:
+- `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) — rebuilt replacement
+- `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`)
+- `LT - Report Attribution Bridge` (`Y0TU7Il71JswxOBp`)
+- `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`)
+- `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`)
+- `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`)
+- `LT - Report Config Sync` (`aomO3Z4AXJIgEvvN`)
+- `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`)
+- `LT - Report Postgres Bootstrap Apply` (`3XHThUiUSNa4sTb9`)
+
+Deferred: `LT - GSC Daily Ingest`, `LT - GHL Executive Report Menu Sync`.
+
+Known cleanup completed: `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary correction logic folded back into the main workflow.
 
 ## Shells To Create
 
 ### `LT - Report Config Sync`
 - Trigger: Manual or daily Cron
-- First nodes: Trigger -> Set Config -> Code Validate -> Postgres Upsert
 - Live n8n ID: `aomO3Z4AXJIgEvvN`
-- Status: created in n8n, inactive, real starter chain, still missing a trigger node for activation
+- Status: active
 
 ### `LT - GHL Daily Leads Ingest`
 - Trigger: Cron
-- First nodes: Trigger -> Set Config -> Code Normalize -> GHL Read -> Postgres Upsert
-- Live n8n ID: `OtqWjqGXZC3OcrXP`
-- Status: created in n8n, active
+- Live n8n ID: `osIJOgBmWITF5Yuv`
+- Status: active (rebuilt replacement for archived `OtqWjqGXZC3OcrXP`)
 
 ### `LT - GHL Daily Sales Ingest`
 - Trigger: Cron
@@ -38,7 +41,7 @@ Note:
 - Trigger: Cron
 - First nodes: Trigger -> Set Config -> Code Normalize -> HTTP Request -> Postgres Upsert
 - Live n8n ID: `if0Siw6KzlBItEbd`
-- Status: created in n8n, inactive, deferred for a later phase
+- Status: active, live daily ingest feeding GA4 traffic rollups
 
 ### `LT - GA4 Daily Ingest`
 - Trigger: Cron
@@ -56,7 +59,14 @@ Note:
 - Trigger: After bridge success
 - First nodes: Trigger -> Set Config -> Code Aggregate -> Postgres Upsert
 - Live n8n ID: `EUeOiRttoVLQ9zF9`
-- Status: created in n8n, active, real starter chain, ready now for GHL-only rollups
+- Status: active, republished on 2026-05-02 with integrated daily-summary fix logic
+
+### `LT - Report Rollup Corrections`
+- Trigger: After main rollup or daily Cron
+- First nodes: Trigger -> Config -> Code Fixes -> Postgres Execute
+- Live n8n ID: `5u70GKgWzEHJ5l4B`
+- Status: inactive
+- Purpose: retired handoff workflow previously used to patch `report_daily_summary` before the fix was folded into Rollups
 
 ### `LT - Report QA and Alerts`
 - Trigger: After rollups and on schedule
@@ -66,9 +76,8 @@ Note:
 
 ### `LT - Report Publish Refresh`
 - Trigger: After successful rollups
-- First nodes: Trigger -> Set Config -> Code Refresh -> Publish marker
 - Live n8n ID: `3gXztCnBEN6sGINb`
-- Status: created in n8n, inactive, real starter chain, no trigger node yet
+- Status: active
 
 ### `LT - GHL Executive Report Menu Sync`
 - Trigger: Webhook or manual provision call

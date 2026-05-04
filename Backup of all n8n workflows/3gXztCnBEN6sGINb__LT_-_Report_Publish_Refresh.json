@@ -1,0 +1,454 @@
+{
+  "updatedAt": "2026-04-28T16:24:51.268Z",
+  "createdAt": "2026-04-18T13:29:46.250Z",
+  "id": "3gXztCnBEN6sGINb",
+  "name": "LT - Report Publish Refresh",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "0ddcdf67-79f9-4316-9695-ffac2d72ddc9",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        160
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fcaf71c5-908e-4dcb-8c99-3b22182e7459",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        320
+      ]
+    },
+    {
+      "id": "bee34dff-5393-4c02-8afd-1aee45156446",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        240
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "location_name",
+              "name": "locationName",
+              "type": "string",
+              "value": "Live Transparent"
+            },
+            {
+              "id": "timezone",
+              "name": "timezone",
+              "type": "string",
+              "value": "America/Los_Angeles"
+            },
+            {
+              "id": "report_host",
+              "name": "reportHost",
+              "type": "string",
+              "value": "https://reports.livetransparent.com"
+            },
+            {
+              "id": "embed_url",
+              "name": "embedUrl",
+              "type": "string",
+              "value": "https://reports.livetransparent.com/embed/executive"
+            },
+            {
+              "id": "view",
+              "name": "view",
+              "type": "string",
+              "value": "overview"
+            },
+            {
+              "id": "range",
+              "name": "range",
+              "type": "string",
+              "value": "30d"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5f58ea6f-add7-4ae4-a415-437893cf856f",
+      "name": "Build Publish SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const cfg = $json || {};\nconst payload = {\n  locationId: String(cfg.locationId || '').trim(),\n  locationName: String(cfg.locationName || '').trim(),\n  timezone: String(cfg.timezone || 'America/Los_Angeles').trim(),\n  reportHost: String(cfg.reportHost || 'https://reports.livetransparent.com').trim(),\n  embedUrl: String(cfg.embedUrl || 'https://reports.livetransparent.com/embed/executive').trim(),\n  view: String(cfg.view || 'overview').trim(),\n  range: String(cfg.range || '30d').trim(),\n  refreshedAt: new Date().toISOString(),\n  reason: 'config or rollup refresh',\n};\nconst jsonb = \"'\" + JSON.stringify(payload).replace(/'/g, \"''\") + \"'::jsonb\";\nconst sql = \"INSERT INTO report_config (config_key, config_value, notes, updated_at) VALUES ('report_publish_state', \" + jsonb + \", 'Latest report publish refresh marker', NOW()) ON CONFLICT (config_key) DO UPDATE SET config_value = EXCLUDED.config_value, notes = EXCLUDED.notes, updated_at = NOW();\";\nreturn [{ json: { ...payload, upsertSql: sql } }];"
+      }
+    },
+    {
+      "id": "78a0a81f-7264-4f4e-ad8e-0b2338ecba24",
+      "name": "Upsert Publish State",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        240
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{$json.upsertSql}}",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "81d750e1-3b11-4495-a482-81f06727c9fc",
+      "name": "Summarize Publish Refresh",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $json || {};\nreturn [{ json: { ok: true, workflow: 'LT - Report Publish Refresh', refreshMarker: item.refreshedAt, embedUrl: item.embedUrl, view: item.view, range: item.range, note: 'Publish state recorded in Postgres.' } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Build Publish SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Publish SQL": {
+      "main": [
+        [
+          {
+            "node": "Upsert Publish State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Publish State": {
+      "main": [
+        [
+          {
+            "node": "Summarize Publish Refresh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "pinData": null,
+  "versionId": "1395c283-9b98-4f61-aac3-682cdcd930c0",
+  "activeVersionId": "1395c283-9b98-4f61-aac3-682cdcd930c0",
+  "versionCounter": 7,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-18T13:29:46.250Z",
+      "createdAt": "2026-04-18T13:29:46.250Z",
+      "role": "workflow:owner",
+      "workflowId": "3gXztCnBEN6sGINb",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-28T16:24:51.271Z",
+    "createdAt": "2026-04-28T16:24:51.271Z",
+    "versionId": "1395c283-9b98-4f61-aac3-682cdcd930c0",
+    "workflowId": "3gXztCnBEN6sGINb",
+    "nodes": [
+      {
+        "id": "0ddcdf67-79f9-4316-9695-ffac2d72ddc9",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          160
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 6
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "fcaf71c5-908e-4dcb-8c99-3b22182e7459",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          320
+        ]
+      },
+      {
+        "id": "bee34dff-5393-4c02-8afd-1aee45156446",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          480,
+          240
+        ],
+        "parameters": {
+          "mode": "manual",
+          "includeOtherFields": true,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "location_id",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "location_name",
+                "name": "locationName",
+                "type": "string",
+                "value": "Live Transparent"
+              },
+              {
+                "id": "timezone",
+                "name": "timezone",
+                "type": "string",
+                "value": "America/Los_Angeles"
+              },
+              {
+                "id": "report_host",
+                "name": "reportHost",
+                "type": "string",
+                "value": "https://reports.livetransparent.com"
+              },
+              {
+                "id": "embed_url",
+                "name": "embedUrl",
+                "type": "string",
+                "value": "https://reports.livetransparent.com/embed/executive"
+              },
+              {
+                "id": "view",
+                "name": "view",
+                "type": "string",
+                "value": "overview"
+              },
+              {
+                "id": "range",
+                "name": "range",
+                "type": "string",
+                "value": "30d"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "5f58ea6f-add7-4ae4-a415-437893cf856f",
+        "name": "Build Publish SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          240
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const cfg = $json || {};\nconst payload = {\n  locationId: String(cfg.locationId || '').trim(),\n  locationName: String(cfg.locationName || '').trim(),\n  timezone: String(cfg.timezone || 'America/Los_Angeles').trim(),\n  reportHost: String(cfg.reportHost || 'https://reports.livetransparent.com').trim(),\n  embedUrl: String(cfg.embedUrl || 'https://reports.livetransparent.com/embed/executive').trim(),\n  view: String(cfg.view || 'overview').trim(),\n  range: String(cfg.range || '30d').trim(),\n  refreshedAt: new Date().toISOString(),\n  reason: 'config or rollup refresh',\n};\nconst jsonb = \"'\" + JSON.stringify(payload).replace(/'/g, \"''\") + \"'::jsonb\";\nconst sql = \"INSERT INTO report_config (config_key, config_value, notes, updated_at) VALUES ('report_publish_state', \" + jsonb + \", 'Latest report publish refresh marker', NOW()) ON CONFLICT (config_key) DO UPDATE SET config_value = EXCLUDED.config_value, notes = EXCLUDED.notes, updated_at = NOW();\";\nreturn [{ json: { ...payload, upsertSql: sql } }];"
+        }
+      },
+      {
+        "id": "78a0a81f-7264-4f4e-ad8e-0b2338ecba24",
+        "name": "Upsert Publish State",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          240
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{$json.upsertSql}}",
+          "options": {
+            "queryBatching": "independently"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "81d750e1-3b11-4495-a482-81f06727c9fc",
+        "name": "Summarize Publish Refresh",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          240
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const item = $json || {};\nreturn [{ json: { ok: true, workflow: 'LT - Report Publish Refresh', refreshMarker: item.refreshedAt, embedUrl: item.embedUrl, view: item.view, range: item.range, note: 'Publish state recorded in Postgres.' } }];"
+        }
+      }
+    ],
+    "connections": {
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Build Publish SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Publish SQL": {
+        "main": [
+          [
+            {
+              "node": "Upsert Publish State",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Publish State": {
+        "main": [
+          [
+            {
+              "node": "Summarize Publish Refresh",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-28T16:24:55.836Z",
+        "id": 968,
+        "workflowId": "3gXztCnBEN6sGINb",
+        "versionId": "1395c283-9b98-4f61-aac3-682cdcd930c0",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

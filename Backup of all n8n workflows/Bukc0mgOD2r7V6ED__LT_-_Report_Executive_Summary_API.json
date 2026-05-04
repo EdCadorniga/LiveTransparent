@@ -1,0 +1,480 @@
+{
+  "updatedAt": "2026-04-20T17:46:08.353Z",
+  "createdAt": "2026-04-18T17:05:33.944Z",
+  "id": "Bukc0mgOD2r7V6ED",
+  "name": "LT - Report Executive Summary API",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "summary_webhook",
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "lt-report-executive-summary",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "e91b96c3-2a1b-43a9-9394-ab49bc4c75b1"
+    },
+    {
+      "id": "summary_config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        300
+      ],
+      "parameters": {
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflow_name",
+              "name": "workflowName",
+              "type": "string",
+              "value": "LT - Report Executive Summary API"
+            },
+            {
+              "id": "timezone",
+              "name": "timezone",
+              "type": "string",
+              "value": "America/Los_Angeles"
+            },
+            {
+              "id": "default_range_days",
+              "name": "defaultRangeDays",
+              "type": "number",
+              "value": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "normalize_request",
+      "name": "Normalize Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const req = $node['Webhook Intake'].json || {};\nconst q = req.query || {};\nconst cfg = $node['Config'].json || {};\nconst timezone = String(cfg.timezone || 'America/Los_Angeles');\nconst view = String(q.view || 'overview');\nconst range = String(q.range || '30d');\nconst from = q.from ? String(q.from) : '';\nconst to = q.to ? String(q.to) : '';\n\nfunction isoDate(date) {\n  return date.toISOString().slice(0, 10);\n}\n\nfunction subtractDays(date, days) {\n  const d = new Date(date.getTime());\n  d.setUTCDate(d.getUTCDate() - days);\n  return d;\n}\n\nconst map = { '7d': 7, '30d': 30, '90d': 90 };\nlet endDate = to || isoDate(new Date());\nlet startDate = from;\nif (!startDate) {\n  const days = map[range] || 30;\n  startDate = isoDate(subtractDays(new Date(`${endDate}T00:00:00Z`), days - 1));\n}\n\nreturn [{\n  json: {\n    workflowName: String(cfg.workflowName || 'LT - Report Executive Summary API'),\n    timezone,\n    view,\n    range,\n    from,\n    to,\n    startDate,\n    endDate,\n  },\n}];"
+      }
+    },
+    {
+      "id": "build_query",
+      "name": "Build Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { ...$json, queryText: `WITH summary AS (\n  SELECT\n    COALESCE(SUM(sessions), 0)::int AS sessions,\n    COALESCE(SUM(users), 0)::int AS users,\n    COALESCE(SUM(new_users), 0)::int AS new_users,\n    COALESCE(SUM(engaged_sessions), 0)::int AS engaged_sessions,\n    CASE\n      WHEN COALESCE(SUM(sessions), 0) = 0 THEN 0::numeric(10,4)\n      ELSE ROUND(COALESCE(SUM(engaged_sessions), 0)::numeric / NULLIF(SUM(sessions), 0), 4)\n    END AS engagement_rate,\n    COALESCE(SUM(gsc_clicks), 0)::int AS gsc_clicks,\n    COALESCE(SUM(gsc_impressions), 0)::int AS gsc_impressions,\n    CASE\n      WHEN COALESCE(SUM(gsc_impressions), 0) = 0 THEN 0::numeric(10,4)\n      ELSE ROUND(COALESCE(SUM(gsc_clicks), 0)::numeric / NULLIF(SUM(gsc_impressions), 0), 4)\n    END AS gsc_ctr,\n    CASE\n      WHEN COALESCE(COUNT(*), 0) = 0 THEN 0::numeric(10,4)\n      ELSE ROUND(COALESCE(SUM(gsc_position), 0)::numeric / NULLIF(COUNT(*), 0), 4)\n    END AS gsc_position,\n    COALESCE(SUM(contacts_created), 0)::int AS contacts_created,\n    COALESCE(SUM(form_submissions), 0)::int AS form_submissions,\n    COALESCE(SUM(opportunities_created), 0)::int AS opportunities_created,\n    COALESCE(SUM(meetings_booked), 0)::int AS meetings_booked,\n    COALESCE(SUM(closed_won_count), 0)::int AS closed_won_count,\n    COALESCE(SUM(closed_won_revenue), 0)::numeric(18,2) AS closed_won_revenue,\n    COALESCE(SUM(closed_lost_count), 0)::int AS closed_lost_count\n  FROM report_daily_summary\n  WHERE report_date BETWEEN $1::date AND $2::date\n),\nchannels AS (\n  SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.sessions DESC), '[]'::json) AS items\n  FROM (\n    SELECT\n      channel,\n      traffic_source,\n      source,\n      medium,\n      SUM(sessions)::int AS sessions,\n      SUM(users)::int AS users,\n      SUM(new_users)::int AS new_users,\n      SUM(leads)::int AS leads,\n      SUM(opportunities)::int AS opportunities,\n      COALESCE(SUM(closed_won_revenue), 0)::numeric(18,2) AS closed_won_revenue\n    FROM report_channel_daily_summary\n    WHERE report_date BETWEEN $1::date AND $2::date\n    GROUP BY channel, traffic_source, source, medium\n    ORDER BY SUM(sessions) DESC\n    LIMIT 8\n  ) t\n),\nstage_daily AS (\n  SELECT\n    x.report_date,\n    x.pipeline,\n    x.stage,\n    x.stage_count,\n    GREATEST(x.stage_count - COALESCE(x.prev_stage_count, 0), 0)::int AS moved_in_count,\n    GREATEST(COALESCE(x.prev_stage_count, 0) - x.stage_count, 0)::int AS moved_out_count,\n    x.won_count,\n    x.lost_count\n  FROM (\n    SELECT\n      report_date,\n      pipeline,\n      stage,\n      stage_count,\n      won_count,\n      lost_count,\n      LAG(stage_count) OVER (PARTITION BY pipeline, stage ORDER BY report_date) AS prev_stage_count\n    FROM report_stage_daily_summary\n    WHERE report_date BETWEEN $1::date AND $2::date\n  ) x\n),\npipelines AS (\n  SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.moved_out_count DESC), '[]'::json) AS items\n  FROM (\n    SELECT\n      pipeline,\n      SUM(stage_count)::int AS stage_count,\n      SUM(moved_in_count)::int AS moved_in_count,\n      SUM(moved_out_count)::int AS moved_out_count,\n      SUM(won_count)::int AS won_count,\n      SUM(lost_count)::int AS lost_count\n    FROM stage_daily\n    GROUP BY pipeline\n    ORDER BY SUM(moved_out_count) DESC, SUM(stage_count) DESC\n  ) t\n),\nstages AS (\n  SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.moved_out_count DESC, t.stage_count DESC), '[]'::json) AS items\n  FROM (\n    SELECT\n      pipeline,\n      stage,\n      SUM(stage_count)::int AS stage_count,\n      SUM(moved_in_count)::int AS moved_in_count,\n      SUM(moved_out_count)::int AS moved_out_count,\n      SUM(won_count)::int AS won_count,\n      SUM(lost_count)::int AS lost_count\n    FROM stage_daily\n    GROUP BY pipeline, stage\n    ORDER BY SUM(moved_out_count) DESC, SUM(stage_count) DESC\n    LIMIT 10\n  ) t\n),\nhealth AS (\n  SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.source_system), '[]'::json) AS items\n  FROM (\n    SELECT source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error\n    FROM report_source_health\n    WHERE source_system <> 'undefined'\n    ORDER BY source_system\n  ) t\n),\nlanding_pages AS (\n  SELECT COALESCE(COUNT(*), 0)::int AS item_count,\n         COALESCE(SUM(sessions), 0)::int AS sessions,\n         COALESCE(SUM(form_submissions), 0)::int AS form_submissions\n  FROM report_landing_page_daily_summary\n  WHERE report_date BETWEEN $1::date AND $2::date\n),\nsummary_json AS (\n  SELECT json_build_object(\n    'traffic', CASE WHEN (SELECT sessions FROM summary) > 0 THEN (SELECT sessions FROM summary)::text ELSE 'GA4 pending' END,\n    'leads', (SELECT contacts_created FROM summary)::text,\n    'sales', (SELECT closed_won_count FROM summary)::text,\n    'trafficNumeric', (SELECT sessions FROM summary),\n    'leadsNumeric', (SELECT contacts_created FROM summary),\n    'salesNumeric', (SELECT closed_won_count FROM summary),\n    'closedWonRevenue', (SELECT closed_won_revenue FROM summary),\n    'users', (SELECT users FROM summary),\n    'newUsers', (SELECT new_users FROM summary),\n    'engagedSessions', (SELECT engaged_sessions FROM summary),\n    'engagementRate', (SELECT engagement_rate FROM summary),\n    'gscClicks', (SELECT gsc_clicks FROM summary),\n    'gscImpressions', (SELECT gsc_impressions FROM summary),\n    'gscCtr', (SELECT gsc_ctr FROM summary),\n    'gscPosition', (SELECT gsc_position FROM summary),\n    'contactsCreated', (SELECT contacts_created FROM summary),\n    'formSubmissions', (SELECT form_submissions FROM summary),\n    'opportunitiesCreated', (SELECT opportunities_created FROM summary),\n    'meetingsBooked', (SELECT meetings_booked FROM summary),\n    'closedWonCount', (SELECT closed_won_count FROM summary),\n    'closedLostCount', (SELECT closed_lost_count FROM summary),\n    'trafficGapLandingPages', (SELECT item_count FROM landing_pages),\n    'trafficGapSessions', (SELECT sessions FROM landing_pages),\n    'trafficGapFormSubmissions', (SELECT form_submissions FROM landing_pages)\n  ) AS payload\n)\nSELECT json_build_object(\n  'window', json_build_object(\n    'from', $1::date,\n    'to', $2::date\n  ),\n  'summary', (SELECT to_jsonb(summary_json.payload) FROM summary_json),\n  'channelBreakdown', COALESCE((SELECT items FROM channels), '[]'::json),\n  'pipelineDropoff', COALESCE((SELECT items FROM pipelines), '[]'::json),\n  'stageDropoff', COALESCE((SELECT items FROM stages), '[]'::json),\n  'health', COALESCE((SELECT items FROM health), '[]'::json)\n) AS payload;` } }];"
+      }
+    },
+    {
+      "id": "query_pg",
+      "name": "Query Summary",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1280,
+        300
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{$json.queryText}}",
+        "options": {
+          "queryReplacement": "={{ [ $json.startDate, $json.endDate ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "shape_response",
+      "name": "Shape Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const row = $input.first()?.json || {};\nconst payload = row.payload || row;\nconst summary = payload.summary || {};\nconst channels = Array.isArray(payload.channelBreakdown) ? payload.channelBreakdown : [];\nconst pipelines = Array.isArray(payload.pipelineDropoff) ? payload.pipelineDropoff : [];\nconst stages = Array.isArray(payload.stageDropoff) ? payload.stageDropoff : [];\nconst health = Array.isArray(payload.health) ? payload.health : [];\n\nconst traffic = Number(summary.trafficNumeric ?? summary.sessions ?? 0);\nconst leads = Number(summary.leadsNumeric ?? summary.contactsCreated ?? 0);\nconst sales = Number(summary.salesNumeric ?? summary.closedWonCount ?? 0);\nconst revenue = Number(summary.closedWonRevenue ?? 0);\n\nconst coreQuestions = {\n  attractingTraffic: traffic > 0 ? 'Yes' : 'GA4 pending',\n  trafficToLeads: traffic > 0 && leads > 0 ? 'Partial' : 'Pending',\n  leadsToSales: leads > 0 && sales > 0 ? 'Yes' : 'Partial',\n};\n\nconst channelBreakdown = channels.map((item) => ({\n  label: String(item.channel || item.traffic_source || 'Other'),\n  value: Number(item.sessions || 0),\n  sessions: Number(item.sessions || 0),\n  leads: Number(item.leads || 0),\n  opportunities: Number(item.opportunities || 0),\n  closedWonRevenue: Number(item.closed_won_revenue || 0),\n}));\nconst maxChannel = Math.max(1, ...channelBreakdown.map((item) => item.value || 0));\nfor (const item of channelBreakdown) item.percent = Math.max(3, Math.round((item.value / maxChannel) * 100));\n\nconst pipelineDropoff = pipelines.map((item) => ({\n  label: String(item.pipeline || 'Pipeline'),\n  value: Number(item.moved_out_count || item.moved_in_count || item.stage_count || 0),\n  stageCount: Number(item.stage_count || 0),\n  movedIn: Number(item.moved_in_count || 0),\n  movedOut: Number(item.moved_out_count || 0),\n  wonCount: Number(item.won_count || 0),\n  lostCount: Number(item.lost_count || 0),\n}));\nconst maxPipeline = Math.max(1, ...pipelineDropoff.map((item) => item.value || 0));\nfor (const item of pipelineDropoff) item.percent = Math.max(3, Math.round((item.value / maxPipeline) * 100));\n\nconst topStage = stages.reduce((best, current) => {\n  if (!best) return current;\n  return (Number(current.lost_count || 0) > Number(best.lost_count || 0)) ? current : best;\n}, null);\n\nconst trafficGaps = {\n  sessions: traffic,\n  landingPages: Number(summary.trafficGapLandingPages || 0),\n  searchClicks: Number(summary.gscClicks || 0),\n  formSubmissions: Number(summary.formSubmissions || 0),\n};\n\nconst salesQuality = {\n  avgCycleLengthDays: null,\n  bestChannel: channelBreakdown[0]?.label || 'GHL ready',\n  topLossReason: topStage ? String(topStage.stage || topStage.pipeline || 'No response') : 'No response',\n  closedWonRevenue: revenue,\n};\n\nreturn [{\n  json: {\n    window: payload.window || {},\n    summary,\n    traffic: traffic > 0 ? String(traffic) : 'GA4 pending',\n    leads: String(leads),\n    sales: String(sales),\n    coreQuestions,\n    channelBreakdown,\n    pipelineDropoff,\n    stageDropoff: stages,\n    trafficGaps,\n    salesQuality,\n    health,\n  },\n}];"
+      }
+    },
+    {
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1780,
+        300
+      ],
+      "parameters": {
+        "responseBody": "={{$json}}",
+        "responseCode": 200,
+        "responseHeaders": {
+          "entries": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Normalize Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Request": {
+      "main": [
+        [
+          {
+            "node": "Build Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Query": {
+      "main": [
+        [
+          {
+            "node": "Query Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Summary": {
+      "main": [
+        [
+          {
+            "node": "Shape Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "c8e9a395-9dd1-4e60-8956-f417b683bc9f",
+  "activeVersionId": "c8e9a395-9dd1-4e60-8956-f417b683bc9f",
+  "versionCounter": 19,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-18T17:05:33.944Z",
+      "createdAt": "2026-04-18T17:05:33.944Z",
+      "role": "workflow:owner",
+      "workflowId": "Bukc0mgOD2r7V6ED",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-20T17:46:08.356Z",
+    "createdAt": "2026-04-20T17:46:08.356Z",
+    "versionId": "c8e9a395-9dd1-4e60-8956-f417b683bc9f",
+    "workflowId": "Bukc0mgOD2r7V6ED",
+    "nodes": [
+      {
+        "id": "summary_webhook",
+        "name": "Webhook Intake",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          240,
+          300
+        ],
+        "parameters": {
+          "httpMethod": "GET",
+          "path": "lt-report-executive-summary",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "webhookId": "e91b96c3-2a1b-43a9-9394-ab49bc4c75b1"
+      },
+      {
+        "id": "summary_config",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          500,
+          300
+        ],
+        "parameters": {
+          "includeOtherFields": true,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "workflow_name",
+                "name": "workflowName",
+                "type": "string",
+                "value": "LT - Report Executive Summary API"
+              },
+              {
+                "id": "timezone",
+                "name": "timezone",
+                "type": "string",
+                "value": "America/Los_Angeles"
+              },
+              {
+                "id": "default_range_days",
+                "name": "defaultRangeDays",
+                "type": "number",
+                "value": 30
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "normalize_request",
+        "name": "Normalize Request",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          760,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const req = $node['Webhook Intake'].json || {};\nconst q = req.query || {};\nconst cfg = $node['Config'].json || {};\nconst timezone = String(cfg.timezone || 'America/Los_Angeles');\nconst view = String(q.view || 'overview');\nconst range = String(q.range || '30d');\nconst from = q.from ? String(q.from) : '';\nconst to = q.to ? String(q.to) : '';\n\nfunction isoDate(date) {\n  return date.toISOString().slice(0, 10);\n}\n\nfunction subtractDays(date, days) {\n  const d = new Date(date.getTime());\n  d.setUTCDate(d.getUTCDate() - days);\n  return d;\n}\n\nconst map = { '7d': 7, '30d': 30, '90d': 90 };\nlet endDate = to || isoDate(new Date());\nlet startDate = from;\nif (!startDate) {\n  const days = map[range] || 30;\n  startDate = isoDate(subtractDays(new Date(`${endDate}T00:00:00Z`), days - 1));\n}\n\nreturn [{\n  json: {\n    workflowName: String(cfg.workflowName || 'LT - Report Executive Summary API'),\n    timezone,\n    view,\n    range,\n    from,\n    to,\n    startDate,\n    endDate,\n  },\n}];"
+        }
+      },
+      {
+        "id": "build_query",
+        "name": "Build Query",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1020,
+          300
+        ],
+        "parameters": {
+          "jsCode": "return [{ json: { ...$json, queryText: `WITH summary AS (\n  SELECT\n    COALESCE(SUM(sessions), 0)::int AS sessions,\n    COALESCE(SUM(users), 0)::int AS users,\n    COALESCE(SUM(new_users), 0)::int AS new_users,\n    COALESCE(SUM(engaged_sessions), 0)::int AS engaged_sessions,\n    CASE\n      WHEN COALESCE(SUM(sessions), 0) = 0 THEN 0::numeric(10,4)\n      ELSE ROUND(COALESCE(SUM(engaged_sessions), 0)::numeric / NULLIF(SUM(sessions), 0), 4)\n    END AS engagement_rate,\n    COALESCE(SUM(gsc_clicks), 0)::int AS gsc_clicks,\n    COALESCE(SUM(gsc_impressions), 0)::int AS gsc_impressions,\n    CASE\n      WHEN COALESCE(SUM(gsc_impressions), 0) = 0 THEN 0::numeric(10,4)\n      ELSE ROUND(COALESCE(SUM(gsc_clicks), 0)::numeric / NULLIF(SUM(gsc_impressions), 0), 4)\n    END AS gsc_ctr,\n    CASE\n      WHEN COALESCE(COUNT(*), 0) = 0 THEN 0::numeric(10,4)\n      ELSE ROUND(COALESCE(SUM(gsc_position), 0)::numeric / NULLIF(COUNT(*), 0), 4)\n    END AS gsc_position,\n    COALESCE(SUM(contacts_created), 0)::int AS contacts_created,\n    COALESCE(SUM(form_submissions), 0)::int AS form_submissions,\n    COALESCE(SUM(opportunities_created), 0)::int AS opportunities_created,\n    COALESCE(SUM(meetings_booked), 0)::int AS meetings_booked,\n    COALESCE(SUM(closed_won_count), 0)::int AS closed_won_count,\n    COALESCE(SUM(closed_won_revenue), 0)::numeric(18,2) AS closed_won_revenue,\n    COALESCE(SUM(closed_lost_count), 0)::int AS closed_lost_count\n  FROM report_daily_summary\n  WHERE report_date BETWEEN $1::date AND $2::date\n),\nchannels AS (\n  SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.sessions DESC), '[]'::json) AS items\n  FROM (\n    SELECT\n      channel,\n      traffic_source,\n      source,\n      medium,\n      SUM(sessions)::int AS sessions,\n      SUM(users)::int AS users,\n      SUM(new_users)::int AS new_users,\n      SUM(leads)::int AS leads,\n      SUM(opportunities)::int AS opportunities,\n      COALESCE(SUM(closed_won_revenue), 0)::numeric(18,2) AS closed_won_revenue\n    FROM report_channel_daily_summary\n    WHERE report_date BETWEEN $1::date AND $2::date\n    GROUP BY channel, traffic_source, source, medium\n    ORDER BY SUM(sessions) DESC\n    LIMIT 8\n  ) t\n),\nstage_daily AS (\n  SELECT\n    x.report_date,\n    x.pipeline,\n    x.stage,\n    x.stage_count,\n    GREATEST(x.stage_count - COALESCE(x.prev_stage_count, 0), 0)::int AS moved_in_count,\n    GREATEST(COALESCE(x.prev_stage_count, 0) - x.stage_count, 0)::int AS moved_out_count,\n    x.won_count,\n    x.lost_count\n  FROM (\n    SELECT\n      report_date,\n      pipeline,\n      stage,\n      stage_count,\n      won_count,\n      lost_count,\n      LAG(stage_count) OVER (PARTITION BY pipeline, stage ORDER BY report_date) AS prev_stage_count\n    FROM report_stage_daily_summary\n    WHERE report_date BETWEEN $1::date AND $2::date\n  ) x\n),\npipelines AS (\n  SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.moved_out_count DESC), '[]'::json) AS items\n  FROM (\n    SELECT\n      pipeline,\n      SUM(stage_count)::int AS stage_count,\n      SUM(moved_in_count)::int AS moved_in_count,\n      SUM(moved_out_count)::int AS moved_out_count,\n      SUM(won_count)::int AS won_count,\n      SUM(lost_count)::int AS lost_count\n    FROM stage_daily\n    GROUP BY pipeline\n    ORDER BY SUM(moved_out_count) DESC, SUM(stage_count) DESC\n  ) t\n),\nstages AS (\n  SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.moved_out_count DESC, t.stage_count DESC), '[]'::json) AS items\n  FROM (\n    SELECT\n      pipeline,\n      stage,\n      SUM(stage_count)::int AS stage_count,\n      SUM(moved_in_count)::int AS moved_in_count,\n      SUM(moved_out_count)::int AS moved_out_count,\n      SUM(won_count)::int AS won_count,\n      SUM(lost_count)::int AS lost_count\n    FROM stage_daily\n    GROUP BY pipeline, stage\n    ORDER BY SUM(moved_out_count) DESC, SUM(stage_count) DESC\n    LIMIT 10\n  ) t\n),\nhealth AS (\n  SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.source_system), '[]'::json) AS items\n  FROM (\n    SELECT source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error\n    FROM report_source_health\n    WHERE source_system <> 'undefined'\n    ORDER BY source_system\n  ) t\n),\nlanding_pages AS (\n  SELECT COALESCE(COUNT(*), 0)::int AS item_count,\n         COALESCE(SUM(sessions), 0)::int AS sessions,\n         COALESCE(SUM(form_submissions), 0)::int AS form_submissions\n  FROM report_landing_page_daily_summary\n  WHERE report_date BETWEEN $1::date AND $2::date\n),\nsummary_json AS (\n  SELECT json_build_object(\n    'traffic', CASE WHEN (SELECT sessions FROM summary) > 0 THEN (SELECT sessions FROM summary)::text ELSE 'GA4 pending' END,\n    'leads', (SELECT contacts_created FROM summary)::text,\n    'sales', (SELECT closed_won_count FROM summary)::text,\n    'trafficNumeric', (SELECT sessions FROM summary),\n    'leadsNumeric', (SELECT contacts_created FROM summary),\n    'salesNumeric', (SELECT closed_won_count FROM summary),\n    'closedWonRevenue', (SELECT closed_won_revenue FROM summary),\n    'users', (SELECT users FROM summary),\n    'newUsers', (SELECT new_users FROM summary),\n    'engagedSessions', (SELECT engaged_sessions FROM summary),\n    'engagementRate', (SELECT engagement_rate FROM summary),\n    'gscClicks', (SELECT gsc_clicks FROM summary),\n    'gscImpressions', (SELECT gsc_impressions FROM summary),\n    'gscCtr', (SELECT gsc_ctr FROM summary),\n    'gscPosition', (SELECT gsc_position FROM summary),\n    'contactsCreated', (SELECT contacts_created FROM summary),\n    'formSubmissions', (SELECT form_submissions FROM summary),\n    'opportunitiesCreated', (SELECT opportunities_created FROM summary),\n    'meetingsBooked', (SELECT meetings_booked FROM summary),\n    'closedWonCount', (SELECT closed_won_count FROM summary),\n    'closedLostCount', (SELECT closed_lost_count FROM summary),\n    'trafficGapLandingPages', (SELECT item_count FROM landing_pages),\n    'trafficGapSessions', (SELECT sessions FROM landing_pages),\n    'trafficGapFormSubmissions', (SELECT form_submissions FROM landing_pages)\n  ) AS payload\n)\nSELECT json_build_object(\n  'window', json_build_object(\n    'from', $1::date,\n    'to', $2::date\n  ),\n  'summary', (SELECT to_jsonb(summary_json.payload) FROM summary_json),\n  'channelBreakdown', COALESCE((SELECT items FROM channels), '[]'::json),\n  'pipelineDropoff', COALESCE((SELECT items FROM pipelines), '[]'::json),\n  'stageDropoff', COALESCE((SELECT items FROM stages), '[]'::json),\n  'health', COALESCE((SELECT items FROM health), '[]'::json)\n) AS payload;` } }];"
+        }
+      },
+      {
+        "id": "query_pg",
+        "name": "Query Summary",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1280,
+          300
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{$json.queryText}}",
+          "options": {
+            "queryReplacement": "={{ [ $json.startDate, $json.endDate ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "shape_response",
+        "name": "Shape Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1540,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const row = $input.first()?.json || {};\nconst payload = row.payload || row;\nconst summary = payload.summary || {};\nconst channels = Array.isArray(payload.channelBreakdown) ? payload.channelBreakdown : [];\nconst pipelines = Array.isArray(payload.pipelineDropoff) ? payload.pipelineDropoff : [];\nconst stages = Array.isArray(payload.stageDropoff) ? payload.stageDropoff : [];\nconst health = Array.isArray(payload.health) ? payload.health : [];\n\nconst traffic = Number(summary.trafficNumeric ?? summary.sessions ?? 0);\nconst leads = Number(summary.leadsNumeric ?? summary.contactsCreated ?? 0);\nconst sales = Number(summary.salesNumeric ?? summary.closedWonCount ?? 0);\nconst revenue = Number(summary.closedWonRevenue ?? 0);\n\nconst coreQuestions = {\n  attractingTraffic: traffic > 0 ? 'Yes' : 'GA4 pending',\n  trafficToLeads: traffic > 0 && leads > 0 ? 'Partial' : 'Pending',\n  leadsToSales: leads > 0 && sales > 0 ? 'Yes' : 'Partial',\n};\n\nconst channelBreakdown = channels.map((item) => ({\n  label: String(item.channel || item.traffic_source || 'Other'),\n  value: Number(item.sessions || 0),\n  sessions: Number(item.sessions || 0),\n  leads: Number(item.leads || 0),\n  opportunities: Number(item.opportunities || 0),\n  closedWonRevenue: Number(item.closed_won_revenue || 0),\n}));\nconst maxChannel = Math.max(1, ...channelBreakdown.map((item) => item.value || 0));\nfor (const item of channelBreakdown) item.percent = Math.max(3, Math.round((item.value / maxChannel) * 100));\n\nconst pipelineDropoff = pipelines.map((item) => ({\n  label: String(item.pipeline || 'Pipeline'),\n  value: Number(item.moved_out_count || item.moved_in_count || item.stage_count || 0),\n  stageCount: Number(item.stage_count || 0),\n  movedIn: Number(item.moved_in_count || 0),\n  movedOut: Number(item.moved_out_count || 0),\n  wonCount: Number(item.won_count || 0),\n  lostCount: Number(item.lost_count || 0),\n}));\nconst maxPipeline = Math.max(1, ...pipelineDropoff.map((item) => item.value || 0));\nfor (const item of pipelineDropoff) item.percent = Math.max(3, Math.round((item.value / maxPipeline) * 100));\n\nconst topStage = stages.reduce((best, current) => {\n  if (!best) return current;\n  return (Number(current.lost_count || 0) > Number(best.lost_count || 0)) ? current : best;\n}, null);\n\nconst trafficGaps = {\n  sessions: traffic,\n  landingPages: Number(summary.trafficGapLandingPages || 0),\n  searchClicks: Number(summary.gscClicks || 0),\n  formSubmissions: Number(summary.formSubmissions || 0),\n};\n\nconst salesQuality = {\n  avgCycleLengthDays: null,\n  bestChannel: channelBreakdown[0]?.label || 'GHL ready',\n  topLossReason: topStage ? String(topStage.stage || topStage.pipeline || 'No response') : 'No response',\n  closedWonRevenue: revenue,\n};\n\nreturn [{\n  json: {\n    window: payload.window || {},\n    summary,\n    traffic: traffic > 0 ? String(traffic) : 'GA4 pending',\n    leads: String(leads),\n    sales: String(sales),\n    coreQuestions,\n    channelBreakdown,\n    pipelineDropoff,\n    stageDropoff: stages,\n    trafficGaps,\n    salesQuality,\n    health,\n  },\n}];"
+        }
+      },
+      {
+        "id": "respond",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          1780,
+          300
+        ],
+        "parameters": {
+          "responseBody": "={{$json}}",
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook Intake": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Normalize Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Request": {
+        "main": [
+          [
+            {
+              "node": "Build Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Query": {
+        "main": [
+          [
+            {
+              "node": "Query Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Query Summary": {
+        "main": [
+          [
+            {
+              "node": "Shape Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Shape Response": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-20T17:46:08.469Z",
+        "id": 831,
+        "workflowId": "Bukc0mgOD2r7V6ED",
+        "versionId": "c8e9a395-9dd1-4e60-8956-f417b683bc9f",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-20T17:46:08.513Z",
+        "id": 832,
+        "workflowId": "Bukc0mgOD2r7V6ED",
+        "versionId": "c8e9a395-9dd1-4e60-8956-f417b683bc9f",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

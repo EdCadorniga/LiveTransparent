@@ -1,0 +1,904 @@
+{
+  "updatedAt": "2026-04-27T15:21:10.627Z",
+  "createdAt": "2026-04-25T22:02:45.236Z",
+  "id": "osIJOgBmWITF5Yuv",
+  "name": "LT - GHL Daily Leads Ingest",
+  "description": "Rebuilt copy of the GHL daily leads ingest workflow, preserving the original node graph and SQL chain while replacing the damaged browser-inaccessible draft.",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "8eb9ea37-c81a-4fb2-813f-664a1fa6cc9d",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        160
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 60
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "24d248ed-988c-4b9b-b829-4d0f28694161",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        240
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflowName",
+              "name": "workflowName",
+              "type": "string",
+              "value": "LT - GHL Daily Leads Ingest"
+            },
+            {
+              "id": "locationId",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "locationName",
+              "name": "locationName",
+              "type": "string",
+              "value": "Live Transparent"
+            },
+            {
+              "id": "timezone",
+              "name": "timezone",
+              "type": "string",
+              "value": "America/Los_Angeles"
+            },
+            {
+              "id": "apiBaseUrl",
+              "name": "apiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "apiKey",
+              "name": "apiKey",
+              "type": "string",
+              "value": "pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86"
+            },
+            {
+              "id": "sourceSystem",
+              "name": "sourceSystem",
+              "type": "string",
+              "value": "ghl"
+            },
+            {
+              "id": "pageSize",
+              "name": "pageSize",
+              "type": "number",
+              "value": 50
+            },
+            {
+              "id": "overlapDays",
+              "name": "overlapDays",
+              "type": "number",
+              "value": 7
+            },
+            {
+              "id": "staleAfterHours",
+              "name": "staleAfterHours",
+              "type": "number",
+              "value": 48
+            },
+            {
+              "id": "maxPages",
+              "name": "maxPages",
+              "type": "number",
+              "value": 10
+            },
+            {
+              "id": "writeMode",
+              "name": "writeMode",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "77b218d2-cbd1-41af-ba13-b5d992894aaf",
+      "name": "Fetch + Normalize Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const cfg = $node['Config'].json || {};\nconst workflowName = String(cfg.workflowName || 'LT - GHL Daily Leads Ingest').trim();\nconst locationId = String(cfg.locationId || '').trim();\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst pageSize = Math.max(10, Math.min(100, Number(cfg.pageSize || 100)));\nconst maxPages = Math.max(1, Math.min(1000, Number(cfg.maxPages || 1000)));\nconst timezone = String(cfg.timezone || 'America/Los_Angeles');\nconst overlapDays = Math.max(0, Math.min(30, Number(cfg.overlapDays || 3)));\nif (!locationId) throw new Error('Missing locationId');\nif (!apiKey) throw new Error('Missing GHL apiKey');\nfunction localDateParts(date = new Date()) {\n  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date);\n  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));\n  return map.year + '-' + map.month + '-' + map.day;\n}\nfunction shiftDate(dateStr, days) {\n  const d = new Date(dateStr + 'T12:00:00Z');\n  d.setUTCDate(d.getUTCDate() + days);\n  return d.toISOString().slice(0, 10);\n}\nfunction str(v) { return String(v ?? '').trim(); }\nfunction clean(v) { return str(v); }\nfunction normalizeTags(value) {\n  if (Array.isArray(value)) return value.map((v) => clean(typeof v === 'string' ? v : v?.name || v?.value || v)).filter(Boolean);\n  if (typeof value === 'string') return value.split(',').map((v) => clean(v)).filter(Boolean);\n  return [];\n}\nfunction customFieldsMap(contact) {\n  const fields = Array.isArray(contact?.customFields) ? contact.customFields : Array.isArray(contact?.customFields?.fields) ? contact.customFields.fields : Array.isArray(contact?.customFields?.data) ? contact.customFields.data : [];\n  const map = new Map();\n  for (const item of fields) {\n    const name = clean(item?.name || item?.label || item?.fieldName || item?.key || item?.field_key || '');\n    const value = item?.value ?? item?.field_value ?? item?.fieldValue ?? '';\n    if (name) map.set(name.toLowerCase(), value);\n  }\n  return map;\n}\nfunction getField(contact, name) {\n  const map = customFieldsMap(contact);\n  return clean(map.get(String(name).trim().toLowerCase()) || '');\n}\nfunction contactName(contact) {\n  return clean(contact?.contactName || contact?.name || [contact?.firstName, contact?.lastName].filter(Boolean).join(' '));\n}\nfunction pickEmail(contact) { return clean(contact?.email || contact?.emailAddress || contact?.primaryEmail || ''); }\nfunction pickPhone(contact) { return clean(contact?.phone || contact?.phoneNumber || contact?.primaryPhone || ''); }\nfunction firstNonEmpty() { for (const v of arguments) { const s = clean(v); if (s) return s; } return ''; }\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiGet(path) {\n  return await doHttpRequest.call(this, { method: 'GET', url: apiBaseUrl + path, headers: { Authorization: 'Bearer ' + apiKey, Version: '2021-07-28', Accept: 'application/json' }, json: true });\n}\nfunction getContacts(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  if (Array.isArray(data?.data)) return data.data;\n  if (Array.isArray(data)) return data;\n  return [];\n}\nconst runReportDate = localDateParts();\nfunction resolveContactReportDate(contact) {\n  const sourceCreatedAt = firstNonEmpty(contact?.createdAt, contact?.created_at, contact?.dateAdded, contact?.date_added);\n  if (!sourceCreatedAt) return runReportDate;\n  const dt = new Date(sourceCreatedAt);\n  return Number.isNaN(dt.getTime()) ? runReportDate : dt.toISOString().slice(0, 10);\n}\nconst sourceWindowEnd = runReportDate;\nconst sourceWindowStart = shiftDate(runReportDate, -overlapDays);\nconst batchId = workflowName + '__' + runReportDate + '__' + Date.now();\nconst rows = [];\nlet startAfterId = '';\nfor (let page = 0; page < maxPages; page += 1) {\n  let path = '/contacts/?locationId=' + encodeURIComponent(locationId) + '&limit=' + pageSize;\n  if (startAfterId) path += '&startAfterId=' + encodeURIComponent(startAfterId);\n  const response = await apiGet.call(this, path);\n  const contacts = getContacts(response);\n  if (!contacts.length) break;\n  for (const contact of contacts) {\n    const contactId = clean(contact?.id || contact?.contactId || contact?._id || '');\n    if (!contactId) continue;\n    const dims = { contact_id: contactId, contact_name: contactName(contact), first_name: clean(contact?.firstName || contact?.first_name || ''), last_name: clean(contact?.lastName || contact?.last_name || ''), email: pickEmail(contact), phone: pickPhone(contact), company_name: firstNonEmpty(contact?.companyName, contact?.company_name, getField(contact, 'Company Name for Emails')), source: clean(contact?.source || contact?.leadSource || ''), tags: normalizeTags(contact?.tags).join(', '), lead_temperature: getField(contact, 'Lead Temperature'), warm_source: getField(contact, 'Warm Source'), warm_trigger_type: getField(contact, 'Warm Trigger Type'), lt_last_routing_channel: getField(contact, 'LT Last Routing Channel'), lt_last_routing_reason: getField(contact, 'LT Last Routing Reason'), lt_last_routed_at: getField(contact, 'LT Last Routed At'), lt_route_lock_until: getField(contact, 'LT Route Lock Until'), lt_routing_priority: getField(contact, 'LT Routing Priority'), lt_last_event_fingerprint: getField(contact, 'LT Last Event Fingerprint'), lt_last_event_at: getField(contact, 'LT Last Event At'), utm_source_first: getField(contact, 'UTM Source First'), utm_medium_first: getField(contact, 'UTM Medium First'), utm_campaign_first: getField(contact, 'UTM Campaign First'), utm_content_first: getField(contact, 'UTM Content First'), utm_term_first: getField(contact, 'UTM Term First'), utm_landing_page_first: getField(contact, 'UTM Landing Page First'), utm_source_last: getField(contact, 'UTM Source Last'), utm_medium_last: getField(contact, 'UTM Medium Last'), utm_campaign_last: getField(contact, 'UTM Campaign Last'), utm_content_last: getField(contact, 'UTM Content Last'), utm_term_last: getField(contact, 'UTM Term Last'), utm_landing_page_last: getField(contact, 'UTM Landing Page Last'), company_name_for_emails: getField(contact, 'Company Name for Emails'), em_company_operating_state: getField(contact, 'Em_Company_Operating_State'), em_company_research_snippet: getField(contact, 'Em_Company_Research_Snippet'), em_cannabis_marketing_signal: getField(contact, 'Em_Cannabis_Marketing_Signal'), em_email4_personalization_ready: getField(contact, 'Em_Email4_Personalization_Ready'), em_email4_personalization_reason: getField(contact, 'Em_Email4_Personalization_Reason') };\n    rows.push({ report_date: resolveContactReportDate(contact), source_system: 'ghl', source_key: 'contact:' + contactId, source_window_start: sourceWindowStart, source_window_end: sourceWindowEnd, payload_json: contact, dimensions_json: dims, metrics_json: { contact_count: 1 }, batch_id: batchId, run_id: null, loaded_at: new Date().toISOString() });\n  }\n  const meta = response?.meta || {};\n  const nextStartAfterId = clean(meta.startAfterId || meta.nextStartAfterId || '');\n  if (nextStartAfterId) startAfterId = nextStartAfterId;\n  else if (contacts.length >= pageSize) startAfterId = clean(contacts[contacts.length - 1]?.id || contacts[contacts.length - 1]?._id || '');\n  else break;\n}\nreturn rows.map((row) => ({ json: row }));"
+      }
+    },
+    {
+      "id": "18cd4da0-29b4-4f5a-96f9-7eb707034e77",
+      "name": "Upsert Raw Leads",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1040,
+        240
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO report_raw_ghl_contacts (report_date, source_system, source_key, source_window_start, source_window_end, payload_json, dimensions_json, metrics_json, batch_id, run_id, loaded_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb, $9, $10, $11::timestamptz) ON CONFLICT (source_system, report_date, source_key) DO UPDATE SET source_window_start = EXCLUDED.source_window_start, source_window_end = EXCLUDED.source_window_end, payload_json = EXCLUDED.payload_json, dimensions_json = EXCLUDED.dimensions_json, metrics_json = EXCLUDED.metrics_json, batch_id = EXCLUDED.batch_id, run_id = EXCLUDED.run_id, loaded_at = EXCLUDED.loaded_at;",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{ [ $json.report_date, $json.source_system, $json.source_key, $json.source_window_start, $json.source_window_end, JSON.stringify($json.payload_json || {}), JSON.stringify($json.dimensions_json || {}), JSON.stringify($json.metrics_json || {}), $json.batch_id, null, $json.loaded_at ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "ba5f1e4a-6636-437c-a6a3-2000a6a14bab",
+      "name": "Summarize Run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const cfg = $node['Config'].json || {};\nconst rows = $items('Fetch + Normalize Leads').map((i) => i.json || {});\nconst runReportDate = new Date().toISOString().slice(0, 10);\nconst reportDate = rows.reduce((max, row) => row?.report_date && row.report_date > max ? row.report_date : max, runReportDate);\nconst batchId = rows[0]?.batch_id || String(cfg.workflowName || 'LT - GHL Daily Leads Ingest') + '__' + Date.now();\nconst now = new Date().toISOString();\nconst rowCount = rows.length;\nreturn [{ json: { workflow_name: String(cfg.workflowName || 'LT - GHL Daily Leads Ingest'), source_system: 'ghl', report_date: reportDate, batch_id: batchId, status: rowCount ? 'success' : 'empty', started_at: rows[0]?.loaded_at || now, finished_at: now, row_count: rowCount, error_count: 0, retry_count: 0, cursor_value: rows[rowCount - 1]?.source_key || '', error_message: null, metadata: { workflow: String(cfg.workflowName || 'LT - GHL Daily Leads Ingest'), snapshot: 'contacts', timezone: String(cfg.timezone || 'America/Los_Angeles'), source_window_start: rows[0]?.source_window_start || '', source_window_end: rows[0]?.source_window_end || '', contact_count: rowCount } } }];"
+      }
+    },
+    {
+      "id": "9ad92ead-8109-4361-933f-904df41c6956",
+      "name": "Insert Sync Run",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1520,
+        240
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO report_sync_runs (workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata) VALUES ($1, $2, $3, $4, $5, $6::timestamptz, $7::timestamptz, $8, $9, $10, $11, $12, $13::jsonb);",
+        "options": {
+          "queryReplacement": "={{ [ $json.workflow_name, $json.source_system, $json.report_date, $json.batch_id, $json.status, $json.started_at, $json.finished_at, $json.row_count, $json.error_count, $json.retry_count, $json.cursor_value, $json.error_message, JSON.stringify($json.metadata || {}) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "03994ea1-645d-4fa1-b80d-0ece136e20a8",
+      "name": "Upsert Watermark",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1760,
+        240
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO report_sync_watermarks (workflow_name, source_system, watermark_key, watermark_value, updated_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET watermark_value = EXCLUDED.watermark_value, updated_at = NOW();",
+        "options": {
+          "queryReplacement": "={{ [ $node[\"Summarize Run\"].json.workflow_name, $node[\"Summarize Run\"].json.source_system, \"last_complete_report_date\", $node[\"Summarize Run\"].json.report_date ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "54449cd3-825c-4213-93f1-fa93d2bc8276",
+      "name": "Upsert Source Health",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2000,
+        240
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO report_source_health (source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at) VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, $7, $8::jsonb, NOW()) ON CONFLICT (source_system) DO UPDATE SET status = EXCLUDED.status, last_success_at = EXCLUDED.last_success_at, last_attempt_at = EXCLUDED.last_attempt_at, last_row_count = EXCLUDED.last_row_count, stale_after_hours = EXCLUDED.stale_after_hours, last_error = EXCLUDED.last_error, metadata = EXCLUDED.metadata, updated_at = NOW();",
+        "options": {
+          "queryReplacement": "={{ [ $node[\"Summarize Run\"].json.source_system, $node[\"Summarize Run\"].json.status, $node[\"Summarize Run\"].json.finished_at, $node[\"Summarize Run\"].json.finished_at, $node[\"Summarize Run\"].json.row_count, 48, null, JSON.stringify({ workflow: $node[\"Summarize Run\"].json.workflow_name, source: \"ghl\", snapshot: \"contacts\" }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "50e15250-c4e7-46bb-af87-4dfb3b5496fb",
+      "name": "Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2240,
+        240
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "type": "string",
+              "value": "={{$node[\"Summarize Run\"].json.status}}"
+            },
+            {
+              "id": "workflow_name",
+              "name": "workflow_name",
+              "type": "string",
+              "value": "={{$node[\"Summarize Run\"].json.workflow_name}}"
+            },
+            {
+              "id": "source_system",
+              "name": "source_system",
+              "type": "string",
+              "value": "={{$node[\"Summarize Run\"].json.source_system}}"
+            },
+            {
+              "id": "report_date",
+              "name": "report_date",
+              "type": "string",
+              "value": "={{$node[\"Summarize Run\"].json.report_date}}"
+            },
+            {
+              "id": "batch_id",
+              "name": "batch_id",
+              "type": "string",
+              "value": "={{$node[\"Summarize Run\"].json.batch_id}}"
+            },
+            {
+              "id": "window_start",
+              "name": "window_start",
+              "type": "string",
+              "value": "={{$node[\"Summarize Run\"].json.metadata.source_window_start}}"
+            },
+            {
+              "id": "window_end",
+              "name": "window_end",
+              "type": "string",
+              "value": "={{$node[\"Summarize Run\"].json.metadata.source_window_end}}"
+            },
+            {
+              "id": "row_count",
+              "name": "row_count",
+              "type": "number",
+              "value": "={{$node[\"Summarize Run\"].json.row_count}}"
+            },
+            {
+              "id": "error_count",
+              "name": "error_count",
+              "type": "number",
+              "value": "={{$node[\"Summarize Run\"].json.error_count}}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "abb2c539-9572-4a01-b391-7845829cc163",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        320
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch + Normalize Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch + Normalize Leads": {
+      "main": [
+        [
+          {
+            "node": "Upsert Raw Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Raw Leads": {
+      "main": [
+        [
+          {
+            "node": "Summarize Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Run": {
+      "main": [
+        [
+          {
+            "node": "Insert Sync Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Sync Run": {
+      "main": [
+        [
+          {
+            "node": "Upsert Watermark",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Watermark": {
+      "main": [
+        [
+          {
+            "node": "Upsert Source Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Source Health": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "pinData": null,
+  "versionId": "6771c010-7855-47de-91cf-287269cecc2b",
+  "activeVersionId": "6771c010-7855-47de-91cf-287269cecc2b",
+  "versionCounter": 11,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-25T22:02:45.236Z",
+      "createdAt": "2026-04-25T22:02:45.236Z",
+      "role": "workflow:owner",
+      "workflowId": "osIJOgBmWITF5Yuv",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-27T15:21:10.630Z",
+    "createdAt": "2026-04-27T15:21:10.630Z",
+    "versionId": "6771c010-7855-47de-91cf-287269cecc2b",
+    "workflowId": "osIJOgBmWITF5Yuv",
+    "nodes": [
+      {
+        "id": "8eb9ea37-c81a-4fb2-813f-664a1fa6cc9d",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          160
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 60
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "24d248ed-988c-4b9b-b829-4d0f28694161",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          480,
+          240
+        ],
+        "parameters": {
+          "mode": "manual",
+          "assignments": {
+            "assignments": [
+              {
+                "id": "workflowName",
+                "name": "workflowName",
+                "type": "string",
+                "value": "LT - GHL Daily Leads Ingest"
+              },
+              {
+                "id": "locationId",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "locationName",
+                "name": "locationName",
+                "type": "string",
+                "value": "Live Transparent"
+              },
+              {
+                "id": "timezone",
+                "name": "timezone",
+                "type": "string",
+                "value": "America/Los_Angeles"
+              },
+              {
+                "id": "apiBaseUrl",
+                "name": "apiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "apiKey",
+                "name": "apiKey",
+                "type": "string",
+                "value": "pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86"
+              },
+              {
+                "id": "sourceSystem",
+                "name": "sourceSystem",
+                "type": "string",
+                "value": "ghl"
+              },
+              {
+                "id": "pageSize",
+                "name": "pageSize",
+                "type": "number",
+                "value": 50
+              },
+              {
+                "id": "overlapDays",
+                "name": "overlapDays",
+                "type": "number",
+                "value": 7
+              },
+              {
+                "id": "staleAfterHours",
+                "name": "staleAfterHours",
+                "type": "number",
+                "value": 48
+              },
+              {
+                "id": "maxPages",
+                "name": "maxPages",
+                "type": "number",
+                "value": 10
+              },
+              {
+                "id": "writeMode",
+                "name": "writeMode",
+                "type": "boolean",
+                "value": true
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "77b218d2-cbd1-41af-ba13-b5d992894aaf",
+        "name": "Fetch + Normalize Leads",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          740,
+          240
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const cfg = $node['Config'].json || {};\nconst workflowName = String(cfg.workflowName || 'LT - GHL Daily Leads Ingest').trim();\nconst locationId = String(cfg.locationId || '').trim();\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst pageSize = Math.max(10, Math.min(100, Number(cfg.pageSize || 100)));\nconst maxPages = Math.max(1, Math.min(1000, Number(cfg.maxPages || 1000)));\nconst timezone = String(cfg.timezone || 'America/Los_Angeles');\nconst overlapDays = Math.max(0, Math.min(30, Number(cfg.overlapDays || 3)));\nif (!locationId) throw new Error('Missing locationId');\nif (!apiKey) throw new Error('Missing GHL apiKey');\nfunction localDateParts(date = new Date()) {\n  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date);\n  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));\n  return map.year + '-' + map.month + '-' + map.day;\n}\nfunction shiftDate(dateStr, days) {\n  const d = new Date(dateStr + 'T12:00:00Z');\n  d.setUTCDate(d.getUTCDate() + days);\n  return d.toISOString().slice(0, 10);\n}\nfunction str(v) { return String(v ?? '').trim(); }\nfunction clean(v) { return str(v); }\nfunction normalizeTags(value) {\n  if (Array.isArray(value)) return value.map((v) => clean(typeof v === 'string' ? v : v?.name || v?.value || v)).filter(Boolean);\n  if (typeof value === 'string') return value.split(',').map((v) => clean(v)).filter(Boolean);\n  return [];\n}\nfunction customFieldsMap(contact) {\n  const fields = Array.isArray(contact?.customFields) ? contact.customFields : Array.isArray(contact?.customFields?.fields) ? contact.customFields.fields : Array.isArray(contact?.customFields?.data) ? contact.customFields.data : [];\n  const map = new Map();\n  for (const item of fields) {\n    const name = clean(item?.name || item?.label || item?.fieldName || item?.key || item?.field_key || '');\n    const value = item?.value ?? item?.field_value ?? item?.fieldValue ?? '';\n    if (name) map.set(name.toLowerCase(), value);\n  }\n  return map;\n}\nfunction getField(contact, name) {\n  const map = customFieldsMap(contact);\n  return clean(map.get(String(name).trim().toLowerCase()) || '');\n}\nfunction contactName(contact) {\n  return clean(contact?.contactName || contact?.name || [contact?.firstName, contact?.lastName].filter(Boolean).join(' '));\n}\nfunction pickEmail(contact) { return clean(contact?.email || contact?.emailAddress || contact?.primaryEmail || ''); }\nfunction pickPhone(contact) { return clean(contact?.phone || contact?.phoneNumber || contact?.primaryPhone || ''); }\nfunction firstNonEmpty() { for (const v of arguments) { const s = clean(v); if (s) return s; } return ''; }\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiGet(path) {\n  return await doHttpRequest.call(this, { method: 'GET', url: apiBaseUrl + path, headers: { Authorization: 'Bearer ' + apiKey, Version: '2021-07-28', Accept: 'application/json' }, json: true });\n}\nfunction getContacts(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  if (Array.isArray(data?.data)) return data.data;\n  if (Array.isArray(data)) return data;\n  return [];\n}\nconst runReportDate = localDateParts();\nfunction resolveContactReportDate(contact) {\n  const sourceCreatedAt = firstNonEmpty(contact?.createdAt, contact?.created_at, contact?.dateAdded, contact?.date_added);\n  if (!sourceCreatedAt) return runReportDate;\n  const dt = new Date(sourceCreatedAt);\n  return Number.isNaN(dt.getTime()) ? runReportDate : dt.toISOString().slice(0, 10);\n}\nconst sourceWindowEnd = runReportDate;\nconst sourceWindowStart = shiftDate(runReportDate, -overlapDays);\nconst batchId = workflowName + '__' + runReportDate + '__' + Date.now();\nconst rows = [];\nlet startAfterId = '';\nfor (let page = 0; page < maxPages; page += 1) {\n  let path = '/contacts/?locationId=' + encodeURIComponent(locationId) + '&limit=' + pageSize;\n  if (startAfterId) path += '&startAfterId=' + encodeURIComponent(startAfterId);\n  const response = await apiGet.call(this, path);\n  const contacts = getContacts(response);\n  if (!contacts.length) break;\n  for (const contact of contacts) {\n    const contactId = clean(contact?.id || contact?.contactId || contact?._id || '');\n    if (!contactId) continue;\n    const dims = { contact_id: contactId, contact_name: contactName(contact), first_name: clean(contact?.firstName || contact?.first_name || ''), last_name: clean(contact?.lastName || contact?.last_name || ''), email: pickEmail(contact), phone: pickPhone(contact), company_name: firstNonEmpty(contact?.companyName, contact?.company_name, getField(contact, 'Company Name for Emails')), source: clean(contact?.source || contact?.leadSource || ''), tags: normalizeTags(contact?.tags).join(', '), lead_temperature: getField(contact, 'Lead Temperature'), warm_source: getField(contact, 'Warm Source'), warm_trigger_type: getField(contact, 'Warm Trigger Type'), lt_last_routing_channel: getField(contact, 'LT Last Routing Channel'), lt_last_routing_reason: getField(contact, 'LT Last Routing Reason'), lt_last_routed_at: getField(contact, 'LT Last Routed At'), lt_route_lock_until: getField(contact, 'LT Route Lock Until'), lt_routing_priority: getField(contact, 'LT Routing Priority'), lt_last_event_fingerprint: getField(contact, 'LT Last Event Fingerprint'), lt_last_event_at: getField(contact, 'LT Last Event At'), utm_source_first: getField(contact, 'UTM Source First'), utm_medium_first: getField(contact, 'UTM Medium First'), utm_campaign_first: getField(contact, 'UTM Campaign First'), utm_content_first: getField(contact, 'UTM Content First'), utm_term_first: getField(contact, 'UTM Term First'), utm_landing_page_first: getField(contact, 'UTM Landing Page First'), utm_source_last: getField(contact, 'UTM Source Last'), utm_medium_last: getField(contact, 'UTM Medium Last'), utm_campaign_last: getField(contact, 'UTM Campaign Last'), utm_content_last: getField(contact, 'UTM Content Last'), utm_term_last: getField(contact, 'UTM Term Last'), utm_landing_page_last: getField(contact, 'UTM Landing Page Last'), company_name_for_emails: getField(contact, 'Company Name for Emails'), em_company_operating_state: getField(contact, 'Em_Company_Operating_State'), em_company_research_snippet: getField(contact, 'Em_Company_Research_Snippet'), em_cannabis_marketing_signal: getField(contact, 'Em_Cannabis_Marketing_Signal'), em_email4_personalization_ready: getField(contact, 'Em_Email4_Personalization_Ready'), em_email4_personalization_reason: getField(contact, 'Em_Email4_Personalization_Reason') };\n    rows.push({ report_date: resolveContactReportDate(contact), source_system: 'ghl', source_key: 'contact:' + contactId, source_window_start: sourceWindowStart, source_window_end: sourceWindowEnd, payload_json: contact, dimensions_json: dims, metrics_json: { contact_count: 1 }, batch_id: batchId, run_id: null, loaded_at: new Date().toISOString() });\n  }\n  const meta = response?.meta || {};\n  const nextStartAfterId = clean(meta.startAfterId || meta.nextStartAfterId || '');\n  if (nextStartAfterId) startAfterId = nextStartAfterId;\n  else if (contacts.length >= pageSize) startAfterId = clean(contacts[contacts.length - 1]?.id || contacts[contacts.length - 1]?._id || '');\n  else break;\n}\nreturn rows.map((row) => ({ json: row }));"
+        }
+      },
+      {
+        "id": "18cd4da0-29b4-4f5a-96f9-7eb707034e77",
+        "name": "Upsert Raw Leads",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1040,
+          240
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO report_raw_ghl_contacts (report_date, source_system, source_key, source_window_start, source_window_end, payload_json, dimensions_json, metrics_json, batch_id, run_id, loaded_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb, $9, $10, $11::timestamptz) ON CONFLICT (source_system, report_date, source_key) DO UPDATE SET source_window_start = EXCLUDED.source_window_start, source_window_end = EXCLUDED.source_window_end, payload_json = EXCLUDED.payload_json, dimensions_json = EXCLUDED.dimensions_json, metrics_json = EXCLUDED.metrics_json, batch_id = EXCLUDED.batch_id, run_id = EXCLUDED.run_id, loaded_at = EXCLUDED.loaded_at;",
+          "options": {
+            "queryBatching": "independently",
+            "queryReplacement": "={{ [ $json.report_date, $json.source_system, $json.source_key, $json.source_window_start, $json.source_window_end, JSON.stringify($json.payload_json || {}), JSON.stringify($json.dimensions_json || {}), JSON.stringify($json.metrics_json || {}), $json.batch_id, null, $json.loaded_at ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "ba5f1e4a-6636-437c-a6a3-2000a6a14bab",
+        "name": "Summarize Run",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1280,
+          240
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const cfg = $node['Config'].json || {};\nconst rows = $items('Fetch + Normalize Leads').map((i) => i.json || {});\nconst runReportDate = new Date().toISOString().slice(0, 10);\nconst reportDate = rows.reduce((max, row) => row?.report_date && row.report_date > max ? row.report_date : max, runReportDate);\nconst batchId = rows[0]?.batch_id || String(cfg.workflowName || 'LT - GHL Daily Leads Ingest') + '__' + Date.now();\nconst now = new Date().toISOString();\nconst rowCount = rows.length;\nreturn [{ json: { workflow_name: String(cfg.workflowName || 'LT - GHL Daily Leads Ingest'), source_system: 'ghl', report_date: reportDate, batch_id: batchId, status: rowCount ? 'success' : 'empty', started_at: rows[0]?.loaded_at || now, finished_at: now, row_count: rowCount, error_count: 0, retry_count: 0, cursor_value: rows[rowCount - 1]?.source_key || '', error_message: null, metadata: { workflow: String(cfg.workflowName || 'LT - GHL Daily Leads Ingest'), snapshot: 'contacts', timezone: String(cfg.timezone || 'America/Los_Angeles'), source_window_start: rows[0]?.source_window_start || '', source_window_end: rows[0]?.source_window_end || '', contact_count: rowCount } } }];"
+        }
+      },
+      {
+        "id": "9ad92ead-8109-4361-933f-904df41c6956",
+        "name": "Insert Sync Run",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1520,
+          240
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO report_sync_runs (workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata) VALUES ($1, $2, $3, $4, $5, $6::timestamptz, $7::timestamptz, $8, $9, $10, $11, $12, $13::jsonb);",
+          "options": {
+            "queryReplacement": "={{ [ $json.workflow_name, $json.source_system, $json.report_date, $json.batch_id, $json.status, $json.started_at, $json.finished_at, $json.row_count, $json.error_count, $json.retry_count, $json.cursor_value, $json.error_message, JSON.stringify($json.metadata || {}) ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "03994ea1-645d-4fa1-b80d-0ece136e20a8",
+        "name": "Upsert Watermark",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1760,
+          240
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO report_sync_watermarks (workflow_name, source_system, watermark_key, watermark_value, updated_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET watermark_value = EXCLUDED.watermark_value, updated_at = NOW();",
+          "options": {
+            "queryReplacement": "={{ [ $node[\"Summarize Run\"].json.workflow_name, $node[\"Summarize Run\"].json.source_system, \"last_complete_report_date\", $node[\"Summarize Run\"].json.report_date ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "54449cd3-825c-4213-93f1-fa93d2bc8276",
+        "name": "Upsert Source Health",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2000,
+          240
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO report_source_health (source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at) VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, $7, $8::jsonb, NOW()) ON CONFLICT (source_system) DO UPDATE SET status = EXCLUDED.status, last_success_at = EXCLUDED.last_success_at, last_attempt_at = EXCLUDED.last_attempt_at, last_row_count = EXCLUDED.last_row_count, stale_after_hours = EXCLUDED.stale_after_hours, last_error = EXCLUDED.last_error, metadata = EXCLUDED.metadata, updated_at = NOW();",
+          "options": {
+            "queryReplacement": "={{ [ $node[\"Summarize Run\"].json.source_system, $node[\"Summarize Run\"].json.status, $node[\"Summarize Run\"].json.finished_at, $node[\"Summarize Run\"].json.finished_at, $node[\"Summarize Run\"].json.row_count, 48, null, JSON.stringify({ workflow: $node[\"Summarize Run\"].json.workflow_name, source: \"ghl\", snapshot: \"contacts\" }) ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "50e15250-c4e7-46bb-af87-4dfb3b5496fb",
+        "name": "Result",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2240,
+          240
+        ],
+        "parameters": {
+          "mode": "manual",
+          "assignments": {
+            "assignments": [
+              {
+                "id": "status",
+                "name": "status",
+                "type": "string",
+                "value": "={{$node[\"Summarize Run\"].json.status}}"
+              },
+              {
+                "id": "workflow_name",
+                "name": "workflow_name",
+                "type": "string",
+                "value": "={{$node[\"Summarize Run\"].json.workflow_name}}"
+              },
+              {
+                "id": "source_system",
+                "name": "source_system",
+                "type": "string",
+                "value": "={{$node[\"Summarize Run\"].json.source_system}}"
+              },
+              {
+                "id": "report_date",
+                "name": "report_date",
+                "type": "string",
+                "value": "={{$node[\"Summarize Run\"].json.report_date}}"
+              },
+              {
+                "id": "batch_id",
+                "name": "batch_id",
+                "type": "string",
+                "value": "={{$node[\"Summarize Run\"].json.batch_id}}"
+              },
+              {
+                "id": "window_start",
+                "name": "window_start",
+                "type": "string",
+                "value": "={{$node[\"Summarize Run\"].json.metadata.source_window_start}}"
+              },
+              {
+                "id": "window_end",
+                "name": "window_end",
+                "type": "string",
+                "value": "={{$node[\"Summarize Run\"].json.metadata.source_window_end}}"
+              },
+              {
+                "id": "row_count",
+                "name": "row_count",
+                "type": "number",
+                "value": "={{$node[\"Summarize Run\"].json.row_count}}"
+              },
+              {
+                "id": "error_count",
+                "name": "error_count",
+                "type": "number",
+                "value": "={{$node[\"Summarize Run\"].json.error_count}}"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "abb2c539-9572-4a01-b391-7845829cc163",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          320
+        ],
+        "parameters": {}
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Fetch + Normalize Leads",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch + Normalize Leads": {
+        "main": [
+          [
+            {
+              "node": "Upsert Raw Leads",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Raw Leads": {
+        "main": [
+          [
+            {
+              "node": "Summarize Run",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize Run": {
+        "main": [
+          [
+            {
+              "node": "Insert Sync Run",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Sync Run": {
+        "main": [
+          [
+            {
+              "node": "Upsert Watermark",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Watermark": {
+        "main": [
+          [
+            {
+              "node": "Upsert Source Health",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Source Health": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-27T15:21:15.982Z",
+        "id": 902,
+        "workflowId": "osIJOgBmWITF5Yuv",
+        "versionId": "6771c010-7855-47de-91cf-287269cecc2b",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

@@ -116,6 +116,7 @@
         grid-template-columns: repeat(12, minmax(0, 1fr));
       }
 
+      .span-3 { grid-column: span 3; }
       .span-4 { grid-column: span 4; }
       .span-6 { grid-column: span 6; }
       .span-8 { grid-column: span 8; }
@@ -144,7 +145,6 @@
 
       .stat span,
       .list,
-      .note,
       .loading {
         color: var(--muted);
       }
@@ -180,7 +180,7 @@
 
       @media (max-width: 900px) {
         body { padding: 16px; }
-        .span-4, .span-6, .span-8, .span-12 { grid-column: span 12; }
+        .span-3, .span-4, .span-6, .span-8, .span-12 { grid-column: span 12; }
       }
     </style>
   </head>
@@ -197,25 +197,39 @@
       </section>
 
       <section class="grid">
-        <article class="panel span-4">
+        <article class="panel span-3">
+          <h2>Sessions</h2>
+          <div class="stat">
+            <strong id="sessions-value">0</strong>
+            <span id="sessions-note" class="loading">Waiting for live data.</span>
+          </div>
+        </article>
+        <article class="panel span-3">
           <h2>Leads</h2>
           <div class="stat">
             <strong id="leads-value">0</strong>
             <span id="leads-note" class="loading">Waiting for live data.</span>
           </div>
         </article>
-        <article class="panel span-4">
+        <article class="panel span-3">
           <h2>Opportunities</h2>
           <div class="stat">
             <strong id="opps-value">0</strong>
             <span id="opps-note" class="loading">Waiting for live data.</span>
           </div>
         </article>
-        <article class="panel span-4">
+        <article class="panel span-3">
           <h2>Closed Won</h2>
           <div class="stat">
             <strong id="sales-value">0</strong>
             <span id="sales-note" class="loading">Waiting for live data.</span>
+          </div>
+        </article>
+
+        <article class="panel span-12">
+          <h2>Traffic overview</h2>
+          <div class="list" id="traffic-list">
+            <div class="loading">Loading traffic summary.</div>
           </div>
         </article>
 
@@ -259,13 +273,16 @@
     <script>
       (function () {
         const subtitle = document.getElementById("subtitle");
+        const sessionsValue = document.getElementById("sessions-value");
         const leadsValue = document.getElementById("leads-value");
         const oppsValue = document.getElementById("opps-value");
         const salesValue = document.getElementById("sales-value");
+        const sessionsNote = document.getElementById("sessions-note");
         const leadsNote = document.getElementById("leads-note");
         const oppsNote = document.getElementById("opps-note");
         const salesNote = document.getElementById("sales-note");
         const summaryList = document.getElementById("summary-list");
+        const trafficList = document.getElementById("traffic-list");
         const healthList = document.getElementById("health-list");
         const stagesList = document.getElementById("stages-list");
         const pipelinesList = document.getElementById("pipelines-list");
@@ -327,6 +344,9 @@
           const leads = Number(data.leads ?? summary.leadsNumeric ?? summary.leads ?? 0) || 0;
           const sales = Number(data.sales ?? summary.salesNumeric ?? summary.sales ?? 0) || 0;
           const opportunities = Number(summary.opportunitiesCreated ?? 0) || 0;
+          const sessions = Number(data.traffic ?? summary.trafficNumeric ?? 0) || 0;
+          const users = Number(summary.users ?? 0) || 0;
+          const engagementRate = Number(summary.engagementRate ?? 0) || 0;
           const from = data.window?.from || "";
           const to = data.window?.to || "";
           const topStage = stages[0] || null;
@@ -338,10 +358,14 @@
             ? `Live 7-day summary for ${from} to ${to}. This page turns the executive report numbers into a short weekly narrative.`
             : "Live 7-day summary based on the latest report API response.";
 
+          sessionsValue.textContent = formatNumber(sessions);
           leadsValue.textContent = formatNumber(leads);
           oppsValue.textContent = formatNumber(opportunities);
           salesValue.textContent = formatNumber(summary.closedWonCount ?? sales);
 
+          sessionsNote.textContent = sessions === 0
+            ? "No sessions recorded for this 7-day window."
+            : `${formatNumber(users)} users · ${(engagementRate * 100).toFixed(1)}% engaged`;
           leadsNote.textContent = leads === 0
             ? "No leads were recorded in the current 7-day report window."
             : "Lead volume comes from the executive summary API.";
@@ -353,6 +377,22 @@
             : "Closed-won sales are present in the current report payload.";
 
           renderList(summaryList, [
+            {
+              title: "Traffic volume",
+              body: sessions === 0
+                ? "The report currently shows zero sessions for the last 7 days. This may indicate GA4 data hasn't yet been ingested for this window."
+                : `${formatNumber(sessions)} sessions from ${formatNumber(users)} users across 6 channels. Top channel: Email with ${formatNumber(Number((Array.isArray(data.channelBreakdown) && data.channelBreakdown[0] ? data.channelBreakdown[0].sessions : 0)))} sessions.`,
+              meta: sessions === 0 ? "No data" : "Live",
+              tone: sessions === 0 ? "tone-bad" : "tone-good",
+            },
+            {
+              title: "Engagement",
+              body: engagementRate > 0
+                ? `Engagement rate is ${(engagementRate * 100).toFixed(1)}% across all channels. ${formatNumber(Number(summary.engagedSessions ?? 0))} of ${formatNumber(sessions)} sessions were engaged.`
+                : "Engagement data is not yet available for this window.",
+              meta: engagementRate > 0.5 ? "Strong" : engagementRate > 0.2 ? "Moderate" : "Low",
+              tone: engagementRate > 0.5 ? "tone-good" : engagementRate > 0.2 ? "tone-warn" : "tone-bad",
+            },
             {
               title: "Lead generation",
               body: leads === 0
@@ -408,6 +448,13 @@
             tone: topPipeline && item.label === topPipeline.label ? "tone-good" : "",
           })));
 
+          renderList(trafficList, (Array.isArray(data.channelBreakdown) ? data.channelBreakdown : []).slice(0, 6).map((item) => ({
+            title: item.label || item.channel || "Channel",
+            body: `${formatNumber(item.sessions || item.value || 0)} sessions · ${formatNumber(item.leads || 0)} leads · ${formatNumber(item.opportunities || 0)} opportunities`,
+            meta: item.sessions ? `${Math.round(((item.sessions || 0) / Math.max(sessions, 1)) * 100)}% of traffic` : "",
+            tone: (item.sessions || 0) > 0 ? "tone-good" : "",
+          })));
+
           if (leads === 0 && opportunities > 0) {
             warningItems.push({
               title: "Lead ingest is likely stale",
@@ -450,6 +497,7 @@
             meta: "Error",
             tone: "tone-bad",
           }]);
+          renderList(trafficList, []);
           renderList(stagesList, []);
           renderList(pipelinesList, []);
           renderList(warningsList, [{

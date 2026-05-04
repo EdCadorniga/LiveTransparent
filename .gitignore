@@ -24,6 +24,11 @@ pnpm-debug.log*
 tmp_*
 _exec_*.json
 _wf_*.json
+temp-*.json
+temp.json
+response.json
+workflow_temp.json
+workflow_updated.json
 
 # OS / editor
 .DS_Store

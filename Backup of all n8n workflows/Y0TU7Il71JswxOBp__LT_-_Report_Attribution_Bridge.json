@@ -1,0 +1,726 @@
+{
+  "updatedAt": "2026-04-21T16:27:55.541Z",
+  "createdAt": "2026-04-18T13:29:45.265Z",
+  "id": "Y0TU7Il71JswxOBp",
+  "name": "LT - Report Attribution Bridge",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1440
+            }
+          ]
+        }
+      },
+      "id": "bridge_schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        160
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "bridge_manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflowName",
+              "name": "workflowName",
+              "type": "string",
+              "value": "LT - Report Attribution Bridge"
+            },
+            {
+              "id": "sourceSystem",
+              "name": "sourceSystem",
+              "type": "string",
+              "value": "bridge"
+            },
+            {
+              "id": "reportDate",
+              "name": "reportDate",
+              "type": "string",
+              "value": "CURRENT_DATE - INTERVAL '1 day'"
+            },
+            {
+              "id": "rawContactsTable",
+              "name": "rawContactsTable",
+              "type": "string",
+              "value": "report_raw_ghl_contacts"
+            },
+            {
+              "id": "rawOppsTable",
+              "name": "rawOppsTable",
+              "type": "string",
+              "value": "report_raw_ghl_opportunities"
+            },
+            {
+              "id": "identityTable",
+              "name": "identityTable",
+              "type": "string",
+              "value": "report_bridge_identity_map"
+            },
+            {
+              "id": "trafficTable",
+              "name": "trafficTable",
+              "type": "string",
+              "value": "report_bridge_traffic_to_lead"
+            },
+            {
+              "id": "saleTable",
+              "name": "saleTable",
+              "type": "string",
+              "value": "report_bridge_lead_to_sale"
+            },
+            {
+              "id": "runTable",
+              "name": "runTable",
+              "type": "string",
+              "value": "report_sync_runs"
+            },
+            {
+              "id": "watermarkTable",
+              "name": "watermarkTable",
+              "type": "string",
+              "value": "report_sync_watermarks"
+            },
+            {
+              "id": "healthTable",
+              "name": "healthTable",
+              "type": "string",
+              "value": "report_source_health"
+            }
+          ]
+        }
+      },
+      "id": "bridge_config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        480,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfgItems = $node['Config'].json?.assignments?.assignments ?? [];\nconst cfg = Object.fromEntries(cfgItems.map((item) => [item.name, item.value]));\nconst reportDateExpr = cfg.reportDate || \"CURRENT_DATE\";\nconst workflowName = cfg.workflowName || 'LT - Report Attribution Bridge';\nconst sourceSystem = cfg.sourceSystem || 'bridge';\nconst identitySql = `WITH contacts AS (\n  SELECT\n    source_key AS ghl_contact_id,\n    COALESCE(NULLIF(LOWER(TRIM(COALESCE(payload_json->>'email', payload_json->>'Email', dimensions_json->>'contact.email', ''))), ''), NULL) AS email,\n    COALESCE(NULLIF(REGEXP_REPLACE(COALESCE(payload_json->>'phone', payload_json->>'Phone', dimensions_json->>'contact.phone', ''), '[^0-9+]', '', 'g'), ''), NULL) AS phone,\n    loaded_at AS seen_at,\n    payload_json\n  FROM report_raw_ghl_contacts\n  WHERE report_date = ${reportDateExpr}\n)\nINSERT INTO report_bridge_identity_map (\n  identity_type, identity_value, normalized_value, ghl_contact_id, ghl_opportunity_id, match_confidence, match_rule, first_seen_at, last_seen_at, payload_json, updated_at\n)\nSELECT 'contact_id', ghl_contact_id, ghl_contact_id, ghl_contact_id, NULL, 100, 'contact_id_exact', MIN(seen_at), MAX(seen_at), jsonb_build_object('source', 'report_raw_ghl_contacts'), NOW()\nFROM contacts\nWHERE ghl_contact_id IS NOT NULL AND ghl_contact_id <> ''\nGROUP BY ghl_contact_id\nUNION ALL\nSELECT 'email', email, email, ghl_contact_id, NULL, 95, 'email_exact', MIN(seen_at), MAX(seen_at), jsonb_build_object('source', 'report_raw_ghl_contacts'), NOW()\nFROM contacts\nWHERE email IS NOT NULL AND email <> ''\nGROUP BY email, ghl_contact_id\nUNION ALL\nSELECT 'phone', phone, phone, ghl_contact_id, NULL, 85, 'phone_exact', MIN(seen_at), MAX(seen_at), jsonb_build_object('source', 'report_raw_ghl_contacts'), NOW()\nFROM contacts\nWHERE phone IS NOT NULL AND phone <> ''\nGROUP BY phone, ghl_contact_id\nON CONFLICT (identity_type, identity_value) DO UPDATE SET\n  normalized_value = EXCLUDED.normalized_value,\n  ghl_contact_id = COALESCE(EXCLUDED.ghl_contact_id, report_bridge_identity_map.ghl_contact_id),\n  match_confidence = GREATEST(report_bridge_identity_map.match_confidence, EXCLUDED.match_confidence),\n  match_rule = EXCLUDED.match_rule,\n  last_seen_at = GREATEST(report_bridge_identity_map.last_seen_at, EXCLUDED.last_seen_at),\n  payload_json = EXCLUDED.payload_json,\n  updated_at = NOW();`;\nconst trafficSql = `DELETE FROM report_bridge_traffic_to_lead\nWHERE report_date = ${reportDateExpr};\n\nWITH contacts AS (\n  SELECT\n    source_key AS ghl_contact_id,\n    COALESCE(NULLIF(dimensions_json->>'contact.utm_source_first', ''), NULLIF(dimensions_json->>'contact.utm_source_last', ''), NULLIF(dimensions_json->>'UTM Source First', ''), NULLIF(dimensions_json->>'UTM Source Last', ''), 'unknown') AS traffic_source,\n    COALESCE(NULLIF(dimensions_json->>'contact.utm_medium_first', ''), NULLIF(dimensions_json->>'contact.utm_medium_last', ''), NULLIF(dimensions_json->>'UTM Medium First', ''), NULLIF(dimensions_json->>'UTM Medium Last', ''), 'unknown') AS medium,\n    COALESCE(NULLIF(dimensions_json->>'contact.utm_campaign_first', ''), NULLIF(dimensions_json->>'contact.utm_campaign_last', ''), NULLIF(dimensions_json->>'UTM Campaign First', ''), NULLIF(dimensions_json->>'UTM Campaign Last', ''), 'unknown') AS campaign,\n    COALESCE(NULLIF(dimensions_json->>'contact.utm_landing_page_first', ''), NULLIF(dimensions_json->>'contact.utm_landing_page_last', ''), NULLIF(dimensions_json->>'UTM Landing Page First', ''), NULLIF(dimensions_json->>'UTM Landing Page Last', ''), 'unknown') AS landing_page,\n    COALESCE(NULLIF(dimensions_json->>'contact.lt_last_routing_channel', ''), NULLIF(dimensions_json->>'contact.warm_source', ''), 'unattributed') AS channel,\n    COALESCE(NULLIF(dimensions_json->>'contact.lt_last_routing_reason', ''), NULLIF(dimensions_json->>'contact.warm_trigger_type', ''), 'ghl_utm_attribution') AS reason,\n    payload_json\n  FROM report_raw_ghl_contacts\n  WHERE report_date = ${reportDateExpr}\n)\nINSERT INTO report_bridge_traffic_to_lead (\n  report_date, ga_session_id, traffic_source, medium, campaign, landing_page, ghl_contact_id, match_confidence, match_rule, match_reason, source_trace, created_at, updated_at\n)\nSELECT\n  ${reportDateExpr},\n  ghl_contact_id,\n  traffic_source,\n  medium,\n  campaign,\n  landing_page,\n  ghl_contact_id,\n  CASE WHEN traffic_source <> 'unknown' THEN 70 ELSE 50 END,\n  'ghl_utm_attribution',\n  reason,\n  jsonb_build_object('channel', channel, 'payload', payload_json),\n  NOW(),\n  NOW()\nFROM contacts;`;\nconst saleSql = `DELETE FROM report_bridge_lead_to_sale\nWHERE report_date = ${reportDateExpr};\n\nWITH opps AS (\n  SELECT\n    source_key AS ghl_opportunity_id,\n    COALESCE(NULLIF(dimensions_json->>'contact_id', ''), NULLIF(dimensions_json->>'contact.id', ''), NULLIF(payload_json->>'contactId', ''), NULLIF(payload_json->>'contact_id', '')) AS ghl_contact_id,\n    COALESCE(NULLIF(dimensions_json->>'pipeline_name', ''), NULLIF(payload_json->>'pipelineName', ''), NULLIF(payload_json->'pipeline'->>'name', ''), 'unknown') AS pipeline,\n    COALESCE(NULLIF(dimensions_json->>'pipeline_stage_name', ''), NULLIF(payload_json->>'pipelineStageName', ''), NULLIF(payload_json->'pipelineStage'->>'name', ''), NULLIF(payload_json->>'stage', ''), 'unknown') AS stage,\n    COALESCE(NULLIF(dimensions_json->>'status', ''), NULLIF(payload_json->>'status', ''), 'open') AS status,\n    COALESCE(NULLIF(metrics_json->>'monetary_value', ''), NULLIF(payload_json->>'monetaryValue', ''), NULLIF(payload_json->>'amount', ''), '0')::numeric AS monetary_value,\n    payload_json\n  FROM report_raw_ghl_opportunities\n  WHERE report_date = ${reportDateExpr}\n)\nINSERT INTO report_bridge_lead_to_sale (\n  report_date, ghl_contact_id, ghl_opportunity_id, pipeline, stage, match_confidence, match_rule, match_reason, source_trace, created_at, updated_at\n)\nSELECT\n  ${reportDateExpr},\n  COALESCE(ghl_contact_id, ''),\n  ghl_opportunity_id,\n  pipeline,\n  stage,\n  CASE WHEN COALESCE(ghl_contact_id, '') <> '' THEN 95 ELSE 60 END,\n  CASE WHEN COALESCE(ghl_contact_id, '') <> '' THEN 'opportunity_contact_link' ELSE 'opportunity_only' END,\n  CASE WHEN COALESCE(ghl_contact_id, '') <> '' THEN 'Linked by raw opportunity contact id' ELSE 'Contact id missing on raw opportunity' END,\n  jsonb_build_object('status', status, 'monetary_value', monetary_value, 'payload', payload_json),\n  NOW(),\n  NOW()\nFROM opps;`;\nreturn [{json:{sql:identitySql}},{json:{sql:trafficSql}},{json:{sql:saleSql}}];"
+      },
+      "id": "bridge_sql",
+      "name": "Build Bridge SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{$json.sql}}",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "id": "bridge_write",
+      "name": "Write Bridge Rows",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfgItems = $node['Config'].json?.assignments?.assignments ?? [];\nconst cfg = Object.fromEntries(cfgItems.map((item) => [item.name, item.value]));\nconst executedQueries = $items('Build Bridge SQL').length;\nconst reportDate = new Date().toISOString().slice(0, 10);\nreturn [{json:{workflowName:cfg.workflowName || 'LT - Report Attribution Bridge',sourceSystem:cfg.sourceSystem || 'bridge',executedQueries,reportDate,batchId:`bridge-${reportDate}`}}];"
+      },
+      "id": "bridge_summary",
+      "name": "Summarize Run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const s = $node['Summarize Run'].json;\nconst q = (value) => `'${String(value ?? '').replace(/'/g, \"''\")}'`;\nconst jsonQ = (value) => q(JSON.stringify(value));\nconst workflowName = s.workflowName || 'LT - Report Attribution Bridge';\nconst sourceSystem = s.sourceSystem || 'bridge';\nconst reportDate = s.reportDate || new Date().toISOString().slice(0, 10);\nconst batchId = s.batchId || `bridge-${reportDate}`;\nconst runSql = `INSERT INTO report_sync_runs (\n  workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata\n) VALUES (\n  ${q(workflowName)},\n  ${q(sourceSystem)},\n  ${q(reportDate)}::date,\n  ${q(batchId)},\n  'completed',\n  NOW(),\n  NOW(),\n  ${Number(s.executedQueries || 0)},\n  0,\n  0,\n  ${q(reportDate)},\n  NULL,\n  ${jsonQ({ executedQueries: s.executedQueries || 0, note: 'GHL-only attribution bridge scaffold is live.' })}::jsonb\n);`;\nconst watermarkSql = `INSERT INTO report_sync_watermarks (\n  workflow_name, source_system, watermark_key, watermark_value, updated_at\n) VALUES (\n  ${q(workflowName)},\n  ${q(sourceSystem)},\n  'latest_report_date',\n  ${q(reportDate)},\n  NOW()\n)\nON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET\n  watermark_value = EXCLUDED.watermark_value,\n  updated_at = NOW();`;\nconst healthSql = `INSERT INTO report_source_health (\n  source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at\n) VALUES (\n  ${q(sourceSystem)},\n  'ready',\n  NOW(),\n  NOW(),\n  ${Number(s.executedQueries || 0)},\n  48,\n  NULL,\n  ${jsonQ({ workflowName, executedQueries: s.executedQueries || 0 })}::jsonb,\n  NOW()\n)\nON CONFLICT (source_system) DO UPDATE SET\n  status = EXCLUDED.status,\n  last_success_at = EXCLUDED.last_success_at,\n  last_attempt_at = EXCLUDED.last_attempt_at,\n  last_row_count = EXCLUDED.last_row_count,\n  last_error = EXCLUDED.last_error,\n  metadata = EXCLUDED.metadata,\n  updated_at = NOW();`;\nreturn [{json:{sql:runSql}},{json:{sql:watermarkSql}},{json:{sql:healthSql}}];"
+      },
+      "id": "bridge_finalize_sql",
+      "name": "Build Finalization SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{$json.sql}}",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "id": "bridge_finalize",
+      "name": "Finalize Run Records",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1680,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const s = $node['Summarize Run'].json;\nreturn [{json:{ok:true,workflow:s.workflowName,status:'prepared',source:s.sourceSystem,reportDate:s.reportDate,executedQueries:s.executedQueries,note:'GHL-only bridge scaffold is live and ready for GA4-enabled attribution later.'}}];"
+      },
+      "id": "bridge_result",
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "LT - Report Attribution Bridge\\n\\nPurpose\\n- Match traffic rows to leads and leads to sales.\\n- Write bridge rows with confidence and reason codes.\\n\\nStatus\\n- Live starter chain.\\n- GHL-only bridging is ready now; GA4 joins can be layered in later."
+      },
+      "id": "bridge_note",
+      "name": "Shell Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Build Bridge SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Bridge SQL": {
+      "main": [
+        [
+          {
+            "node": "Write Bridge Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Bridge Rows": {
+      "main": [
+        [
+          {
+            "node": "Summarize Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Run": {
+      "main": [
+        [
+          {
+            "node": "Build Finalization SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Finalization SQL": {
+      "main": [
+        [
+          {
+            "node": "Finalize Run Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Run Records": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "0dbb5149-422a-4e76-a306-3f73b52a18aa",
+  "activeVersionId": "0dbb5149-422a-4e76-a306-3f73b52a18aa",
+  "versionCounter": 18,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-18T13:29:45.265Z",
+      "createdAt": "2026-04-18T13:29:45.265Z",
+      "role": "workflow:owner",
+      "workflowId": "Y0TU7Il71JswxOBp",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-19T15:28:12.070Z",
+    "createdAt": "2026-04-19T15:28:12.070Z",
+    "versionId": "0dbb5149-422a-4e76-a306-3f73b52a18aa",
+    "workflowId": "Y0TU7Il71JswxOBp",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 1440
+              }
+            ]
+          }
+        },
+        "id": "bridge_schedule",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          160
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "bridge_manual",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "workflowName",
+                "name": "workflowName",
+                "type": "string",
+                "value": "LT - Report Attribution Bridge"
+              },
+              {
+                "id": "sourceSystem",
+                "name": "sourceSystem",
+                "type": "string",
+                "value": "bridge"
+              },
+              {
+                "id": "reportDate",
+                "name": "reportDate",
+                "type": "string",
+                "value": "CURRENT_DATE - INTERVAL '1 day'"
+              },
+              {
+                "id": "rawContactsTable",
+                "name": "rawContactsTable",
+                "type": "string",
+                "value": "report_raw_ghl_contacts"
+              },
+              {
+                "id": "rawOppsTable",
+                "name": "rawOppsTable",
+                "type": "string",
+                "value": "report_raw_ghl_opportunities"
+              },
+              {
+                "id": "identityTable",
+                "name": "identityTable",
+                "type": "string",
+                "value": "report_bridge_identity_map"
+              },
+              {
+                "id": "trafficTable",
+                "name": "trafficTable",
+                "type": "string",
+                "value": "report_bridge_traffic_to_lead"
+              },
+              {
+                "id": "saleTable",
+                "name": "saleTable",
+                "type": "string",
+                "value": "report_bridge_lead_to_sale"
+              },
+              {
+                "id": "runTable",
+                "name": "runTable",
+                "type": "string",
+                "value": "report_sync_runs"
+              },
+              {
+                "id": "watermarkTable",
+                "name": "watermarkTable",
+                "type": "string",
+                "value": "report_sync_watermarks"
+              },
+              {
+                "id": "healthTable",
+                "name": "healthTable",
+                "type": "string",
+                "value": "report_source_health"
+              }
+            ]
+          }
+        },
+        "id": "bridge_config",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 2,
+        "position": [
+          480,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const cfgItems = $node['Config'].json?.assignments?.assignments ?? [];\nconst cfg = Object.fromEntries(cfgItems.map((item) => [item.name, item.value]));\nconst reportDateExpr = cfg.reportDate || \"CURRENT_DATE\";\nconst workflowName = cfg.workflowName || 'LT - Report Attribution Bridge';\nconst sourceSystem = cfg.sourceSystem || 'bridge';\nconst identitySql = `WITH contacts AS (\n  SELECT\n    source_key AS ghl_contact_id,\n    COALESCE(NULLIF(LOWER(TRIM(COALESCE(payload_json->>'email', payload_json->>'Email', dimensions_json->>'contact.email', ''))), ''), NULL) AS email,\n    COALESCE(NULLIF(REGEXP_REPLACE(COALESCE(payload_json->>'phone', payload_json->>'Phone', dimensions_json->>'contact.phone', ''), '[^0-9+]', '', 'g'), ''), NULL) AS phone,\n    loaded_at AS seen_at,\n    payload_json\n  FROM report_raw_ghl_contacts\n  WHERE report_date = ${reportDateExpr}\n)\nINSERT INTO report_bridge_identity_map (\n  identity_type, identity_value, normalized_value, ghl_contact_id, ghl_opportunity_id, match_confidence, match_rule, first_seen_at, last_seen_at, payload_json, updated_at\n)\nSELECT 'contact_id', ghl_contact_id, ghl_contact_id, ghl_contact_id, NULL, 100, 'contact_id_exact', MIN(seen_at), MAX(seen_at), jsonb_build_object('source', 'report_raw_ghl_contacts'), NOW()\nFROM contacts\nWHERE ghl_contact_id IS NOT NULL AND ghl_contact_id <> ''\nGROUP BY ghl_contact_id\nUNION ALL\nSELECT 'email', email, email, ghl_contact_id, NULL, 95, 'email_exact', MIN(seen_at), MAX(seen_at), jsonb_build_object('source', 'report_raw_ghl_contacts'), NOW()\nFROM contacts\nWHERE email IS NOT NULL AND email <> ''\nGROUP BY email, ghl_contact_id\nUNION ALL\nSELECT 'phone', phone, phone, ghl_contact_id, NULL, 85, 'phone_exact', MIN(seen_at), MAX(seen_at), jsonb_build_object('source', 'report_raw_ghl_contacts'), NOW()\nFROM contacts\nWHERE phone IS NOT NULL AND phone <> ''\nGROUP BY phone, ghl_contact_id\nON CONFLICT (identity_type, identity_value) DO UPDATE SET\n  normalized_value = EXCLUDED.normalized_value,\n  ghl_contact_id = COALESCE(EXCLUDED.ghl_contact_id, report_bridge_identity_map.ghl_contact_id),\n  match_confidence = GREATEST(report_bridge_identity_map.match_confidence, EXCLUDED.match_confidence),\n  match_rule = EXCLUDED.match_rule,\n  last_seen_at = GREATEST(report_bridge_identity_map.last_seen_at, EXCLUDED.last_seen_at),\n  payload_json = EXCLUDED.payload_json,\n  updated_at = NOW();`;\nconst trafficSql = `DELETE FROM report_bridge_traffic_to_lead\nWHERE report_date = ${reportDateExpr};\n\nWITH contacts AS (\n  SELECT\n    source_key AS ghl_contact_id,\n    COALESCE(NULLIF(dimensions_json->>'contact.utm_source_first', ''), NULLIF(dimensions_json->>'contact.utm_source_last', ''), NULLIF(dimensions_json->>'UTM Source First', ''), NULLIF(dimensions_json->>'UTM Source Last', ''), 'unknown') AS traffic_source,\n    COALESCE(NULLIF(dimensions_json->>'contact.utm_medium_first', ''), NULLIF(dimensions_json->>'contact.utm_medium_last', ''), NULLIF(dimensions_json->>'UTM Medium First', ''), NULLIF(dimensions_json->>'UTM Medium Last', ''), 'unknown') AS medium,\n    COALESCE(NULLIF(dimensions_json->>'contact.utm_campaign_first', ''), NULLIF(dimensions_json->>'contact.utm_campaign_last', ''), NULLIF(dimensions_json->>'UTM Campaign First', ''), NULLIF(dimensions_json->>'UTM Campaign Last', ''), 'unknown') AS campaign,\n    COALESCE(NULLIF(dimensions_json->>'contact.utm_landing_page_first', ''), NULLIF(dimensions_json->>'contact.utm_landing_page_last', ''), NULLIF(dimensions_json->>'UTM Landing Page First', ''), NULLIF(dimensions_json->>'UTM Landing Page Last', ''), 'unknown') AS landing_page,\n    COALESCE(NULLIF(dimensions_json->>'contact.lt_last_routing_channel', ''), NULLIF(dimensions_json->>'contact.warm_source', ''), 'unattributed') AS channel,\n    COALESCE(NULLIF(dimensions_json->>'contact.lt_last_routing_reason', ''), NULLIF(dimensions_json->>'contact.warm_trigger_type', ''), 'ghl_utm_attribution') AS reason,\n    payload_json\n  FROM report_raw_ghl_contacts\n  WHERE report_date = ${reportDateExpr}\n)\nINSERT INTO report_bridge_traffic_to_lead (\n  report_date, ga_session_id, traffic_source, medium, campaign, landing_page, ghl_contact_id, match_confidence, match_rule, match_reason, source_trace, created_at, updated_at\n)\nSELECT\n  ${reportDateExpr},\n  ghl_contact_id,\n  traffic_source,\n  medium,\n  campaign,\n  landing_page,\n  ghl_contact_id,\n  CASE WHEN traffic_source <> 'unknown' THEN 70 ELSE 50 END,\n  'ghl_utm_attribution',\n  reason,\n  jsonb_build_object('channel', channel, 'payload', payload_json),\n  NOW(),\n  NOW()\nFROM contacts;`;\nconst saleSql = `DELETE FROM report_bridge_lead_to_sale\nWHERE report_date = ${reportDateExpr};\n\nWITH opps AS (\n  SELECT\n    source_key AS ghl_opportunity_id,\n    COALESCE(NULLIF(dimensions_json->>'contact_id', ''), NULLIF(dimensions_json->>'contact.id', ''), NULLIF(payload_json->>'contactId', ''), NULLIF(payload_json->>'contact_id', '')) AS ghl_contact_id,\n    COALESCE(NULLIF(dimensions_json->>'pipeline_name', ''), NULLIF(payload_json->>'pipelineName', ''), NULLIF(payload_json->'pipeline'->>'name', ''), 'unknown') AS pipeline,\n    COALESCE(NULLIF(dimensions_json->>'pipeline_stage_name', ''), NULLIF(payload_json->>'pipelineStageName', ''), NULLIF(payload_json->'pipelineStage'->>'name', ''), NULLIF(payload_json->>'stage', ''), 'unknown') AS stage,\n    COALESCE(NULLIF(dimensions_json->>'status', ''), NULLIF(payload_json->>'status', ''), 'open') AS status,\n    COALESCE(NULLIF(metrics_json->>'monetary_value', ''), NULLIF(payload_json->>'monetaryValue', ''), NULLIF(payload_json->>'amount', ''), '0')::numeric AS monetary_value,\n    payload_json\n  FROM report_raw_ghl_opportunities\n  WHERE report_date = ${reportDateExpr}\n)\nINSERT INTO report_bridge_lead_to_sale (\n  report_date, ghl_contact_id, ghl_opportunity_id, pipeline, stage, match_confidence, match_rule, match_reason, source_trace, created_at, updated_at\n)\nSELECT\n  ${reportDateExpr},\n  COALESCE(ghl_contact_id, ''),\n  ghl_opportunity_id,\n  pipeline,\n  stage,\n  CASE WHEN COALESCE(ghl_contact_id, '') <> '' THEN 95 ELSE 60 END,\n  CASE WHEN COALESCE(ghl_contact_id, '') <> '' THEN 'opportunity_contact_link' ELSE 'opportunity_only' END,\n  CASE WHEN COALESCE(ghl_contact_id, '') <> '' THEN 'Linked by raw opportunity contact id' ELSE 'Contact id missing on raw opportunity' END,\n  jsonb_build_object('status', status, 'monetary_value', monetary_value, 'payload', payload_json),\n  NOW(),\n  NOW()\nFROM opps;`;\nreturn [{json:{sql:identitySql}},{json:{sql:trafficSql}},{json:{sql:saleSql}}];"
+        },
+        "id": "bridge_sql",
+        "name": "Build Bridge SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{$json.sql}}",
+          "options": {
+            "queryBatching": "independently"
+          }
+        },
+        "id": "bridge_write",
+        "name": "Write Bridge Rows",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const cfgItems = $node['Config'].json?.assignments?.assignments ?? [];\nconst cfg = Object.fromEntries(cfgItems.map((item) => [item.name, item.value]));\nconst executedQueries = $items('Build Bridge SQL').length;\nconst reportDate = new Date().toISOString().slice(0, 10);\nreturn [{json:{workflowName:cfg.workflowName || 'LT - Report Attribution Bridge',sourceSystem:cfg.sourceSystem || 'bridge',executedQueries,reportDate,batchId:`bridge-${reportDate}`}}];"
+        },
+        "id": "bridge_summary",
+        "name": "Summarize Run",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const s = $node['Summarize Run'].json;\nconst q = (value) => `'${String(value ?? '').replace(/'/g, \"''\")}'`;\nconst jsonQ = (value) => q(JSON.stringify(value));\nconst workflowName = s.workflowName || 'LT - Report Attribution Bridge';\nconst sourceSystem = s.sourceSystem || 'bridge';\nconst reportDate = s.reportDate || new Date().toISOString().slice(0, 10);\nconst batchId = s.batchId || `bridge-${reportDate}`;\nconst runSql = `INSERT INTO report_sync_runs (\n  workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata\n) VALUES (\n  ${q(workflowName)},\n  ${q(sourceSystem)},\n  ${q(reportDate)}::date,\n  ${q(batchId)},\n  'completed',\n  NOW(),\n  NOW(),\n  ${Number(s.executedQueries || 0)},\n  0,\n  0,\n  ${q(reportDate)},\n  NULL,\n  ${jsonQ({ executedQueries: s.executedQueries || 0, note: 'GHL-only attribution bridge scaffold is live.' })}::jsonb\n);`;\nconst watermarkSql = `INSERT INTO report_sync_watermarks (\n  workflow_name, source_system, watermark_key, watermark_value, updated_at\n) VALUES (\n  ${q(workflowName)},\n  ${q(sourceSystem)},\n  'latest_report_date',\n  ${q(reportDate)},\n  NOW()\n)\nON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET\n  watermark_value = EXCLUDED.watermark_value,\n  updated_at = NOW();`;\nconst healthSql = `INSERT INTO report_source_health (\n  source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at\n) VALUES (\n  ${q(sourceSystem)},\n  'ready',\n  NOW(),\n  NOW(),\n  ${Number(s.executedQueries || 0)},\n  48,\n  NULL,\n  ${jsonQ({ workflowName, executedQueries: s.executedQueries || 0 })}::jsonb,\n  NOW()\n)\nON CONFLICT (source_system) DO UPDATE SET\n  status = EXCLUDED.status,\n  last_success_at = EXCLUDED.last_success_at,\n  last_attempt_at = EXCLUDED.last_attempt_at,\n  last_row_count = EXCLUDED.last_row_count,\n  last_error = EXCLUDED.last_error,\n  metadata = EXCLUDED.metadata,\n  updated_at = NOW();`;\nreturn [{json:{sql:runSql}},{json:{sql:watermarkSql}},{json:{sql:healthSql}}];"
+        },
+        "id": "bridge_finalize_sql",
+        "name": "Build Finalization SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{$json.sql}}",
+          "options": {
+            "queryBatching": "independently"
+          }
+        },
+        "id": "bridge_finalize",
+        "name": "Finalize Run Records",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1680,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const s = $node['Summarize Run'].json;\nreturn [{json:{ok:true,workflow:s.workflowName,status:'prepared',source:s.sourceSystem,reportDate:s.reportDate,executedQueries:s.executedQueries,note:'GHL-only bridge scaffold is live and ready for GA4-enabled attribution later.'}}];"
+        },
+        "id": "bridge_result",
+        "name": "Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "content": "LT - Report Attribution Bridge\\n\\nPurpose\\n- Match traffic rows to leads and leads to sales.\\n- Write bridge rows with confidence and reason codes.\\n\\nStatus\\n- Live starter chain.\\n- GHL-only bridging is ready now; GA4 joins can be layered in later."
+        },
+        "id": "bridge_note",
+        "name": "Shell Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          480,
+          80
+        ]
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Build Bridge SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Bridge SQL": {
+        "main": [
+          [
+            {
+              "node": "Write Bridge Rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write Bridge Rows": {
+        "main": [
+          [
+            {
+              "node": "Summarize Run",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize Run": {
+        "main": [
+          [
+            {
+              "node": "Build Finalization SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Finalization SQL": {
+        "main": [
+          [
+            {
+              "node": "Finalize Run Records",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Finalize Run Records": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-21T16:27:55.614Z",
+        "id": 852,
+        "workflowId": "Y0TU7Il71JswxOBp",
+        "versionId": "0dbb5149-422a-4e76-a306-3f73b52a18aa",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-21T16:27:55.656Z",
+        "id": 853,
+        "workflowId": "Y0TU7Il71JswxOBp",
+        "versionId": "0dbb5149-422a-4e76-a306-3f73b52a18aa",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-19T15:28:12.146Z",
+        "id": 777,
+        "workflowId": "Y0TU7Il71JswxOBp",
+        "versionId": "0dbb5149-422a-4e76-a306-3f73b52a18aa",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-19T15:28:12.186Z",
+        "id": 778,
+        "workflowId": "Y0TU7Il71JswxOBp",
+        "versionId": "0dbb5149-422a-4e76-a306-3f73b52a18aa",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

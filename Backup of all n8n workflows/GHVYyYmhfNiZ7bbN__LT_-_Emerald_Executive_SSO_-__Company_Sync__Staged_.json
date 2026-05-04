@@ -1,0 +1,1305 @@
+{
+  "updatedAt": "2026-04-07T12:31:33.778Z",
+  "createdAt": "2026-03-30T16:25:14.015Z",
+  "id": "GHVYyYmhfNiZ7bbN",
+  "name": "LT - Emerald Executive SSO -> Company Sync (Staged)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "LT - Emerald Executive SSO -> Company Sync (Staged)\n\nPurpose\n- Process the executive SSO queue in Postgres.\n- Group contacts by company/domain so research is reused across the same company.\n- Find or create the matching GHL contact per row.\n- Fill missing GHL email/phone only when the value is verified from GHL or source data.\n- Cache company-level research in Postgres for future reuse.\n\nResearch Flow\n- Prepare evidence from the company website and cache rows.\n- Send the evidence to OpenRouter using the credential-backed HTTP Request nodes.\n- Validate the model output before finalizing writes.\n\nImportant Rules\n- Do not infer company geography from the contact's own location.\n- Do not overwrite existing GHL fields when a value already exists.\n- Keep company-level research snippets short, factual, and source-backed.\n\nCurrent Live Behavior\n- active: true\n- OpenRouter is configured through the n8n credential \"OpenRouter account\"\n- This workflow runs on schedule and updates both GHL and Postgres.",
+        "height": 544,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -1680
+      ],
+      "id": "company_sync_note",
+      "name": "Company Sync Note"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "c2c7dcf5-74f7-471f-9461-4cc9d1bb406f",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -272,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "base",
+              "name": "apiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "apikey",
+              "name": "apiKey",
+              "type": "string",
+              "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+            },
+            {
+              "id": "dry",
+              "name": "defaultDryRun",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "source",
+              "name": "sourceLabel",
+              "type": "string",
+              "value": "emerald_executive_sso"
+            },
+            {
+              "id": "table",
+              "name": "sourceTable",
+              "type": "string",
+              "value": "Emerald_Campaign_Contacts"
+            },
+            {
+              "id": "cache",
+              "name": "companyCacheTable",
+              "type": "string",
+              "value": "Emerald_Company_Research_Cache"
+            },
+            {
+              "id": "batch",
+              "name": "batchLimit",
+              "type": "number",
+              "value": 12
+            },
+            {
+              "id": "queue",
+              "name": "queueTag",
+              "type": "string",
+              "value": "Enrollment Queue - Emerald - Executives SSO"
+            },
+            {
+              "id": "research",
+              "name": "researchModel",
+              "type": "string",
+              "value": "google/gemini-2.5-flash"
+            },
+            {
+              "id": "validator",
+              "name": "validatorModel",
+              "type": "string",
+              "value": "qwen/qwen-2.5-7b-instruct"
+            },
+            {
+              "id": "or_base",
+              "name": "openRouterBaseUrl",
+              "type": "string",
+              "value": "https://openrouter.ai/api/v1"
+            },
+            {
+              "id": "website_pages",
+              "name": "websiteMaxPages",
+              "type": "number",
+              "value": 3
+            },
+            {
+              "id": "website_chars",
+              "name": "websiteMaxChars",
+              "type": "number",
+              "value": 7000
+            },
+            {
+              "id": "research_field",
+              "name": "researchFieldName",
+              "type": "string",
+              "value": "emerald_exec_sso_ai_research"
+            },
+            {
+              "id": "company_name_emails_field",
+              "name": "companyNameForEmailsFieldName",
+              "type": "string",
+              "value": "Company Name for Emails"
+            },
+            {
+              "id": "company_state_field",
+              "name": "companyOperatingStateFieldName",
+              "type": "string",
+              "value": "Em_Company_Operating_State"
+            },
+            {
+              "id": "company_snippet_field",
+              "name": "companyResearchSnippetFieldName",
+              "type": "string",
+              "value": "Em_Company_Research_Snippet"
+            },
+            {
+              "id": "company_market_note_field",
+              "name": "companyMarketNoteFieldName",
+              "type": "string",
+              "value": "Em_Company_Market_Note"
+            },
+            {
+              "id": "cannabis_signal_field",
+              "name": "cannabisMarketingSignalFieldName",
+              "type": "string",
+              "value": "Em_Cannabis_Marketing_Signal"
+            },
+            {
+              "id": "email4_ready_field",
+              "name": "email4ReadyFieldName",
+              "type": "string",
+              "value": "Em_Email4_Personalization_Ready"
+            },
+            {
+              "id": "email4_reason_field",
+              "name": "email4ReasonFieldName",
+              "type": "string",
+              "value": "Em_Email4_Personalization_Reason"
+            },
+            {
+              "id": "phone_research_model",
+              "name": "phoneResearchModel",
+              "type": "string",
+              "value": "google/gemini-2.5-flash"
+            },
+            {
+              "id": "company_phone_field_name",
+              "name": "companyPhoneFieldName",
+              "value": "Company Phone",
+              "type": "string"
+            },
+            {
+              "id": "apollo_phone_status_field_name",
+              "name": "apolloPhoneStatusFieldName",
+              "value": "Apollo Phone Enrichment Status",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "f2d271a9-08c2-4655-82c7-901cb35c05c4",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS \"Emerald_Company_Research_Cache\" (\n  company_domain_key TEXT PRIMARY KEY,\n  company_name TEXT,\n  company_research_snippet TEXT,\n  company_operating_state TEXT,\n  company_operating_market_note TEXT,\n  company_cannabis_marketing_signal TEXT,\n  company_research_confidence TEXT,\n  company_research_source TEXT,\n  company_research_last_verified_at TIMESTAMPTZ,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_domain_key TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_research_snippet TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_operating_state TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_operating_market_note TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_cannabis_marketing_signal TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_research_confidence TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_research_source TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_research_last_verified_at TIMESTAMPTZ;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS emerald_exec_sso_ai_research TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_domain_key TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_name TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_non_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS location_non_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_research_snippet TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_operating_state TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_operating_market_note TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_cannabis_marketing_signal TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_research_confidence TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_research_source TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_research_last_verified_at TIMESTAMPTZ;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS emerald_exec_sso_ai_research TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_id TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_match_method TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_sync_status TEXT DEFAULT 'pending';\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_sync_error TEXT;",
+        "options": {}
+      },
+      "id": "ab0ad02f-d6cb-4aeb-ba79-1030501afa45",
+      "name": "Ensure Executive SSO Research Cache Table",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        176,
+        -864
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  e.id AS emerald_row_id,\n  e.record_key,\n  e.first_name,\n  e.last_name,\n  e.full_name,\n  COALESCE(NULLIF(e.primary_email, ''), NULLIF(e.raw_payload->>'Primary Email', ''), NULLIF(e.raw_payload->>'primary_email', ''), NULLIF(e.raw_payload->>'email', '')) AS email,\n  COALESCE(NULLIF(e.primary_phone, ''), NULLIF(e.raw_payload->>'Primary Phone', ''), NULLIF(e.raw_payload->>'primary_phone', ''), NULLIF(e.raw_payload->>'phone', '')) AS phone,\n  COALESCE(NULLIF(e.company_name, ''), NULLIF(e.raw_payload->>'Company Name(s)', ''), NULLIF(e.raw_payload->>'company_name', ''), NULLIF(e.raw_payload->>'companyName', '')) AS company_name,\n  COALESCE(NULLIF(e.company_non_linkedin_urls, ''), NULLIF(e.raw_payload->>'Company non-LinkedIn URL(s)', ''), NULLIF(e.raw_payload->>'company_non_linkedin_urls', '')) AS company_non_linkedin_urls,\n  COALESCE(NULLIF(e.company_linkedin_urls, ''), NULLIF(e.raw_payload->>'Company LinkedIn URL(s)', ''), NULLIF(e.raw_payload->>'company_linkedin_urls', '')) AS company_linkedin_urls,\n  COALESCE(NULLIF(e.location_non_linkedin_urls, ''), NULLIF(e.raw_payload->>'Location non-LinkedIn URL(s)', ''), NULLIF(e.raw_payload->>'location_non_linkedin_urls', '')) AS location_non_linkedin_urls,\n  e.contact_city,\n  e.contact_state,\n  e.source_file,\n  e.tags,\n  e.raw_payload,\n  e.company_domain_key,\n  e.company_research_snippet,\n  e.company_operating_state,\n  e.company_operating_market_note,\n  e.company_cannabis_marketing_signal,\n  e.company_research_confidence,\n  e.company_research_source,\n  e.company_research_last_verified_at,\n  e.emerald_exec_sso_ai_research,\n  e.ghl_contact_id,\n  e.ghl_contact_match_method,\n  e.ghl_contact_sync_status,\n  e.ghl_contact_sync_error,\n  e.raw_payload->>'all_known_phones' AS all_known_phones,\n  e.raw_payload->>'Em_All_Known_Phones' AS em_all_known_phones,\n  e.raw_payload->>'raw_phone' AS raw_phone\nFROM \"Emerald_Contacts\" e\nWHERE (\n    LOWER(COALESCE(e.tags::text, '')) LIKE '%seq enrolled - emerald%'\n    OR LOWER(COALESCE(e.tags::text, '')) LIKE '%seq emerald - executives sso%'\n    OR LOWER(COALESCE(e.tags::text, '')) LIKE '%enrollment queue - emerald - executives sso%'\n  )\n  AND (\n    COALESCE(e.ghl_contact_sync_status, 'pending') NOT IN ('synced')\n  )\n  AND LOWER(COALESCE(e.emerald_exec_sso_ai_research, '')) <> 'done'\nORDER BY e.id ASC\nLIMIT {{$node[\"Config\"].json.batchLimit}};",
+        "options": {}
+      },
+      "id": "85ade8e8-93be-4ea6-a812-782c05f6da65",
+      "name": "Fetch Executive SSO Candidates",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        400,
+        -864
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $items('Fetch Executive SSO Candidates').map((i) => i.json || {});\n\nfunction str(v) {\n  const s = String(v ?? '').trim();\n  return s || '';\n}\nfunction normalizeDomain(value) {\n  return str(value).toLowerCase().replace(/^https?:\\/\\//, '').replace(/^www\\./, '').split('/')[0].replace(/[^a-z0-9.-]/g, '');\n}\nfunction domainFromEmail(email) {\n  const value = str(email).toLowerCase();\n  const idx = value.lastIndexOf('@');\n  return idx > -1 ? value.slice(idx + 1) : '';\n}\nfunction firstUrl(value) {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  const parts = raw.split(/[\\s,;|]+/).map((p) => p.trim()).filter(Boolean);\n  const candidate = parts.find((p) => /^https?:\\/\\//i.test(p) || /^[a-z0-9.-]+\\.[a-z]{2,}/i.test(p));\n  return candidate || '';\n}\nfunction domainFromUrl(value) {\n  const raw = str(value);\n  if (!raw) return '';\n  const normalized = raw.startsWith('http') ? raw : `https://${raw}`;\n  const withoutScheme = normalized.replace(/^https?:\\/\\//i, '');\n  return normalizeDomain(withoutScheme.split('/')[0]);\n}\n\nconst genericDomains = new Set([\n  'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com',\n  'aol.com', 'live.com', 'proton.me', 'protonmail.com', 'me.com', 'mail.com',\n  'twitter.com', 'x.com', 'linkedin.com', 'facebook.com', 'instagram.com',\n  'tiktok.com', 'youtube.com',\n]);\n\nfunction companyKey(row) {\n  const emailDomain = normalizeDomain(domainFromEmail(row.email));\n  if (emailDomain && !genericDomains.has(emailDomain)) return emailDomain;\n\n  const url = firstUrl(row.company_non_linkedin_urls) || firstUrl(row.location_non_linkedin_urls);\n  if (url) {\n    return domainFromUrl(url);\n  }\n\n  return `name::${str(row.company_name).toLowerCase() || row.record_key || row.emerald_row_id}`;\n}\n\nconst groups = new Map();\nfor (const row of rows) {\n  const key = companyKey(row);\n  if (!groups.has(key)) {\n    groups.set(key, { company_domain_key: key, company_name: str(row.company_name), rows: [] });\n  }\n  groups.get(key).rows.push(row);\n}\n\nreturn [{\n  json: {\n    batchCount: rows.length,\n    companyCount: groups.size,\n    companyDomainKeys: Array.from(groups.keys()),\n    companies: Array.from(groups.values()),\n    note: 'Companies are grouped by non-generic domain first, then company URL, then company name fallback.',\n  }\n}];"
+      },
+      "id": "86033997-99be-46ab-bc37-e4658eac7475",
+      "name": "Prepare Company Groups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $item(0).$node['Prepare Company Groups'].json || {};\nconst keys = Array.isArray(payload.companyDomainKeys) ? payload.companyDomainKeys : [];\nconst sql = keys.length\n  ? `WITH keys AS (\n      SELECT unnest(ARRAY[${keys.map((key) => `'${String(key).replace(/'/g, \"''\")}'`).join(', ')}]::text[]) AS company_domain_key\n    )\n    SELECT\n      k.company_domain_key,\n      c.company_name,\n      c.company_research_snippet,\n      c.company_operating_state,\n      c.company_operating_market_note,\n      c.company_cannabis_marketing_signal,\n      c.company_research_confidence,\n      c.company_research_source,\n      c.company_research_last_verified_at,\n      c.created_at,\n      c.updated_at\n    FROM keys k\n    LEFT JOIN \"Emerald_Company_Research_Cache\" c\n      ON c.company_domain_key = k.company_domain_key;`\n  : `SELECT NULL::text AS company_domain_key WHERE FALSE;`;\nreturn [{ json: { cacheLookupSql: sql } }];"
+      },
+      "id": "2633b266-b3ea-48dc-913b-c572c0d03a30",
+      "name": "Build Cache Lookup Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{$json.cacheLookupSql}}",
+        "options": {}
+      },
+      "id": "82695666-4109-41c1-b51a-37d4ce5786de",
+      "name": "Fetch Company Cache Rows",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        -864
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $item(0).$node['Config'].json || {};\nconst payload = $items('Prepare Company Groups').map((i) => i.json || {})[0] || {};\nconst cacheRows = $items('Fetch Company Cache Rows').map((i) => i.json || {});\n\nfunction str(v) {\n  const s = String(v ?? '').trim();\n  return s || '';\n}\nfunction normalizeDomain(value) {\n  return str(value).toLowerCase().replace(/^https?:\\/\\//, '').replace(/^www\\./, '').split('/')[0].replace(/[^a-z0-9.-]/g, '');\n}\nfunction domainFromEmail(email) {\n  const value = str(email).toLowerCase();\n  const idx = value.lastIndexOf('@');\n  return idx > -1 ? normalizeDomain(value.slice(idx + 1)) : '';\n}\nfunction firstUrl(value) {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  const parts = raw.split(/[\\s,;|]+/).map((p) => p.trim()).filter(Boolean);\n  const candidate = parts.find((p) => /^https?:\\/\\//i.test(p) || /^[a-z0-9.-]+\\.[a-z]{2,}/i.test(p));\n  return candidate || '';\n}\nfunction domainFromUrl(value) {\n  const raw = str(value);\n  if (!raw) return '';\n  const normalized = raw.startsWith('http') ? raw : `https://${raw}`;\n  const withoutScheme = normalized.replace(/^https?:\\/\\//i, '');\n  return normalizeDomain(withoutScheme.split('/')[0]);\n}\n\nconst STATE_MAP = {\n  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming', DC: 'District of Columbia',\n};\nconst STATE_ABBRS = Object.keys(STATE_MAP);\nconst CANNABIS_TERMS = [\n  'cannabis', 'marijuana', 'dispensary', 'dispensaries', 'weed', 'thc', 'hemp', 'cbd',\n  'edibles', 'flower', 'pre-roll', 'preroll', 'vape', 'vapes', 'concentrate', 'extract',\n  'rosin', 'tincture', 'gummies', 'menu', 'products', 'store', 'retail', 'retailer',\n  'medical cannabis', 'adult-use', 'recreational', 'cultivation', 'cultivator', 'license',\n  'licensed', 'delivery', 'strain', 'budtender',\n];\nconst INSTITUTION_TERMS = ['university', 'college', 'school', 'faculty', 'campus', 'institute', 'academy'];\nconst BUSINESS_OVERRIDE_TERMS = [\n  'dispensary', 'dispensaries', 'cannabis', 'hemp', 'thc', 'cbd', 'retail', 'retailer',\n  'store', 'shop', 'brands', 'brand', 'operator', 'operations', 'holdings', 'labs',\n  'cultivation', 'licensed', 'delivery', 'medical cannabis', 'adult-use', 'recreational',\n];\nconst MAX_WEBSITE_PAGES = Number(cfg.websiteMaxPages || 3);\nconst MAX_WEBSITE_CHARS = Number(cfg.websiteMaxChars || 7000);\n\nfunction isAcademicDomain(domain) {\n  const d = normalizeDomain(domain);\n  return !!d && (\n    d.endsWith('.edu') ||\n    d.endsWith('.ac.uk') ||\n    d.endsWith('.edu.au') ||\n    d.endsWith('.ac.nz') ||\n    d.endsWith('.ac.jp') ||\n    d.endsWith('.edu.mx') ||\n    d.includes('.edu.')\n  );\n}\n\nfunction textHasAny(text, terms) {\n  const hay = str(text).toLowerCase();\n  return terms.some((term) => hay.includes(term));\n}\n\nfunction companyLooksInstitutional(companyName, domain) {\n  return isAcademicDomain(domain) || textHasAny(companyName, INSTITUTION_TERMS);\n}\nfunction looksLikeResearchableDomain(value) {\n  const domain = normalizeDomain(value);\n  return !!domain && domain.includes('.') && !isAcademicDomain(domain);\n}\nfunction isReusableCache(cache) {\n  const source = str(cache?.company_research_source).toLowerCase();\n  const state = str(cache?.company_operating_state);\n  const snippet = str(cache?.company_research_snippet);\n  const signal = str(cache?.company_cannabis_marketing_signal);\n  if (source !== 'website+heuristic') return false;\n  return !!(state && (snippet || signal));\n}\n\nfunction resolveBusinessUrl(company) {\n  const rows = Array.isArray(company.rows) ? company.rows : [];\n  for (const row of rows) {\n    const url = firstUrl(row.company_non_linkedin_urls) || firstUrl(row.location_non_linkedin_urls);\n    if (url) return url.startsWith('http') ? url : `https://${url}`;\n  }\n  return '';\n}\n\nfunction hasBusinessOverrideSignal(company, businessUrl) {\n  const companyName = str(company.company_name || '');\n  if (businessUrl && !isAcademicDomain(domainFromUrl(businessUrl))) return true;\n  if (textHasAny(companyName, BUSINESS_OVERRIDE_TERMS)) return true;\n  const rows = Array.isArray(company.rows) ? company.rows : [];\n  return rows.some((row) => {\n    const hay = [\n      row.company_name,\n      row.company_non_linkedin_urls,\n      row.location_non_linkedin_urls,\n      row.company_linkedin_urls,\n      row.location_linkedin_urls,\n    ].map((v) => str(v)).join(' | ');\n    return textHasAny(hay, BUSINESS_OVERRIDE_TERMS);\n  });\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function fetchText(url) {\n  try {\n    const res = await doHttpRequest.call(this, {\n      method: 'GET',\n      url,\n      headers: {\n        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.0',\n        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',\n      },\n      json: false,\n      encoding: 'text',\n      followRedirect: true,\n      timeout: 15000,\n    });\n    return typeof res === 'string' ? res : String(res || '');\n  } catch {\n    return '';\n  }\n}\nfunction stripHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<noscript[\\s\\S]*?<\\/noscript>/gi, ' ')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/gi, ' ')\n    .replace(/&amp;/gi, '&')\n    .replace(/&quot;/gi, '\"')\n    .replace(/&#39;/gi, \"'\")\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\nfunction extractLinks(html, baseUrl) {\n  const out = [];\n  const baseDomain = domainFromUrl(baseUrl);\n  const baseRoot = /^https?:\\/\\//i.test(baseUrl)\n    ? baseUrl.replace(/^(https?:\\/\\/[^/]+).*$/i, '$1')\n    : `https://${baseDomain}`;\n  const re = /href=[\"']([^\"']+)[\"']/gi;\n  let m;\n  while ((m = re.exec(html || ''))) {\n    const href = String(m[1] || '').trim();\n    if (!href || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('#') || href.startsWith('javascript:')) continue;\n    let abs = '';\n    if (/^https?:\\/\\//i.test(href)) abs = href;\n    else if (href.startsWith('/')) abs = `${baseRoot}${href}`;\n    else abs = `${baseRoot}/${href.replace(/^\\.?\\//, '')}`;\n    const absDomain = domainFromUrl(abs);\n    if (!absDomain || absDomain !== baseDomain) continue;\n    const path = abs.replace(/^https?:\\/\\/[^/]+/i, '').toLowerCase();\n    if (/(about|about-us|contact|contacts|locations|location|stores?|dispensary|dispensaries|menu|product|products|shop|brands?|brand|company|team|leadership|management|our-story|services|solutions|industries|compliance|regulatory|cannabis|weed|hemp|thc|cbd|medical|recreational|licensed|license|cultivation|delivery)/.test(path)) out.push(abs);\n  }\n  return Array.from(new Set(out)).slice(0, MAX_WEBSITE_PAGES - 1);\n}\nfunction detectState(text) {\n  const hay = String(text || '').toUpperCase();\n  for (const abbr of STATE_ABBRS) {\n    const name = STATE_MAP[abbr].toUpperCase();\n    if (new RegExp(`\\\\b${abbr}\\\\b\\\\s+\\\\d{5}`).test(hay) || hay.includes(` ${name} `)) return STATE_MAP[abbr];\n  }\n  return '';\n}\nfunction detectCannabisSignals(text) {\n  const hay = String(text || '').toLowerCase();\n  return CANNABIS_TERMS.filter((term) => hay.includes(term)).slice(0, 6);\n}\nfunction deterministicSnippet(companyName, state, signals) {\n  if (!state || !signals.length) return '';\n  return `Based on our research into ${companyName}'s ${state} market presence, the site shows active cannabis-related product marketing. For a company like ${companyName}, that usually means stable, compliant visibility matters if you want to keep momentum.`;\n}\nfunction researchConfidence(state, cannabisSignals, companyName, combinedText) {\n  const hasCompanyName = combinedText.toLowerCase().includes(companyName.toLowerCase());\n  if (state && cannabisSignals.length && hasCompanyName) return 'high';\n  if (state || cannabisSignals.length) return 'medium';\n  return 'low';\n}\nfunction buildResearchSeed(company, cacheHit) {\n  const cache = cacheHit || {};\n  const companyName = cache.company_name || company.company_name || company.company_domain_key;\n  const urls = [];\n  for (const row of company.rows) {\n    const u = firstUrl(row.company_non_linkedin_urls) || firstUrl(row.location_non_linkedin_urls) || firstUrl(row.company_linkedin_urls) || firstUrl(row.location_linkedin_urls);\n    if (u) urls.push(u.startsWith('http') ? u : `https://${u}`);\n  }\n  if (!urls.length && looksLikeResearchableDomain(company.company_domain_key) && !isReusableCache(cache)) {\n    urls.push(`https://${normalizeDomain(company.company_domain_key)}`);\n  }\n  const uniqueUrls = Array.from(new Set(urls)).slice(0, MAX_WEBSITE_PAGES);\n  return {\n    companyName,\n    urls: uniqueUrls,\n    cache,\n    base: {\n      company_domain_key: company.company_domain_key,\n      company_name: companyName,\n      company_operating_state: cache.company_operating_state || '',\n      company_operating_market_note: cache.company_operating_market_note || '',\n      company_cannabis_marketing_signal: cache.company_cannabis_marketing_signal || '',\n      company_research_snippet: cache.company_research_snippet || '',\n      company_research_confidence: cache.company_research_confidence || 'low',\n      company_research_source: cache.company_research_source || '',\n      company_research_last_verified_at: cache.company_research_last_verified_at || '',\n    },\n  };\n}\n\nasync function researchCompany(company, cacheHit) {\n  const seed = buildResearchSeed(company, cacheHit);\n  const cacheReusable = isReusableCache(seed.cache);\n  const emailDomain = domainFromEmail(company.rows?.[0]?.email || '');\n  const businessUrl = resolveBusinessUrl(company);\n  const institutional = companyLooksInstitutional(seed.companyName, emailDomain || company.company_domain_key);\n  const businessOverride = hasBusinessOverrideSignal(company, businessUrl);\n  if (cacheReusable) {\n    return {\n      companyName: seed.companyName,\n      evidencePages: [],\n      deterministic: {\n        companyName: seed.companyName,\n        company_operating_state: seed.cache.company_operating_state || '',\n        company_operating_market_note: seed.cache.company_operating_market_note || '',\n        company_cannabis_marketing_signal: seed.cache.company_cannabis_marketing_signal || '',\n        company_research_snippet: seed.cache.company_research_snippet || '',\n        company_research_confidence: seed.cache.company_research_confidence || 'low',\n        company_research_source: seed.cache.company_research_source || '',\n      },\n      researchMode: 'cache_only',\n      cache: seed.cache,\n    };\n  }\n  if (institutional && !businessOverride) {\n    return {\n      companyName: seed.companyName,\n      evidencePages: [],\n      deterministic: {\n        companyName: seed.companyName,\n        company_operating_state: '',\n        company_operating_market_note: '',\n        company_cannabis_marketing_signal: '',\n        company_research_snippet: '',\n        company_research_confidence: 'low',\n        company_research_source: 'skipped_institutional_domain',\n      },\n      researchMode: 'skip_institutional',\n      cache: seed.cache,\n    };\n  }\n  const evidencePages = [];\n  for (const url of seed.urls.slice(0, MAX_WEBSITE_PAGES)) {\n    const html = await fetchText(url);\n    if (!html) continue;\n    const text = stripHtml(html).slice(0, MAX_WEBSITE_CHARS);\n    evidencePages.push({ url, text, title: (html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] || '').replace(/\\s+/g, ' ').trim() });\n    if (evidencePages.length < MAX_WEBSITE_PAGES) {\n      for (const link of extractLinks(html, url).slice(0, MAX_WEBSITE_PAGES - evidencePages.length)) {\n        const linkedHtml = await fetchText(link);\n        if (!linkedHtml) continue;\n        evidencePages.push({ url: link, text: stripHtml(linkedHtml).slice(0, MAX_WEBSITE_CHARS), title: (linkedHtml.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] || '').replace(/\\s+/g, ' ').trim() });\n        if (evidencePages.length >= MAX_WEBSITE_PAGES) break;\n      }\n    }\n    if (evidencePages.length >= MAX_WEBSITE_PAGES) break;\n  }\n\n  const combinedText = [seed.companyName, ...evidencePages.map((p) => `${p.title} ${p.text} ${p.url}`)].join(' | ');\n  const state = detectState(combinedText);\n  const cannabisSignals = detectCannabisSignals(combinedText);\n  const confidence = researchConfidence(state, cannabisSignals, seed.companyName, combinedText);\n  const marketNote = state ? `Website evidence ties ${seed.companyName} to ${state}.` : '';\n  const signalText = cannabisSignals.length ? cannabisSignals.join(', ') : '';\n  const deterministic = {\n    companyName: seed.companyName,\n    company_operating_state: state,\n    company_operating_market_note: marketNote,\n    company_cannabis_marketing_signal: signalText,\n    company_research_snippet: deterministicSnippet(seed.companyName, state, cannabisSignals),\n    company_research_confidence: confidence,\n    company_research_source: evidencePages.length ? 'website+heuristic' : 'no_website_evidence',\n  };\n\n  return {\n    companyName: seed.companyName,\n    evidencePages,\n    deterministic,\n    researchMode: evidencePages.length\n      ? 'website'\n      : 'deterministic_only',\n    cache: seed.cache,\n  };\n}\n\nfunction buildResearchMessages(company) {\n  const payload = {\n    company_name: company.companyName,\n    company_domain_key: company.company_domain_key,\n    evidence_pages: company.evidencePages.map((p) => ({ url: p.url, title: p.title, text: p.text.slice(0, 3500) })),\n    deterministic: company.deterministic,\n    rules: [\n      'Use only evidence provided.',\n      'Do not infer company geography from the contact state.',\n      'If operating state is not explicit in evidence, leave it blank.',\n      'If cannabis-product marketing is not explicit, leave the signal blank.',\n      'Output JSON only.',\n    ],\n  };\n\n  return [\n    { role: 'system', content: 'You are a factual company research synthesizer. Return compact JSON only with keys: company_operating_state, company_operating_market_note, company_cannabis_marketing_signal, company_research_snippet, company_research_confidence, company_research_source. Do not explain. Do not reason step-by-step. Do not add commentary. If evidence is weak, leave fields blank and keep the snippet very short.' },\n    { role: 'user', content: JSON.stringify(payload) },\n  ];\n}\n\nconst companyItems = Array.isArray(payload.companies) ? payload.companies : [];\nconst cacheByKey = new Map(cacheRows.map((r) => [normalizeDomain(r.company_domain_key), r]));\nconst outputs = [];\n\nfor (const company of companyItems) {\n  const cached = cacheByKey.get(normalizeDomain(company.company_domain_key)) || null;\n  const research = await researchCompany.call(this, company, cached);\n  const rowCount = Array.isArray(company.rows) ? company.rows.length : 0;\n\n  outputs.push({\n    json: {\n      company_domain_key: company.company_domain_key,\n      company_name: company.company_name || research.companyName || company.company_domain_key,\n      rowCount,\n      cacheHit: isReusableCache(cached),\n      cacheRowExists: !!cached,\n      cached_company_research_confidence: cached?.company_research_confidence || '',\n      evidencePages: research.evidencePages,\n      deterministic: research.deterministic,\n      researchMessages: buildResearchMessages({\n        company_domain_key: company.company_domain_key,\n        companyName: research.companyName || company.company_name || company.company_domain_key,\n        evidencePages: research.evidencePages,\n        deterministic: research.deterministic,\n      }),\n      rows: company.rows,\n      companyCacheRow: cached || null,\n      researchMode: research.researchMode,\n    },\n  });\n}\n\nreturn outputs.length ? outputs : [{ json: { ok: true, batchCount: 0, companyCount: 0, note: 'No pending executive SSO rows found.' } }];\n"
+      },
+      "id": "0ad2edb7-8f83-40c8-a9da-83b6f4d70a30",
+      "name": "Prepare Company Research",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{String($json.researchMode ?? \"\").trim().toLowerCase()}}",
+              "operation": "equal",
+              "value2": "website"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "needs_research",
+      "name": "Needs Research?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://automations.livetransparent.com"
+            },
+            {
+              "name": "X-Title",
+              "value": "LiveTransparent Emerald Research"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: $item(0).$node[\"Config\"].json.researchModel, messages: $json.researchMessages, temperature: 0, response_format: { type: 'json_object' } } }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "openrouter_research",
+      "name": "OpenRouter Research",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1744,
+        -928
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "JuE4C7PLHTAeBkze",
+          "name": "OpenRouter account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {},
+      "id": "merge_research_paths",
+      "name": "Merge Research Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1968,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const currentItem = $input.item || { json: $json || {} };\nconst src = currentItem.json || {};\nconst prepItems = $items('Prepare Company Research').map((item) => item.json || {});\nconst normalizedKey = String(src.company_domain_key ?? '').trim().toLowerCase();\nconst prep = prepItems.find((item) => String(item.company_domain_key ?? '').trim().toLowerCase() === normalizedKey)\n  || prepItems[Number(currentItem?.pairedItem?.item ?? currentItem?.pairedItem ?? -1)]\n  || {};\nconst content = src?.choices?.[0]?.message?.content || src?.message?.content || '';\nlet researchJson = null;\ntry {\n  researchJson = content ? JSON.parse(content) : null;\n} catch {\n  researchJson = null;\n}\nreturn {\n  ...prep,\n  research_raw: src,\n  research_content: content,\n  research_json: researchJson,\n};"
+      },
+      "id": "parse_research_response",
+      "name": "Parse Research Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2192,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const currentItem = $input.item || { json: $json || {} };\nconst cfg = $item(0).$node['Config'].json || {};\nconst currentKey = String(currentItem.json?.company_domain_key ?? '').trim().toLowerCase();\nconst prepItems = $items('Prepare Company Research').map((i) => i.json || {});\nconst parsedItems = $items('Parse Research Response').map((i) => i.json || {});\nconst prep = prepItems.find(\n  (i) => String(i.company_domain_key ?? '').trim().toLowerCase() === currentKey\n) || prepItems[0] || {};\nconst parsedResearch = parsedItems.find(\n  (i) => String(i.company_domain_key ?? '').trim().toLowerCase() === currentKey\n) || parsedItems[0] || {};\nconst companyItems = Array.isArray(prep.rows) ? [prep] : [];\nconst researchFieldName = String(cfg.researchFieldName || 'emerald_exec_sso_ai_research').trim();\nconst companyNameForEmailsFieldName = String(cfg.companyNameForEmailsFieldName || 'Company Name for Emails').trim();\nconst companyOperatingStateFieldName = String(cfg.companyOperatingStateFieldName || 'Em_Company_Operating_State').trim();\nconst companyResearchSnippetFieldName = String(cfg.companyResearchSnippetFieldName || 'Em_Company_Research_Snippet').trim();\nconst companyMarketNoteFieldName = String(cfg.companyMarketNoteFieldName || 'Em_Company_Market_Note').trim();\nconst cannabisMarketingSignalFieldName = String(cfg.cannabisMarketingSignalFieldName || 'Em_Cannabis_Marketing_Signal').trim();\nconst email4ReadyFieldName = String(cfg.email4ReadyFieldName || 'Em_Email4_Personalization_Ready').trim();\nconst email4ReasonFieldName = String(cfg.email4ReasonFieldName || 'Em_Email4_Personalization_Reason').trim();\n\nfunction str(v) {\n  const s = String(v ?? '').trim();\n  return s || '';\n}\nfunction sqlLit(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'NULL';\n  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';\n  if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, \"''\")}'::jsonb`;\n  return `'${String(v).replace(/'/g, \"''\")}'`;\n}\nfunction normalizeDomain(value) {\n  return str(value).toLowerCase().replace(/^https?:\\/\\//, '').replace(/^www\\./, '').split('/')[0].replace(/[^a-z0-9.-]/g, '');\n}\nfunction domainFromEmail(email) {\n  const v = str(email).toLowerCase();\n  const i = v.lastIndexOf('@');\n  if (i < 0) return '';\n  return normalizeDomain(v.slice(i + 1));\n}\nconst genericDomains = new Set([\n  'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com',\n  'aol.com', 'live.com', 'proton.me', 'protonmail.com', 'me.com', 'mail.com',\n  'twitter.com', 'x.com', 'linkedin.com', 'facebook.com', 'instagram.com',\n  'tiktok.com', 'youtube.com',\n]);\nconst institutionalTerms = ['university', 'college', 'school', 'faculty', 'campus', 'institute', 'academy'];\nconst cannabisTerms = ['cannabis', 'marijuana', 'dispensary', 'weed', 'thc', 'hemp', 'cbd', 'edibles', 'flower', 'preroll', 'pre-roll', 'vape', 'concentrate', 'rosin', 'tincture', 'gummies', 'retail'];\nfunction isGenericDomain(domain) {\n  return genericDomains.has(normalizeDomain(domain));\n}\nfunction isAcademicDomain(domain) {\n  const d = normalizeDomain(domain);\n  return !!d && (\n    d.endsWith('.edu') ||\n    d.endsWith('.ac.uk') ||\n    d.endsWith('.edu.au') ||\n    d.endsWith('.ac.nz') ||\n    d.endsWith('.ac.jp') ||\n    d.endsWith('.edu.mx') ||\n    d.includes('.edu.')\n  );\n}\nfunction isInstitutionalCompany(companyDomainKey, companyName) {\n  return isAcademicDomain(companyDomainKey) || institutionalTerms.some((term) => str(companyName).toLowerCase().includes(term));\n}\nfunction textHasCannabisTerms(value) {\n  const hay = str(value).toLowerCase();\n  return cannabisTerms.some((term) => hay.includes(term));\n}\nfunction normalizePhone(phoneRaw, countryHint) {\n  const raw = str(phoneRaw);\n  if (!raw) return '';\n  const keepPlus = raw.startsWith('+');\n  let digits = raw.replace(/\\D+/g, '');\n  if (!digits) return '';\n  if (keepPlus) return `+${digits}`;\n  if (digits.length === 10 && String(countryHint || '').toUpperCase() === 'US') return `+1${digits}`;\n  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;\n  return `+${digits}`;\n}\nfunction normalizeLinkedinUrl(v) {\n  const s = String(v ?? '').trim();\n  if (!s) return '';\n  try {\n    const u = new URL(s);\n    const host = u.hostname.toLowerCase();\n    if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) return s;\n  } catch {}\n  return '';\n}\nfunction firstUrl(value) {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  const parts = raw.split(/[\\s,;|]+/).map((p) => p.trim()).filter(Boolean);\n  const candidate = parts.find((p) => /^https?:\\/\\//i.test(p) || /^[a-z0-9.-]+\\.[a-z]{2,}/i.test(p));\n  return candidate || '';\n}\nfunction isMissing(v) { return v === null || v === undefined || String(v).trim() === ''; }\nfunction allowedResearchText(text) {\n  const bad = ['probably', 'maybe', 'likely', 'appears to be', 'seems to be'];\n  const hay = String(text || '').toLowerCase();\n  return !bad.some((b) => hay.includes(b));\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ baseUrl, method, path, headers, body, fullUrl, json = true }) {\n  const resolvedBase = str(baseUrl || cfg.apiBaseUrl || 'https://services.leadconnectorhq.com');\n  const options = { method, url: fullUrl || `${resolvedBase.replace(/\\/$/, '')}${path}`, headers, json };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nconst ghlHeaders = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nfunction extractContactId(payload) {\n  return String(payload?.contact?.id || payload?.id || payload?.contactId || '').trim();\n}\n\nfunction asContacts(payload) {\n  if (Array.isArray(payload?.contacts)) return payload.contacts;\n  if (Array.isArray(payload?.data?.contacts)) return payload.data.contacts;\n  if (Array.isArray(payload?.data)) return payload.data;\n  if (Array.isArray(payload)) return payload;\n  return [];\n}\n\nfunction buildContactSearchQuery(row, companyName) {\n  return str(row.full_name || [row.first_name, row.last_name].filter(Boolean).join(' ') || companyName || row.record_key || row.emerald_row_id);\n}\n\nlet contactFieldIds = null;\nasync function ensureContactFieldIds() {\n  if (contactFieldIds) return contactFieldIds;\n  const cf = await apiRequest.call(this, { method: 'GET', path: `/locations/${encodeURIComponent(cfg.locationId)}/customFields?model=contact`, headers: ghlHeaders });\n  if (!cf.ok) throw new Error(`Failed custom fields lookup: ${JSON.stringify(cf.data)}`);\n  const arr = Array.isArray(cf.data?.customFields)\n    ? cf.data.customFields\n    : Array.isArray(cf.data?.data?.customFields)\n      ? cf.data.data.customFields\n      : Array.isArray(cf.data?.data)\n        ? cf.data.data\n        : [];\n  const findId = (fieldName, required = false) => {\n    const id = arr.find((f) => String(f?.name || '').trim() === fieldName)?.id || '';\n    if (!id && required) throw new Error(`Missing GHL field: ${fieldName}`);\n    return id;\n  };\n  contactFieldIds = {\n    researchDone: findId(researchFieldName, true),\n    companyNameForEmails: findId(companyNameForEmailsFieldName, false),\n    companyOperatingState: findId(companyOperatingStateFieldName, false),\n    companyResearchSnippet: findId(companyResearchSnippetFieldName, false),\n    companyMarketNote: findId(companyMarketNoteFieldName, false),\n    cannabisMarketingSignal: findId(cannabisMarketingSignalFieldName, false),\n    email4Ready: findId(email4ReadyFieldName, false),\n    email4Reason: findId(email4ReasonFieldName, false),\n  };\n  return contactFieldIds;\n}\n\nfunction determineEmail4Eligibility(companyDomainKey, companyName, rows, research) {\n  const source = str(research.company_research_source).toLowerCase();\n  const state = str(research.company_operating_state);\n  const snippet = str(research.company_research_snippet);\n  const signal = str(research.company_cannabis_marketing_signal);\n  const combinedText = [\n    companyDomainKey,\n    companyName,\n    signal,\n    research.company_operating_market_note,\n    snippet,\n    ...(Array.isArray(rows)\n      ? rows.map((row) => [\n          row.company_name,\n          row.company_non_linkedin_urls,\n          row.location_non_linkedin_urls,\n          row.company_linkedin_urls,\n          row.location_linkedin_urls,\n        ].map((v) => str(v)).join(' | '))\n      : []),\n  ].join(' | ');\n  const hasCannabisContext = !!signal || textHasCannabisTerms(combinedText);\n  if (source === 'skipped_institutional_domain') return { ready: 'No', reason: 'institutional_domain' };\n  if (source !== 'website+heuristic') return { ready: 'No', reason: 'insufficient_website_evidence' };\n  if (!state) return { ready: 'No', reason: 'missing_operating_state' };\n  if (!snippet) return { ready: 'No', reason: 'missing_company_snippet' };\n  if (!hasCannabisContext) return { ready: 'No', reason: 'no_cannabis_or_marketing_signal' };\n  return { ready: 'Yes', reason: 'ready' };\n}\n\nfunction buildResearchCustomFields(fieldIds, companyName, research, email4Eligibility) {\n  const out = [];\n  const pushValue = (id, value, allowEmpty = false) => {\n    if (!id) return;\n    const stringValue = String(value ?? '').trim();\n    if (!stringValue && !allowEmpty) return;\n    out.push({ id, value: stringValue });\n  };\n  pushValue(fieldIds.researchDone, 'done', true);\n  pushValue(fieldIds.companyNameForEmails, companyName, false);\n  pushValue(fieldIds.companyOperatingState, research.company_operating_state || '', false);\n  pushValue(fieldIds.companyResearchSnippet, research.company_research_snippet || '', false);\n  pushValue(fieldIds.companyMarketNote, research.company_operating_market_note || '', false);\n  pushValue(fieldIds.cannabisMarketingSignal, research.company_cannabis_marketing_signal || '', false);\n  pushValue(fieldIds.email4Ready, email4Eligibility?.ready || 'No', true);\n  pushValue(fieldIds.email4Reason, email4Eligibility?.reason || 'unknown', true);\n  return out;\n}\n\nfunction getValidatedResearch() {\n  const candidate = $json?.choices?.[0]?.message?.content || $json?.message?.content || '';\n  if (!candidate) return null;\n  try {\n    return JSON.parse(candidate);\n  } catch {\n    return null;\n  }\n}\n\nfunction normalizeResearch(source, fallback) {\n  const out = {\n    company_operating_state: str(source?.company_operating_state || fallback?.company_operating_state || ''),\n    company_operating_market_note: str(source?.company_operating_market_note || fallback?.company_operating_market_note || ''),\n    company_cannabis_marketing_signal: str(source?.company_cannabis_marketing_signal || fallback?.company_cannabis_marketing_signal || ''),\n    company_research_snippet: str(source?.company_research_snippet || fallback?.company_research_snippet || ''),\n    company_research_confidence: str(source?.company_research_confidence || fallback?.company_research_confidence || 'low'),\n    company_research_source: str(source?.company_research_source || fallback?.company_research_source || ''),\n  };\n  if (!allowedResearchText(out.company_research_snippet)) out.company_research_snippet = '';\n  return out;\n}\n\nfunction buildCompanyUpsertSql(company, research) {\n  const rowIds = company.rows.map((r) => Number(r.emerald_row_id)).filter((n) => Number.isFinite(n));\n  const rowCases = (field, valueFn) => {\n    const cases = company.rows.map((row) => `WHEN ${Number(row.emerald_row_id)} THEN ${sqlLit(valueFn(row))}`).join(' ');\n    return `CASE id ${cases} ELSE ${field} END`;\n  };\n\n  const companyResearchSql = {\n    company_domain_key: company.company_domain_key,\n    company_name: research.companyName || company.company_name || company.company_domain_key,\n    company_research_snippet: research.company_research_snippet || '',\n    company_operating_state: research.company_operating_state || '',\n    company_operating_market_note: research.company_operating_market_note || '',\n    company_cannabis_marketing_signal: research.company_cannabis_marketing_signal || '',\n    company_research_confidence: research.company_research_confidence || 'low',\n    company_research_source: research.company_research_source || '',\n    company_research_last_verified_at: new Date().toISOString(),\n  };\n\n  const idCase = rowCases('ghl_contact_id', (row) => row.ghl_contact_id || '');\n  const methodCase = rowCases('ghl_contact_match_method', (row) => row.ghl_contact_match_method || '');\n  const statusCase = rowCases('ghl_contact_sync_status', (row) => row.ghl_contact_sync_status || 'synced');\n  const errorCase = rowCases('ghl_contact_sync_error', (row) => row.ghl_contact_sync_error || '');\n  const emailCase = rowCases('primary_email', (row) => row.resolved_email || row.email || '');\n  const phoneCase = rowCases('primary_phone', (row) => row.resolved_phone || row.phone || '');\n  const researchCase = rowCases('emerald_exec_sso_ai_research', () => 'done');\n\n  return `WITH cache_upsert AS (\n  INSERT INTO \"Emerald_Company_Research_Cache\" (\n    company_domain_key,\n    company_name,\n    company_research_snippet,\n    company_operating_state,\n    company_operating_market_note,\n    company_cannabis_marketing_signal,\n    company_research_confidence,\n    company_research_source,\n    company_research_last_verified_at,\n    created_at,\n    updated_at\n  ) VALUES (\n    ${sqlLit(companyResearchSql.company_domain_key)},\n    ${sqlLit(companyResearchSql.company_name)},\n    ${sqlLit(companyResearchSql.company_research_snippet)},\n    ${sqlLit(companyResearchSql.company_operating_state)},\n    ${sqlLit(companyResearchSql.company_operating_market_note)},\n    ${sqlLit(companyResearchSql.company_cannabis_marketing_signal)},\n    ${sqlLit(companyResearchSql.company_research_confidence)},\n    ${sqlLit(companyResearchSql.company_research_source)},\n    ${sqlLit(companyResearchSql.company_research_last_verified_at)},\n    NOW(),\n    NOW()\n  )\n  ON CONFLICT (company_domain_key) DO UPDATE SET\n    company_name = EXCLUDED.company_name,\n    company_research_snippet = EXCLUDED.company_research_snippet,\n    company_operating_state = EXCLUDED.company_operating_state,\n    company_operating_market_note = EXCLUDED.company_operating_market_note,\n    company_cannabis_marketing_signal = EXCLUDED.company_cannabis_marketing_signal,\n    company_research_confidence = EXCLUDED.company_research_confidence,\n    company_research_source = EXCLUDED.company_research_source,\n    company_research_last_verified_at = EXCLUDED.company_research_last_verified_at,\n    updated_at = NOW()\n)\nUPDATE \"Emerald_Contacts\"\nSET\n  company_domain_key = ${sqlLit(company.company_domain_key)},\n  company_name = COALESCE(NULLIF(company_name, ''), ${sqlLit(companyResearchSql.company_name)}),\n  company_research_snippet = ${sqlLit(companyResearchSql.company_research_snippet)},\n  company_operating_state = ${sqlLit(companyResearchSql.company_operating_state)},\n  company_operating_market_note = ${sqlLit(companyResearchSql.company_operating_market_note)},\n  company_cannabis_marketing_signal = ${sqlLit(companyResearchSql.company_cannabis_marketing_signal)},\n  company_research_confidence = ${sqlLit(companyResearchSql.company_research_confidence)},\n  company_research_source = ${sqlLit(companyResearchSql.company_research_source)},\n  company_research_last_verified_at = ${sqlLit(companyResearchSql.company_research_last_verified_at)},\n  ghl_contact_id = ${idCase},\n  ghl_contact_match_method = ${methodCase},\n  ghl_contact_sync_status = ${statusCase},\n  ghl_contact_sync_error = ${errorCase},\n  emerald_exec_sso_ai_research = ${researchCase},\n  primary_email = ${emailCase},\n  primary_phone = ${phoneCase},\n  updated_at = NOW()\nWHERE id IN (${rowIds.join(', ')});\n`;\n}\n\nasync function resolveGhlContact(row, companyName) {\n  const fullName = buildContactSearchQuery(row, companyName);\n  const payload = {\n    firstName: str(row.first_name || ''),\n    lastName: str(row.last_name || ''),\n    name: str(row.full_name || fullName),\n    email: str(row.email || ''),\n    phone: str(row.phone || ''),\n    companyName: str(row.company_name || companyName || ''),\n    website: firstUrl(row.company_non_linkedin_urls) || firstUrl(row.location_non_linkedin_urls),\n    city: str(row.contact_city || ''),\n    state: str(row.contact_state || ''),\n    source: str(cfg.sourceLabel || 'emerald_executive_sso'),\n  };\n  const standard = Object.fromEntries(Object.entries(payload).filter(([, v]) => !isMissing(v)));\n  const contactFieldIds = await ensureContactFieldIds.call(this);\n\n  let contactId = str(row.ghl_contact_id || '');\n  let matchMethod = contactId ? 'cached_ghl_contact_id' : '';\n  let syncStatus = 'synced';\n  let syncError = '';\n  let resolvedEmail = str(row.email || '');\n  let resolvedPhone = str(row.phone || '');\n  const researchCustomFields = buildResearchCustomFields(contactFieldIds, companyName, parsedResearch?.research_json || {}, email4Eligibility);\n\n  if (!contactId) {\n    const tries = [];\n    if (resolvedEmail) tries.push({ type: 'email', res: await apiRequest.call(this, { method: 'GET', path: `/contacts/search/duplicate?locationId=${encodeURIComponent(cfg.locationId)}&email=${encodeURIComponent(resolvedEmail)}`, headers: ghlHeaders }) });\n    if (!contactId && resolvedPhone) tries.push({ type: 'phone', res: await apiRequest.call(this, { method: 'GET', path: `/contacts/search/duplicate?locationId=${encodeURIComponent(cfg.locationId)}&number=${encodeURIComponent(resolvedPhone)}`, headers: ghlHeaders }) });\n    if (!contactId && fullName) tries.push({ type: 'name', res: await apiRequest.call(this, { method: 'GET', path: `/contacts/?locationId=${encodeURIComponent(cfg.locationId)}&query=${encodeURIComponent(fullName)}&limit=20`, headers: ghlHeaders }) });\n    if (!contactId && companyName) tries.push({ type: 'company', res: await apiRequest.call(this, { method: 'GET', path: `/contacts/?locationId=${encodeURIComponent(cfg.locationId)}&query=${encodeURIComponent(companyName)}&limit=20`, headers: ghlHeaders }) });\n\n    for (const attempt of tries) {\n      if (!attempt.res?.ok) continue;\n      const data = attempt.res.data || {};\n      if (attempt.type === 'email' || attempt.type === 'phone') {\n        if (data?.contact?.id) {\n          contactId = str(data.contact.id);\n          matchMethod = `${attempt.type}_duplicate`;\n          break;\n        }\n      } else {\n        const matches = asContacts(data);\n        const want = fullName.toLowerCase();\n        const exact = matches.find((c) => {\n          const fn = str(`${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();\n          const nm = str(c.contactName || c.name || '').toLowerCase();\n          return fn === want || nm === want || str(c.companyName || '').toLowerCase() === str(companyName || '').toLowerCase();\n        }) || matches[0];\n        if (exact?.id) {\n          contactId = str(exact.id);\n          matchMethod = `${attempt.type}_search`;\n          break;\n        }\n      }\n    }\n  }\n\n  if (contactId) {\n    const getRes = await apiRequest.call(this, { method: 'GET', path: `/contacts/${encodeURIComponent(contactId)}`, headers: ghlHeaders });\n    const contact = getRes.ok ? (getRes.data?.contact || getRes.data || {}) : {};\n    const updatePayload = {};\n    if (isMissing(contact.firstName) && payload.firstName) updatePayload.firstName = payload.firstName;\n    if (isMissing(contact.lastName) && payload.lastName) updatePayload.lastName = payload.lastName;\n    if (isMissing(contact.name) && payload.name) updatePayload.name = payload.name;\n    if (isMissing(contact.email) && payload.email) updatePayload.email = payload.email;\n    if (isMissing(contact.phone) && payload.phone) updatePayload.phone = payload.phone;\n    if (isMissing(contact.companyName) && payload.companyName) updatePayload.companyName = payload.companyName;\n    if (isMissing(contact.website) && payload.website) updatePayload.website = payload.website;\n    if (isMissing(contact.city) && payload.city) updatePayload.city = payload.city;\n    if (isMissing(contact.state) && payload.state) updatePayload.state = payload.state;\n    if (Object.keys(updatePayload).length) {\n      const upd = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${encodeURIComponent(contactId)}`, headers: ghlHeaders, body: updatePayload });\n      if (!upd.ok) {\n        syncStatus = 'error';\n        syncError = str(upd.data?.message || JSON.stringify(upd.data));\n      }\n    }\n    if (syncStatus === 'synced') {\n      const researchDone = await apiRequest.call(this, {\n        method: 'PUT',\n        path: `/contacts/${encodeURIComponent(contactId)}`,\n        headers: ghlHeaders,\n        body: { customFields: researchCustomFields },\n      });\n      if (!researchDone.ok) {\n        syncStatus = 'error';\n        syncError = str(researchDone.data?.message || JSON.stringify(researchDone.data));\n      }\n    }\n    resolvedEmail = resolvedEmail || str(contact.email || '');\n    resolvedPhone = resolvedPhone || str(contact.phone || '');\n  } else {\n    const createPayload = { locationId: cfg.locationId, ...standard };\n    let resp = null;\n    if (resolvedEmail || resolvedPhone) {\n      resp = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', headers: ghlHeaders, body: createPayload });\n      matchMethod = 'upsert';\n    } else {\n      resp = await apiRequest.call(this, { method: 'POST', path: '/contacts/', headers: ghlHeaders, body: createPayload });\n      matchMethod = 'create_without_unique_identifier';\n    }\n    if (!resp.ok) {\n      syncStatus = 'error';\n      syncError = str(resp.data?.message || JSON.stringify(resp.data));\n    } else {\n      contactId = extractContactId(resp.data);\n      matchMethod = matchMethod || 'create';\n      const contactObj = resp.data?.contact || resp.data || {};\n      resolvedEmail = resolvedEmail || str(contactObj.email || '');\n      resolvedPhone = resolvedPhone || str(contactObj.phone || '');\n      if (contactId && syncStatus === 'synced') {\n        const researchDone = await apiRequest.call(this, {\n          method: 'PUT',\n          path: `/contacts/${encodeURIComponent(contactId)}`,\n          headers: ghlHeaders,\n          body: { customFields: researchCustomFields },\n        });\n        if (!researchDone.ok) {\n          syncStatus = 'error';\n          syncError = str(researchDone.data?.message || JSON.stringify(researchDone.data));\n        }\n      }\n    }\n  }\n\n  if (!contactId) {\n    syncStatus = 'error';\n    syncError = syncError || 'No GHL contact id returned';\n  }\n\n  return { contactId, matchMethod, syncStatus, syncError, resolvedEmail, resolvedPhone };\n}\n\nasync function listCompanyContactsForPropagation(companyDomainKey, companyName) {\n  const byId = new Map();\n  const terms = [];\n  const domain = normalizeDomain(companyDomainKey);\n  if (domain && !isGenericDomain(domain)) terms.push(domain);\n  const company = str(companyName);\n  if (company) terms.push(company);\n\n  for (const term of terms) {\n    let startAfterId = '';\n    for (let page = 0; page < 20; page += 1) {\n      const q = [\n        `locationId=${encodeURIComponent(cfg.locationId)}`,\n        `query=${encodeURIComponent(term)}`,\n        'limit=100',\n      ];\n      if (startAfterId) q.push(`startAfterId=${encodeURIComponent(startAfterId)}`);\n      const res = await apiRequest.call(this, {\n        method: 'GET',\n        path: `/contacts/?${q.join('&')}`,\n        headers: ghlHeaders,\n      });\n      if (!res.ok) break;\n      const list = asContacts(res.data);\n      if (!list.length) break;\n      for (const c of list) {\n        const id = str(c.id);\n        if (!id) continue;\n        byId.set(id, c);\n      }\n      startAfterId = str(list[list.length - 1]?.id || '');\n      if (!startAfterId || list.length < 100) break;\n    }\n  }\n\n  const out = [];\n  const normalizedCompany = str(companyName).toLowerCase();\n  const normalizedDomain = normalizeDomain(companyDomainKey);\n  for (const c of byId.values()) {\n    const emailDomain = domainFromEmail(c.email || c.emailAddress || '');\n    const cCompany = str(c.companyName || c.company || '').toLowerCase();\n    const domainMatch = normalizedDomain && !isGenericDomain(normalizedDomain) && emailDomain === normalizedDomain;\n    const companyMatch = normalizedCompany && cCompany && cCompany === normalizedCompany;\n    if (domainMatch || companyMatch) out.push(c);\n  }\n  return out;\n}\n\nasync function syncResearchForCompanyContacts(contacts, customFields) {\n  let updated = 0;\n  let failed = 0;\n  const failedIds = [];\n  for (const c of contacts) {\n    const id = str(c.id);\n    if (!id) continue;\n    const upd = await apiRequest.call(this, {\n      method: 'PUT',\n      path: `/contacts/${encodeURIComponent(id)}`,\n      headers: ghlHeaders,\n      body: { customFields },\n    });\n    if (upd.ok) updated += 1;\n    else {\n      failed += 1;\n      failedIds.push(id);\n    }\n  }\n  return { updated, failed, failedIds };\n}\n\nfunction parseOpenRouterResponse(resp) {\n  const content = resp?.choices?.[0]?.message?.content || resp?.message?.content || '';\n  if (!content) return null;\n  try {\n    return JSON.parse(content);\n  } catch {\n    return null;\n  }\n}\n\nconst original = prep;\nconst researchFromParse = parsedResearch?.research_json || null;\nconst researchFromValidate = parseOpenRouterResponse($json);\nconst finalResearch = normalizeResearch(researchFromValidate || researchFromParse, original.deterministic || {});\nconst companyName = str(original.company_name || original.companyName || finalResearch.companyName || original.company_domain_key);\nconst companyRows = Array.isArray(original.rows) ? original.rows : [];\nconst email4Eligibility = determineEmail4Eligibility(original.company_domain_key, companyName, companyRows, finalResearch);\n\nconst rowResults = [];\nfor (const row of companyRows) {\n  const result = await resolveGhlContact.call(this, row, companyName);\n  rowResults.push({\n    emerald_row_id: Number(row.emerald_row_id),\n    ghl_contact_id: result.contactId,\n    ghl_contact_match_method: result.matchMethod,\n    ghl_contact_sync_status: result.syncStatus,\n    ghl_contact_sync_error: result.syncError,\n    resolved_email: result.resolvedEmail,\n    resolved_phone: result.resolvedPhone,\n  });\n}\n\nconst allRowsSynced = rowResults.length > 0 && rowResults.every((r) => str(r.ghl_contact_sync_status).toLowerCase() === 'synced');\nlet propagatedDoneUpdated = 0;\nlet propagatedDoneFailed = 0;\nlet propagatedDoneCandidates = 0;\nlet propagatedDoneAttempted = false;\nconst shouldSkipPropagation =\n  email4Eligibility.ready !== 'Yes' ||\n  (\n    isInstitutionalCompany(original.company_domain_key, companyName) &&\n    !finalResearch.company_operating_state &&\n    !finalResearch.company_research_snippet &&\n    String(finalResearch.company_research_source || '').toLowerCase() !== 'website+heuristic'\n  );\nif (allRowsSynced && !shouldSkipPropagation) {\n  const contactFieldIds = await ensureContactFieldIds.call(this);\n  const companyContacts = await listCompanyContactsForPropagation.call(this, original.company_domain_key, companyName);\n  propagatedDoneCandidates = companyContacts.length;\n  const customFields = buildResearchCustomFields(contactFieldIds, companyName, finalResearch, email4Eligibility);\n  const result = await syncResearchForCompanyContacts.call(this, companyContacts, customFields);\n  propagatedDoneUpdated = result.updated;\n  propagatedDoneFailed = result.failed;\n  propagatedDoneAttempted = true;\n}\n\nconst syncSql = buildCompanyUpsertSql({\n  company_domain_key: original.company_domain_key,\n  company_name: companyName,\n  rows: rowResults,\n}, {\n  companyName,\n  ...finalResearch,\n});\n\nreturn {\n  json: {\n    company_domain_key: original.company_domain_key,\n    company_name: companyName,\n    rowCount: companyRows.length,\n    cacheHit: !!original.cacheHit,\n    research_confidence: finalResearch.company_research_confidence,\n    company_operating_state: finalResearch.company_operating_state || '',\n    company_operating_market_note: finalResearch.company_operating_market_note || '',\n    company_cannabis_marketing_signal: finalResearch.company_cannabis_marketing_signal || '',\n    company_research_snippet: finalResearch.company_research_snippet || '',\n    company_research_source: finalResearch.company_research_source || '',\n    email4_personalization_ready: email4Eligibility.ready,\n    email4_personalization_reason: email4Eligibility.reason,\n    propagated_done_attempted: propagatedDoneAttempted,\n    propagated_done_candidates: propagatedDoneCandidates,\n    propagated_done_updated: propagatedDoneUpdated,\n    propagated_done_failed: propagatedDoneFailed,\n    row_results: rowResults,\n    source_rows: companyRows,\n    syncSql,\n  },\n};\n"
+      },
+      "id": "finalize_company_sync",
+      "name": "Finalize Company Sync",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2416,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{$json.syncSql}}",
+        "options": {}
+      },
+      "id": "persist_company_sync",
+      "name": "Persist Company Sync Results",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2640,
+        -864
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map((i) => i.json || {});\nconst totals = items.reduce((acc, item) => {\n  acc.companyCount += 1;\n  acc.rowCount += Number(item.rowCount || 0);\n  if (item.cacheHit) acc.cacheHits += 1; else acc.cacheMisses += 1;\n  if (String(item.research_confidence || '').toLowerCase() === 'high') acc.highConfidence += 1;\n  if (String(item.research_confidence || '').toLowerCase() === 'medium') acc.mediumConfidence += 1;\n  if (item.phoneResearchApplied === true) acc.phoneEnriched += 1;\n  if (item.phoneResearchApplied === false) acc.phoneSkipped += 1;\n  return acc;\n}, { companyCount: 0, rowCount: 0, cacheHits: 0, cacheMisses: 0, highConfidence: 0, mediumConfidence: 0, phoneEnriched: 0, phoneSkipped: 0 });\nreturn [{ json: { ok: true, ...totals, note: 'Company research cached in Postgres and GHL contacts were found/created/updated per row.' } }];"
+      },
+      "id": "9d65971f-a351-42a0-9a4a-a786e88f577d",
+      "name": "Summarize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2864,
+        -864
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Ensure Executive SSO Research Cache Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Executive SSO Research Cache Table": {
+      "main": [
+        [
+          {
+            "node": "Fetch Executive SSO Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Executive SSO Candidates": {
+      "main": [
+        [
+          {
+            "node": "Prepare Company Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Company Groups": {
+      "main": [
+        [
+          {
+            "node": "Build Cache Lookup Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Cache Lookup Query": {
+      "main": [
+        [
+          {
+            "node": "Fetch Company Cache Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Company Cache Rows": {
+      "main": [
+        [
+          {
+            "node": "Prepare Company Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Company Research": {
+      "main": [
+        [
+          {
+            "node": "Needs Research?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Research?": {
+      "main": [
+        [
+          {
+            "node": "OpenRouter Research",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Research Paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenRouter Research": {
+      "main": [
+        [
+          {
+            "node": "Merge Research Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Research Response": {
+      "main": [
+        [
+          {
+            "node": "Finalize Company Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Company Sync": {
+      "main": [
+        [
+          {
+            "node": "Persist Company Sync Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist Company Sync Results": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Research Paths": {
+      "main": [
+        [
+          {
+            "node": "Parse Research Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": [
+        10
+      ]
+    },
+    "global": {
+      "ghlPhoneFieldIds": {
+        "companyPhoneFieldId": "YNlWu5FRGk0PhepqD0Zo",
+        "apolloStatusFieldId": "rgYJ7UqoznGoe3WeUAtH"
+      }
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "324c1797-58c4-4001-9c96-602c99fc90d8",
+  "activeVersionId": "324c1797-58c4-4001-9c96-602c99fc90d8",
+  "versionCounter": 677,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T16:25:14.015Z",
+      "createdAt": "2026-03-30T16:25:14.015Z",
+      "role": "workflow:owner",
+      "workflowId": "GHVYyYmhfNiZ7bbN",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-07T12:31:41.559Z",
+    "createdAt": "2026-04-07T12:31:33.782Z",
+    "versionId": "324c1797-58c4-4001-9c96-602c99fc90d8",
+    "workflowId": "GHVYyYmhfNiZ7bbN",
+    "nodes": [
+      {
+        "parameters": {
+          "content": "LT - Emerald Executive SSO -> Company Sync (Staged)\n\nPurpose\n- Process the executive SSO queue in Postgres.\n- Group contacts by company/domain so research is reused across the same company.\n- Find or create the matching GHL contact per row.\n- Fill missing GHL email/phone only when the value is verified from GHL or source data.\n- Cache company-level research in Postgres for future reuse.\n\nResearch Flow\n- Prepare evidence from the company website and cache rows.\n- Send the evidence to OpenRouter using the credential-backed HTTP Request nodes.\n- Validate the model output before finalizing writes.\n\nImportant Rules\n- Do not infer company geography from the contact's own location.\n- Do not overwrite existing GHL fields when a value already exists.\n- Keep company-level research snippets short, factual, and source-backed.\n\nCurrent Live Behavior\n- active: true\n- OpenRouter is configured through the n8n credential \"OpenRouter account\"\n- This workflow runs on schedule and updates both GHL and Postgres.",
+          "height": 544,
+          "width": 640
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -352,
+          -1680
+        ],
+        "id": "company_sync_note",
+        "name": "Company Sync Note"
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 2
+              }
+            ]
+          }
+        },
+        "id": "c2c7dcf5-74f7-471f-9461-4cc9d1bb406f",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -272,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "location",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "base",
+                "name": "apiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "apikey",
+                "name": "apiKey",
+                "type": "string",
+                "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"
+              },
+              {
+                "id": "dry",
+                "name": "defaultDryRun",
+                "type": "boolean",
+                "value": false
+              },
+              {
+                "id": "source",
+                "name": "sourceLabel",
+                "type": "string",
+                "value": "emerald_executive_sso"
+              },
+              {
+                "id": "table",
+                "name": "sourceTable",
+                "type": "string",
+                "value": "Emerald_Campaign_Contacts"
+              },
+              {
+                "id": "cache",
+                "name": "companyCacheTable",
+                "type": "string",
+                "value": "Emerald_Company_Research_Cache"
+              },
+              {
+                "id": "batch",
+                "name": "batchLimit",
+                "type": "number",
+                "value": 12
+              },
+              {
+                "id": "queue",
+                "name": "queueTag",
+                "type": "string",
+                "value": "Enrollment Queue - Emerald - Executives SSO"
+              },
+              {
+                "id": "research",
+                "name": "researchModel",
+                "type": "string",
+                "value": "google/gemini-2.5-flash"
+              },
+              {
+                "id": "validator",
+                "name": "validatorModel",
+                "type": "string",
+                "value": "qwen/qwen-2.5-7b-instruct"
+              },
+              {
+                "id": "or_base",
+                "name": "openRouterBaseUrl",
+                "type": "string",
+                "value": "https://openrouter.ai/api/v1"
+              },
+              {
+                "id": "website_pages",
+                "name": "websiteMaxPages",
+                "type": "number",
+                "value": 3
+              },
+              {
+                "id": "website_chars",
+                "name": "websiteMaxChars",
+                "type": "number",
+                "value": 7000
+              },
+              {
+                "id": "research_field",
+                "name": "researchFieldName",
+                "type": "string",
+                "value": "emerald_exec_sso_ai_research"
+              },
+              {
+                "id": "company_name_emails_field",
+                "name": "companyNameForEmailsFieldName",
+                "type": "string",
+                "value": "Company Name for Emails"
+              },
+              {
+                "id": "company_state_field",
+                "name": "companyOperatingStateFieldName",
+                "type": "string",
+                "value": "Em_Company_Operating_State"
+              },
+              {
+                "id": "company_snippet_field",
+                "name": "companyResearchSnippetFieldName",
+                "type": "string",
+                "value": "Em_Company_Research_Snippet"
+              },
+              {
+                "id": "company_market_note_field",
+                "name": "companyMarketNoteFieldName",
+                "type": "string",
+                "value": "Em_Company_Market_Note"
+              },
+              {
+                "id": "cannabis_signal_field",
+                "name": "cannabisMarketingSignalFieldName",
+                "type": "string",
+                "value": "Em_Cannabis_Marketing_Signal"
+              },
+              {
+                "id": "email4_ready_field",
+                "name": "email4ReadyFieldName",
+                "type": "string",
+                "value": "Em_Email4_Personalization_Ready"
+              },
+              {
+                "id": "email4_reason_field",
+                "name": "email4ReasonFieldName",
+                "type": "string",
+                "value": "Em_Email4_Personalization_Reason"
+              },
+              {
+                "id": "phone_research_model",
+                "name": "phoneResearchModel",
+                "type": "string",
+                "value": "google/gemini-2.5-flash"
+              },
+              {
+                "id": "company_phone_field_name",
+                "name": "companyPhoneFieldName",
+                "value": "Company Phone",
+                "type": "string"
+              },
+              {
+                "id": "apollo_phone_status_field_name",
+                "name": "apolloPhoneStatusFieldName",
+                "value": "Apollo Phone Enrichment Status",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "f2d271a9-08c2-4655-82c7-901cb35c05c4",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -48,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "CREATE TABLE IF NOT EXISTS \"Emerald_Company_Research_Cache\" (\n  company_domain_key TEXT PRIMARY KEY,\n  company_name TEXT,\n  company_research_snippet TEXT,\n  company_operating_state TEXT,\n  company_operating_market_note TEXT,\n  company_cannabis_marketing_signal TEXT,\n  company_research_confidence TEXT,\n  company_research_source TEXT,\n  company_research_last_verified_at TIMESTAMPTZ,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_domain_key TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_research_snippet TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_operating_state TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_operating_market_note TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_cannabis_marketing_signal TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_research_confidence TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_research_source TEXT;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS company_research_last_verified_at TIMESTAMPTZ;\nALTER TABLE \"Emerald_Campaign_Contacts\" ADD COLUMN IF NOT EXISTS emerald_exec_sso_ai_research TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_domain_key TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_name TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_non_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS location_non_linkedin_urls TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_research_snippet TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_operating_state TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_operating_market_note TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_cannabis_marketing_signal TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_research_confidence TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_research_source TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS company_research_last_verified_at TIMESTAMPTZ;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS emerald_exec_sso_ai_research TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_id TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_match_method TEXT;\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_sync_status TEXT DEFAULT 'pending';\nALTER TABLE \"Emerald_Contacts\" ADD COLUMN IF NOT EXISTS ghl_contact_sync_error TEXT;",
+          "options": {}
+        },
+        "id": "ab0ad02f-d6cb-4aeb-ba79-1030501afa45",
+        "name": "Ensure Executive SSO Research Cache Table",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          176,
+          -864
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT\n  e.id AS emerald_row_id,\n  e.record_key,\n  e.first_name,\n  e.last_name,\n  e.full_name,\n  COALESCE(NULLIF(e.primary_email, ''), NULLIF(e.raw_payload->>'Primary Email', ''), NULLIF(e.raw_payload->>'primary_email', ''), NULLIF(e.raw_payload->>'email', '')) AS email,\n  COALESCE(NULLIF(e.primary_phone, ''), NULLIF(e.raw_payload->>'Primary Phone', ''), NULLIF(e.raw_payload->>'primary_phone', ''), NULLIF(e.raw_payload->>'phone', '')) AS phone,\n  COALESCE(NULLIF(e.company_name, ''), NULLIF(e.raw_payload->>'Company Name(s)', ''), NULLIF(e.raw_payload->>'company_name', ''), NULLIF(e.raw_payload->>'companyName', '')) AS company_name,\n  COALESCE(NULLIF(e.company_non_linkedin_urls, ''), NULLIF(e.raw_payload->>'Company non-LinkedIn URL(s)', ''), NULLIF(e.raw_payload->>'company_non_linkedin_urls', '')) AS company_non_linkedin_urls,\n  COALESCE(NULLIF(e.company_linkedin_urls, ''), NULLIF(e.raw_payload->>'Company LinkedIn URL(s)', ''), NULLIF(e.raw_payload->>'company_linkedin_urls', '')) AS company_linkedin_urls,\n  COALESCE(NULLIF(e.location_non_linkedin_urls, ''), NULLIF(e.raw_payload->>'Location non-LinkedIn URL(s)', ''), NULLIF(e.raw_payload->>'location_non_linkedin_urls', '')) AS location_non_linkedin_urls,\n  e.contact_city,\n  e.contact_state,\n  e.source_file,\n  e.tags,\n  e.raw_payload,\n  e.company_domain_key,\n  e.company_research_snippet,\n  e.company_operating_state,\n  e.company_operating_market_note,\n  e.company_cannabis_marketing_signal,\n  e.company_research_confidence,\n  e.company_research_source,\n  e.company_research_last_verified_at,\n  e.emerald_exec_sso_ai_research,\n  e.ghl_contact_id,\n  e.ghl_contact_match_method,\n  e.ghl_contact_sync_status,\n  e.ghl_contact_sync_error,\n  e.raw_payload->>'all_known_phones' AS all_known_phones,\n  e.raw_payload->>'Em_All_Known_Phones' AS em_all_known_phones,\n  e.raw_payload->>'raw_phone' AS raw_phone\nFROM \"Emerald_Contacts\" e\nWHERE (\n    LOWER(COALESCE(e.tags::text, '')) LIKE '%seq enrolled - emerald%'\n    OR LOWER(COALESCE(e.tags::text, '')) LIKE '%seq emerald - executives sso%'\n    OR LOWER(COALESCE(e.tags::text, '')) LIKE '%enrollment queue - emerald - executives sso%'\n  )\n  AND (\n    COALESCE(e.ghl_contact_sync_status, 'pending') NOT IN ('synced')\n  )\n  AND LOWER(COALESCE(e.emerald_exec_sso_ai_research, '')) <> 'done'\nORDER BY e.id ASC\nLIMIT {{$node[\"Config\"].json.batchLimit}};",
+          "options": {}
+        },
+        "id": "85ade8e8-93be-4ea6-a812-782c05f6da65",
+        "name": "Fetch Executive SSO Candidates",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          400,
+          -864
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const rows = $items('Fetch Executive SSO Candidates').map((i) => i.json || {});\n\nfunction str(v) {\n  const s = String(v ?? '').trim();\n  return s || '';\n}\nfunction normalizeDomain(value) {\n  return str(value).toLowerCase().replace(/^https?:\\/\\//, '').replace(/^www\\./, '').split('/')[0].replace(/[^a-z0-9.-]/g, '');\n}\nfunction domainFromEmail(email) {\n  const value = str(email).toLowerCase();\n  const idx = value.lastIndexOf('@');\n  return idx > -1 ? value.slice(idx + 1) : '';\n}\nfunction firstUrl(value) {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  const parts = raw.split(/[\\s,;|]+/).map((p) => p.trim()).filter(Boolean);\n  const candidate = parts.find((p) => /^https?:\\/\\//i.test(p) || /^[a-z0-9.-]+\\.[a-z]{2,}/i.test(p));\n  return candidate || '';\n}\nfunction domainFromUrl(value) {\n  const raw = str(value);\n  if (!raw) return '';\n  const normalized = raw.startsWith('http') ? raw : `https://${raw}`;\n  const withoutScheme = normalized.replace(/^https?:\\/\\//i, '');\n  return normalizeDomain(withoutScheme.split('/')[0]);\n}\n\nconst genericDomains = new Set([\n  'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com',\n  'aol.com', 'live.com', 'proton.me', 'protonmail.com', 'me.com', 'mail.com',\n  'twitter.com', 'x.com', 'linkedin.com', 'facebook.com', 'instagram.com',\n  'tiktok.com', 'youtube.com',\n]);\n\nfunction companyKey(row) {\n  const emailDomain = normalizeDomain(domainFromEmail(row.email));\n  if (emailDomain && !genericDomains.has(emailDomain)) return emailDomain;\n\n  const url = firstUrl(row.company_non_linkedin_urls) || firstUrl(row.location_non_linkedin_urls);\n  if (url) {\n    return domainFromUrl(url);\n  }\n\n  return `name::${str(row.company_name).toLowerCase() || row.record_key || row.emerald_row_id}`;\n}\n\nconst groups = new Map();\nfor (const row of rows) {\n  const key = companyKey(row);\n  if (!groups.has(key)) {\n    groups.set(key, { company_domain_key: key, company_name: str(row.company_name), rows: [] });\n  }\n  groups.get(key).rows.push(row);\n}\n\nreturn [{\n  json: {\n    batchCount: rows.length,\n    companyCount: groups.size,\n    companyDomainKeys: Array.from(groups.keys()),\n    companies: Array.from(groups.values()),\n    note: 'Companies are grouped by non-generic domain first, then company URL, then company name fallback.',\n  }\n}];"
+        },
+        "id": "86033997-99be-46ab-bc37-e4658eac7475",
+        "name": "Prepare Company Groups",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          624,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const payload = $item(0).$node['Prepare Company Groups'].json || {};\nconst keys = Array.isArray(payload.companyDomainKeys) ? payload.companyDomainKeys : [];\nconst sql = keys.length\n  ? `WITH keys AS (\n      SELECT unnest(ARRAY[${keys.map((key) => `'${String(key).replace(/'/g, \"''\")}'`).join(', ')}]::text[]) AS company_domain_key\n    )\n    SELECT\n      k.company_domain_key,\n      c.company_name,\n      c.company_research_snippet,\n      c.company_operating_state,\n      c.company_operating_market_note,\n      c.company_cannabis_marketing_signal,\n      c.company_research_confidence,\n      c.company_research_source,\n      c.company_research_last_verified_at,\n      c.created_at,\n      c.updated_at\n    FROM keys k\n    LEFT JOIN \"Emerald_Company_Research_Cache\" c\n      ON c.company_domain_key = k.company_domain_key;`\n  : `SELECT NULL::text AS company_domain_key WHERE FALSE;`;\nreturn [{ json: { cacheLookupSql: sql } }];"
+        },
+        "id": "2633b266-b3ea-48dc-913b-c572c0d03a30",
+        "name": "Build Cache Lookup Query",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          848,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{$json.cacheLookupSql}}",
+          "options": {}
+        },
+        "id": "82695666-4109-41c1-b51a-37d4ce5786de",
+        "name": "Fetch Company Cache Rows",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1072,
+          -864
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const cfg = $item(0).$node['Config'].json || {};\nconst payload = $items('Prepare Company Groups').map((i) => i.json || {})[0] || {};\nconst cacheRows = $items('Fetch Company Cache Rows').map((i) => i.json || {});\n\nfunction str(v) {\n  const s = String(v ?? '').trim();\n  return s || '';\n}\nfunction normalizeDomain(value) {\n  return str(value).toLowerCase().replace(/^https?:\\/\\//, '').replace(/^www\\./, '').split('/')[0].replace(/[^a-z0-9.-]/g, '');\n}\nfunction domainFromEmail(email) {\n  const value = str(email).toLowerCase();\n  const idx = value.lastIndexOf('@');\n  return idx > -1 ? normalizeDomain(value.slice(idx + 1)) : '';\n}\nfunction firstUrl(value) {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  const parts = raw.split(/[\\s,;|]+/).map((p) => p.trim()).filter(Boolean);\n  const candidate = parts.find((p) => /^https?:\\/\\//i.test(p) || /^[a-z0-9.-]+\\.[a-z]{2,}/i.test(p));\n  return candidate || '';\n}\nfunction domainFromUrl(value) {\n  const raw = str(value);\n  if (!raw) return '';\n  const normalized = raw.startsWith('http') ? raw : `https://${raw}`;\n  const withoutScheme = normalized.replace(/^https?:\\/\\//i, '');\n  return normalizeDomain(withoutScheme.split('/')[0]);\n}\n\nconst STATE_MAP = {\n  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming', DC: 'District of Columbia',\n};\nconst STATE_ABBRS = Object.keys(STATE_MAP);\nconst CANNABIS_TERMS = [\n  'cannabis', 'marijuana', 'dispensary', 'dispensaries', 'weed', 'thc', 'hemp', 'cbd',\n  'edibles', 'flower', 'pre-roll', 'preroll', 'vape', 'vapes', 'concentrate', 'extract',\n  'rosin', 'tincture', 'gummies', 'menu', 'products', 'store', 'retail', 'retailer',\n  'medical cannabis', 'adult-use', 'recreational', 'cultivation', 'cultivator', 'license',\n  'licensed', 'delivery', 'strain', 'budtender',\n];\nconst INSTITUTION_TERMS = ['university', 'college', 'school', 'faculty', 'campus', 'institute', 'academy'];\nconst BUSINESS_OVERRIDE_TERMS = [\n  'dispensary', 'dispensaries', 'cannabis', 'hemp', 'thc', 'cbd', 'retail', 'retailer',\n  'store', 'shop', 'brands', 'brand', 'operator', 'operations', 'holdings', 'labs',\n  'cultivation', 'licensed', 'delivery', 'medical cannabis', 'adult-use', 'recreational',\n];\nconst MAX_WEBSITE_PAGES = Number(cfg.websiteMaxPages || 3);\nconst MAX_WEBSITE_CHARS = Number(cfg.websiteMaxChars || 7000);\n\nfunction isAcademicDomain(domain) {\n  const d = normalizeDomain(domain);\n  return !!d && (\n    d.endsWith('.edu') ||\n    d.endsWith('.ac.uk') ||\n    d.endsWith('.edu.au') ||\n    d.endsWith('.ac.nz') ||\n    d.endsWith('.ac.jp') ||\n    d.endsWith('.edu.mx') ||\n    d.includes('.edu.')\n  );\n}\n\nfunction textHasAny(text, terms) {\n  const hay = str(text).toLowerCase();\n  return terms.some((term) => hay.includes(term));\n}\n\nfunction companyLooksInstitutional(companyName, domain) {\n  return isAcademicDomain(domain) || textHasAny(companyName, INSTITUTION_TERMS);\n}\nfunction looksLikeResearchableDomain(value) {\n  const domain = normalizeDomain(value);\n  return !!domain && domain.includes('.') && !isAcademicDomain(domain);\n}\nfunction isReusableCache(cache) {\n  const source = str(cache?.company_research_source).toLowerCase();\n  const state = str(cache?.company_operating_state);\n  const snippet = str(cache?.company_research_snippet);\n  const signal = str(cache?.company_cannabis_marketing_signal);\n  if (source !== 'website+heuristic') return false;\n  return !!(state && (snippet || signal));\n}\n\nfunction resolveBusinessUrl(company) {\n  const rows = Array.isArray(company.rows) ? company.rows : [];\n  for (const row of rows) {\n    const url = firstUrl(row.company_non_linkedin_urls) || firstUrl(row.location_non_linkedin_urls);\n    if (url) return url.startsWith('http') ? url : `https://${url}`;\n  }\n  return '';\n}\n\nfunction hasBusinessOverrideSignal(company, businessUrl) {\n  const companyName = str(company.company_name || '');\n  if (businessUrl && !isAcademicDomain(domainFromUrl(businessUrl))) return true;\n  if (textHasAny(companyName, BUSINESS_OVERRIDE_TERMS)) return true;\n  const rows = Array.isArray(company.rows) ? company.rows : [];\n  return rows.some((row) => {\n    const hay = [\n      row.company_name,\n      row.company_non_linkedin_urls,\n      row.location_non_linkedin_urls,\n      row.company_linkedin_urls,\n      row.location_linkedin_urls,\n    ].map((v) => str(v)).join(' | ');\n    return textHasAny(hay, BUSINESS_OVERRIDE_TERMS);\n  });\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function fetchText(url) {\n  try {\n    const res = await doHttpRequest.call(this, {\n      method: 'GET',\n      url,\n      headers: {\n        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.0',\n        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',\n      },\n      json: false,\n      encoding: 'text',\n      followRedirect: true,\n      timeout: 15000,\n    });\n    return typeof res === 'string' ? res : String(res || '');\n  } catch {\n    return '';\n  }\n}\nfunction stripHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<noscript[\\s\\S]*?<\\/noscript>/gi, ' ')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/gi, ' ')\n    .replace(/&amp;/gi, '&')\n    .replace(/&quot;/gi, '\"')\n    .replace(/&#39;/gi, \"'\")\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\nfunction extractLinks(html, baseUrl) {\n  const out = [];\n  const baseDomain = domainFromUrl(baseUrl);\n  const baseRoot = /^https?:\\/\\//i.test(baseUrl)\n    ? baseUrl.replace(/^(https?:\\/\\/[^/]+).*$/i, '$1')\n    : `https://${baseDomain}`;\n  const re = /href=[\"']([^\"']+)[\"']/gi;\n  let m;\n  while ((m = re.exec(html || ''))) {\n    const href = String(m[1] || '').trim();\n    if (!href || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('#') || href.startsWith('javascript:')) continue;\n    let abs = '';\n    if (/^https?:\\/\\//i.test(href)) abs = href;\n    else if (href.startsWith('/')) abs = `${baseRoot}${href}`;\n    else abs = `${baseRoot}/${href.replace(/^\\.?\\//, '')}`;\n    const absDomain = domainFromUrl(abs);\n    if (!absDomain || absDomain !== baseDomain) continue;\n    const path = abs.replace(/^https?:\\/\\/[^/]+/i, '').toLowerCase();\n    if (/(about|about-us|contact|contacts|locations|location|stores?|dispensary|dispensaries|menu|product|products|shop|brands?|brand|company|team|leadership|management|our-story|services|solutions|industries|compliance|regulatory|cannabis|weed|hemp|thc|cbd|medical|recreational|licensed|license|cultivation|delivery)/.test(path)) out.push(abs);\n  }\n  return Array.from(new Set(out)).slice(0, MAX_WEBSITE_PAGES - 1);\n}\nfunction detectState(text) {\n  const hay = String(text || '').toUpperCase();\n  for (const abbr of STATE_ABBRS) {\n    const name = STATE_MAP[abbr].toUpperCase();\n    if (new RegExp(`\\\\b${abbr}\\\\b\\\\s+\\\\d{5}`).test(hay) || hay.includes(` ${name} `)) return STATE_MAP[abbr];\n  }\n  return '';\n}\nfunction detectCannabisSignals(text) {\n  const hay = String(text || '').toLowerCase();\n  return CANNABIS_TERMS.filter((term) => hay.includes(term)).slice(0, 6);\n}\nfunction deterministicSnippet(companyName, state, signals) {\n  if (!state || !signals.length) return '';\n  return `Based on our research into ${companyName}'s ${state} market presence, the site shows active cannabis-related product marketing. For a company like ${companyName}, that usually means stable, compliant visibility matters if you want to keep momentum.`;\n}\nfunction researchConfidence(state, cannabisSignals, companyName, combinedText) {\n  const hasCompanyName = combinedText.toLowerCase().includes(companyName.toLowerCase());\n  if (state && cannabisSignals.length && hasCompanyName) return 'high';\n  if (state || cannabisSignals.length) return 'medium';\n  return 'low';\n}\nfunction buildResearchSeed(company, cacheHit) {\n  const cache = cacheHit || {};\n  const companyName = cache.company_name || company.company_name || company.company_domain_key;\n  const urls = [];\n  for (const row of company.rows) {\n    const u = firstUrl(row.company_non_linkedin_urls) || firstUrl(row.location_non_linkedin_urls) || firstUrl(row.company_linkedin_urls) || firstUrl(row.location_linkedin_urls);\n    if (u) urls.push(u.startsWith('http') ? u : `https://${u}`);\n  }\n  if (!urls.length && looksLikeResearchableDomain(company.company_domain_key) && !isReusableCache(cache)) {\n    urls.push(`https://${normalizeDomain(company.company_domain_key)}`);\n  }\n  const uniqueUrls = Array.from(new Set(urls)).slice(0, MAX_WEBSITE_PAGES);\n  return {\n    companyName,\n    urls: uniqueUrls,\n    cache,\n    base: {\n      company_domain_key: company.company_domain_key,\n      company_name: companyName,\n      company_operating_state: cache.company_operating_state || '',\n      company_operating_market_note: cache.company_operating_market_note || '',\n      company_cannabis_marketing_signal: cache.company_cannabis_marketing_signal || '',\n      company_research_snippet: cache.company_research_snippet || '',\n      company_research_confidence: cache.company_research_confidence || 'low',\n      company_research_source: cache.company_research_source || '',\n      company_research_last_verified_at: cache.company_research_last_verified_at || '',\n    },\n  };\n}\n\nasync function researchCompany(company, cacheHit) {\n  const seed = buildResearchSeed(company, cacheHit);\n  const cacheReusable = isReusableCache(seed.cache);\n  const emailDomain = domainFromEmail(company.rows?.[0]?.email || '');\n  const businessUrl = resolveBusinessUrl(company);\n  const institutional = companyLooksInstitutional(seed.companyName, emailDomain || company.company_domain_key);\n  const businessOverride = hasBusinessOverrideSignal(company, businessUrl);\n  if (cacheReusable) {\n    return {\n      companyName: seed.companyName,\n      evidencePages: [],\n      deterministic: {\n        companyName: seed.companyName,\n        company_operating_state: seed.cache.company_operating_state || '',\n        company_operating_market_note: seed.cache.company_operating_market_note || '',\n        company_cannabis_marketing_signal: seed.cache.company_cannabis_marketing_signal || '',\n        company_research_snippet: seed.cache.company_research_snippet || '',\n        company_research_confidence: seed.cache.company_research_confidence || 'low',\n        company_research_source: seed.cache.company_research_source || '',\n      },\n      researchMode: 'cache_only',\n      cache: seed.cache,\n    };\n  }\n  if (institutional && !businessOverride) {\n    return {\n      companyName: seed.companyName,\n      evidencePages: [],\n      deterministic: {\n        companyName: seed.companyName,\n        company_operating_state: '',\n        company_operating_market_note: '',\n        company_cannabis_marketing_signal: '',\n        company_research_snippet: '',\n        company_research_confidence: 'low',\n        company_research_source: 'skipped_institutional_domain',\n      },\n      researchMode: 'skip_institutional',\n      cache: seed.cache,\n    };\n  }\n  const evidencePages = [];\n  for (const url of seed.urls.slice(0, MAX_WEBSITE_PAGES)) {\n    const html = await fetchText(url);\n    if (!html) continue;\n    const text = stripHtml(html).slice(0, MAX_WEBSITE_CHARS);\n    evidencePages.push({ url, text, title: (html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] || '').replace(/\\s+/g, ' ').trim() });\n    if (evidencePages.length < MAX_WEBSITE_PAGES) {\n      for (const link of extractLinks(html, url).slice(0, MAX_WEBSITE_PAGES - evidencePages.length)) {\n        const linkedHtml = await fetchText(link);\n        if (!linkedHtml) continue;\n        evidencePages.push({ url: link, text: stripHtml(linkedHtml).slice(0, MAX_WEBSITE_CHARS), title: (linkedHtml.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] || '').replace(/\\s+/g, ' ').trim() });\n        if (evidencePages.length >= MAX_WEBSITE_PAGES) break;\n      }\n    }\n    if (evidencePages.length >= MAX_WEBSITE_PAGES) break;\n  }\n\n  const combinedText = [seed.companyName, ...evidencePages.map((p) => `${p.title} ${p.text} ${p.url}`)].join(' | ');\n  const state = detectState(combinedText);\n  const cannabisSignals = detectCannabisSignals(combinedText);\n  const confidence = researchConfidence(state, cannabisSignals, seed.companyName, combinedText);\n  const marketNote = state ? `Website evidence ties ${seed.companyName} to ${state}.` : '';\n  const signalText = cannabisSignals.length ? cannabisSignals.join(', ') : '';\n  const deterministic = {\n    companyName: seed.companyName,\n    company_operating_state: state,\n    company_operating_market_note: marketNote,\n    company_cannabis_marketing_signal: signalText,\n    company_research_snippet: deterministicSnippet(seed.companyName, state, cannabisSignals),\n    company_research_confidence: confidence,\n    company_research_source: evidencePages.length ? 'website+heuristic' : 'no_website_evidence',\n  };\n\n  return {\n    companyName: seed.companyName,\n    evidencePages,\n    deterministic,\n    researchMode: evidencePages.length\n      ? 'website'\n      : 'deterministic_only',\n    cache: seed.cache,\n  };\n}\n\nfunction buildResearchMessages(company) {\n  const payload = {\n    company_name: company.companyName,\n    company_domain_key: company.company_domain_key,\n    evidence_pages: company.evidencePages.map((p) => ({ url: p.url, title: p.title, text: p.text.slice(0, 3500) })),\n    deterministic: company.deterministic,\n    rules: [\n      'Use only evidence provided.',\n      'Do not infer company geography from the contact state.',\n      'If operating state is not explicit in evidence, leave it blank.',\n      'If cannabis-product marketing is not explicit, leave the signal blank.',\n      'Output JSON only.',\n    ],\n  };\n\n  return [\n    { role: 'system', content: 'You are a factual company research synthesizer. Return compact JSON only with keys: company_operating_state, company_operating_market_note, company_cannabis_marketing_signal, company_research_snippet, company_research_confidence, company_research_source. Do not explain. Do not reason step-by-step. Do not add commentary. If evidence is weak, leave fields blank and keep the snippet very short.' },\n    { role: 'user', content: JSON.stringify(payload) },\n  ];\n}\n\nconst companyItems = Array.isArray(payload.companies) ? payload.companies : [];\nconst cacheByKey = new Map(cacheRows.map((r) => [normalizeDomain(r.company_domain_key), r]));\nconst outputs = [];\n\nfor (const company of companyItems) {\n  const cached = cacheByKey.get(normalizeDomain(company.company_domain_key)) || null;\n  const research = await researchCompany.call(this, company, cached);\n  const rowCount = Array.isArray(company.rows) ? company.rows.length : 0;\n\n  outputs.push({\n    json: {\n      company_domain_key: company.company_domain_key,\n      company_name: company.company_name || research.companyName || company.company_domain_key,\n      rowCount,\n      cacheHit: isReusableCache(cached),\n      cacheRowExists: !!cached,\n      cached_company_research_confidence: cached?.company_research_confidence || '',\n      evidencePages: research.evidencePages,\n      deterministic: research.deterministic,\n      researchMessages: buildResearchMessages({\n        company_domain_key: company.company_domain_key,\n        companyName: research.companyName || company.company_name || company.company_domain_key,\n        evidencePages: research.evidencePages,\n        deterministic: research.deterministic,\n      }),\n      rows: company.rows,\n      companyCacheRow: cached || null,\n      researchMode: research.researchMode,\n    },\n  });\n}\n\nreturn outputs.length ? outputs : [{ json: { ok: true, batchCount: 0, companyCount: 0, note: 'No pending executive SSO rows found.' } }];\n"
+        },
+        "id": "0ad2edb7-8f83-40c8-a9da-83b6f4d70a30",
+        "name": "Prepare Company Research",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1296,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{String($json.researchMode ?? \"\").trim().toLowerCase()}}",
+                "operation": "equal",
+                "value2": "website"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "needs_research",
+        "name": "Needs Research?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          1520,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://openrouter.ai/api/v1/chat/completions",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "openRouterApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              },
+              {
+                "name": "HTTP-Referer",
+                "value": "https://automations.livetransparent.com"
+              },
+              {
+                "name": "X-Title",
+                "value": "LiveTransparent Emerald Research"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { model: $item(0).$node[\"Config\"].json.researchModel, messages: $json.researchMessages, temperature: 0, response_format: { type: 'json_object' } } }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "openrouter_research",
+        "name": "OpenRouter Research",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          1744,
+          -928
+        ],
+        "credentials": {
+          "openRouterApi": {
+            "id": "JuE4C7PLHTAeBkze",
+            "name": "OpenRouter account"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {},
+        "id": "merge_research_paths",
+        "name": "Merge Research Paths",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          1968,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "const currentItem = $input.item || { json: $json || {} };\nconst src = currentItem.json || {};\nconst prepItems = $items('Prepare Company Research').map((item) => item.json || {});\nconst normalizedKey = String(src.company_domain_key ?? '').trim().toLowerCase();\nconst prep = prepItems.find((item) => String(item.company_domain_key ?? '').trim().toLowerCase() === normalizedKey)\n  || prepItems[Number(currentItem?.pairedItem?.item ?? currentItem?.pairedItem ?? -1)]\n  || {};\nconst content = src?.choices?.[0]?.message?.content || src?.message?.content || '';\nlet researchJson = null;\ntry {\n  researchJson = content ? JSON.parse(content) : null;\n} catch {\n  researchJson = null;\n}\nreturn {\n  ...prep,\n  research_raw: src,\n  research_content: content,\n  research_json: researchJson,\n};"
+        },
+        "id": "parse_research_response",
+        "name": "Parse Research Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2192,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "const currentItem = $input.item || { json: $json || {} };\nconst cfg = $item(0).$node['Config'].json || {};\nconst currentKey = String(currentItem.json?.company_domain_key ?? '').trim().toLowerCase();\nconst prepItems = $items('Prepare Company Research').map((i) => i.json || {});\nconst parsedItems = $items('Parse Research Response').map((i) => i.json || {});\nconst prep = prepItems.find(\n  (i) => String(i.company_domain_key ?? '').trim().toLowerCase() === currentKey\n) || prepItems[0] || {};\nconst parsedResearch = parsedItems.find(\n  (i) => String(i.company_domain_key ?? '').trim().toLowerCase() === currentKey\n) || parsedItems[0] || {};\nconst companyItems = Array.isArray(prep.rows) ? [prep] : [];\nconst researchFieldName = String(cfg.researchFieldName || 'emerald_exec_sso_ai_research').trim();\nconst companyNameForEmailsFieldName = String(cfg.companyNameForEmailsFieldName || 'Company Name for Emails').trim();\nconst companyOperatingStateFieldName = String(cfg.companyOperatingStateFieldName || 'Em_Company_Operating_State').trim();\nconst companyResearchSnippetFieldName = String(cfg.companyResearchSnippetFieldName || 'Em_Company_Research_Snippet').trim();\nconst companyMarketNoteFieldName = String(cfg.companyMarketNoteFieldName || 'Em_Company_Market_Note').trim();\nconst cannabisMarketingSignalFieldName = String(cfg.cannabisMarketingSignalFieldName || 'Em_Cannabis_Marketing_Signal').trim();\nconst email4ReadyFieldName = String(cfg.email4ReadyFieldName || 'Em_Email4_Personalization_Ready').trim();\nconst email4ReasonFieldName = String(cfg.email4ReasonFieldName || 'Em_Email4_Personalization_Reason').trim();\n\nfunction str(v) {\n  const s = String(v ?? '').trim();\n  return s || '';\n}\nfunction sqlLit(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'NULL';\n  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';\n  if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, \"''\")}'::jsonb`;\n  return `'${String(v).replace(/'/g, \"''\")}'`;\n}\nfunction normalizeDomain(value) {\n  return str(value).toLowerCase().replace(/^https?:\\/\\//, '').replace(/^www\\./, '').split('/')[0].replace(/[^a-z0-9.-]/g, '');\n}\nfunction domainFromEmail(email) {\n  const v = str(email).toLowerCase();\n  const i = v.lastIndexOf('@');\n  if (i < 0) return '';\n  return normalizeDomain(v.slice(i + 1));\n}\nconst genericDomains = new Set([\n  'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com',\n  'aol.com', 'live.com', 'proton.me', 'protonmail.com', 'me.com', 'mail.com',\n  'twitter.com', 'x.com', 'linkedin.com', 'facebook.com', 'instagram.com',\n  'tiktok.com', 'youtube.com',\n]);\nconst institutionalTerms = ['university', 'college', 'school', 'faculty', 'campus', 'institute', 'academy'];\nconst cannabisTerms = ['cannabis', 'marijuana', 'dispensary', 'weed', 'thc', 'hemp', 'cbd', 'edibles', 'flower', 'preroll', 'pre-roll', 'vape', 'concentrate', 'rosin', 'tincture', 'gummies', 'retail'];\nfunction isGenericDomain(domain) {\n  return genericDomains.has(normalizeDomain(domain));\n}\nfunction isAcademicDomain(domain) {\n  const d = normalizeDomain(domain);\n  return !!d && (\n    d.endsWith('.edu') ||\n    d.endsWith('.ac.uk') ||\n    d.endsWith('.edu.au') ||\n    d.endsWith('.ac.nz') ||\n    d.endsWith('.ac.jp') ||\n    d.endsWith('.edu.mx') ||\n    d.includes('.edu.')\n  );\n}\nfunction isInstitutionalCompany(companyDomainKey, companyName) {\n  return isAcademicDomain(companyDomainKey) || institutionalTerms.some((term) => str(companyName).toLowerCase().includes(term));\n}\nfunction textHasCannabisTerms(value) {\n  const hay = str(value).toLowerCase();\n  return cannabisTerms.some((term) => hay.includes(term));\n}\nfunction normalizePhone(phoneRaw, countryHint) {\n  const raw = str(phoneRaw);\n  if (!raw) return '';\n  const keepPlus = raw.startsWith('+');\n  let digits = raw.replace(/\\D+/g, '');\n  if (!digits) return '';\n  if (keepPlus) return `+${digits}`;\n  if (digits.length === 10 && String(countryHint || '').toUpperCase() === 'US') return `+1${digits}`;\n  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;\n  return `+${digits}`;\n}\nfunction normalizeLinkedinUrl(v) {\n  const s = String(v ?? '').trim();\n  if (!s) return '';\n  try {\n    const u = new URL(s);\n    const host = u.hostname.toLowerCase();\n    if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) return s;\n  } catch {}\n  return '';\n}\nfunction firstUrl(value) {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  const parts = raw.split(/[\\s,;|]+/).map((p) => p.trim()).filter(Boolean);\n  const candidate = parts.find((p) => /^https?:\\/\\//i.test(p) || /^[a-z0-9.-]+\\.[a-z]{2,}/i.test(p));\n  return candidate || '';\n}\nfunction isMissing(v) { return v === null || v === undefined || String(v).trim() === ''; }\nfunction allowedResearchText(text) {\n  const bad = ['probably', 'maybe', 'likely', 'appears to be', 'seems to be'];\n  const hay = String(text || '').toLowerCase();\n  return !bad.some((b) => hay.includes(b));\n}\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ baseUrl, method, path, headers, body, fullUrl, json = true }) {\n  const resolvedBase = str(baseUrl || cfg.apiBaseUrl || 'https://services.leadconnectorhq.com');\n  const options = { method, url: fullUrl || `${resolvedBase.replace(/\\/$/, '')}${path}`, headers, json };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\n\nconst ghlHeaders = {\n  Authorization: `Bearer ${cfg.apiKey}`,\n  Version: '2021-07-28',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nfunction extractContactId(payload) {\n  return String(payload?.contact?.id || payload?.id || payload?.contactId || '').trim();\n}\n\nfunction asContacts(payload) {\n  if (Array.isArray(payload?.contacts)) return payload.contacts;\n  if (Array.isArray(payload?.data?.contacts)) return payload.data.contacts;\n  if (Array.isArray(payload?.data)) return payload.data;\n  if (Array.isArray(payload)) return payload;\n  return [];\n}\n\nfunction buildContactSearchQuery(row, companyName) {\n  return str(row.full_name || [row.first_name, row.last_name].filter(Boolean).join(' ') || companyName || row.record_key || row.emerald_row_id);\n}\n\nlet contactFieldIds = null;\nasync function ensureContactFieldIds() {\n  if (contactFieldIds) return contactFieldIds;\n  const cf = await apiRequest.call(this, { method: 'GET', path: `/locations/${encodeURIComponent(cfg.locationId)}/customFields?model=contact`, headers: ghlHeaders });\n  if (!cf.ok) throw new Error(`Failed custom fields lookup: ${JSON.stringify(cf.data)}`);\n  const arr = Array.isArray(cf.data?.customFields)\n    ? cf.data.customFields\n    : Array.isArray(cf.data?.data?.customFields)\n      ? cf.data.data.customFields\n      : Array.isArray(cf.data?.data)\n        ? cf.data.data\n        : [];\n  const findId = (fieldName, required = false) => {\n    const id = arr.find((f) => String(f?.name || '').trim() === fieldName)?.id || '';\n    if (!id && required) throw new Error(`Missing GHL field: ${fieldName}`);\n    return id;\n  };\n  contactFieldIds = {\n    researchDone: findId(researchFieldName, true),\n    companyNameForEmails: findId(companyNameForEmailsFieldName, false),\n    companyOperatingState: findId(companyOperatingStateFieldName, false),\n    companyResearchSnippet: findId(companyResearchSnippetFieldName, false),\n    companyMarketNote: findId(companyMarketNoteFieldName, false),\n    cannabisMarketingSignal: findId(cannabisMarketingSignalFieldName, false),\n    email4Ready: findId(email4ReadyFieldName, false),\n    email4Reason: findId(email4ReasonFieldName, false),\n  };\n  return contactFieldIds;\n}\n\nfunction determineEmail4Eligibility(companyDomainKey, companyName, rows, research) {\n  const source = str(research.company_research_source).toLowerCase();\n  const state = str(research.company_operating_state);\n  const snippet = str(research.company_research_snippet);\n  const signal = str(research.company_cannabis_marketing_signal);\n  const combinedText = [\n    companyDomainKey,\n    companyName,\n    signal,\n    research.company_operating_market_note,\n    snippet,\n    ...(Array.isArray(rows)\n      ? rows.map((row) => [\n          row.company_name,\n          row.company_non_linkedin_urls,\n          row.location_non_linkedin_urls,\n          row.company_linkedin_urls,\n          row.location_linkedin_urls,\n        ].map((v) => str(v)).join(' | '))\n      : []),\n  ].join(' | ');\n  const hasCannabisContext = !!signal || textHasCannabisTerms(combinedText);\n  if (source === 'skipped_institutional_domain') return { ready: 'No', reason: 'institutional_domain' };\n  if (source !== 'website+heuristic') return { ready: 'No', reason: 'insufficient_website_evidence' };\n  if (!state) return { ready: 'No', reason: 'missing_operating_state' };\n  if (!snippet) return { ready: 'No', reason: 'missing_company_snippet' };\n  if (!hasCannabisContext) return { ready: 'No', reason: 'no_cannabis_or_marketing_signal' };\n  return { ready: 'Yes', reason: 'ready' };\n}\n\nfunction buildResearchCustomFields(fieldIds, companyName, research, email4Eligibility) {\n  const out = [];\n  const pushValue = (id, value, allowEmpty = false) => {\n    if (!id) return;\n    const stringValue = String(value ?? '').trim();\n    if (!stringValue && !allowEmpty) return;\n    out.push({ id, value: stringValue });\n  };\n  pushValue(fieldIds.researchDone, 'done', true);\n  pushValue(fieldIds.companyNameForEmails, companyName, false);\n  pushValue(fieldIds.companyOperatingState, research.company_operating_state || '', false);\n  pushValue(fieldIds.companyResearchSnippet, research.company_research_snippet || '', false);\n  pushValue(fieldIds.companyMarketNote, research.company_operating_market_note || '', false);\n  pushValue(fieldIds.cannabisMarketingSignal, research.company_cannabis_marketing_signal || '', false);\n  pushValue(fieldIds.email4Ready, email4Eligibility?.ready || 'No', true);\n  pushValue(fieldIds.email4Reason, email4Eligibility?.reason || 'unknown', true);\n  return out;\n}\n\nfunction getValidatedResearch() {\n  const candidate = $json?.choices?.[0]?.message?.content || $json?.message?.content || '';\n  if (!candidate) return null;\n  try {\n    return JSON.parse(candidate);\n  } catch {\n    return null;\n  }\n}\n\nfunction normalizeResearch(source, fallback) {\n  const out = {\n    company_operating_state: str(source?.company_operating_state || fallback?.company_operating_state || ''),\n    company_operating_market_note: str(source?.company_operating_market_note || fallback?.company_operating_market_note || ''),\n    company_cannabis_marketing_signal: str(source?.company_cannabis_marketing_signal || fallback?.company_cannabis_marketing_signal || ''),\n    company_research_snippet: str(source?.company_research_snippet || fallback?.company_research_snippet || ''),\n    company_research_confidence: str(source?.company_research_confidence || fallback?.company_research_confidence || 'low'),\n    company_research_source: str(source?.company_research_source || fallback?.company_research_source || ''),\n  };\n  if (!allowedResearchText(out.company_research_snippet)) out.company_research_snippet = '';\n  return out;\n}\n\nfunction buildCompanyUpsertSql(company, research) {\n  const rowIds = company.rows.map((r) => Number(r.emerald_row_id)).filter((n) => Number.isFinite(n));\n  const rowCases = (field, valueFn) => {\n    const cases = company.rows.map((row) => `WHEN ${Number(row.emerald_row_id)} THEN ${sqlLit(valueFn(row))}`).join(' ');\n    return `CASE id ${cases} ELSE ${field} END`;\n  };\n\n  const companyResearchSql = {\n    company_domain_key: company.company_domain_key,\n    company_name: research.companyName || company.company_name || company.company_domain_key,\n    company_research_snippet: research.company_research_snippet || '',\n    company_operating_state: research.company_operating_state || '',\n    company_operating_market_note: research.company_operating_market_note || '',\n    company_cannabis_marketing_signal: research.company_cannabis_marketing_signal || '',\n    company_research_confidence: research.company_research_confidence || 'low',\n    company_research_source: research.company_research_source || '',\n    company_research_last_verified_at: new Date().toISOString(),\n  };\n\n  const idCase = rowCases('ghl_contact_id', (row) => row.ghl_contact_id || '');\n  const methodCase = rowCases('ghl_contact_match_method', (row) => row.ghl_contact_match_method || '');\n  const statusCase = rowCases('ghl_contact_sync_status', (row) => row.ghl_contact_sync_status || 'synced');\n  const errorCase = rowCases('ghl_contact_sync_error', (row) => row.ghl_contact_sync_error || '');\n  const emailCase = rowCases('primary_email', (row) => row.resolved_email || row.email || '');\n  const phoneCase = rowCases('primary_phone', (row) => row.resolved_phone || row.phone || '');\n  const researchCase = rowCases('emerald_exec_sso_ai_research', () => 'done');\n\n  return `WITH cache_upsert AS (\n  INSERT INTO \"Emerald_Company_Research_Cache\" (\n    company_domain_key,\n    company_name,\n    company_research_snippet,\n    company_operating_state,\n    company_operating_market_note,\n    company_cannabis_marketing_signal,\n    company_research_confidence,\n    company_research_source,\n    company_research_last_verified_at,\n    created_at,\n    updated_at\n  ) VALUES (\n    ${sqlLit(companyResearchSql.company_domain_key)},\n    ${sqlLit(companyResearchSql.company_name)},\n    ${sqlLit(companyResearchSql.company_research_snippet)},\n    ${sqlLit(companyResearchSql.company_operating_state)},\n    ${sqlLit(companyResearchSql.company_operating_market_note)},\n    ${sqlLit(companyResearchSql.company_cannabis_marketing_signal)},\n    ${sqlLit(companyResearchSql.company_research_confidence)},\n    ${sqlLit(companyResearchSql.company_research_source)},\n    ${sqlLit(companyResearchSql.company_research_last_verified_at)},\n    NOW(),\n    NOW()\n  )\n  ON CONFLICT (company_domain_key) DO UPDATE SET\n    company_name = EXCLUDED.company_name,\n    company_research_snippet = EXCLUDED.company_research_snippet,\n    company_operating_state = EXCLUDED.company_operating_state,\n    company_operating_market_note = EXCLUDED.company_operating_market_note,\n    company_cannabis_marketing_signal = EXCLUDED.company_cannabis_marketing_signal,\n    company_research_confidence = EXCLUDED.company_research_confidence,\n    company_research_source = EXCLUDED.company_research_source,\n    company_research_last_verified_at = EXCLUDED.company_research_last_verified_at,\n    updated_at = NOW()\n)\nUPDATE \"Emerald_Contacts\"\nSET\n  company_domain_key = ${sqlLit(company.company_domain_key)},\n  company_name = COALESCE(NULLIF(company_name, ''), ${sqlLit(companyResearchSql.company_name)}),\n  company_research_snippet = ${sqlLit(companyResearchSql.company_research_snippet)},\n  company_operating_state = ${sqlLit(companyResearchSql.company_operating_state)},\n  company_operating_market_note = ${sqlLit(companyResearchSql.company_operating_market_note)},\n  company_cannabis_marketing_signal = ${sqlLit(companyResearchSql.company_cannabis_marketing_signal)},\n  company_research_confidence = ${sqlLit(companyResearchSql.company_research_confidence)},\n  company_research_source = ${sqlLit(companyResearchSql.company_research_source)},\n  company_research_last_verified_at = ${sqlLit(companyResearchSql.company_research_last_verified_at)},\n  ghl_contact_id = ${idCase},\n  ghl_contact_match_method = ${methodCase},\n  ghl_contact_sync_status = ${statusCase},\n  ghl_contact_sync_error = ${errorCase},\n  emerald_exec_sso_ai_research = ${researchCase},\n  primary_email = ${emailCase},\n  primary_phone = ${phoneCase},\n  updated_at = NOW()\nWHERE id IN (${rowIds.join(', ')});\n`;\n}\n\nasync function resolveGhlContact(row, companyName) {\n  const fullName = buildContactSearchQuery(row, companyName);\n  const payload = {\n    firstName: str(row.first_name || ''),\n    lastName: str(row.last_name || ''),\n    name: str(row.full_name || fullName),\n    email: str(row.email || ''),\n    phone: str(row.phone || ''),\n    companyName: str(row.company_name || companyName || ''),\n    website: firstUrl(row.company_non_linkedin_urls) || firstUrl(row.location_non_linkedin_urls),\n    city: str(row.contact_city || ''),\n    state: str(row.contact_state || ''),\n    source: str(cfg.sourceLabel || 'emerald_executive_sso'),\n  };\n  const standard = Object.fromEntries(Object.entries(payload).filter(([, v]) => !isMissing(v)));\n  const contactFieldIds = await ensureContactFieldIds.call(this);\n\n  let contactId = str(row.ghl_contact_id || '');\n  let matchMethod = contactId ? 'cached_ghl_contact_id' : '';\n  let syncStatus = 'synced';\n  let syncError = '';\n  let resolvedEmail = str(row.email || '');\n  let resolvedPhone = str(row.phone || '');\n  const researchCustomFields = buildResearchCustomFields(contactFieldIds, companyName, parsedResearch?.research_json || {}, email4Eligibility);\n\n  if (!contactId) {\n    const tries = [];\n    if (resolvedEmail) tries.push({ type: 'email', res: await apiRequest.call(this, { method: 'GET', path: `/contacts/search/duplicate?locationId=${encodeURIComponent(cfg.locationId)}&email=${encodeURIComponent(resolvedEmail)}`, headers: ghlHeaders }) });\n    if (!contactId && resolvedPhone) tries.push({ type: 'phone', res: await apiRequest.call(this, { method: 'GET', path: `/contacts/search/duplicate?locationId=${encodeURIComponent(cfg.locationId)}&number=${encodeURIComponent(resolvedPhone)}`, headers: ghlHeaders }) });\n    if (!contactId && fullName) tries.push({ type: 'name', res: await apiRequest.call(this, { method: 'GET', path: `/contacts/?locationId=${encodeURIComponent(cfg.locationId)}&query=${encodeURIComponent(fullName)}&limit=20`, headers: ghlHeaders }) });\n    if (!contactId && companyName) tries.push({ type: 'company', res: await apiRequest.call(this, { method: 'GET', path: `/contacts/?locationId=${encodeURIComponent(cfg.locationId)}&query=${encodeURIComponent(companyName)}&limit=20`, headers: ghlHeaders }) });\n\n    for (const attempt of tries) {\n      if (!attempt.res?.ok) continue;\n      const data = attempt.res.data || {};\n      if (attempt.type === 'email' || attempt.type === 'phone') {\n        if (data?.contact?.id) {\n          contactId = str(data.contact.id);\n          matchMethod = `${attempt.type}_duplicate`;\n          break;\n        }\n      } else {\n        const matches = asContacts(data);\n        const want = fullName.toLowerCase();\n        const exact = matches.find((c) => {\n          const fn = str(`${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();\n          const nm = str(c.contactName || c.name || '').toLowerCase();\n          return fn === want || nm === want || str(c.companyName || '').toLowerCase() === str(companyName || '').toLowerCase();\n        }) || matches[0];\n        if (exact?.id) {\n          contactId = str(exact.id);\n          matchMethod = `${attempt.type}_search`;\n          break;\n        }\n      }\n    }\n  }\n\n  if (contactId) {\n    const getRes = await apiRequest.call(this, { method: 'GET', path: `/contacts/${encodeURIComponent(contactId)}`, headers: ghlHeaders });\n    const contact = getRes.ok ? (getRes.data?.contact || getRes.data || {}) : {};\n    const updatePayload = {};\n    if (isMissing(contact.firstName) && payload.firstName) updatePayload.firstName = payload.firstName;\n    if (isMissing(contact.lastName) && payload.lastName) updatePayload.lastName = payload.lastName;\n    if (isMissing(contact.name) && payload.name) updatePayload.name = payload.name;\n    if (isMissing(contact.email) && payload.email) updatePayload.email = payload.email;\n    if (isMissing(contact.phone) && payload.phone) updatePayload.phone = payload.phone;\n    if (isMissing(contact.companyName) && payload.companyName) updatePayload.companyName = payload.companyName;\n    if (isMissing(contact.website) && payload.website) updatePayload.website = payload.website;\n    if (isMissing(contact.city) && payload.city) updatePayload.city = payload.city;\n    if (isMissing(contact.state) && payload.state) updatePayload.state = payload.state;\n    if (Object.keys(updatePayload).length) {\n      const upd = await apiRequest.call(this, { method: 'PUT', path: `/contacts/${encodeURIComponent(contactId)}`, headers: ghlHeaders, body: updatePayload });\n      if (!upd.ok) {\n        syncStatus = 'error';\n        syncError = str(upd.data?.message || JSON.stringify(upd.data));\n      }\n    }\n    if (syncStatus === 'synced') {\n      const researchDone = await apiRequest.call(this, {\n        method: 'PUT',\n        path: `/contacts/${encodeURIComponent(contactId)}`,\n        headers: ghlHeaders,\n        body: { customFields: researchCustomFields },\n      });\n      if (!researchDone.ok) {\n        syncStatus = 'error';\n        syncError = str(researchDone.data?.message || JSON.stringify(researchDone.data));\n      }\n    }\n    resolvedEmail = resolvedEmail || str(contact.email || '');\n    resolvedPhone = resolvedPhone || str(contact.phone || '');\n  } else {\n    const createPayload = { locationId: cfg.locationId, ...standard };\n    let resp = null;\n    if (resolvedEmail || resolvedPhone) {\n      resp = await apiRequest.call(this, { method: 'POST', path: '/contacts/upsert', headers: ghlHeaders, body: createPayload });\n      matchMethod = 'upsert';\n    } else {\n      resp = await apiRequest.call(this, { method: 'POST', path: '/contacts/', headers: ghlHeaders, body: createPayload });\n      matchMethod = 'create_without_unique_identifier';\n    }\n    if (!resp.ok) {\n      syncStatus = 'error';\n      syncError = str(resp.data?.message || JSON.stringify(resp.data));\n    } else {\n      contactId = extractContactId(resp.data);\n      matchMethod = matchMethod || 'create';\n      const contactObj = resp.data?.contact || resp.data || {};\n      resolvedEmail = resolvedEmail || str(contactObj.email || '');\n      resolvedPhone = resolvedPhone || str(contactObj.phone || '');\n      if (contactId && syncStatus === 'synced') {\n        const researchDone = await apiRequest.call(this, {\n          method: 'PUT',\n          path: `/contacts/${encodeURIComponent(contactId)}`,\n          headers: ghlHeaders,\n          body: { customFields: researchCustomFields },\n        });\n        if (!researchDone.ok) {\n          syncStatus = 'error';\n          syncError = str(researchDone.data?.message || JSON.stringify(researchDone.data));\n        }\n      }\n    }\n  }\n\n  if (!contactId) {\n    syncStatus = 'error';\n    syncError = syncError || 'No GHL contact id returned';\n  }\n\n  return { contactId, matchMethod, syncStatus, syncError, resolvedEmail, resolvedPhone };\n}\n\nasync function listCompanyContactsForPropagation(companyDomainKey, companyName) {\n  const byId = new Map();\n  const terms = [];\n  const domain = normalizeDomain(companyDomainKey);\n  if (domain && !isGenericDomain(domain)) terms.push(domain);\n  const company = str(companyName);\n  if (company) terms.push(company);\n\n  for (const term of terms) {\n    let startAfterId = '';\n    for (let page = 0; page < 20; page += 1) {\n      const q = [\n        `locationId=${encodeURIComponent(cfg.locationId)}`,\n        `query=${encodeURIComponent(term)}`,\n        'limit=100',\n      ];\n      if (startAfterId) q.push(`startAfterId=${encodeURIComponent(startAfterId)}`);\n      const res = await apiRequest.call(this, {\n        method: 'GET',\n        path: `/contacts/?${q.join('&')}`,\n        headers: ghlHeaders,\n      });\n      if (!res.ok) break;\n      const list = asContacts(res.data);\n      if (!list.length) break;\n      for (const c of list) {\n        const id = str(c.id);\n        if (!id) continue;\n        byId.set(id, c);\n      }\n      startAfterId = str(list[list.length - 1]?.id || '');\n      if (!startAfterId || list.length < 100) break;\n    }\n  }\n\n  const out = [];\n  const normalizedCompany = str(companyName).toLowerCase();\n  const normalizedDomain = normalizeDomain(companyDomainKey);\n  for (const c of byId.values()) {\n    const emailDomain = domainFromEmail(c.email || c.emailAddress || '');\n    const cCompany = str(c.companyName || c.company || '').toLowerCase();\n    const domainMatch = normalizedDomain && !isGenericDomain(normalizedDomain) && emailDomain === normalizedDomain;\n    const companyMatch = normalizedCompany && cCompany && cCompany === normalizedCompany;\n    if (domainMatch || companyMatch) out.push(c);\n  }\n  return out;\n}\n\nasync function syncResearchForCompanyContacts(contacts, customFields) {\n  let updated = 0;\n  let failed = 0;\n  const failedIds = [];\n  for (const c of contacts) {\n    const id = str(c.id);\n    if (!id) continue;\n    const upd = await apiRequest.call(this, {\n      method: 'PUT',\n      path: `/contacts/${encodeURIComponent(id)}`,\n      headers: ghlHeaders,\n      body: { customFields },\n    });\n    if (upd.ok) updated += 1;\n    else {\n      failed += 1;\n      failedIds.push(id);\n    }\n  }\n  return { updated, failed, failedIds };\n}\n\nfunction parseOpenRouterResponse(resp) {\n  const content = resp?.choices?.[0]?.message?.content || resp?.message?.content || '';\n  if (!content) return null;\n  try {\n    return JSON.parse(content);\n  } catch {\n    return null;\n  }\n}\n\nconst original = prep;\nconst researchFromParse = parsedResearch?.research_json || null;\nconst researchFromValidate = parseOpenRouterResponse($json);\nconst finalResearch = normalizeResearch(researchFromValidate || researchFromParse, original.deterministic || {});\nconst companyName = str(original.company_name || original.companyName || finalResearch.companyName || original.company_domain_key);\nconst companyRows = Array.isArray(original.rows) ? original.rows : [];\nconst email4Eligibility = determineEmail4Eligibility(original.company_domain_key, companyName, companyRows, finalResearch);\n\nconst rowResults = [];\nfor (const row of companyRows) {\n  const result = await resolveGhlContact.call(this, row, companyName);\n  rowResults.push({\n    emerald_row_id: Number(row.emerald_row_id),\n    ghl_contact_id: result.contactId,\n    ghl_contact_match_method: result.matchMethod,\n    ghl_contact_sync_status: result.syncStatus,\n    ghl_contact_sync_error: result.syncError,\n    resolved_email: result.resolvedEmail,\n    resolved_phone: result.resolvedPhone,\n  });\n}\n\nconst allRowsSynced = rowResults.length > 0 && rowResults.every((r) => str(r.ghl_contact_sync_status).toLowerCase() === 'synced');\nlet propagatedDoneUpdated = 0;\nlet propagatedDoneFailed = 0;\nlet propagatedDoneCandidates = 0;\nlet propagatedDoneAttempted = false;\nconst shouldSkipPropagation =\n  email4Eligibility.ready !== 'Yes' ||\n  (\n    isInstitutionalCompany(original.company_domain_key, companyName) &&\n    !finalResearch.company_operating_state &&\n    !finalResearch.company_research_snippet &&\n    String(finalResearch.company_research_source || '').toLowerCase() !== 'website+heuristic'\n  );\nif (allRowsSynced && !shouldSkipPropagation) {\n  const contactFieldIds = await ensureContactFieldIds.call(this);\n  const companyContacts = await listCompanyContactsForPropagation.call(this, original.company_domain_key, companyName);\n  propagatedDoneCandidates = companyContacts.length;\n  const customFields = buildResearchCustomFields(contactFieldIds, companyName, finalResearch, email4Eligibility);\n  const result = await syncResearchForCompanyContacts.call(this, companyContacts, customFields);\n  propagatedDoneUpdated = result.updated;\n  propagatedDoneFailed = result.failed;\n  propagatedDoneAttempted = true;\n}\n\nconst syncSql = buildCompanyUpsertSql({\n  company_domain_key: original.company_domain_key,\n  company_name: companyName,\n  rows: rowResults,\n}, {\n  companyName,\n  ...finalResearch,\n});\n\nreturn {\n  json: {\n    company_domain_key: original.company_domain_key,\n    company_name: companyName,\n    rowCount: companyRows.length,\n    cacheHit: !!original.cacheHit,\n    research_confidence: finalResearch.company_research_confidence,\n    company_operating_state: finalResearch.company_operating_state || '',\n    company_operating_market_note: finalResearch.company_operating_market_note || '',\n    company_cannabis_marketing_signal: finalResearch.company_cannabis_marketing_signal || '',\n    company_research_snippet: finalResearch.company_research_snippet || '',\n    company_research_source: finalResearch.company_research_source || '',\n    email4_personalization_ready: email4Eligibility.ready,\n    email4_personalization_reason: email4Eligibility.reason,\n    propagated_done_attempted: propagatedDoneAttempted,\n    propagated_done_candidates: propagatedDoneCandidates,\n    propagated_done_updated: propagatedDoneUpdated,\n    propagated_done_failed: propagatedDoneFailed,\n    row_results: rowResults,\n    source_rows: companyRows,\n    syncSql,\n  },\n};\n"
+        },
+        "id": "finalize_company_sync",
+        "name": "Finalize Company Sync",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2416,
+          -864
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{$json.syncSql}}",
+          "options": {}
+        },
+        "id": "persist_company_sync",
+        "name": "Persist Company Sync Results",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2640,
+          -864
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all().map((i) => i.json || {});\nconst totals = items.reduce((acc, item) => {\n  acc.companyCount += 1;\n  acc.rowCount += Number(item.rowCount || 0);\n  if (item.cacheHit) acc.cacheHits += 1; else acc.cacheMisses += 1;\n  if (String(item.research_confidence || '').toLowerCase() === 'high') acc.highConfidence += 1;\n  if (String(item.research_confidence || '').toLowerCase() === 'medium') acc.mediumConfidence += 1;\n  if (item.phoneResearchApplied === true) acc.phoneEnriched += 1;\n  if (item.phoneResearchApplied === false) acc.phoneSkipped += 1;\n  return acc;\n}, { companyCount: 0, rowCount: 0, cacheHits: 0, cacheMisses: 0, highConfidence: 0, mediumConfidence: 0, phoneEnriched: 0, phoneSkipped: 0 });\nreturn [{ json: { ok: true, ...totals, note: 'Company research cached in Postgres and GHL contacts were found/created/updated per row.' } }];"
+        },
+        "id": "9d65971f-a351-42a0-9a4a-a786e88f577d",
+        "name": "Summarize",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2864,
+          -864
+        ]
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Ensure Executive SSO Research Cache Table",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure Executive SSO Research Cache Table": {
+        "main": [
+          [
+            {
+              "node": "Fetch Executive SSO Candidates",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Executive SSO Candidates": {
+        "main": [
+          [
+            {
+              "node": "Prepare Company Groups",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Company Groups": {
+        "main": [
+          [
+            {
+              "node": "Build Cache Lookup Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Cache Lookup Query": {
+        "main": [
+          [
+            {
+              "node": "Fetch Company Cache Rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Company Cache Rows": {
+        "main": [
+          [
+            {
+              "node": "Prepare Company Research",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Company Research": {
+        "main": [
+          [
+            {
+              "node": "Needs Research?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Needs Research?": {
+        "main": [
+          [
+            {
+              "node": "OpenRouter Research",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Merge Research Paths",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "OpenRouter Research": {
+        "main": [
+          [
+            {
+              "node": "Merge Research Paths",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Research Response": {
+        "main": [
+          [
+            {
+              "node": "Finalize Company Sync",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Finalize Company Sync": {
+        "main": [
+          [
+            {
+              "node": "Persist Company Sync Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Persist Company Sync Results": {
+        "main": [
+          [
+            {
+              "node": "Summarize",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Research Paths": {
+        "main": [
+          [
+            {
+              "node": "Parse Research Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": "Version 324c1797",
+    "description": "",
+    "autosaved": true,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-07T12:31:41.551Z",
+        "id": 690,
+        "workflowId": "GHVYyYmhfNiZ7bbN",
+        "versionId": "324c1797-58c4-4001-9c96-602c99fc90d8",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

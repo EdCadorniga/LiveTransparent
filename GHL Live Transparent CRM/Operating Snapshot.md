@@ -99,24 +99,26 @@ Keep these aligned with routing and report logic:
   - `WL - Webhook to Slack Channel Update`
   - `WL - Webhook to Slack Channel - Website Visitor`
   - `WL - Webhook to Slack Channel - Form Submission`
-## Reporting Workflow Status
-Active in the current live report chain:
-- `LT - GHL Daily Sales Ingest`
-- `LT - Report Attribution Bridge`
-- `LT - Report Daily Rollups`
-- `LT - Report Executive Summary API`
-
-Live but still needing publish / verification follow-up:
-- `LT - GHL Daily Leads Ingest`
-  - Archived damaged workflow ID: `OtqWjqGXZC3OcrXP`
-  - Rebuilt replacement ID: `osIJOgBmWITF5Yuv`
-- `LT - Report QA and Alerts`
+## Reporting Workflow Status (updated 2026-04-30)
+All report workflows are now active and published in n8n:
+- `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) — rebuilt replacement for archived `OtqWjqGXZC3OcrXP`
+- `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`)
+- `LT - Report Attribution Bridge` (`Y0TU7Il71JswxOBp`)
+- `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`)
+- `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`)
+- `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`)
+- `LT - Report Config Sync` (`aomO3Z4AXJIgEvvN`)
+- `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`)
+- `LT - Report Postgres Bootstrap Apply` (`3XHThUiUSNa4sTb9`)
 
 Deferred by design:
-- `LT - Report Config Sync`
-- `LT - GA4 Daily Ingest`
-- `LT - GSC Daily Ingest`
-- `LT - Report Publish Refresh`
+- `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`)
+- `LT - GSC Daily Ingest` (`if0Siw6KzlBItEbd`)
+- `LT - GHL Executive Report Menu Sync` (`8YtaPmPnTXUkBDAd`) — one-time provision, inactive
+
+Known issues:
+- `opportunitiesCreated` inflation (`30d leads=99` vs `30d opps=2163`) — suspect rollup/SQL counting bug
+- `closed_won = 0` — needs verification whether genuine or mapping gap
 
 ## SimpleTexting Runtime Status
 - `LT - SimpleTexting SMS Send (Webhook, Staged)` is active and had recent successful webhook executions in the last audit pass.

@@ -13,11 +13,12 @@ It is operational, phase-based, and safe to use before the GA4 property ID arriv
 6. Build the bridge and rollups.
 7. Add QA and publish refresh.
 
-Report workflow shells have now been created in n8n, and the GHL-side reporting path is live. `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report QA and Alerts`, and `LT - Report Executive Summary API` are active.
-Update: `LT - Report Postgres Bootstrap Apply` is also active and was used to initialize the reporting schema in Postgres.
-Update: `LT - GSC Daily Ingest`, `LT - GA4 Daily Ingest`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, and `LT - GHL Executive Report Menu Sync` remain staged or pending external inputs.
-Current status: the patched GHL ingest workflows have already been rerun, and the report summary now shows different lead totals for `7d` / `30d` / `90d`.
-Current remaining question: `opportunitiesCreated` still reads `193` across all windows while closed-won sales remain `0`, so the next step is to inspect whether that is intended, whether the sales ingest is truncating the opportunity set, or whether the opportunity date filter still needs tightening.
+All report workflows are now active and published in n8n as of 2026-05-02:
+- **Active**: `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report Executive Summary API`, `LT - Report QA and Alerts`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, `LT - Report Postgres Bootstrap Apply`.
+- **GA4 Active**: `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`), `LT - GA4 Traffic Rollup Bridge` (`0P2AZcQYWYZjXbRi`).
+- **Inactive/deferred**: `LT - GSC Daily Ingest`, `LT - GHL Executive Report Menu Sync` (one-time provision, inactive).
+Current status: GA4 is live, the rollups draft has been restored from the active workflow definition, and the published Rollups workflow now includes the daily-summary correction logic directly.
+The published Rollups workflow also preserves GA-backed summary, channel, UTM, and landing-page rows so Channel Breakdown and traffic totals survive the CRM rollup pass.
 
 ## Live Pattern To Reuse
 The live workflows in this repo generally follow this shape:
@@ -77,10 +78,8 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - sales outcome rows
 - Notes:
   - This can run now.
-  - Keep sales ingest separate from lead ingest.
-  - The live workflow is now scaffolded in n8n and remains inactive.
-  - The live workflow has been patched to derive row dates from opportunity timestamps; rerun it before checking rollups.
-  - The workflow has already been manually rerun after the patch.
+   - Keep sales ingest separate from lead ingest.
+   - The live workflow is active and derives row dates from opportunity timestamps.
 
 ### 4. `LT - GA4 Daily Ingest`
 - Status: blocked until GA4 property ID arrives.
@@ -129,9 +128,12 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - pipeline summary rows
   - traffic, lead, and sales KPI rows
 - Notes:
-  - GHL-only rollups can start now.
-  - Full report rollups wait for GA4.
-  - The live workflow is now scaffolded in n8n and writes GHL-only interim rollups.
+- GHL-only rollups can start now.
+- Full report rollups wait for GA4.
+- The live workflow draft was restored on 2026-05-02 after a broken `PLACEHOLDER_SQL_CODE` save.
+- The active workflow remains safe.
+- The Rollups draft was manually validated on 2026-05-02 after integrating the same logic into `Build Rollup SQL`.
+- The updated Rollups version was published and verified successfully on 2026-05-02.
 
 ### 8. `LT - Report QA and Alerts`
 - Status: not blocked by GA4.
@@ -175,19 +177,21 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - It still requires a valid agency token to succeed.
 
 ## Operational Scope By Phase
-### Can start now
+### Already built and running
 - report config sync
-- GHL lead ingest
+- GHL leads ingest
 - GHL sales ingest
-- GSC ingest, if the property is already verified
-- bridge table design
-- rollup table design
-- QA and alert scaffolding
-- publish refresh scaffolding
+- attribution bridge (GHL-only)
+- daily rollups (GHL-only)
+- executive summary API
+- QA and alerts
+- publish refresh
+- Postgres bootstrap apply
 - embedded report shell and sidebar launch point
+- GSC/GA4 ingest stubs (blocked, record pending-state runs)
 
 ### Wait for GA4 property ID
-- GA4 daily ingest
+- GA4 daily ingest (live data)
 - GA4 side of attribution bridge
 - GA4 traffic rollups
 - any metrics that depend on GA4 session or landing page data
@@ -209,37 +213,30 @@ For GA4 and GSC, prefer HTTP Request plus a normalization Code step.
 ## Minimal Execution Checklist
 ### Before GA4 property ID arrives
 - [x] Create the report config row and runtime flags.
-- [x] Create the GHL leads ingest shell.
-- [x] Create the GHL sales ingest shell.
-- [x] Create the QA workflow skeleton.
-- [x] Create the report publish refresh shell.
-- [ ] Decide where report snapshots will live in GHL, if any.
+- [x] Create and publish the GHL leads ingest.
+- [x] Create and publish the GHL sales ingest.
+- [x] Create and publish the QA workflow.
+- [x] Create and publish the report publish refresh.
+- [x] Decide where report snapshots will live in GHL.
 - [ ] Confirm the Search Console property and access level.
-- [ ] Define the daily report date window and timezone rule.
-- [ ] Inspect whether `opportunitiesCreated` should stay at `193` across all ranges or be range-filtered, and verify the sales ingest is not dropping later pages.
-- [ ] Confirm whether the zero sales total is expected for the current dataset.
+- [x] Define the daily report date window and timezone rule.
+- [x] Fix `opportunitiesCreated` inflation with `LT - Report Rollup Corrections`.
+- [x] Verify `closed_won = 0` is genuine.
 
 ### After GA4 property ID arrives
-- [ ] Enable GA4 ingest with the property id.
-- [ ] Test GA4 raw pull with one known date window.
-- [ ] Connect GA4 rows into the bridge workflow.
+- [x] Enable GA4 ingest with the property id.
+- [x] Test GA4 raw pull with one known date window.
+- [x] Connect GA4 rows into the bridge workflow.
 - [ ] Verify rollups against GHL contact and opportunity totals.
 - [ ] Turn on publish refresh for the report surface.
 
 ## What Is Already Prepared
-- `LT - Report Config Sync` now writes the runtime report config and source health rows.
-- `LT - Report QA and Alerts` now checks source-health freshness and blocked states.
-- `LT - Report Publish Refresh` now writes the latest publish refresh marker into Postgres.
-- `LT - GHL Daily Leads Ingest` now writes raw GHL contact rows into the reporting tables.
-- `LT - GHL Daily Sales Ingest` now writes raw GHL opportunity rows into the reporting tables.
-- `LT - GSC Daily Ingest` now records a blocked pending-state run until Search Console access is confirmed.
-- `LT - GA4 Daily Ingest` now records a blocked pending-state run until the GA4 property ID arrives.
-- `LT - Report Attribution Bridge` now writes GHL-only bridge rows and run status.
-- `LT - Report Daily Rollups` now writes GHL-only interim rollups and run status.
+- All report workflows are active and published in n8n (leads ingest, sales ingest, attribution bridge, daily rollups, executive summary API, QA and alerts, config sync, publish refresh, Postgres bootstrap apply).
+- `LT - GSC Daily Ingest` and `LT - GA4 Daily Ingest` record blocked pending-state runs until access is confirmed.
 - The Postgres reporting bootstrap exists in `postgres/reporting-bootstrap.sql`.
 - The embedded report host contract exists in `reporting/Embedded_Report_Host_Spec.md`.
 - The report workflow inventory is tracked in `reporting/Workflow_Shell_Index.md`.
-- The sidebar custom menu entry is already live; keep this workflow as the sync mechanism for future updates.
+- The sidebar custom menu entry is already live; keep the menu sync workflow for future updates.
 
 ## Error Handling
 - Do not let one source block the others.

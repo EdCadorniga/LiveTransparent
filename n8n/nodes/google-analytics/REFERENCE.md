@@ -11,7 +11,7 @@ Reference for the GA4 portion of the LiveTransparent reporting pipeline.
 ## Live Setup Notes
 - Measurement ID: `G-YYF078K942`
 - Stream ID: `7792630179`
-- Property ID: pending from Cameron
+- Property ID: `434472183` (confirmed 2026-04-29)
 
 ## Official Source
 - GA4 Data API property ID guidance: https://developers.google.com/analytics/devguides/reporting/data/v1/property-id#what_is_my_property_id

@@ -1,0 +1,502 @@
+{
+  "updatedAt": "2026-04-28T16:24:51.002Z",
+  "createdAt": "2026-04-18T13:29:19.035Z",
+  "id": "aomO3Z4AXJIgEvvN",
+  "name": "LT - Report Config Sync",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "759a0430-f830-4948-aedd-c509f6a79677",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        160
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2cff851f-d108-4064-8b58-767fe2cb4f8c",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        320
+      ]
+    },
+    {
+      "id": "2dc68446-854d-4b91-b2f3-581a6d0b736b",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        240
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location_id",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "location_name",
+              "name": "locationName",
+              "type": "string",
+              "value": "Live Transparent"
+            },
+            {
+              "id": "timezone",
+              "name": "timezone",
+              "type": "string",
+              "value": "America/Los_Angeles"
+            },
+            {
+              "id": "report_host",
+              "name": "reportHost",
+              "type": "string",
+              "value": "https://reports.livetransparent.com"
+            },
+            {
+              "id": "embed_url",
+              "name": "embedUrl",
+              "type": "string",
+              "value": "https://reports.livetransparent.com/embed/executive"
+            },
+            {
+              "id": "default_range",
+              "name": "defaultRange",
+              "type": "string",
+              "value": "30d"
+            },
+            {
+              "id": "ga4_measurement_id",
+              "name": "ga4MeasurementId",
+              "type": "string",
+              "value": "G-YYF078K942"
+            },
+            {
+              "id": "ga4_stream_id",
+              "name": "ga4StreamId",
+              "type": "string",
+              "value": "7792630179"
+            },
+            {
+              "id": "ga4_property_id",
+              "name": "ga4PropertyId",
+              "type": "string",
+              "value": "434472183"
+            },
+            {
+              "id": "gsc_property",
+              "name": "gscProperty",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "prepared_state",
+              "name": "preparedState",
+              "type": "string",
+              "value": "ga4_enabled"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "40a91de2-f142-48c8-ba4f-a1a7fd9a13e1",
+      "name": "Build Config SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const cfg = $json || {};\nconst prepared = {\n  locationId: String(cfg.locationId || '').trim(),\n  locationName: String(cfg.locationName || '').trim(),\n  timezone: String(cfg.timezone || 'America/Los_Angeles').trim(),\n  reportHost: String(cfg.reportHost || 'https://reports.livetransparent.com').trim(),\n  embedUrl: String(cfg.embedUrl || 'https://reports.livetransparent.com/embed/executive').trim(),\n  defaultRange: String(cfg.defaultRange || '30d').trim(),\n  ga4MeasurementId: String(cfg.ga4MeasurementId || '').trim(),\n  ga4StreamId: String(cfg.ga4StreamId || '').trim(),\n  ga4PropertyId: String(cfg.ga4PropertyId || '').trim(),\n  gscProperty: String(cfg.gscProperty || '').trim(),\n  preparedState: String(cfg.preparedState || 'ga4_enabled').trim(),\n  updatedAt: new Date().toISOString(),\n};\nfunction jsonbLiteral(value) { return \"'\" + JSON.stringify(value).replace(/'/g, \"''\") + \"'::jsonb\"; }\nconst runtimeConfig = {\n  locationId: prepared.locationId, locationName: prepared.locationName, timezone: prepared.timezone,\n  reportHost: prepared.reportHost, embedUrl: prepared.embedUrl, defaultRange: prepared.defaultRange,\n  ga4MeasurementId: prepared.ga4MeasurementId, ga4StreamId: prepared.ga4StreamId,\n  ga4PropertyId: prepared.ga4PropertyId || null, gscProperty: prepared.gscProperty || null,\n  preparedState: prepared.preparedState, status: prepared.ga4PropertyId ? 'ready_for_ga4' : 'waiting_for_ga4_property_id',\n};\nconst reportConfigSql = \"INSERT INTO report_config (config_key, config_value, notes, updated_at) VALUES ('report_runtime', \" + jsonbLiteral(runtimeConfig) + \", 'LiveTransparent reporting runtime config', NOW()) ON CONFLICT (config_key) DO UPDATE SET config_value = EXCLUDED.config_value, notes = EXCLUDED.notes, updated_at = NOW();\";\nconst healthRows = [\n  { source_system: 'ga4', status: prepared.ga4PropertyId ? 'ready' : 'blocked', last_error: prepared.ga4PropertyId ? null : 'GA4 property ID is now configured', metadata: { ready: !!prepared.ga4PropertyId, dependency: prepared.ga4PropertyId ? null : 'ga4_property_id', measurementId: prepared.ga4MeasurementId, streamId: prepared.ga4StreamId } },\n  { source_system: 'gsc', status: 'ready', last_error: null, metadata: { ready: true, note: 'Search Console layer can be prepared independently.' } },\n  { source_system: 'ghl', status: 'ready', last_error: null, metadata: { ready: true, note: 'CRM layer is available now.' } },\n];\nconst sourceHealthSql = \"INSERT INTO report_source_health (source_system, status, last_attempt_at, last_error, metadata, updated_at) VALUES \" + healthRows.map(row => \"(\" + [jsonbLiteral(row.source_system), jsonbLiteral(row.status), 'NOW()', row.last_error ? jsonbLiteral(row.last_error) : 'NULL', jsonbLiteral(row.metadata), 'NOW()'].join(', ') + \")\").join(\",\\n\") + \" ON CONFLICT (source_system) DO UPDATE SET status = EXCLUDED.status, last_attempt_at = EXCLUDED.last_attempt_at, last_error = EXCLUDED.last_error, metadata = EXCLUDED.metadata, updated_at = NOW();\";\nreturn [{ json: { ...prepared, runtimeConfig, upsertSql: reportConfigSql + \"\\n\\n\" + sourceHealthSql } }];"
+      }
+    },
+    {
+      "id": "efe7bb4c-c4fb-41d5-ab4d-b71a3effd52c",
+      "name": "Upsert Report Config + Health",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        240
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{$json.upsertSql}}",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "bd5fd6fe-cece-4b82-b4b5-a5657a1bf5b2",
+      "name": "Summarize Config Prep",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $json || {};\nreturn [{ json: { ok: true, workflow: 'LT - Report Config Sync', locationId: item.locationId, preparedState: item.preparedState, status: item.runtimeConfig?.status || 'unknown', ga4PropertyId: item.ga4PropertyId || null, gscProperty: item.gscProperty || null, note: item.ga4PropertyId ? 'Config is ready for GA4 ingest.' : 'Config is prepared; GA4 remains blocked on property ID.' } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Build Config SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Config SQL": {
+      "main": [
+        [
+          {
+            "node": "Upsert Report Config + Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Report Config + Health": {
+      "main": [
+        [
+          {
+            "node": "Summarize Config Prep",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "pinData": null,
+  "versionId": "d5839702-fcc7-4cb5-b589-93b19181c98a",
+  "activeVersionId": "d5839702-fcc7-4cb5-b589-93b19181c98a",
+  "versionCounter": 7,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-18T13:29:19.035Z",
+      "createdAt": "2026-04-18T13:29:19.035Z",
+      "role": "workflow:owner",
+      "workflowId": "aomO3Z4AXJIgEvvN",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-28T16:24:51.006Z",
+    "createdAt": "2026-04-28T16:24:51.006Z",
+    "versionId": "d5839702-fcc7-4cb5-b589-93b19181c98a",
+    "workflowId": "aomO3Z4AXJIgEvvN",
+    "nodes": [
+      {
+        "id": "759a0430-f830-4948-aedd-c509f6a79677",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          160
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 6
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "2cff851f-d108-4064-8b58-767fe2cb4f8c",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          320
+        ]
+      },
+      {
+        "id": "2dc68446-854d-4b91-b2f3-581a6d0b736b",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          480,
+          240
+        ],
+        "parameters": {
+          "mode": "manual",
+          "includeOtherFields": true,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "location_id",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "location_name",
+                "name": "locationName",
+                "type": "string",
+                "value": "Live Transparent"
+              },
+              {
+                "id": "timezone",
+                "name": "timezone",
+                "type": "string",
+                "value": "America/Los_Angeles"
+              },
+              {
+                "id": "report_host",
+                "name": "reportHost",
+                "type": "string",
+                "value": "https://reports.livetransparent.com"
+              },
+              {
+                "id": "embed_url",
+                "name": "embedUrl",
+                "type": "string",
+                "value": "https://reports.livetransparent.com/embed/executive"
+              },
+              {
+                "id": "default_range",
+                "name": "defaultRange",
+                "type": "string",
+                "value": "30d"
+              },
+              {
+                "id": "ga4_measurement_id",
+                "name": "ga4MeasurementId",
+                "type": "string",
+                "value": "G-YYF078K942"
+              },
+              {
+                "id": "ga4_stream_id",
+                "name": "ga4StreamId",
+                "type": "string",
+                "value": "7792630179"
+              },
+              {
+                "id": "ga4_property_id",
+                "name": "ga4PropertyId",
+                "type": "string",
+                "value": "434472183"
+              },
+              {
+                "id": "gsc_property",
+                "name": "gscProperty",
+                "type": "string",
+                "value": ""
+              },
+              {
+                "id": "prepared_state",
+                "name": "preparedState",
+                "type": "string",
+                "value": "ga4_enabled"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "40a91de2-f142-48c8-ba4f-a1a7fd9a13e1",
+        "name": "Build Config SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          240
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const cfg = $json || {};\nconst prepared = {\n  locationId: String(cfg.locationId || '').trim(),\n  locationName: String(cfg.locationName || '').trim(),\n  timezone: String(cfg.timezone || 'America/Los_Angeles').trim(),\n  reportHost: String(cfg.reportHost || 'https://reports.livetransparent.com').trim(),\n  embedUrl: String(cfg.embedUrl || 'https://reports.livetransparent.com/embed/executive').trim(),\n  defaultRange: String(cfg.defaultRange || '30d').trim(),\n  ga4MeasurementId: String(cfg.ga4MeasurementId || '').trim(),\n  ga4StreamId: String(cfg.ga4StreamId || '').trim(),\n  ga4PropertyId: String(cfg.ga4PropertyId || '').trim(),\n  gscProperty: String(cfg.gscProperty || '').trim(),\n  preparedState: String(cfg.preparedState || 'ga4_enabled').trim(),\n  updatedAt: new Date().toISOString(),\n};\nfunction jsonbLiteral(value) { return \"'\" + JSON.stringify(value).replace(/'/g, \"''\") + \"'::jsonb\"; }\nconst runtimeConfig = {\n  locationId: prepared.locationId, locationName: prepared.locationName, timezone: prepared.timezone,\n  reportHost: prepared.reportHost, embedUrl: prepared.embedUrl, defaultRange: prepared.defaultRange,\n  ga4MeasurementId: prepared.ga4MeasurementId, ga4StreamId: prepared.ga4StreamId,\n  ga4PropertyId: prepared.ga4PropertyId || null, gscProperty: prepared.gscProperty || null,\n  preparedState: prepared.preparedState, status: prepared.ga4PropertyId ? 'ready_for_ga4' : 'waiting_for_ga4_property_id',\n};\nconst reportConfigSql = \"INSERT INTO report_config (config_key, config_value, notes, updated_at) VALUES ('report_runtime', \" + jsonbLiteral(runtimeConfig) + \", 'LiveTransparent reporting runtime config', NOW()) ON CONFLICT (config_key) DO UPDATE SET config_value = EXCLUDED.config_value, notes = EXCLUDED.notes, updated_at = NOW();\";\nconst healthRows = [\n  { source_system: 'ga4', status: prepared.ga4PropertyId ? 'ready' : 'blocked', last_error: prepared.ga4PropertyId ? null : 'GA4 property ID is now configured', metadata: { ready: !!prepared.ga4PropertyId, dependency: prepared.ga4PropertyId ? null : 'ga4_property_id', measurementId: prepared.ga4MeasurementId, streamId: prepared.ga4StreamId } },\n  { source_system: 'gsc', status: 'ready', last_error: null, metadata: { ready: true, note: 'Search Console layer can be prepared independently.' } },\n  { source_system: 'ghl', status: 'ready', last_error: null, metadata: { ready: true, note: 'CRM layer is available now.' } },\n];\nconst sourceHealthSql = \"INSERT INTO report_source_health (source_system, status, last_attempt_at, last_error, metadata, updated_at) VALUES \" + healthRows.map(row => \"(\" + [jsonbLiteral(row.source_system), jsonbLiteral(row.status), 'NOW()', row.last_error ? jsonbLiteral(row.last_error) : 'NULL', jsonbLiteral(row.metadata), 'NOW()'].join(', ') + \")\").join(\",\\n\") + \" ON CONFLICT (source_system) DO UPDATE SET status = EXCLUDED.status, last_attempt_at = EXCLUDED.last_attempt_at, last_error = EXCLUDED.last_error, metadata = EXCLUDED.metadata, updated_at = NOW();\";\nreturn [{ json: { ...prepared, runtimeConfig, upsertSql: reportConfigSql + \"\\n\\n\" + sourceHealthSql } }];"
+        }
+      },
+      {
+        "id": "efe7bb4c-c4fb-41d5-ab4d-b71a3effd52c",
+        "name": "Upsert Report Config + Health",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          240
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{$json.upsertSql}}",
+          "options": {
+            "queryBatching": "independently"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "bd5fd6fe-cece-4b82-b4b5-a5657a1bf5b2",
+        "name": "Summarize Config Prep",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          240
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const item = $json || {};\nreturn [{ json: { ok: true, workflow: 'LT - Report Config Sync', locationId: item.locationId, preparedState: item.preparedState, status: item.runtimeConfig?.status || 'unknown', ga4PropertyId: item.ga4PropertyId || null, gscProperty: item.gscProperty || null, note: item.ga4PropertyId ? 'Config is ready for GA4 ingest.' : 'Config is prepared; GA4 remains blocked on property ID.' } }];"
+        }
+      }
+    ],
+    "connections": {
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Build Config SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Config SQL": {
+        "main": [
+          [
+            {
+              "node": "Upsert Report Config + Health",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Report Config + Health": {
+        "main": [
+          [
+            {
+              "node": "Summarize Config Prep",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-28T16:24:55.706Z",
+        "id": 967,
+        "workflowId": "aomO3Z4AXJIgEvvN",
+        "versionId": "d5839702-fcc7-4cb5-b589-93b19181c98a",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

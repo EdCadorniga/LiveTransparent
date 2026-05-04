@@ -14,8 +14,9 @@ It is intended to be the handoff point between the written plan and the live bui
 - GHL references and the live GHL summary/report workflows
 - GA4 and Search Console references remain available for later expansion
 - Live Postgres bootstrap apply workflow used to initialize the reporting schema in the database
-- Current live state: the patched GHL ingest workflows have been rerun and lead counts now separate correctly by window.
-- Remaining question: `opportunitiesCreated` still reads `193` across all windows, so confirm whether that is intended pipeline behavior and whether the sales ingest is complete before changing filters again.
+- Current live state: the patched GHL ingest workflows have been rerun, GA4 is live, and the executive report is reading combined GHL + GA4 data.
+- `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary fix logic integrated directly.
+- `LT - Report Rollup Corrections` has been deactivated because the production Rollups workflow now owns those fixes.
 
 ## File Index
 
@@ -40,9 +41,9 @@ It is intended to be the handoff point between the written plan and the live bui
 1. Apply the Postgres bootstrap.
 2. Finalize the embedded report host deployment from the `reports/` scaffold.
 3. Create the GHL sidebar entry.
-4. The live n8n workflow shells already exist; finish replacing the remaining shells with the real nodes.
-5. Add GA4/GSC later if the business wants traffic reporting in the same embed.
-6. Before GA4 returns to scope, inspect the opportunity range semantics, confirm the zero-sales result for the GHL-only dataset, and verify sales-ingest completeness.
+4. The live n8n workflow shells already exist; keep consolidating corrective logic back into the primary rollup flow.
+5. Add GSC later if the business wants search reporting in the same embed.
+6. Recheck the live summary endpoint after the full chain rerun and confirm the integrated Rollups metrics hold without the separate correction handoff.
 
 ## Remaining External Dependency
 

@@ -1,0 +1,409 @@
+{
+  "updatedAt": "2026-04-25T18:10:46.857Z",
+  "createdAt": "2026-04-21T16:58:54.902Z",
+  "id": "gwaEpWDpTIwsafi8",
+  "name": "LT - SMS Idempotent Send",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "webhook_in",
+      "typeVersion": 2,
+      "name": "Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "path": "lt-sms-send",
+        "options": {}
+      },
+      "position": [
+        200,
+        250
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "webhookId": "6ddb77fe-01d7-46d1-99f3-b187dc724359"
+    },
+    {
+      "id": "prepare",
+      "typeVersion": 2,
+      "name": "Prepare Request",
+      "parameters": {
+        "jsCode": "const src = $json || {};\nconst body = (src.body && typeof src.body === 'object') ? src.body : src;\nconst contact_id = String(body.contact_id || '').trim();\nconst phone = String(body.phone || '').trim();\nconst workflow_id = String(body.workflow_id || '').trim();\nconst template_id = String(body.template_id || '').trim();\nconst message_body = String(body.message_body || '').trim();\nconst simulate = body.simulate === undefined ? true : !!body.simulate;\nconst yyyymmdd = new Date().toISOString().slice(0,10).replace(/-/g, '');\n\nfunction hashHex(input) {\n  let h = 2166136261;\n  for (let i = 0; i < input.length; i++) {\n    h ^= input.charCodeAt(i);\n    h = Math.imul(h, 16777619);\n  }\n  return (h >>> 0).toString(16).padStart(8, '0');\n}\n\nconst message_hash = hashHex(`${contact_id}|${workflow_id}|${template_id}|${yyyymmdd}`);\nconst q = (v) => `'${String(v ?? '').replace(/'/g, \"''\")}'`;\n\nconst claimSql = `\nCREATE TABLE IF NOT EXISTS report_sms_sent (\n  id BIGSERIAL PRIMARY KEY,\n  contact_id TEXT NOT NULL,\n  phone TEXT,\n  workflow_id TEXT NOT NULL,\n  template_id TEXT,\n  message_hash TEXT NOT NULL,\n  provider_response JSONB,\n  sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nCREATE UNIQUE INDEX IF NOT EXISTS report_sms_sent_uq\n  ON report_sms_sent (contact_id, workflow_id, message_hash);\n\nWITH ins AS (\n  INSERT INTO report_sms_sent (contact_id, phone, workflow_id, template_id, message_hash)\n  VALUES (${q(contact_id)}, ${q(phone)}, ${q(workflow_id)}, ${q(template_id)}, ${q(message_hash)})\n  ON CONFLICT (contact_id, workflow_id, message_hash) DO NOTHING\n  RETURNING id, sent_at\n), existing AS (\n  SELECT id, sent_at\n  FROM report_sms_sent\n  WHERE contact_id = ${q(contact_id)}\n    AND workflow_id = ${q(workflow_id)}\n    AND message_hash = ${q(message_hash)}\n  ORDER BY id DESC\n  LIMIT 1\n)\nSELECT\n  CASE WHEN EXISTS(SELECT 1 FROM ins) THEN true ELSE false END AS inserted,\n  COALESCE((SELECT id::text FROM ins), (SELECT id::text FROM existing), '') AS id,\n  COALESCE((SELECT sent_at::text FROM ins), (SELECT sent_at::text FROM existing), '') AS sent_at;\n`;\n\nreturn [{ json: { contact_id, phone, workflow_id, template_id, message_body, simulate, message_hash, claimSql } }];"
+      },
+      "position": [
+        460,
+        250
+      ],
+      "type": "n8n-nodes-base.code"
+    },
+    {
+      "id": "claim",
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      },
+      "typeVersion": 2.6,
+      "name": "Claim Send",
+      "parameters": {
+        "options": {
+          "queryBatching": "single"
+        },
+        "query": "={{$json.claimSql}}",
+        "operation": "executeQuery"
+      },
+      "position": [
+        730,
+        250
+      ],
+      "type": "n8n-nodes-base.postgres"
+    },
+    {
+      "id": "finalize",
+      "typeVersion": 2,
+      "name": "Finalize Send",
+      "parameters": {
+        "jsCode": "const row = $json || {};\nconst ctx = $('Prepare Request').first().json;\nconst q = (v) => `'${String(v ?? '').replace(/'/g, \"''\")}'`;\n\nif (!row.inserted) {\n  return [{ json: {\n    status: 'duplicate',\n    sent_at: row.sent_at || null,\n    id: row.id || null,\n    provider_response: null,\n    updateSql: 'SELECT 1;'\n  } }];\n}\n\nlet providerResponse;\nif (ctx.simulate) {\n  providerResponse = { id: 'stubsim', status: 'queued', simulate: true };\n} else {\n  const token = String($env.SIMPLETEXTING_API_KEY || '').trim();\n  if (!token) {\n    return [{ json: {\n      status: 'error',\n      error: 'missing_simpletexting_api_key',\n      id: row.id || null,\n      updateSql: 'SELECT 1;'\n    } }];\n  }\n\n  const sendRes = await $httpRequest({\n    method: 'POST',\n    url: 'https://api-app2.simpletexting.com/v2/api/messages',\n    headers: {\n      Authorization: `Bearer ${token}`,\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: {\n      contactPhone: String(ctx.phone || '').replace(/\\D/g, '').slice(-10),\n      mode: 'SINGLE_SMS_STRICTLY',\n      text: ctx.message_body,\n    },\n    json: true,\n  });\n  providerResponse = sendRes || {};\n}\n\nconst updateSql = `UPDATE report_sms_sent\nSET provider_response = ${q(JSON.stringify(providerResponse))}::jsonb\nWHERE id = ${q(row.id)};`;\n\nreturn [{ json: {\n  status: 'sent',\n  id: row.id,\n  sent_at: row.sent_at || null,\n  provider_response: providerResponse,\n  updateSql\n} }];"
+      },
+      "position": [
+        980,
+        250
+      ],
+      "type": "n8n-nodes-base.code"
+    },
+    {
+      "id": "persist",
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      },
+      "typeVersion": 2.6,
+      "name": "Persist Provider Response",
+      "parameters": {
+        "options": {
+          "queryBatching": "single"
+        },
+        "query": "={{$json.updateSql}}",
+        "operation": "executeQuery"
+      },
+      "position": [
+        1250,
+        250
+      ],
+      "type": "n8n-nodes-base.postgres"
+    },
+    {
+      "id": "respond",
+      "typeVersion": 2,
+      "name": "Respond",
+      "parameters": {
+        "jsCode": "const out = $('Finalize Send').first().json || {};\nreturn [{ json: {\n  status: out.status || null,\n  id: out.id || null,\n  sent_at: out.sent_at || null,\n  provider_response: out.provider_response || null,\n  error: out.error || null,\n} }];"
+      },
+      "position": [
+        1490,
+        250
+      ],
+      "type": "n8n-nodes-base.code"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Request": {
+      "main": [
+        [
+          {
+            "node": "Claim Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Send": {
+      "main": [
+        [
+          {
+            "node": "Finalize Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Send": {
+      "main": [
+        [
+          {
+            "node": "Persist Provider Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist Provider Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "f84aabb2-a58e-4407-a548-dd94dc65dac0",
+  "activeVersionId": "f84aabb2-a58e-4407-a548-dd94dc65dac0",
+  "versionCounter": 34,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-21T16:58:54.902Z",
+      "createdAt": "2026-04-21T16:58:54.902Z",
+      "role": "workflow:owner",
+      "workflowId": "gwaEpWDpTIwsafi8",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-21T17:09:33.468Z",
+    "createdAt": "2026-04-21T17:09:33.468Z",
+    "versionId": "f84aabb2-a58e-4407-a548-dd94dc65dac0",
+    "workflowId": "gwaEpWDpTIwsafi8",
+    "nodes": [
+      {
+        "id": "webhook_in",
+        "typeVersion": 2,
+        "name": "Webhook",
+        "parameters": {
+          "httpMethod": "POST",
+          "responseMode": "lastNode",
+          "path": "lt-sms-send",
+          "options": {}
+        },
+        "position": [
+          200,
+          250
+        ],
+        "type": "n8n-nodes-base.webhook",
+        "webhookId": "6ddb77fe-01d7-46d1-99f3-b187dc724359"
+      },
+      {
+        "id": "prepare",
+        "typeVersion": 2,
+        "name": "Prepare Request",
+        "parameters": {
+          "jsCode": "const src = $json || {};\nconst body = (src.body && typeof src.body === 'object') ? src.body : src;\nconst contact_id = String(body.contact_id || '').trim();\nconst phone = String(body.phone || '').trim();\nconst workflow_id = String(body.workflow_id || '').trim();\nconst template_id = String(body.template_id || '').trim();\nconst message_body = String(body.message_body || '').trim();\nconst simulate = body.simulate === undefined ? true : !!body.simulate;\nconst yyyymmdd = new Date().toISOString().slice(0,10).replace(/-/g, '');\n\nfunction hashHex(input) {\n  let h = 2166136261;\n  for (let i = 0; i < input.length; i++) {\n    h ^= input.charCodeAt(i);\n    h = Math.imul(h, 16777619);\n  }\n  return (h >>> 0).toString(16).padStart(8, '0');\n}\n\nconst message_hash = hashHex(`${contact_id}|${workflow_id}|${template_id}|${yyyymmdd}`);\nconst q = (v) => `'${String(v ?? '').replace(/'/g, \"''\")}'`;\n\nconst claimSql = `\nCREATE TABLE IF NOT EXISTS report_sms_sent (\n  id BIGSERIAL PRIMARY KEY,\n  contact_id TEXT NOT NULL,\n  phone TEXT,\n  workflow_id TEXT NOT NULL,\n  template_id TEXT,\n  message_hash TEXT NOT NULL,\n  provider_response JSONB,\n  sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nCREATE UNIQUE INDEX IF NOT EXISTS report_sms_sent_uq\n  ON report_sms_sent (contact_id, workflow_id, message_hash);\n\nWITH ins AS (\n  INSERT INTO report_sms_sent (contact_id, phone, workflow_id, template_id, message_hash)\n  VALUES (${q(contact_id)}, ${q(phone)}, ${q(workflow_id)}, ${q(template_id)}, ${q(message_hash)})\n  ON CONFLICT (contact_id, workflow_id, message_hash) DO NOTHING\n  RETURNING id, sent_at\n), existing AS (\n  SELECT id, sent_at\n  FROM report_sms_sent\n  WHERE contact_id = ${q(contact_id)}\n    AND workflow_id = ${q(workflow_id)}\n    AND message_hash = ${q(message_hash)}\n  ORDER BY id DESC\n  LIMIT 1\n)\nSELECT\n  CASE WHEN EXISTS(SELECT 1 FROM ins) THEN true ELSE false END AS inserted,\n  COALESCE((SELECT id::text FROM ins), (SELECT id::text FROM existing), '') AS id,\n  COALESCE((SELECT sent_at::text FROM ins), (SELECT sent_at::text FROM existing), '') AS sent_at;\n`;\n\nreturn [{ json: { contact_id, phone, workflow_id, template_id, message_body, simulate, message_hash, claimSql } }];"
+        },
+        "position": [
+          460,
+          250
+        ],
+        "type": "n8n-nodes-base.code"
+      },
+      {
+        "id": "claim",
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        },
+        "typeVersion": 2.6,
+        "name": "Claim Send",
+        "parameters": {
+          "options": {
+            "queryBatching": "single"
+          },
+          "query": "={{$json.claimSql}}",
+          "operation": "executeQuery"
+        },
+        "position": [
+          730,
+          250
+        ],
+        "type": "n8n-nodes-base.postgres"
+      },
+      {
+        "id": "finalize",
+        "typeVersion": 2,
+        "name": "Finalize Send",
+        "parameters": {
+          "jsCode": "const row = $json || {};\nconst ctx = $('Prepare Request').first().json;\nconst q = (v) => `'${String(v ?? '').replace(/'/g, \"''\")}'`;\n\nif (!row.inserted) {\n  return [{ json: {\n    status: 'duplicate',\n    sent_at: row.sent_at || null,\n    id: row.id || null,\n    provider_response: null,\n    updateSql: 'SELECT 1;'\n  } }];\n}\n\nlet providerResponse;\nif (ctx.simulate) {\n  providerResponse = { id: 'stubsim', status: 'queued', simulate: true };\n} else {\n  const token = String($env.SIMPLETEXTING_API_KEY || '').trim();\n  if (!token) {\n    return [{ json: {\n      status: 'error',\n      error: 'missing_simpletexting_api_key',\n      id: row.id || null,\n      updateSql: 'SELECT 1;'\n    } }];\n  }\n\n  const sendRes = await $httpRequest({\n    method: 'POST',\n    url: 'https://api-app2.simpletexting.com/v2/api/messages',\n    headers: {\n      Authorization: `Bearer ${token}`,\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: {\n      contactPhone: String(ctx.phone || '').replace(/\\D/g, '').slice(-10),\n      mode: 'SINGLE_SMS_STRICTLY',\n      text: ctx.message_body,\n    },\n    json: true,\n  });\n  providerResponse = sendRes || {};\n}\n\nconst updateSql = `UPDATE report_sms_sent\nSET provider_response = ${q(JSON.stringify(providerResponse))}::jsonb\nWHERE id = ${q(row.id)};`;\n\nreturn [{ json: {\n  status: 'sent',\n  id: row.id,\n  sent_at: row.sent_at || null,\n  provider_response: providerResponse,\n  updateSql\n} }];"
+        },
+        "position": [
+          980,
+          250
+        ],
+        "type": "n8n-nodes-base.code"
+      },
+      {
+        "id": "persist",
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        },
+        "typeVersion": 2.6,
+        "name": "Persist Provider Response",
+        "parameters": {
+          "options": {
+            "queryBatching": "single"
+          },
+          "query": "={{$json.updateSql}}",
+          "operation": "executeQuery"
+        },
+        "position": [
+          1250,
+          250
+        ],
+        "type": "n8n-nodes-base.postgres"
+      },
+      {
+        "id": "respond",
+        "typeVersion": 2,
+        "name": "Respond",
+        "parameters": {
+          "jsCode": "const out = $('Finalize Send').first().json || {};\nreturn [{ json: {\n  status: out.status || null,\n  id: out.id || null,\n  sent_at: out.sent_at || null,\n  provider_response: out.provider_response || null,\n  error: out.error || null,\n} }];"
+        },
+        "position": [
+          1490,
+          250
+        ],
+        "type": "n8n-nodes-base.code"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Prepare Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Request": {
+        "main": [
+          [
+            {
+              "node": "Claim Send",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Claim Send": {
+        "main": [
+          [
+            {
+              "node": "Finalize Send",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Finalize Send": {
+        "main": [
+          [
+            {
+              "node": "Persist Provider Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Persist Provider Response": {
+        "main": [
+          [
+            {
+              "node": "Respond",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-25T18:10:46.946Z",
+        "id": 893,
+        "workflowId": "gwaEpWDpTIwsafi8",
+        "versionId": "f84aabb2-a58e-4407-a548-dd94dc65dac0",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-25T18:10:46.978Z",
+        "id": 894,
+        "workflowId": "gwaEpWDpTIwsafi8",
+        "versionId": "f84aabb2-a58e-4407-a548-dd94dc65dac0",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-21T17:09:33.572Z",
+        "id": 875,
+        "workflowId": "gwaEpWDpTIwsafi8",
+        "versionId": "f84aabb2-a58e-4407-a548-dd94dc65dac0",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-21T17:09:33.664Z",
+        "id": 876,
+        "workflowId": "gwaEpWDpTIwsafi8",
+        "versionId": "f84aabb2-a58e-4407-a548-dd94dc65dac0",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

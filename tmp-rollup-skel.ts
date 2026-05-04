@@ -1,0 +1,34 @@
+const scheduleTrigger = trigger({ type: 'n8n-nodes-base.scheduleTrigger', version: 1.2, config: { name: 'Schedule Trigger', parameters: { rule: { interval: [{ field: 'minutes', minutesInterval: 1440 }] } }, position: [240, 160] }, output: [{}] });
+
+const manualTrigger = trigger({ type: 'n8n-nodes-base.manualTrigger', version: 1, config: { name: 'Manual Trigger', position: [240, 320] }, output: [{}] });
+
+const configNode = node({ type: 'n8n-nodes-base.set', version: 2, config: { name: 'Config', parameters: { assignments: { assignments: [{ id: 'workflowName', name: 'workflowName', type: 'string', value: 'LT - Report Daily Rollups' },{ id: 'sourceSystem', name: 'sourceSystem', type: 'string', value: 'rollups' },{ id: 'reportDate', name: 'reportDate', type: 'string', value: "CURRENT_DATE - INTERVAL '1 day'" },{ id: 'contactsTable', name: 'contactsTable', type: 'string', value: 'report_raw_ghl_contacts' },{ id: 'oppsTable', name: 'oppsTable', type: 'string', value: 'report_raw_ghl_opportunities' },{ id: 'formsTable', name: 'formsTable', type: 'string', value: 'report_raw_ghl_forms' },{ id: 'dailyTable', name: 'dailyTable', type: 'string', value: 'report_daily_summary' },{ id: 'channelTable', name: 'channelTable', type: 'string', value: 'report_channel_daily_summary' },{ id: 'funnelTable', name: 'funnelTable', type: 'string', value: 'report_funnel_daily_summary' },{ id: 'pipelineTable', name: 'pipelineTable', type: 'string', value: 'report_pipeline_daily_summary' },{ id: 'stageTable', name: 'stageTable', type: 'string', value: 'report_stage_daily_summary' },{ id: 'utmTable', name: 'utmTable', type: 'string', value: 'report_utm_daily_summary' },{ id: 'landingTable', name: 'landingTable', type: 'string', value: 'report_landing_page_daily_summary' },{ id: 'runTable', name: 'runTable', type: 'string', value: 'report_sync_runs' },{ id: 'watermarkTable', name: 'watermarkTable', type: 'string', value: 'report_sync_watermarks' },{ id: 'healthTable', name: 'healthTable', type: 'string', value: 'report_source_health' }] } }, position: [480, 240] }, output: [{ workflowName: 'LT - Report Daily Rollups', sourceSystem: 'rollups' }] });
+
+PLACEHOLDER_BUILD_ROLLUP
+
+const writeRollups = node({ type: 'n8n-nodes-base.postgres', version: 2.6, config: { name: 'Write Rollups', parameters: { operation: 'executeQuery', query: '={{ $json.sql }}', options: { queryBatching: 'independently' } }, position: [960, 240] }, output: [{ json: { command: 'INSERT' } }] });
+
+const summaryCode = 'const cfg = $node["Config"].json; return [{json:{workflowName:cfg.workflowName,sourceSystem:cfg.sourceSystem,executedStatements:7,reportDate:"yesterday",batchId:"rollups-" + new Date().toISOString().slice(0,10)}}];';
+
+const summarizeRun = node({ type: 'n8n-nodes-base.code', version: 2, config: { name: 'Summarize Run', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: summaryCode }, position: [1200, 240] }, output: [{ json: { workflowName: 'LT - Report Daily Rollups' } }] });
+
+const finalizeCode = `var s = $node['Summarize Run'].json;
+var esc = function(v) { return String(v || '').replace(/'/g, "''"); };
+var q = function(v) { return "'" + esc(v) + "'"; };
+var jsonQ = function(v) { return q(JSON.stringify(v)); };
+var runSql = "INSERT INTO report_sync_runs (workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata) VALUES (" + q('LT - Report Daily Rollups') + ", " + q('rollups') + ", CURRENT_DATE, " + q(s.batchId) + ", 'completed', NOW(), NOW(), " + (s.executedStatements || 0) + ", 0, 0, CURRENT_DATE::text, null, " + jsonQ({ note: 'GHL+GA4 rollups are live. GSC metrics pending.' }) + "::jsonb);";
+var watermarkSql = "INSERT INTO report_sync_watermarks (workflow_name, source_system, watermark_key, watermark_value, updated_at) VALUES (" + q('LT - Report Daily Rollups') + ", " + q('rollups') + ", 'latest_report_date', CURRENT_DATE::text, NOW()) ON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET watermark_value = EXCLUDED.watermark_value, updated_at = NOW();";
+var healthSql = "INSERT INTO report_source_health (source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at) VALUES (" + q('rollups') + ", 'ready', NOW(), NOW(), " + (s.executedStatements || 0) + ", 48, null, " + jsonQ({ workflowName: s.workflowName, executedStatements: s.executedStatements || 0 }) + "::jsonb, NOW()) ON CONFLICT (source_system) DO UPDATE SET status = EXCLUDED.status, last_success_at = EXCLUDED.last_success_at, last_attempt_at = EXCLUDED.last_attempt_at, last_row_count = EXCLUDED.last_row_count, last_error = EXCLUDED.last_error, metadata = EXCLUDED.metadata, updated_at = NOW();";
+return [{ json: { sql: runSql } }, { json: { sql: watermarkSql } }, { json: { sql: healthSql } }];`;
+
+const buildFinalization = node({ type: 'n8n-nodes-base.code', version: 2, config: { name: 'Build Finalization SQL', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: finalizeCode }, position: [1440, 240] }, output: [{ json: { sql: 'SELECT 1;' } }] });
+
+const finalizeRun = node({ type: 'n8n-nodes-base.postgres', version: 2.6, config: { name: 'Finalize Run Records', parameters: { operation: 'executeQuery', query: '={{ $json.sql }}', options: { queryBatching: 'independently' } }, position: [1680, 240] }, output: [{ json: { command: 'INSERT' } }] });
+
+const resultCode = 'var s = $node["Summarize Run"].json; return [{json:{ok:true,workflow:s.workflowName,status:"prepared",source:s.sourceSystem,reportDate:s.reportDate,executedStatements:s.executedStatements,note:"GHL+GA4 daily rollups are live."}}];';
+
+const resultNode = node({ type: 'n8n-nodes-base.code', version: 2, config: { name: 'Result', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: resultCode }, position: [1920, 240] }, output: [{ json: { ok: true } }] });
+
+const stickyNote = sticky('LT - Report Daily Rollups\n\nPurpose\n- Aggregate daily KPI tables for the embedded report.\n- Summarize traffic, leads, sales, and attribution by dimension.\n\nStatus\n- GHL+GA4 rollups are live. GSC metrics pending.', [], { position: [480, 80] });
+
+export default workflow('EUeOiRttoVLQ9zF9', 'LT - Report Daily Rollups').add(scheduleTrigger).to(configNode).add(manualTrigger).to(configNode).add(configNode).to(buildRollupSql).add(buildRollupSql).to(writeRollups).add(writeRollups).to(summarizeRun).add(summarizeRun).to(buildFinalization).add(buildFinalization).to(finalizeRun).add(finalizeRun).to(resultNode);

@@ -13,10 +13,23 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.
 - n8n writes the raw data, bridge rows, rollups, QA rows, and publish markers.
-- The live executive summary webhook is wired to the report host and serves JSON from the Postgres reporting tables.
+- The live executive summary webhook is wired to the report host and serves JSON from the Postgres reporting tables. GA4 traffic is ingested daily and bridged into the rollup tables (sessions, users, engaged_sessions, engagement_rate) alongside GHL CRM data.
+- The Executive Report now surfaces a Meta attribution panel using the live summary payload. It is intentionally focused on which Meta-tagged ads/campaigns are driving website visits and downstream opportunities, not spend.
 - The Postgres reporting bootstrap has been applied to the live database.
 - GHL leads/sales/report workflows are live and active.
-- GA4 and GSC are deferred to a later phase.
+- GA4 is now live and flowing to the executive report (sessions, users, engagement by channel). GSC is still deferred.
+- `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary dedupe and stage-aware win logic integrated into production.
+- `LT - Report Daily Rollups` now preserves GA-backed channel, UTM, landing-page, and daily traffic rows so the report host keeps live Channel Breakdown after rollups run.
+- `LT - Report Rollup Corrections` has been deactivated because the production Rollups workflow now owns those fixes.
+- `LT - Report Executive Summary API` now returns funnel-efficiency metrics for the embedded report, including traffic-to-contact and opportunity-stage conversion rates.
+- `LT - Report Executive Summary API` now uses a contact-safe cohort definition for `contactToOpportunityRate` so the embedded funnel is not inflated by multi-opportunity rollup semantics.
+- `LT - Report Executive Summary API` now also exposes attribution-coverage metrics for the new-contact cohort so the report can separate funnel weakness from matching weakness.
+- Meta reporting in the Executive Report is currently attribution-first:
+  - Traffic and campaign rows come from GA4 UTM/session reporting.
+  - Downstream lead/opportunity counts come from the GHL bridge and rollup tables.
+  - Meta spend, clicks, and impression truth remain in the staged raw ingest and source health path, but are not shown in the Executive Report yet by design.
+- The current cohort view now shows usable source-field coverage, bridge-match coverage, and lead-to-sale match coverage separately so attribution quality can be diagnosed without inflating funnel metrics.
+- `LT - Report Attribution Bridge` now rebuilds a rolling 90-day window using normalized raw contact ids and stored GHL attribution fields, which materially improved cohort bridge coverage in the live report.
 - The GHL sidebar menu record is already live in GHL.
 
 ## Expected Runtime Flow
@@ -31,7 +44,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - This host is designed to stay external while being embedded inside GHL.
 - That keeps the dashboard flexible while leaving CRM, navigation, and user access inside HighLevel.
 - If the team later wants a dashboard-page view instead, the same host can also be embedded through a GHL dashboard widget.
-- GA4/GSC sections can be added later without changing the GHL menu entry or the report URL.
+- GA4 traffic data is now live in the report. GSC sections can be added later without changing the GHL menu entry or the report URL.
 
 ## Planned API Contract
 
