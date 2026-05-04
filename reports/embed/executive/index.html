@@ -4,9 +4,623 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-05-05-meta-attribution-v2 -->
-...
-        const BUILD_STAMP = "2026-05-05-meta-attribution-v2";
+    <!-- build-stamp: 2026-05-05-meta-attribution-v3 -->
+    <meta name="color-scheme" content="dark" />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #12192d;
+        --panel-2: #161f36;
+        --panel-3: #1a2440;
+        --line: rgba(255, 255, 255, 0.08);
+        --text: #eef2ff;
+        --muted: #9aa4bf;
+        --faint: #7380a3;
+        --green: #37d67a;
+        --blue: #4f8cff;
+        --amber: #f3b63f;
+        --red: #ff6b6b;
+        --purple: #8f7cff;
+        --teal: #2fc7b5;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top left, rgba(79, 140, 255, 0.16), transparent 26%),
+          radial-gradient(circle at top right, rgba(143, 124, 255, 0.12), transparent 22%),
+          linear-gradient(180deg, #090d19 0%, #0b1020 100%);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        display: grid;
+        place-items: stretch;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 248px 1fr;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: relative;
+        z-index: 20;
+        border-right: 1px solid var(--line);
+        background: rgba(7, 11, 24, 0.78);
+        backdrop-filter: blur(18px);
+        padding: 24px 16px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px 22px;
+      }
+
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--blue), var(--purple));
+        box-shadow: 0 10px 30px rgba(79, 140, 255, 0.35);
+      }
+
+      .brand-copy {
+        display: grid;
+        gap: 2px;
+      }
+
+      .brand-copy strong {
+        font-size: 0.92rem;
+        letter-spacing: 0.03em;
+      }
+
+      .brand-copy span {
+        font-size: 0.76rem;
+        color: var(--muted);
+      }
+
+      .nav-group {
+        margin-top: 18px;
+      }
+
+      .nav-title {
+        padding: 0 12px 8px;
+        font-size: 0.7rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        padding: 11px 12px;
+        border-radius: 12px;
+        text-align: left;
+        font: inherit;
+      }
+
+      .nav-item.active {
+        background: rgba(79, 140, 255, 0.14);
+        color: var(--text);
+      }
+
+      .nav-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.9;
+      }
+
+      .content {
+        position: relative;
+        z-index: 1;
+        padding: 28px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 22px;
+      }
+
+      .title-wrap h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+        line-height: 1.1;
+      }
+
+      .title-wrap p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+        position: relative;
+        z-index: 20;
+      }
+
+      .build-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(79, 140, 255, 0.4);
+        background: rgba(79, 140, 255, 0.12);
+        color: #c9d8ff;
+        font-size: 0.78rem;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+
+      .chip, .button {
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+        padding: 10px 14px;
+        font: inherit;
+      }
+
+      .nav-item,
+      .chip {
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .chip.active {
+        background: rgba(79, 140, 255, 0.18);
+        border-color: rgba(79, 140, 255, 0.36);
+      }
+
+      .button {
+        background: linear-gradient(135deg, rgba(79, 140, 255, 0.18), rgba(143, 124, 255, 0.18));
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .core-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 18px 0;
+      }
+
+      .panel-head h2 {
+        margin: 0;
+        font-size: 0.96rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .panel-head span {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .panel-body {
+        padding: 18px;
+      }
+
+      .question {
+        padding: 18px;
+        border-radius: 16px;
+        min-height: 114px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .question strong {
+        display: block;
+        color: var(--muted);
+        font-size: 0.82rem;
+        margin-bottom: 10px;
+      }
+
+      .question .answer {
+        font-size: 1.2rem;
+        line-height: 1.35;
+      }
+
+      .answer.good { color: var(--green); }
+      .answer.warn { color: var(--amber); }
+      .answer.bad { color: var(--red); }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.018));
+      }
+
+      .card .label {
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+      }
+
+      .card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .card .sub {
+        margin-top: 10px;
+        color: var(--faint);
+        font-size: 0.86rem;
+      }
+
+      .stat {
+        display: grid;
+        gap: 8px;
+      }
+
+      .bar-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .bar-item {
+        display: grid;
+        grid-template-columns: 180px 1fr 68px;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .bar-label {
+        color: var(--text);
+        font-size: 0.92rem;
+      }
+
+      .bar-track {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: inherit;
+        width: var(--w);
+        background: linear-gradient(90deg, var(--c1), var(--c2));
+      }
+
+      .bar-value {
+        text-align: right;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .two-col {
+        grid-template-columns: 1.3fr 1fr;
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .mini {
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .mini strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .mini div {
+        font-size: 1.3rem;
+        font-weight: 700;
+      }
+
+      .footer-note {
+        margin-top: 16px;
+        color: var(--faint);
+        font-size: 0.82rem;
+      }
+
+      .loading {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      @media (max-width: 1100px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .core-grid,
+        .kpi-grid,
+        .cards,
+        .mini-grid,
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+
+        .bar-item {
+          grid-template-columns: 1fr;
+        }
+
+        .bar-value {
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-copy">
+            <strong>HighLevel</strong>
+            <span>Reporting / Executive Dashboard</span>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-title">Overview</div>
+          <a class="nav-item active" href="?view=overview&range=30d&embed=1&section=section-overview" data-view="overview" data-scroll="#section-overview"><span class="nav-dot"></span> Executive report</a>
+          <a class="nav-item" href="/embed/executive/readme/" target="_blank" rel="noopener noreferrer"><span class="nav-dot"></span> Weekly readme</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-intake" data-view="overview" data-scroll="#section-intake"><span class="nav-dot"></span> Intake</a>
+          <a class="nav-item" href="?view=leads&range=30d&embed=1&section=section-leads" data-view="leads" data-scroll="#section-leads"><span class="nav-dot"></span> Leads</a>
+          <a class="nav-item" href="?view=sales&range=30d&embed=1&section=section-sales" data-view="sales" data-scroll="#section-sales"><span class="nav-dot"></span> Sales</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-title">Channels</div>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=meta-ads" data-view="overview" data-scroll="#section-channels" data-channel="meta-ads"><span class="nav-dot"></span> Meta ads</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=google-ads" data-view="overview" data-scroll="#section-channels" data-channel="google-ads"><span class="nav-dot"></span> Google ads</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=organic-social" data-view="overview" data-scroll="#section-channels" data-channel="organic-social"><span class="nav-dot"></span> Organic social (unpaid)</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=email-sms" data-view="overview" data-scroll="#section-channels" data-channel="email-sms"><span class="nav-dot"></span> Email / SMS</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-channels&channel=linkedin-dm" data-view="overview" data-scroll="#section-channels" data-channel="linkedin-dm"><span class="nav-dot"></span> LinkedIn DM</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-title">Settings</div>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-source-health" data-view="overview" data-scroll="#section-source-health"><span class="nav-dot"></span> Integrations</a>
+        </div>
+      </aside>
+
+      <main class="content">
+        <div class="topbar" id="section-overview">
+          <div class="title-wrap">
+            <h1>Executive report</h1>
+            <p id="subtitle">April 2026 · GHL only · Sources: GHL</p>
+          </div>
+          <div class="controls" aria-label="report controls">
+            <span class="build-badge" id="build-badge">build: pending</span>
+            <a class="button" href="/embed/executive/readme/" target="_blank" rel="noopener noreferrer">Weekly readme</a>
+            <a class="chip" href="?view=overview&range=7d&embed=1" data-range="7d">7d</a>
+            <a class="chip active" href="?view=overview&range=30d&embed=1" data-range="30d">30d</a>
+            <a class="chip" href="?view=overview&range=90d&embed=1" data-range="90d">90d</a>
+            <button class="button">Export</button>
+          </div>
+        </div>
+
+        <section class="grid core-grid" aria-label="core questions" id="section-intake">
+          <div class="question">
+            <strong>Is intake flowing?</strong>
+            <div class="answer good" data-core="intake">GHL ready</div>
+            <div class="footer-note">Contacts, forms, and routing fields feed this view from the GHL lead ingest.</div>
+          </div>
+          <div class="question">
+            <strong>Leads → sales?</strong>
+            <div class="answer warn" data-core="leads-to-sales">Partial</div>
+            <div class="footer-note">GHL attribution, bridge logic, and rollups are now the source of truth.</div>
+          </div>
+          <div class="question">
+            <strong>Pipeline healthy?</strong>
+            <div class="answer good" data-core="pipeline-healthy">Ready</div>
+            <div class="footer-note">Stage movement and closed-won rollups already come from GHL.</div>
+          </div>
+        </section>
+
+        <section class="grid kpi-grid" style="margin-top:16px;" id="section-leads">
+          <div class="panel" id="section-sales">
+            <div class="panel-head">
+              <h2>Intake overview</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="card stat">
+                <div class="label">Intake</div>
+                <div class="value loading" data-metric="intake">Waiting for GHL summary rows</div>
+                <div class="sub">Contacts, forms, and routing fields populate from the GHL lead ingest.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Leads</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="card stat">
+                <div class="label">Leads</div>
+                <div class="value loading" data-metric="leads">Waiting for reporting sync</div>
+                <div class="sub">Contacts, forms, and routing fields will come from the GHL lead ingest.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Sales</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="card stat">
+                <div class="label">Closed Won</div>
+                <div class="value loading" data-metric="sales">Waiting for rollups</div>
+                <div class="sub">Revenue and stage movement will come from the sales ingest + rollups.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid two-col" style="margin-top:16px;" id="section-channels">
+          <div class="panel" id="section-pipeline">
+            <div class="panel-head">
+              <h2>Channel breakdown</h2>
+              <span>Source-labeled</span>
+            </div>
+            <div class="panel-body">
+              <div class="bar-list" id="channels">
+                <div class="loading">Waiting for GHL summary rows.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Pipeline stage drop-off</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="pipeline-grid">
+                <div class="mini"><strong>Warm</strong><div>0</div></div>
+                <div class="mini"><strong>Sales Outreach</strong><div>0</div></div>
+                <div class="mini"><strong>Sales</strong><div>0</div></div>
+              </div>
+              <div class="mini-grid" id="stage-top-grid" style="margin-top:12px;">
+                <div class="mini"><strong>Stage 1</strong><div>0</div></div>
+                <div class="mini"><strong>Stage 2</strong><div>0</div></div>
+                <div class="mini"><strong>Stage 3</strong><div>0</div></div>
+              </div>
+              <div class="bar-list" id="stage-movement-list" style="margin-top:14px;">
+                <div class="loading">Waiting for stage movement data.</div>
+              </div>
+              <div class="footer-note" style="margin-top:14px;">
+                Stage counts and moved-in / moved-out values come from GHL rollups.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid two-col" style="margin-top:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Capture gaps</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="capture-gaps-grid">
+                <div class="mini"><strong>Contacts</strong><div>0</div></div>
+                <div class="mini"><strong>Forms</strong><div>0</div></div>
+                <div class="mini"><strong>Opportunities</strong><div>0</div></div>
+              </div>
+              <div class="footer-note">
+                These metrics are intentionally left blank until the GHL capture and rollup fields are fully populated, so the embed URL can stay stable.
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Sales quality</h2>
+              <span>GHL</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="sales-quality-grid">
+                <div class="mini"><strong>Avg. cycle length</strong><div>—</div></div>
+                <div class="mini"><strong>Best channel</strong><div>GHL ready</div></div>
+                <div class="mini"><strong>Top loss reason</strong><div>No response</div></div>
+              </div>
+              <div class="footer-note">
+                This will come from the sales ingest + pipeline summary rollups.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid" style="margin-top:16px;" id="section-source-health">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Source health</h2>
+              <span>n8n + Postgres</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="health-grid">
+                <div class="mini"><strong>GHL</strong><div>Ready</div></div>
+                <div class="mini"><strong>n8n</strong><div>Ready</div></div>
+                <div class="mini"><strong>Postgres</strong><div>Ready</div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        const BUILD_STAMP = "2026-05-05-meta-attribution-v3";
         const params = new URLSearchParams(window.location.search);
         const view = params.get("view") || "overview";
         const validRanges = new Set(["7d", "30d", "90d"]);
@@ -40,18 +654,25 @@
           let sectionEl = document.getElementById("section-meta");
           if (sectionEl) return sectionEl;
 
-          const utmPanel = utmListEl ? utmListEl.closest("section, article, .panel, .card, div") : null;
+          const utmPanel = utmListEl ? utmListEl.closest(".panel") : null;
           if (!utmPanel || !utmPanel.parentElement) return null;
 
           sectionEl = document.createElement("section");
           sectionEl.id = "section-meta";
-          sectionEl.className = utmPanel.className || "panel";
+          sectionEl.className = "panel";
+          sectionEl.style.marginTop = "16px";
           sectionEl.innerHTML = `
-            <div class="section-kicker">Paid Social Attribution</div>
-            <h2>Meta Ads Driving Traffic and Calls</h2>
-            <p class="muted">Use this section when you want ad-level answers. It highlights Meta-tagged campaigns by website visits, matched contacts, and downstream opportunities from the existing GA4 + GHL attribution path.</p>
-            <div id="meta-ads-summary-grid" class="mini-grid"></div>
-            <div id="meta-ads-list" class="bar-list"></div>
+            <div class="panel-head">
+              <h2>Meta Ads Driving Traffic and Calls</h2>
+              <span>Meta attribution</span>
+            </div>
+            <div class="panel-body">
+              <div class="footer-note" style="margin-top:0; margin-bottom:14px;">
+                Use this section when you want ad-level answers. It highlights Meta-tagged campaigns by website visits, matched contacts, and downstream opportunities from the existing GA4 + GHL attribution path.
+              </div>
+              <div id="meta-ads-summary-grid" class="mini-grid"></div>
+              <div id="meta-ads-list" class="bar-list" style="margin-top:14px;"></div>
+            </div>
           `;
 
           utmPanel.insertAdjacentElement("afterend", sectionEl);
@@ -140,7 +761,7 @@
             ["GHL attribution, bridge logic, and rollups are now the source of truth.", "Of the safely matched contacts in this window, how many progressed into opportunities."],
             ["Stage movement and closed-won rollups already come from GHL.", "Of the booked or downstream pipeline activity in this window, how much reached closed won."],
             ["Organic Search", "Organic Search (unpaid search)"],
-            ["Organic Social", "Organic Social (unpaid social)"],
+            ["Organic Social", "Organic Social (unpaid social)"]
           ]);
 
           document.querySelectorAll("strong, h2, h3, p, div, span").forEach((el) => {
@@ -229,10 +850,7 @@
               { label: "Meta-attributed visits", value: formatNumber(totals.sessions) },
               { label: "Meta-attributed contacts", value: formatNumber(totals.leads) },
               { label: "Meta-attributed opps", value: formatNumber(totals.opportunities) },
-              {
-                label: "Visit -> contact rate",
-                value: totals.sessions > 0 ? formatPercent(totals.leads / totals.sessions) : "0%",
-              },
+              { label: "Visit -> contact rate", value: totals.sessions > 0 ? formatPercent(totals.leads / totals.sessions) : "0%" },
             ],
             [
               { label: "Meta-attributed visits", value: "0" },
