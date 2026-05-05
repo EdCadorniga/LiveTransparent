@@ -293,6 +293,38 @@ CREATE UNIQUE INDEX IF NOT EXISTS report_raw_ghl_pipeline_history_uq
 CREATE INDEX IF NOT EXISTS report_raw_ghl_pipeline_history_report_date_idx
   ON report_raw_ghl_pipeline_history (report_date);
 
+CREATE TABLE IF NOT EXISTS report_raw_ghl_call_outcomes (
+  id BIGSERIAL PRIMARY KEY,
+  report_date DATE NOT NULL,
+  source_system TEXT NOT NULL DEFAULT 'ghl',
+  source_key TEXT NOT NULL,
+  call_date TIMESTAMPTZ,
+  direction TEXT,
+  duration_seconds INTEGER,
+  disposition TEXT,
+  disposition_label TEXT,
+  from_number TEXT,
+  to_number TEXT,
+  contact_id TEXT,
+  contact_name TEXT,
+  user_id TEXT,
+  user_name TEXT,
+  ghL_message_id TEXT,
+  ghL_conversation_id TEXT,
+  ghL_alt_id TEXT,
+  payload_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS report_raw_ghl_call_outcomes_uq
+  ON report_raw_ghl_call_outcomes (source_system, report_date, source_key);
+
+CREATE INDEX IF NOT EXISTS report_raw_ghl_call_outcomes_report_date_idx
+  ON report_raw_ghl_call_outcomes (report_date);
+
+CREATE INDEX IF NOT EXISTS report_raw_ghl_call_outcomes_disposition_idx
+  ON report_raw_ghl_call_outcomes (disposition);
+
 -- Bridge layer
 
 CREATE TABLE IF NOT EXISTS report_bridge_identity_map (

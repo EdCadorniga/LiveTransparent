@@ -1,0 +1,155 @@
+{
+  "name": "LT - Voice Agent V1 Outbound Dialer",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "cron_1",
+      "name": "Cron - Queue Poll",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 280]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select queue_id, contact_id, phone_e164, campaign_id, lead_timezone, max_attempts, attempt_count\nfrom voice_call_queue\nwhere status = 'pending'\n  and dnc = false\n  and attempt_count < max_attempts\n  and (next_attempt_at is null or next_attempt_at <= now())\norder by coalesce(next_attempt_at, created_at) asc\nlimit 1;"
+      },
+      "id": "pg_1",
+      "name": "Postgres - Fetch Next Queue Item",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [520, 280]
+    },
+    {
+      "parameters": {
+        "jsCode": "const row = $json;\nif (!row || !row.queue_id) {\n  return [{ json: { skip: true, reason: 'empty_queue' } }];\n}\nreturn [{ json: { ...row, skip: false } }];"
+      },
+      "id": "code_1",
+      "name": "Code - Queue Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 280]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.skip}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if_1",
+      "name": "If - Skip Empty",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [980, 280]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.VOICE_PROVIDER_BASE_URL + '/calls/start'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{'Bearer ' + $env.VOICE_PROVIDER_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"to\":\"{{$json.phone_e164}}\",\"from\":\"{{$env.VOICE_FROM_NUMBER}}\",\"contactId\":\"{{$json.contact_id}}\",\"campaignId\":\"{{$json.campaign_id}}\"}"
+      },
+      "id": "http_1",
+      "name": "HTTP - Start Voice Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1220, 360]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "resource": "contactNote",
+        "contactId": "={{$json.contact_id}}",
+        "body": "={{'AI outbound call executed. Booking and transcript sync handled by callback workflow. queue_id=' + $json.queue_id}}"
+      },
+      "id": "ghl_1",
+      "name": "GHL - Create Call Note",
+      "type": "n8n-nodes-base.highLevel",
+      "typeVersion": 1,
+      "position": [1450, 360]
+    }
+  ],
+  "connections": {
+    "Cron - Queue Poll": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Fetch Next Queue Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Fetch Next Queue Item": {
+      "main": [
+        [
+          {
+            "node": "Code - Queue Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Queue Guard": {
+      "main": [
+        [
+          {
+            "node": "If - Skip Empty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Skip Empty": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP - Start Voice Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Start Voice Call": {
+      "main": [
+        [
+          {
+            "node": "GHL - Create Call Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "active": false
+}

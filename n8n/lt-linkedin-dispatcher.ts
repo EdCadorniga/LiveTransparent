@@ -33,7 +33,7 @@ const config = node({
           { id: 'gKey', name: 'ghlApiKey', type: 'string', value: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86' },
           { id: 'uBase', name: 'unipileApiBaseUrl', type: 'string', value: 'https://api13.unipile.com:14300/api/v1' },
           { id: 'uKey', name: 'unipileApiKey', type: 'string', value: 'WuuwgOoB.dLVVDvxyWrBVzoWib+g8qe+f2CuJKhtH09xuzykSheM=' },
-          { id: 'uAcct', name: 'unipileAccountId', type: 'string', value: 'cIhQYvGRS8CFUo5MZ4P9Qw' },
+          { id: 'uAcct', name: 'unipileAccountId', type: 'string', value: 'V9eiHiDpRmCtan0YNdzsQw' },
           { id: 'tag', name: 'ghlSuccessTag', type: 'string', value: 'linkedin_connection_requested' },
           { id: 'cfName', name: 'linkedinCustomFieldName', type: 'string', value: 'Apollo Person Linkedin URL' },
           { id: 'maxQ', name: 'maxQueueSize', type: 'number', value: 50 },
@@ -86,9 +86,12 @@ async function ghlSearchContacts(pageLimit, page) {
   });
 }
 
-function getCustomField(contact, fieldName) {
+function getLinkedInUrl(contact) {
   const fields = Array.isArray(contact?.customFields) ? contact.customFields : [];
-  for (const f of fields) { if ((f.name || f.label || "").trim() === fieldName) return String(f.value || "").trim(); }
+  for (const f of fields) {
+    const v = String(f.value || "").trim();
+    if (/linkedin\.com/i.test(v)) return v;
+  }
   return "";
 }
 
@@ -128,8 +131,8 @@ for (let page = 1; page <= 5; page++) {
     scanned++;
     if (eligible.length >= CFG.maxQueueSize) break;
     if (hasTag(c, CFG.successTag)) continue;
-    const liUrl = getCustomField(c, CFG.cfName);
-    if (!liUrl || !/^https?:\/\/.*linkedin\.com/i.test(liUrl)) continue;
+    const liUrl = getLinkedInUrl(c);
+    if (!liUrl) continue;
     eligible.push({ id: c.id, firstName: String(c.firstName || "").trim(), lastName: String(c.lastName || "").trim(), liUrl });
   }
   if (eligible.length >= CFG.maxQueueSize || contacts.length < 50) break;
@@ -168,11 +171,10 @@ const dryRuns = results.filter((r) => r.status === "dry_run").length;
 const failed = results.filter((r) => r.status !== "sent" && r.status !== "dry_run").length;
 
 const today = new Date().toISOString().slice(0, 10);
-const prev = \$getWorkflowStaticData("global");
+const prev = this.getWorkflowStaticData("global");
 const dailySent = (prev.date === today ? (prev.sentToday || 0) : 0) + sent;
 prev.date = today;
 prev.sentToday = dailySent;
-\$setWorkflowStaticData("global", prev);
 
 return [{ json: {
   queue_found: eligible.length,
