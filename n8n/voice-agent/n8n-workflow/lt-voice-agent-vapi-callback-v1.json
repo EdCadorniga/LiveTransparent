@@ -1,0 +1,88 @@
+{
+  "name": "LT - Voice Agent V1 Vapi Callback Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-voice-agent-vapi-callback",
+        "responseMode": "lastNode"
+      },
+      "id": "webhook_1",
+      "name": "Webhook - Vapi End Of Call",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst call = body.call || body;\nconst artifact = body.artifact || {};\nconst analysis = body.analysis || {};\nconst meta = (call.assistantOverrides && call.assistantOverrides.metadata) || call.metadata || {};\n\nconst contactId = String(meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || '').trim();\nconst campaignId = String(meta.campaign_id || '').trim();\n\nconst status = String(call.status || body.status || '').toLowerCase();\nconst endedReason = String(call.endedReason || '').toLowerCase();\nconst successEvaluation = !!analysis.successEvaluation;\nconst summary = String(analysis.summary || artifact.summary || '').trim();\nconst transcript = artifact.transcript || call.transcript || '';\n\nlet disposition = 'failed';\nif (status.includes('ended') || status.includes('completed')) {\n  if (endedReason.includes('customer-did-not-answer') || endedReason.includes('no-answer')) disposition = 'no_answer';\n  else if (endedReason.includes('voicemail')) disposition = 'voicemail';\n  else disposition = successEvaluation ? 'qualified_booked' : 'connected';\n}\n\nreturn [{ json: { contact_id: contactId, queue_id: queueId, campaign_id: campaignId, call_id: String(call.id || body.id || ''), disposition, summary: summary || 'No summary returned by Vapi.', transcript_text: typeof transcript === 'string' ? transcript : JSON.stringify(transcript), recording_url: artifact.recordingUrl || call.recordingUrl || '', raw_status: status, raw_ended_reason: endedReason } }];"
+      },
+      "id": "code_1",
+      "name": "Code - Normalize Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 320]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into voice_call_attempt (call_id, queue_id, contact_id, provider_call_id, idempotency_key, disposition, summary, transcript_url, recording_url)\nvalues (\n  nullif({{ $json.call_id ? \"'\" + $json.call_id + \"'\" : \"null\" }}, null)::uuid,\n  nullif({{ $json.queue_id ? \"'\" + $json.queue_id + \"'\" : \"null\" }}, null)::uuid,\n  '{{ $json.contact_id }}',\n  '{{ $json.call_id }}',\n  '{{ $json.call_id }}:{{ $json.disposition }}',\n  '{{ $json.disposition }}',\n  '{{ ($json.summary || \"\").replace(/'/g, \"''\") }}',\n  '',\n  '{{ $json.recording_url }}'\n)\non conflict (idempotency_key) do nothing;"
+      },
+      "id": "pg_1",
+      "name": "Postgres - Insert Attempt",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [800, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{\"https://services.leadconnectorhq.com/contacts/\" + $json.contact_id + \"/notes\"}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{\"Bearer \" + $env.GHL_API_KEY}}" },
+            { "name": "Version", "value": "2021-07-28" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { body: \"AI call completed. Disposition: \" + $json.disposition + \"\\nSummary: \" + ($json.summary || \"n/a\") + \"\\nRecording: \" + ($json.recording_url || \"n/a\") } }}"
+      },
+      "id": "http_1",
+      "name": "HTTP - GHL Contact Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 320]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, contact_id: $json.contact_id, queue_id: $json.queue_id, disposition: $json.disposition } }}"
+      },
+      "id": "resp_1",
+      "name": "Respond - 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.3,
+      "position": [1320, 320]
+    }
+  ],
+  "connections": {
+    "Webhook - Vapi End Of Call": {
+      "main": [[{ "node": "Code - Normalize Callback", "type": "main", "index": 0 }]]
+    },
+    "Code - Normalize Callback": {
+      "main": [[{ "node": "Postgres - Insert Attempt", "type": "main", "index": 0 }]]
+    },
+    "Postgres - Insert Attempt": {
+      "main": [[{ "node": "HTTP - GHL Contact Note", "type": "main", "index": 0 }]]
+    },
+    "HTTP - GHL Contact Note": {
+      "main": [[{ "node": "Respond - 200", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {},
+  "active": false
+}

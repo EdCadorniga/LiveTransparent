@@ -1,5 +1,5 @@
 {
-  "name": "LT - Voice Agent V1 Outbound Dialer",
+  "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
   "nodes": [
     {
       "parameters": {
@@ -58,37 +58,64 @@
     },
     {
       "parameters": {
-        "url": "={{$env.VOICE_PROVIDER_BASE_URL + '/calls/start'}}",
+        "method": "POST",
+        "url": "={{$env.VAPI_BASE_URL || 'https://api.vapi.ai/call'}}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{'Bearer ' + $env.VOICE_PROVIDER_API_KEY}}"
+              "value": "={{'Bearer ' + $env.VAPI_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"to\":\"{{$json.phone_e164}}\",\"from\":\"{{$env.VOICE_FROM_NUMBER}}\",\"contactId\":\"{{$json.contact_id}}\",\"campaignId\":\"{{$json.campaign_id}}\"}"
+        "jsonBody": "={{ { phoneNumberId: $env.VAPI_PHONE_NUMBER_ID, customer: { number: $json.phone_e164 }, assistantId: $env.VAPI_ASSISTANT_ID, assistantOverrides: { variableValues: { contact_id: $json.contact_id, queue_id: $json.queue_id, campaign_id: $json.campaign_id, lead_timezone: $json.lead_timezone || '', first_name: $json.first_name || '' }, metadata: { source: 'n8n-outbound-dialer', contact_id: $json.contact_id, queue_id: $json.queue_id, campaign_id: $json.campaign_id } } } }}"
       },
       "id": "http_1",
-      "name": "HTTP - Start Voice Call",
+      "name": "HTTP - Start Vapi Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [1220, 360]
     },
     {
       "parameters": {
-        "operation": "create",
-        "resource": "contactNote",
-        "contactId": "={{$json.contact_id}}",
-        "body": "={{'AI outbound call executed. Booking and transcript sync handled by callback workflow. queue_id=' + $json.queue_id}}"
+        "method": "POST",
+        "url": "={{\"https://services.leadconnectorhq.com/contacts/\" + $json.contact_id + \"/notes\"}}",
+        "jsonBody": "={{ { body: \"AI outbound Vapi call started. queue_id=\" + $json.queue_id + \", contact_id=\" + $json.contact_id } }}",
+        "specifyBody": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{\"Bearer \" + $env.GHL_API_KEY}}"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "sendBody": true
       },
       "id": "ghl_1",
       "name": "GHL - Create Call Note",
-      "type": "n8n-nodes-base.highLevel",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [1450, 360]
     }
   ],
@@ -131,14 +158,14 @@
         [],
         [
           {
-            "node": "HTTP - Start Voice Call",
+            "node": "HTTP - Start Vapi Call",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP - Start Voice Call": {
+    "HTTP - Start Vapi Call": {
       "main": [
         [
           {

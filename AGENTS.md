@@ -14,7 +14,7 @@
 - Keep config values centralized in the root `.env` file (n8n/.env has been consolidated into root).
 - Environment variables for n8n and Postgres are set in Coolify; the root `.env` is the reference copy.
 
-## Current Progress Snapshot (updated 2026-05-05)
+## Current Progress Snapshot (updated 2026-05-06)
 - **n8n-lt MCP is working** — confirmed connected and operational.
   - Uses `mcp-remote` with the remote endpoint `https://automations.livetransparent.com/mcp-server/http`.
   - Token lives in root `.env` as `N8N_MCP_ACCESS_TOKEN`.
@@ -66,6 +66,12 @@
 - **SimpleTexting**: SMS Send, Delivery Events, Inbound Reply, and Unsubscribe webhooks are active. Pool Dispatcher and Campaign Sequencer are inactive by design.
 - **Unipile/LinkedIn**: `LT - GHL LinkedIn Connect Dispatcher` (`S32vc8pjJIBZZHLK`) is active and LIVE (dry-run off). Runs hourly Mon-Fri 10am-4pm EST. Uses `POST /contacts/search` with filter `contact.apollo_person_linkedin_url is_not_empty`, skips contacts tagged `linkedin_connection_requested`, processes 10/run from queue of 50, caps at 50/day via staticData. `LT - UNIPILE LinkedIn Connection Request` (`Zt8p2aYtIuY0HK18`) is active (internal test webhook).
 - **GHL warm intake/routing**, **Apollo enrichment**, **Emerald/Cold outreach** workflows all active.
+- **Voice AI (Vapi + n8n) is now scaffolded live**:
+  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) created in n8n (inactive).
+  - `LT - Voice Agent V1 Vapi Callback Sync` (`fx4UvKUWbqJEY3LK`) created in n8n (inactive).
+  - Outbound workflow starts calls via Vapi with assistant variable injection.
+  - Callback workflow receives end-of-call payload, persists call attempt metadata, and writes GHL contact note.
+  - OpenRouter model selection/connection is configured in Vapi assistant (not in n8n).
 
 ### Secret Hygiene (remaining work)
 - SimpleTexting API tokens, GHL keys, and webhook secrets are still in workflow `Config` nodes.
@@ -96,6 +102,8 @@
 - `postgres/reporting-bootstrap.sql` — Postgres reporting schema
 - `n8n/docker-compose.yml` — n8n service definition
 - `n8n/REPORTING_IMPLEMENTATION.md` — Report pipeline build scaffold
+- `plan.md` — Active implementation plan for Vapi+n8n outbound voice agent
+- `n8n/voice-agent/` — Voice agent specs, prompt policy, schema, workflow JSON, runbooks
 - `reports/embed/executive/index.html` — Embedded executive report SPA
 - `reports/nginx.conf` — Nginx config (proxies /api/report/ to n8n webhook)
 - `Backup of all n8n workflows/` — Canonical workflow backups (45 files, 1 per live workflow)
