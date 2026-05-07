@@ -41,6 +41,7 @@
 | LT - Report Pipeline Velocity | `iFfwh0jpYUZoDhDR` | **Active** (computes stage velocity from pipeline history) |
 | LT - GHL Daily Calls Ingest | `SqNQ0BYaTdcqyt1l` | **Inactive** (GHL conversations endpoint 404; awaiting API access) |
 | LT - GHL Daily Appointments Ingest | `yWZVSqEcjTbMT3kG` | **Active** (GHL calendar events ingestion every 6h; calendarId `SrtXcFVyea7pFl3nTiIK`) |
+| LT - GHL Daily Social Ingest | `QZoqCaTwDhbym80O` | **Active** (GHL Social Planner posts every 12h; 138 posts, 5 connected accounts) |
 | LT - GA4 Daily Ingest | `6pCSGzFmrMDFL5Yq` | **Active** (GA4 enabled 2026-04-30) |
 | LT - GA4 Traffic Rollup Bridge | `0P2AZcQYWYZjXbRi` | **Active** (bridges GA4 raw to rollup tables) |
 
