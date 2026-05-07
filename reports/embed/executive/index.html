@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-05-08-v5-social -->
+    <!-- build-stamp: 2026-05-08-v6-social-wired -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -725,13 +725,14 @@
           el = document.getElementById("jd-lost"); if (el) el.textContent = formatNumber(closedLost);
           el = document.getElementById("jd-win-rate"); if (el) el.textContent = formatNumber(winRate, 1) + "%";
 
-          // Chella's social — data from GHL Social Planner API
-          el = document.getElementById("sp-total"); if (el) el.textContent = formatNumber(138);
-          el = document.getElementById("sp-fb"); if (el) el.textContent = "...";
-          el = document.getElementById("sp-ig"); if (el) el.textContent = "...";
-          el = document.getElementById("sp-li"); if (el) el.textContent = "...";
-          el = document.getElementById("sp-published"); if (el) el.textContent = "...";
-          el = document.getElementById("sp-failed"); if (el) el.textContent = "...";
+          // Chella's social — data from GHL Social Planner API via Postgres
+          var sp = response.socialPosts || {};
+          el = document.getElementById("sp-total"); if (el) el.textContent = formatNumber(sp.totalPosts || 0);
+          el = document.getElementById("sp-fb"); if (el) el.textContent = formatNumber(sp.facebookCount || 0);
+          el = document.getElementById("sp-ig"); if (el) el.textContent = formatNumber(sp.instagramCount || 0);
+          el = document.getElementById("sp-li"); if (el) el.textContent = formatNumber(sp.linkedinCount || 0);
+          el = document.getElementById("sp-published"); if (el) el.textContent = formatNumber(sp.publishedCount || 0);
+          el = document.getElementById("sp-failed"); if (el) el.textContent = formatNumber(sp.failedCount || 0);
           
           // Site traffic from summary
           el = document.getElementById("st-sessions"); if (el) el.textContent = formatNumber(sessions);
