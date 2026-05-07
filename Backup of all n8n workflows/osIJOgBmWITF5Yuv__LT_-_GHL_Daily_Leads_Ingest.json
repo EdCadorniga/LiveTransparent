@@ -74,7 +74,7 @@
               "id": "apiKey",
               "name": "apiKey",
               "type": "string",
-              "value": "pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86"
+              "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
             },
             {
               "id": "sourceSystem",
@@ -535,7 +535,7 @@
                 "id": "apiKey",
                 "name": "apiKey",
                 "type": "string",
-                "value": "pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86"
+                "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
               },
               {
                 "id": "sourceSystem",

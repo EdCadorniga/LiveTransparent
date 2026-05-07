@@ -24,7 +24,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "select queue_id, contact_id, first_name, phone_e164, campaign_id, lead_timezone, max_attempts, attempt_count\nfrom voice_call_queue\nwhere status = 'pending'\n  and dnc = false\n  and attempt_count < max_attempts\n  and (next_attempt_at is null or next_attempt_at <= now())\norder by coalesce(next_attempt_at, created_at) asc\nlimit 1;"
+        "query": "with candidate as (\n  select queue_id\n  from voice_call_queue\n  where status = 'pending'\n    and dnc = false\n    and attempt_count < max_attempts\n    and (next_attempt_at is null or next_attempt_at <= now())\n    and (locked_at is null or locked_at < now() - interval '15 minutes')\n  order by coalesce(next_attempt_at, created_at) asc\n  limit 1\n)\nupdate voice_call_queue q\nset locked_at = now(),\n    lock_owner = 'orJrDqR6hQjgPLpg',\n    attempt_count = attempt_count + 1,\n    last_attempt_at = now(),\n    next_attempt_at = now() + interval '15 minutes',\n    updated_at = now()\nfrom candidate c\nwhere q.queue_id = c.queue_id\nreturning q.queue_id, q.contact_id, q.first_name, q.phone_e164, q.campaign_id, q.lead_timezone, q.max_attempts, q.attempt_count;"
       },
       "id": "pg_1",
       "name": "Postgres - Fetch Next Queue Item",

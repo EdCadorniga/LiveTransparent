@@ -7,6 +7,7 @@ This file records retired or non-production voice workflows and exports so futur
 - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
 
 ## Archived n8n workflows
+- `LT - Voice Agent V1 Vapi Callback + Tools` (`JRw9qnckedWzfcf6`) - archived duplicate of the canonical callback/tool workflow
 - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) - archived after validation
 - `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`) - archived test workflow
 - `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`) - archived test workflow

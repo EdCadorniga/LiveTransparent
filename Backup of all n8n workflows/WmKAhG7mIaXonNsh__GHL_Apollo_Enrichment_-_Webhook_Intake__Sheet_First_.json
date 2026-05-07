@@ -43,7 +43,7 @@
             {
               "id": "ghl_api_key",
               "name": "ghlApiKey",
-              "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828",
+              "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28",
               "type": "string"
             },
             {
@@ -418,7 +418,7 @@
               {
                 "id": "ghl_api_key",
                 "name": "ghlApiKey",
-                "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828",
+                "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28",
                 "type": "string"
               },
               {

@@ -16,7 +16,7 @@ Document the original V1 outbound cold-call design. The live implementation no l
 - Call window: Mon-Fri business hours in PST.
 
 ## Current Production Mapping
-- Dialer: `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`)
+- Dialer: `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`1ogCy9ScVjtF0Cqf`)
 - Callback/tool router: `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
 - Archived validation copy: `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`)
 - Archived tests: `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`), `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`), `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`)

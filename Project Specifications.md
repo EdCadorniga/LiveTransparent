@@ -35,6 +35,15 @@ This specification describes the current production Vapi Phase 2 implementation.
 - Callback normalized output:
   - `call_id`, `contact_id`, `queue_id`, `disposition`, `summary`, `transcript_text`, `recording_url`.
 
+## GHL Configuration
+- Required auth secret:
+  - `GHL_PIT`
+- Required location context:
+  - `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV`
+- Voice workflow write actions:
+  - add tags `AI Call Attempted` and `do_not_call`
+  - create GHL contact notes for completed calls
+
 ## Disposition Rules (v1)
 - `no_answer`: no pickup/no-answer provider outcome.
 - `voicemail`: voicemail endpoint reached.

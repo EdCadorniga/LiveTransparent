@@ -500,12 +500,46 @@ CREATE TABLE IF NOT EXISTS report_landing_page_daily_summary (
   PRIMARY KEY (report_date, landing_page)
 );
 
+-- Pipeline velocity: per-stage avg days computed from actual pipeline history event timestamps
+CREATE TABLE IF NOT EXISTS report_stage_velocity_summary (
+  id SERIAL PRIMARY KEY,
+  pipeline TEXT NOT NULL,
+  stage TEXT NOT NULL,
+  opp_count INTEGER NOT NULL DEFAULT 0,
+  avg_days_in_stage NUMERIC(10,2) NOT NULL DEFAULT 0,
+  min_days INTEGER NOT NULL DEFAULT 0,
+  max_days INTEGER NOT NULL DEFAULT 0,
+  median_days NUMERIC(10,2) NOT NULL DEFAULT 0,
+  total_transitions INTEGER NOT NULL DEFAULT 0,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (pipeline, stage)
+);
+
+-- Pipeline cycle: per-opportunity stage progression with timestamps
+CREATE TABLE IF NOT EXISTS report_opp_stage_timeline (
+  id SERIAL PRIMARY KEY,
+  opportunity_id TEXT NOT NULL,
+  pipeline TEXT NOT NULL,
+  stage TEXT NOT NULL,
+  entered_at TIMESTAMPTZ,
+  exited_at TIMESTAMPTZ,
+  days_in_stage NUMERIC(10,2) NOT NULL DEFAULT 0,
+  is_final BOOLEAN NOT NULL DEFAULT FALSE,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_report_opp_stage_timeline_opp ON report_opp_stage_timeline (opportunity_id);
+CREATE INDEX IF NOT EXISTS idx_report_opp_stage_timeline_pipeline_stage ON report_opp_stage_timeline (pipeline, stage);
+
 -- Light-touch bootstrap values so the workflows have a predictable baseline.
 INSERT INTO report_source_registry (source_system, source_name, is_required, enabled, notes)
 VALUES
   ('ga4', 'Google Analytics 4', TRUE, TRUE, 'Traffic source; blocked until property ID arrives.'),
   ('gsc', 'Google Search Console', TRUE, TRUE, 'Organic search source.'),
-  ('ghl', 'GoHighLevel', TRUE, TRUE, 'CRM source of truth for leads and sales.')
+  ('ghl', 'GoHighLevel', TRUE, TRUE, 'CRM source of truth for leads and sales.'),
+  ('velocity', 'Pipeline Velocity', FALSE, TRUE, 'Per-stage avg days from pipeline history timestamps.')
 ON CONFLICT (source_system) DO UPDATE
 SET source_name = EXCLUDED.source_name,
     is_required = EXCLUDED.is_required,
@@ -531,3 +565,106 @@ CREATE TABLE IF NOT EXISTS report_sms_sent (
 );
 
 CREATE INDEX IF NOT EXISTS idx_report_sms_sent_sent_at ON report_sms_sent (sent_at);
+
+-- GHL calls — raw conversation data for voice call tracking
+CREATE TABLE IF NOT EXISTS report_raw_ghl_calls (
+  call_id TEXT PRIMARY KEY,
+  contact_id TEXT,
+  assigned_user_id TEXT,
+  location_id TEXT,
+  direction TEXT,
+  status TEXT,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  started_at TIMESTAMPTZ,
+  ended_at TIMESTAMPTZ,
+  answered_at TIMESTAMPTZ,
+  recording_url TEXT,
+  notes TEXT,
+  payload_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  batch_id TEXT,
+  loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_raw_ghl_calls_contact ON report_raw_ghl_calls (contact_id);
+CREATE INDEX IF NOT EXISTS idx_raw_ghl_calls_status ON report_raw_ghl_calls (status, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_raw_ghl_calls_started_at ON report_raw_ghl_calls (started_at DESC);
+
+-- GHL appointments — calendar event data for meeting tracking
+CREATE TABLE IF NOT EXISTS report_raw_ghl_appointments (
+  appointment_id TEXT PRIMARY KEY,
+  contact_id TEXT,
+  calendar_id TEXT,
+  assigned_user_id TEXT,
+  location_id TEXT,
+  title TEXT,
+  status TEXT,
+  start_at TIMESTAMPTZ,
+  end_at TIMESTAMPTZ,
+  notes TEXT,
+  payload_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  batch_id TEXT,
+  loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_raw_ghl_appts_contact ON report_raw_ghl_appointments (contact_id);
+CREATE INDEX IF NOT EXISTS idx_raw_ghl_appts_status ON report_raw_ghl_appointments (status, start_at DESC);
+CREATE INDEX IF NOT EXISTS idx_raw_ghl_appts_start_at ON report_raw_ghl_appointments (start_at DESC);
+
+-- Voice agent queue + transcript schema (v1)
+CREATE TABLE IF NOT EXISTS voice_call_queue (
+  queue_id uuid PRIMARY KEY,
+  contact_id text NOT NULL,
+  first_name text,
+  phone_e164 text NOT NULL,
+  campaign_id text NOT NULL,
+  lead_timezone text,
+  status text NOT NULL default 'pending',
+  dnc boolean NOT NULL default false,
+  max_attempts integer NOT NULL default 3,
+  attempt_count integer NOT NULL default 0,
+  last_attempt_at timestamptz,
+  next_attempt_at timestamptz,
+  locked_at timestamptz,
+  lock_owner text,
+  created_at timestamptz NOT NULL default now(),
+  updated_at timestamptz NOT NULL default now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_voice_call_queue_status_next_attempt
+  ON voice_call_queue(status, next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS voice_call_attempt (
+  call_id uuid PRIMARY KEY,
+  queue_id uuid NOT NULL REFERENCES voice_call_queue(queue_id),
+  contact_id text NOT NULL,
+  provider_call_id text,
+  idempotency_key text NOT NULL UNIQUE,
+  started_at timestamptz NOT NULL default now(),
+  ended_at timestamptz,
+  disposition text NOT NULL,
+  qualified_intent_fit boolean NOT NULL default false,
+  booking_attempted boolean NOT NULL default false,
+  booking_result text NOT NULL default 'not_attempted',
+  handoff_required boolean NOT NULL default false,
+  handoff_reason text,
+  summary text,
+  transcript_url text,
+  recording_url text,
+  created_at timestamptz NOT NULL default now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_voice_call_attempt_queue_id
+  ON voice_call_attempt(queue_id);
+
+CREATE TABLE IF NOT EXISTS voice_call_transcript_turn (
+  turn_id bigserial PRIMARY KEY,
+  call_id uuid NOT NULL REFERENCES voice_call_attempt(call_id) ON DELETE CASCADE,
+  turn_index integer NOT NULL,
+  speaker text NOT NULL,
+  utterance text NOT NULL,
+  timestamp_utc timestamptz NOT NULL,
+  created_at timestamptz NOT NULL default now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_voice_call_transcript_turn_unique
+  ON voice_call_transcript_turn(call_id, turn_index);

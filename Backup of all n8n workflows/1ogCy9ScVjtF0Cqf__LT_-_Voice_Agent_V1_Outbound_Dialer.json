@@ -1,0 +1,571 @@
+{
+  "updatedAt": "2026-05-07T20:52:17.75Z",
+  "createdAt": "2026-05-07T20:32:25.787Z",
+  "id": "1ogCy9ScVjtF0Cqf",
+  "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+  "description": "Production outbound dialer for Vapi queue calls with atomic row claim.",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "759fa67d-03c6-4180-84eb-e7ae66005423",
+      "name": "Cron - Queue Poll",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        280
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "393d1bc9-860f-4130-987c-e12b6f11a859",
+      "name": "Postgres - Fetch Next Queue Item",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        520,
+        280
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with candidate as (select queue_id from voice_call_queue where status = 'pending' and dnc = false and attempt_count < max_attempts and (next_attempt_at is null or next_attempt_at <= now()) and (locked_at is null or locked_at < now() - interval '15 minutes') order by coalesce(next_attempt_at, created_at) asc limit 1) update voice_call_queue q set locked_at = now(), lock_owner = 'orJrDqR6hQjgPLpg', attempt_count = attempt_count + 1, last_attempt_at = now(), next_attempt_at = now() + interval '15 minutes', updated_at = now() from candidate c where q.queue_id = c.queue_id returning q.queue_id, q.contact_id, q.first_name, q.phone_e164, q.campaign_id, q.lead_timezone, q.max_attempts, q.attempt_count;"
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "a03c9f13-9f10-49a6-94cf-e54a1e10a66d",
+      "name": "Code - Queue Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        280
+      ],
+      "parameters": {
+        "jsCode": "const row = $json; if (!row || !row.queue_id) { return [{ json: { skip: true, reason: 'empty_queue' } }]; } return [{ json: { ...row, skip: false } }];"
+      }
+    },
+    {
+      "id": "0b952b3f-ed52-4a0a-a7ab-e07cfb9c8397",
+      "name": "If - Skip Empty",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        980,
+        280
+      ],
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{$json.skip}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue"
+              }
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "19116ace-3f04-4e67-b90d-338aeb2bfe46",
+      "name": "End - Empty Queue",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1220,
+        140
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "5c6b5456-3ca1-4532-ba1a-dbf5ddaad676",
+      "name": "HTTP - Start Vapi Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1220,
+        360
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.VAPI_BASE_URL || 'https://api.vapi.ai/call'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{'Bearer ' + $env.VAPI_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { phoneNumberId: $env.VAPI_PHONE_NUMBER_ID, customer: { number: $json.phone_e164 }, assistantId: $env.VAPI_ASSISTANT_ID, assistantOverrides: { variableValues: { contact_id: $json.contact_id, queue_id: $json.queue_id, campaign_id: $json.campaign_id, lead_timezone: $json.lead_timezone || '', first_name: $json.first_name || '' }, metadata: { source: 'n8n-outbound-dialer', contact_id: $json.contact_id, queue_id: $json.queue_id, campaign_id: $json.campaign_id } } } }}"
+      }
+    },
+    {
+      "id": "67f626ba-0640-4d88-b4f7-36b45a091dd6",
+      "name": "Code - Restore Queue Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        360
+      ],
+      "parameters": {
+        "jsCode": "const ctx = $('Code - Queue Guard').item.json; return [{ json: { ...ctx, vapi_response: $json } }];"
+      }
+    },
+    {
+      "id": "ea878188-9d8c-4709-ac3e-4d4de502ad19",
+      "name": "GHL - Create Call Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        360
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{'https://services.leadconnectorhq.com/contacts/' + $json.contact_id + '/notes'}}",
+        "jsonBody": "={{ { body: 'AI outbound Vapi call started. queue_id=' + $json.queue_id + ', contact_id=' + $json.contact_id } }}",
+        "specifyBody": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{'Bearer ' + $env.GHL_API_KEY}}"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "sendBody": true
+      }
+    }
+  ],
+  "connections": {
+    "Cron - Queue Poll": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Fetch Next Queue Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Fetch Next Queue Item": {
+      "main": [
+        [
+          {
+            "node": "Code - Queue Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Queue Guard": {
+      "main": [
+        [
+          {
+            "node": "If - Skip Empty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Skip Empty": {
+      "main": [
+        [
+          {
+            "node": "End - Empty Queue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP - Start Vapi Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Start Vapi Call": {
+      "main": [
+        [
+          {
+            "node": "Code - Restore Queue Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Restore Queue Context": {
+      "main": [
+        [
+          {
+            "node": "GHL - Create Call Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron - Queue Poll": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "pinData": {},
+  "versionId": "c6f33bfb-ba50-466b-9dd3-d0ce9b873e56",
+  "activeVersionId": "c6f33bfb-ba50-466b-9dd3-d0ce9b873e56",
+  "versionCounter": 21,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-07T20:32:25.787Z",
+      "createdAt": "2026-05-07T20:32:25.787Z",
+      "role": "workflow:owner",
+      "workflowId": "1ogCy9ScVjtF0Cqf",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-07T20:52:17.752Z",
+    "createdAt": "2026-05-07T20:52:17.752Z",
+    "versionId": "c6f33bfb-ba50-466b-9dd3-d0ce9b873e56",
+    "workflowId": "1ogCy9ScVjtF0Cqf",
+    "nodes": [
+      {
+        "id": "759fa67d-03c6-4180-84eb-e7ae66005423",
+        "name": "Cron - Queue Poll",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          280
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 5
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "393d1bc9-860f-4130-987c-e12b6f11a859",
+        "name": "Postgres - Fetch Next Queue Item",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          520,
+          280
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with candidate as (select queue_id from voice_call_queue where status = 'pending' and dnc = false and attempt_count < max_attempts and (next_attempt_at is null or next_attempt_at <= now()) and (locked_at is null or locked_at < now() - interval '15 minutes') order by coalesce(next_attempt_at, created_at) asc limit 1) update voice_call_queue q set locked_at = now(), lock_owner = 'orJrDqR6hQjgPLpg', attempt_count = attempt_count + 1, last_attempt_at = now(), next_attempt_at = now() + interval '15 minutes', updated_at = now() from candidate c where q.queue_id = c.queue_id returning q.queue_id, q.contact_id, q.first_name, q.phone_e164, q.campaign_id, q.lead_timezone, q.max_attempts, q.attempt_count;"
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "a03c9f13-9f10-49a6-94cf-e54a1e10a66d",
+        "name": "Code - Queue Guard",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          760,
+          280
+        ],
+        "parameters": {
+          "jsCode": "const row = $json; if (!row || !row.queue_id) { return [{ json: { skip: true, reason: 'empty_queue' } }]; } return [{ json: { ...row, skip: false } }];"
+        }
+      },
+      {
+        "id": "0b952b3f-ed52-4a0a-a7ab-e07cfb9c8397",
+        "name": "If - Skip Empty",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          980,
+          280
+        ],
+        "parameters": {
+          "conditions": {
+            "conditions": [
+              {
+                "leftValue": "={{$json.skip}}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "isTrue"
+                }
+              }
+            ],
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "combinator": "and"
+          }
+        }
+      },
+      {
+        "id": "19116ace-3f04-4e67-b90d-338aeb2bfe46",
+        "name": "End - Empty Queue",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1220,
+          140
+        ],
+        "parameters": {}
+      },
+      {
+        "id": "5c6b5456-3ca1-4532-ba1a-dbf5ddaad676",
+        "name": "HTTP - Start Vapi Call",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1220,
+          360
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "={{$env.VAPI_BASE_URL || 'https://api.vapi.ai/call'}}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "={{'Bearer ' + $env.VAPI_API_KEY}}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { phoneNumberId: $env.VAPI_PHONE_NUMBER_ID, customer: { number: $json.phone_e164 }, assistantId: $env.VAPI_ASSISTANT_ID, assistantOverrides: { variableValues: { contact_id: $json.contact_id, queue_id: $json.queue_id, campaign_id: $json.campaign_id, lead_timezone: $json.lead_timezone || '', first_name: $json.first_name || '' }, metadata: { source: 'n8n-outbound-dialer', contact_id: $json.contact_id, queue_id: $json.queue_id, campaign_id: $json.campaign_id } } } }}"
+        }
+      },
+      {
+        "id": "67f626ba-0640-4d88-b4f7-36b45a091dd6",
+        "name": "Code - Restore Queue Context",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1450,
+          360
+        ],
+        "parameters": {
+          "jsCode": "const ctx = $('Code - Queue Guard').item.json; return [{ json: { ...ctx, vapi_response: $json } }];"
+        }
+      },
+      {
+        "id": "ea878188-9d8c-4709-ac3e-4d4de502ad19",
+        "name": "GHL - Create Call Note",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1680,
+          360
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "={{'https://services.leadconnectorhq.com/contacts/' + $json.contact_id + '/notes'}}",
+          "jsonBody": "={{ { body: 'AI outbound Vapi call started. queue_id=' + $json.queue_id + ', contact_id=' + $json.contact_id } }}",
+          "specifyBody": "json",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "={{'Bearer ' + $env.GHL_API_KEY}}"
+              },
+              {
+                "name": "Version",
+                "value": "2021-07-28"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "sendBody": true
+        }
+      }
+    ],
+    "connections": {
+      "Cron - Queue Poll": {
+        "main": [
+          [
+            {
+              "node": "Postgres - Fetch Next Queue Item",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Postgres - Fetch Next Queue Item": {
+        "main": [
+          [
+            {
+              "node": "Code - Queue Guard",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code - Queue Guard": {
+        "main": [
+          [
+            {
+              "node": "If - Skip Empty",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If - Skip Empty": {
+        "main": [
+          [
+            {
+              "node": "End - Empty Queue",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "HTTP - Start Vapi Call",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP - Start Vapi Call": {
+        "main": [
+          [
+            {
+              "node": "Code - Restore Queue Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code - Restore Queue Context": {
+        "main": [
+          [
+            {
+              "node": "GHL - Create Call Note",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-07T20:52:24.325Z",
+        "id": 1251,
+        "workflowId": "1ogCy9ScVjtF0Cqf",
+        "versionId": "c6f33bfb-ba50-466b-9dd3-d0ce9b873e56",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

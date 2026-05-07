@@ -5,7 +5,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 
 ## Scope
 - Production workflow pair:
-  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`)
+  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`1ogCy9ScVjtF0Cqf`)
   - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
 - Archived / non-production workflows:
   - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`)
@@ -16,6 +16,8 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 ## Pre-deploy checks
 - Confirm required env vars exist in Coolify for n8n.
 - Apply `postgres/voice_agent_schema.sql` to reporting Postgres.
+- Confirm `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV` is present in root `.env`.
+- Confirm `GHL_API_KEY` aliases `GHL_PIT` in root `.env` and that the Codex session has been restarted after any PIT rotation.
 - Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
 - Verify DNC source of truth and queue feed workflow are active.
 - Confirm archived workflows are not active in n8n.
@@ -28,6 +30,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 5. Run one manual execution against a sandbox contact.
 6. Confirm:
    - queue item picked,
+   - queue item locked and claimed atomically,
    - provider call start request sent,
    - GHL note written.
 7. Activate workflows with low cadence.
@@ -59,4 +62,5 @@ Do not reintroduce the older split callback workflow into production.
 - Sample 5 completed call summaries.
 - Verify tool-call payloads are routed to the correct branch.
 - Verify completed calls create one `voice_call_attempt` row each.
+- Verify queue rows are locked on claim and are only eligible again after the stale lock window.
 - Verify archived workflows remain archived and are not active.

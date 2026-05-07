@@ -64,7 +64,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const raw = $json._raw;\nconst tool = raw.tool || {};\nconst params = tool.parameters || {};\nconst meta = raw.metadata || {};\nconst toolName = String(tool.name || '').toLowerCase();\nconst contactId = String(params.ghl_contact_id || params.contact_id || meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || params.queue_id || '').trim();\nconst callId = String(meta.call_id || params.call_id || '').trim();\nconst s = (v) => String(v ?? '').replace(/'/g, \"''\").trim();\nreturn [{ json: { tool_name: toolName, contact_id: contactId, queue_id: queueId, call_id: callId, disposition: s(params.disposition || ''), notes: s(params.notes || ''), follow_up_at: params.followUpAt || params.follow_up_at || null, reason: s(params.reason || ''), lead_name: s(params.lead_name || params.leadName || ''), company: s(params.company || '') } }];"
+        "jsCode": "const raw = $json._raw;\nconst tool = raw.tool || {};\nconst params = tool.parameters || {};\nconst meta = raw.metadata || {};\nconst toolName = String(tool.name || '').toLowerCase();\nconst contactId = String(params.ghl_contact_id || params.contact_id || meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || params.queue_id || '').trim();\nconst callId = String(meta.call_id || params.call_id || '').trim();\nconst s = (v) => String(v ?? '').replace(/'/g, \"''\").trim();\nreturn [{ json: { tool_name: toolName, tool_call_id: String(raw.toolCallId || raw.tool_call_id || tool.toolCallId || tool.tool_call_id || meta.tool_call_id || '').trim(), contact_id: contactId, queue_id: queueId, call_id: callId, route_update: toolName === 'update_lead_status', route_dnc: toolName === 'add_to_dnc', route_log: toolName === 'log_call_outcome', route_notify: toolName === 'notify_sales', route_referral: toolName === 'report_referral', disposition: s(params.disposition || ''), notes: s(params.notes || ''), follow_up_at: params.followUpAt || params.follow_up_at || null, reason: s(params.reason || ''), lead_name: s(params.lead_name || params.leadName || ''), company: s(params.company || ''), referral_name: s(params.referral_name || params.full_name || params.name || ''), referral_phone: s(params.referral_phone || params.phone || ''), referral_email: s(params.referral_email || params.email || ''), referral_role: s(params.referral_role || params.role || params.title || ''), referral_company: s(params.referral_company || params.company_name || params.company || ''), referrer_name: s(params.referrer_name || params.referrer || params.referred_by || '') } }];"
       },
       "id": "code_tool",
       "name": "Code - Normalize Tool Call",
@@ -100,6 +100,11 @@
               "operation": "equals",
               "value": "notify_sales",
               "output": 3
+            },
+            {
+              "operation": "equals",
+              "value": "report_referral",
+              "output": 4
             }
           ],
           "options": {
@@ -107,7 +112,7 @@
             "typeValidation": "strict"
           }
         },
-        "fallbackOutput": 4
+        "fallbackOutput": 5
       },
       "id": "switch_tool",
       "name": "Switch - Route Tool",
@@ -121,7 +126,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE voice_call_queue SET status = 'completed', updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
+        "query": "UPDATE voice_call_queue SET status = 'completed', locked_at = null, lock_owner = null, updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
       },
       "id": "pg_status",
       "name": "Postgres - Update Status",
@@ -173,7 +178,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE voice_call_queue SET dnc = true, status = 'completed', updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
+        "query": "UPDATE voice_call_queue SET dnc = true, status = 'completed', locked_at = null, lock_owner = null, updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
       },
       "id": "pg_dnc",
       "name": "Postgres - Set DNC",
@@ -255,6 +260,89 @@
     },
     {
       "parameters": {
+        "jsCode": "const raw = $json;\nconst referralName = String(raw.referral_name || '').trim();\nconst referralPhone = String(raw.referral_phone || '').replace(/\\D/g, '').trim();\nconst referralEmail = String(raw.referral_email || '').trim().toLowerCase();\nconst referralRole = String(raw.referral_role || '').trim();\nconst referralCompany = String(raw.referral_company || '').trim();\nconst referrerName = String(raw.referrer_name || '').trim();\nconst lookupType = referralEmail ? 'email' : referralPhone ? 'phone' : referralName ? 'name' : 'none';\nconst lookupValue = referralEmail || referralPhone || referralName || '';\nreturn [{ json: { ...raw, referral_name: referralName, referral_phone: referralPhone, referral_email: referralEmail, referral_role: referralRole, referral_company: referralCompany, referrer_name: referrerName, referral_lookup_type: lookupType, referral_lookup_value: lookupValue, referral_lookup_status: lookupType === 'none' ? 'no_lookup_key' : 'pending', referral_found: false, referral_contact_id: '', referral_match_method: '', referral_contact_name: '', referral_contact_email: '', referral_contact_phone: '', referral_contact_company: '' } }];"
+      },
+      "id": "b7a55f48-31c9-4f0b-b39c-054d64f4dc9b",
+      "name": "Code - Prepare Referral Lookup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1480,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.referral_lookup_type !== 'none' }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "1fe059d4-3dad-4374-b3f1-f12e38b5b6c0",
+      "name": "If - Referral Has Lookup",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1720,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const locationId = String($env.GHL_LOCATION_ID || 'Zwz4relUXVPxx8uohnjV').trim();\nconst apiBaseUrl = String($env.GHL_API_BASE_URL || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String($env.GHL_API_KEY || '').trim();\nconst referralName = String($json.referral_name || '').trim();\nconst referralPhone = String($json.referral_phone || '').trim();\nconst referralEmail = String($json.referral_email || '').trim().toLowerCase();\nconst lookupType = String($json.referral_lookup_type || 'none');\nconst headers = { Authorization: `Bearer ${apiKey}`, Version: '2021-07-28', 'Content-Type': 'application/json', Accept: 'application/json' };\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nasync function apiRequest(method, path, body) {\n  const options = { method, url: `${apiBaseUrl}${path}`, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return { ok: false, data: err?.response?.body || err?.message || err };\n  }\n}\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction normalizeSpace(v) { return String(v || '').trim().replace(/\\s+/g, ' '); }\nfunction asContacts(payload) {\n  if (Array.isArray(payload?.contacts)) return payload.contacts;\n  if (Array.isArray(payload?.data?.contacts)) return payload.data.contacts;\n  if (Array.isArray(payload?.data)) return payload.data;\n  if (Array.isArray(payload)) return payload;\n  return [];\n}\n\nlet referralFound = false;\nlet referralContactId = '';\nlet referralMatchMethod = '';\nlet referralContactName = '';\nlet referralContactEmail = '';\nlet referralContactPhone = '';\nlet referralContactCompany = '';\nlet referralLookupStatus = 'not_found';\n\nif (lookupType === 'email') {\n  const dup = await apiRequest.call(this, 'GET', `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(referralEmail)}`);\n  if (dup.ok && dup.data?.contact?.id) {\n    referralFound = true;\n    referralContactId = clean(dup.data.contact.id);\n    referralMatchMethod = 'email_duplicate';\n    referralLookupStatus = 'found';\n  } else if (!dup.ok) {\n    referralLookupStatus = 'lookup_error';\n  }\n}\n\nif (!referralFound && lookupType === 'phone') {\n  const dup = await apiRequest.call(this, 'GET', `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&number=${encodeURIComponent(referralPhone)}`);\n  if (dup.ok && dup.data?.contact?.id) {\n    referralFound = true;\n    referralContactId = clean(dup.data.contact.id);\n    referralMatchMethod = 'phone_duplicate';\n    referralLookupStatus = 'found';\n  } else if (!dup.ok) {\n    referralLookupStatus = 'lookup_error';\n  }\n}\n\nif (!referralFound && lookupType === 'name' && referralName) {\n  const byName = await apiRequest.call(this, 'GET', `/contacts/?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(referralName)}&limit=50`);\n  if (byName.ok) {\n    const contacts = asContacts(byName.data);\n    const target = normalizeSpace(referralName).toLowerCase();\n    const exact = contacts.find((c) => {\n      const fn = normalizeSpace(`${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();\n      const nm = normalizeSpace(c.name || '').toLowerCase();\n      return fn === target || nm === target;\n    });\n    if (exact?.id) {\n      referralFound = true;\n      referralContactId = clean(exact.id);\n      referralMatchMethod = 'full_name';\n      referralLookupStatus = 'found';\n      referralContactName = normalizeSpace(`${exact.firstName || ''} ${exact.lastName || ''}`) || normalizeSpace(exact.name || '');\n      referralContactEmail = clean(exact.email || '');\n      referralContactPhone = clean(exact.phone || '');\n      referralContactCompany = clean(exact.companyName || exact.company_name || exact.company || '');\n    }\n  } else {\n    referralLookupStatus = 'lookup_error';\n  }\n}\n\nif (referralFound && referralContactId && (!referralContactName || !referralContactEmail || !referralContactPhone || !referralContactCompany)) {\n  const detail = await apiRequest.call(this, 'GET', `/contacts/${encodeURIComponent(referralContactId)}`);\n  if (detail.ok) {\n    const contact = detail.data?.contact || detail.data || {};\n    referralContactName = referralContactName || normalizeSpace(`${contact.firstName || ''} ${contact.lastName || ''}`) || clean(contact.name || '');\n    referralContactEmail = referralContactEmail || clean(contact.email || '');\n    referralContactPhone = referralContactPhone || clean(contact.phone || '');\n    referralContactCompany = referralContactCompany || clean(contact.companyName || contact.company_name || contact.company || '');\n  }\n}\n\nreturn [{ json: { ...$json, referral_found: referralFound, referral_contact_id: referralContactId, referral_match_method: referralMatchMethod, referral_contact_name: referralContactName, referral_contact_email: referralContactEmail, referral_contact_phone: referralContactPhone, referral_contact_company: referralContactCompany, referral_lookup_status: referralLookupStatus } }];"
+      },
+      "id": "15d2e7f5-2ab4-4f01-bc0e-dbf56c7dbcf2",
+      "name": "Code - Resolve Referral Contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1960,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.referral_found }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "8f15e6a5-cedc-4ac3-8b68-5fa24fd9e7dc",
+      "name": "If - Referral Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2200,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SLACK_WEBHOOK_URL}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"text\": \"*New referral contact*\\n*Name:* \" + ($json.referral_name || \"Unknown\") + \"\\n*Phone:* \" + ($json.referral_phone || \"N/A\") + \"\\n*Email:* \" + ($json.referral_email || \"N/A\") + \"\\n*Role:* \" + ($json.referral_role || \"N/A\") + \"\\n*Company:* \" + ($json.referral_company || \"N/A\") + \"\\n*Referred by:* \" + ($json.referrer_name || \"Unknown\") + \"\\n*GHL Match:* not found\\n*Lookup Status:* \" + ($json.referral_lookup_status || \"unknown\")}"
+      },
+      "id": "9a54e6f3-4334-4bfe-b4e1-6ba2a5b6a3e9",
+      "name": "HTTP - Slack Referral",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2440,
+        480
+      ]
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
         "query": "INSERT INTO voice_call_attempt (call_id, queue_id, contact_id, provider_call_id, idempotency_key, disposition, summary, transcript_url, recording_url)\nVALUES (\n  nullif('{{ $json.call_id }}', '')::uuid,\n  nullif('{{ $json.queue_id }}', '')::uuid,\n  '{{ $json.contact_id }}',\n  '{{ $json.call_id }}',\n  '{{ $json.call_id }}:{{ $json.disposition }}',\n  '{{ $json.disposition }}',\n  '{{ $json.summary.replace(/'/g, \"''\") }}',\n  '',\n  '{{ $json.recording_url }}'\n)\nON CONFLICT (idempotency_key) DO NOTHING;"
       },
@@ -308,7 +396,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\"ok\": true, \"contact_id\": \"{{ $json.contact_id }}\", \"queue_id\": \"{{ $json.queue_id }}\", \"tool\": \"{{ $json.tool_name }}\"}"
+        "responseBody": "={{ $json.tool_call_id ? ({ results: [{ toolCallId: $json.tool_call_id, result: { ok: true, tool: $json.tool_name || '', contact_id: $json.contact_id || '', queue_id: $json.queue_id || '', existsInGhl: !!$json.referral_found, referral_found: !!$json.referral_found, referral_contact_id: $json.referral_contact_id || '', referral_contact_name: $json.referral_contact_name || '', referral_contact_email: $json.referral_contact_email || '', referral_contact_phone: $json.referral_contact_phone || '', referral_contact_company: $json.referral_contact_company || '', referral_match_method: $json.referral_match_method || '', referral_lookup_type: $json.referral_lookup_type || '', referral_lookup_value: $json.referral_lookup_value || '', referral_lookup_status: $json.referral_lookup_status || '', referral_name: $json.referral_name || '', referral_phone: $json.referral_phone || '', referral_email: $json.referral_email || '', referral_role: $json.referral_role || '', referral_company: $json.referral_company || '', referrer_name: $json.referrer_name || '', message: $json.tool_name === 'report_referral' ? ($json.referral_found ? ('Found them in GoHighLevel. ' + ($json.referral_contact_name ? ('Contact: ' + $json.referral_contact_name + '. ') : '') + ($json.referral_contact_email ? ('Email: ' + $json.referral_contact_email + '. ') : '') + ($json.referral_contact_phone ? ('Phone: ' + $json.referral_contact_phone + '. ') : '') + ($json.referral_contact_company ? ('Company: ' + $json.referral_contact_company + '. ') : '') + 'I’ll make sure Cameron reaches out to the right person.') : 'Thanks, got it. I’ll pass this to our team for follow-up.') : 'OK' } }] }) : ({ ok: true, contact_id: $json.contact_id || '', queue_id: $json.queue_id || '', tool: $json.tool_name || '', referral_found: $json.referral_found || false, referral_contact_id: $json.referral_contact_id || '', referral_contact_name: $json.referral_contact_name || '', referral_contact_email: $json.referral_contact_email || '', referral_contact_phone: $json.referral_contact_phone || '', referral_contact_company: $json.referral_contact_company || '', referral_match_method: $json.referral_match_method || '', referral_lookup_type: $json.referral_lookup_type || '', referral_lookup_value: $json.referral_lookup_value || '', referral_lookup_status: $json.referral_lookup_status || '', referral_name: $json.referral_name || '', referral_phone: $json.referral_phone || '', referral_email: $json.referral_email || '', referral_role: $json.referral_role || '', referral_company: $json.referral_company || '', referrer_name: $json.referrer_name || '' }) }}"
       },
       "id": "resp",
       "name": "Respond - 200",
@@ -392,6 +480,20 @@
         [
           {
             "node": "HTTP - Slack #leads",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code - Prepare Referral Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - 200",
             "type": "main",
             "index": 0
           }
@@ -487,6 +589,75 @@
       ]
     },
     "GHL - Contact Note": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Prepare Referral Lookup": {
+      "main": [
+        [
+          {
+            "node": "If - Referral Has Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Referral Has Lookup": {
+      "main": [
+        [
+          {
+            "node": "Code - Resolve Referral Contact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP - Slack Referral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Resolve Referral Contact": {
+      "main": [
+        [
+          {
+            "node": "If - Referral Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Referral Exists": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP - Slack Referral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Slack Referral": {
       "main": [
         [
           {

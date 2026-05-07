@@ -40,7 +40,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return [{\n  json: {\n    locationId: 'Zwz4relUXVPxx8uohnjV',\n    workflowName: 'LT - GHL Daily Sales Ingest',\n    apiBaseUrl: 'https://services.leadconnectorhq.com',\n    authToken: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86',\n    batchSize: 100,\n    sourceSystem: 'ghl',\n    rawTable: 'report_raw_ghl_opportunities',\n    historyTable: 'report_raw_ghl_pipeline_history',\n    runTable: 'report_sync_runs',\n    watermarkTable: 'report_sync_watermarks',\n    healthTable: 'report_source_health'\n  }\n}];"
+        "jsCode": "return [{\n  json: {\n    locationId: 'Zwz4relUXVPxx8uohnjV',\n    workflowName: 'LT - GHL Daily Sales Ingest',\n    apiBaseUrl: 'https://services.leadconnectorhq.com',\n    authToken: 'pit-b278b3ad-96bd-41fb-ba03-9f927039eb28',\n    batchSize: 100,\n    sourceSystem: 'ghl',\n    rawTable: 'report_raw_ghl_opportunities',\n    historyTable: 'report_raw_ghl_pipeline_history',\n    runTable: 'report_sync_runs',\n    watermarkTable: 'report_sync_watermarks',\n    healthTable: 'report_source_health'\n  }\n}];"
       },
       "id": "sales_config",
       "name": "Config",
@@ -362,7 +362,7 @@
       },
       {
         "parameters": {
-          "jsCode": "return [{\n  json: {\n    locationId: 'Zwz4relUXVPxx8uohnjV',\n    workflowName: 'LT - GHL Daily Sales Ingest',\n    apiBaseUrl: 'https://services.leadconnectorhq.com',\n    authToken: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86',\n    batchSize: 100,\n    sourceSystem: 'ghl',\n    rawTable: 'report_raw_ghl_opportunities',\n    historyTable: 'report_raw_ghl_pipeline_history',\n    runTable: 'report_sync_runs',\n    watermarkTable: 'report_sync_watermarks',\n    healthTable: 'report_source_health'\n  }\n}];"
+          "jsCode": "return [{\n  json: {\n    locationId: 'Zwz4relUXVPxx8uohnjV',\n    workflowName: 'LT - GHL Daily Sales Ingest',\n    apiBaseUrl: 'https://services.leadconnectorhq.com',\n    authToken: 'pit-b278b3ad-96bd-41fb-ba03-9f927039eb28',\n    batchSize: 100,\n    sourceSystem: 'ghl',\n    rawTable: 'report_raw_ghl_opportunities',\n    historyTable: 'report_raw_ghl_pipeline_history',\n    runTable: 'report_sync_runs',\n    watermarkTable: 'report_sync_watermarks',\n    healthTable: 'report_source_health'\n  }\n}];"
         },
         "id": "sales_config",
         "name": "Config",

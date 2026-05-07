@@ -1,0 +1,500 @@
+{
+  "updatedAt": "2026-05-07T21:08:04.323Z",
+  "createdAt": "2026-05-07T20:21:13.12Z",
+  "id": "yWZVSqEcjTbMT3kG",
+  "name": "LT - GHL Daily Appointments Ingest",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        160
+      ],
+      "id": "0522ba06-8527-46c4-8031-9e1b2ddeae92"
+    },
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        320
+      ],
+      "id": "38a02e9b-43be-42b3-a2a2-7a9ff53a41ae"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflowName",
+              "name": "workflowName",
+              "type": "string",
+              "value": "LT - GHL Daily Appointments Ingest"
+            },
+            {
+              "id": "locationId",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "apiBaseUrl",
+              "name": "apiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "sourceSystem",
+              "name": "sourceSystem",
+              "type": "string",
+              "value": "ghl"
+            },
+            {
+              "id": "lookbackDays",
+              "name": "lookbackDays",
+              "type": "number",
+              "value": 30
+            },
+            {
+              "name": "apiKey",
+              "id": "apiKey",
+              "type": "string",
+              "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
+            },
+            {
+              "type": "string",
+              "value": "SrtXcFVyea7pFl3nTiIK",
+              "id": "calendarId",
+              "name": "calendarId"
+            }
+          ]
+        }
+      },
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        240
+      ],
+      "id": "bfd6d8ea-fd1c-4268-b9aa-33445e770383"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const cfg = $input.first()?.json || {};\nif (!cfg.apiKey) throw new Error('Config missing apiKey');\nif (!cfg.locationId) throw new Error('Config missing locationId');\n\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst locationId = String(cfg.locationId || '').trim();\nconst lookbackDays = Number(cfg.lookbackDays || 30);\nconst sourceSystem = String(cfg.sourceSystem || 'ghl');\nconst calendarId = String(cfg.calendarId || '').trim();\n\nconst headers = {\n  Authorization: 'Bearer ' + apiKey,\n  Version: '2021-04-15',\n  Accept: 'application/json',\n};\n\nconst batchId = 'lt-appts-' + new Date().toISOString().replace(/[:.]/g, '-');\n\nconst end = new Date();\nconst start = new Date();\nstart.setDate(start.getDate() - lookbackDays);\nconst startMs = start.getTime();\nconst endMs = end.getTime();\n\n// GHL: /calendars/events with calendarId, locationId, startTime(ms), endTime(ms) as query params\nlet url = apiBaseUrl + '/calendars/events?calendarId=' + encodeURIComponent(calendarId) + '&locationId=' + encodeURIComponent(locationId) + '&startTime=' + startMs + '&endTime=' + endMs;\n\nlet allEvents = [];\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'GET',\n    url: url,\n    headers,\n    json: true,\n    timeout: 60000,\n  });\n  const events = Array.isArray(response?.events) ? response.events : Array.isArray(response?.data) ? response.data : [];\n  allEvents = allEvents.concat(events);\n} catch (error) {\n  const body = error?.response?.body || error?.response?.data;\n  const detail = body && typeof body === 'object' ? JSON.stringify(body) : (body || error?.message || error);\n  throw new Error('GHL calendar events failed: ' + String(detail));\n}\n\nconst now = new Date().toISOString();\n\nconst rows = allEvents.map(function(e) {\n  const contactId = e.contactId || (e.contact && e.contact.id) || '';\n  return {\n    json: {\n      report_date: (e.startTime || now).slice(0, 10),\n      source_system: sourceSystem,\n      source_key: String(e.id || ''),\n      appointment_id: e.id || '',\n      contact_id: contactId,\n      calendar_id: e.calendarId || calendarId || '',\n      assigned_user_id: e.assignedUserId || e.userId || '',\n      location_id: e.locationId || '',\n      title: e.title || '',\n      status: e.appointmentStatus || e.status || 'booked',\n      start_at: e.startTime || e.start || null,\n      end_at: e.endTime || e.end || null,\n      notes: e.notes || e.description || '',\n      payload_json: e,\n      dimensions_json: { contact_id: contactId, calendar_id: e.calendarId, status: e.appointmentStatus },\n      metrics_json: {},\n      batch_id: batchId,\n      loaded_at: now\n    }\n  };\n});\n\nreturn rows.length > 0 ? rows : [{ json: { ok: true, skipped: true, reason: 'no_appointments_in_window', batchId, calendarId } }];\n"
+      },
+      "name": "Fetch Appointments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ],
+      "id": "48fd9c49-e4c4-4c3a-b983-ce13c13d41d9"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO report_raw_ghl_appointments (appointment_id, contact_id, calendar_id, assigned_user_id, location_id, title, status, start_at, end_at, notes, payload_json, batch_id, loaded_at)\nSELECT $1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9::timestamptz, $10, $11::jsonb, $12, $13::timestamptz\nON CONFLICT (appointment_id) DO UPDATE SET\n  status = EXCLUDED.status,\n  start_at = EXCLUDED.start_at,\n  end_at = EXCLUDED.end_at,\n  notes = EXCLUDED.notes,\n  payload_json = EXCLUDED.payload_json,\n  loaded_at = NOW()",
+        "options": {
+          "queryReplacement": "={{ [ $json.appointment_id || $json.source_key, $json.contact_id, $json.calendar_id, $json.assigned_user_id, $json.location_id, $json.title, $json.status, $json.start_at, $json.end_at, $json.notes, JSON.stringify($json.payload_json || {}), $json.batch_id, $json.loaded_at ] }}",
+          "queryBatching": "independently"
+        }
+      },
+      "name": "Upsert Appointments to Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      },
+      "id": "12c3a362-eac7-401c-8fcb-fe6695100930"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{ json: { ok: true, workflow: 'LT - GHL Daily Appointments Ingest', status: 'completed' } }];"
+      },
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ],
+      "id": "bcc96094-29dc-49c8-b49b-43baa3ff6d3c"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Appointments": {
+      "main": [
+        [
+          {
+            "node": "Upsert Appointments to Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Appointments to Postgres": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 1800,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "bc420cfe-250e-4615-ab85-c562c34e3733",
+  "activeVersionId": "bc420cfe-250e-4615-ab85-c562c34e3733",
+  "versionCounter": 42,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-07T20:21:13.12Z",
+      "createdAt": "2026-05-07T20:21:13.12Z",
+      "role": "workflow:owner",
+      "workflowId": "yWZVSqEcjTbMT3kG",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-07T21:08:04.325Z",
+    "createdAt": "2026-05-07T21:08:04.325Z",
+    "versionId": "bc420cfe-250e-4615-ab85-c562c34e3733",
+    "workflowId": "yWZVSqEcjTbMT3kG",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 6
+              }
+            ]
+          }
+        },
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          160
+        ],
+        "id": "0522ba06-8527-46c4-8031-9e1b2ddeae92"
+      },
+      {
+        "parameters": {},
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          320
+        ],
+        "id": "38a02e9b-43be-42b3-a2a2-7a9ff53a41ae"
+      },
+      {
+        "parameters": {
+          "mode": "manual",
+          "assignments": {
+            "assignments": [
+              {
+                "id": "workflowName",
+                "name": "workflowName",
+                "type": "string",
+                "value": "LT - GHL Daily Appointments Ingest"
+              },
+              {
+                "id": "locationId",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "apiBaseUrl",
+                "name": "apiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "sourceSystem",
+                "name": "sourceSystem",
+                "type": "string",
+                "value": "ghl"
+              },
+              {
+                "id": "lookbackDays",
+                "name": "lookbackDays",
+                "type": "number",
+                "value": 30
+              },
+              {
+                "name": "apiKey",
+                "id": "apiKey",
+                "type": "string",
+                "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
+              },
+              {
+                "type": "string",
+                "value": "SrtXcFVyea7pFl3nTiIK",
+                "id": "calendarId",
+                "name": "calendarId"
+              }
+            ]
+          }
+        },
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          480,
+          240
+        ],
+        "id": "bfd6d8ea-fd1c-4268-b9aa-33445e770383"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const cfg = $input.first()?.json || {};\nif (!cfg.apiKey) throw new Error('Config missing apiKey');\nif (!cfg.locationId) throw new Error('Config missing locationId');\n\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst locationId = String(cfg.locationId || '').trim();\nconst lookbackDays = Number(cfg.lookbackDays || 30);\nconst sourceSystem = String(cfg.sourceSystem || 'ghl');\nconst calendarId = String(cfg.calendarId || '').trim();\n\nconst headers = {\n  Authorization: 'Bearer ' + apiKey,\n  Version: '2021-04-15',\n  Accept: 'application/json',\n};\n\nconst batchId = 'lt-appts-' + new Date().toISOString().replace(/[:.]/g, '-');\n\nconst end = new Date();\nconst start = new Date();\nstart.setDate(start.getDate() - lookbackDays);\nconst startMs = start.getTime();\nconst endMs = end.getTime();\n\n// GHL: /calendars/events with calendarId, locationId, startTime(ms), endTime(ms) as query params\nlet url = apiBaseUrl + '/calendars/events?calendarId=' + encodeURIComponent(calendarId) + '&locationId=' + encodeURIComponent(locationId) + '&startTime=' + startMs + '&endTime=' + endMs;\n\nlet allEvents = [];\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'GET',\n    url: url,\n    headers,\n    json: true,\n    timeout: 60000,\n  });\n  const events = Array.isArray(response?.events) ? response.events : Array.isArray(response?.data) ? response.data : [];\n  allEvents = allEvents.concat(events);\n} catch (error) {\n  const body = error?.response?.body || error?.response?.data;\n  const detail = body && typeof body === 'object' ? JSON.stringify(body) : (body || error?.message || error);\n  throw new Error('GHL calendar events failed: ' + String(detail));\n}\n\nconst now = new Date().toISOString();\n\nconst rows = allEvents.map(function(e) {\n  const contactId = e.contactId || (e.contact && e.contact.id) || '';\n  return {\n    json: {\n      report_date: (e.startTime || now).slice(0, 10),\n      source_system: sourceSystem,\n      source_key: String(e.id || ''),\n      appointment_id: e.id || '',\n      contact_id: contactId,\n      calendar_id: e.calendarId || calendarId || '',\n      assigned_user_id: e.assignedUserId || e.userId || '',\n      location_id: e.locationId || '',\n      title: e.title || '',\n      status: e.appointmentStatus || e.status || 'booked',\n      start_at: e.startTime || e.start || null,\n      end_at: e.endTime || e.end || null,\n      notes: e.notes || e.description || '',\n      payload_json: e,\n      dimensions_json: { contact_id: contactId, calendar_id: e.calendarId, status: e.appointmentStatus },\n      metrics_json: {},\n      batch_id: batchId,\n      loaded_at: now\n    }\n  };\n});\n\nreturn rows.length > 0 ? rows : [{ json: { ok: true, skipped: true, reason: 'no_appointments_in_window', batchId, calendarId } }];\n"
+        },
+        "name": "Fetch Appointments",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          240
+        ],
+        "id": "48fd9c49-e4c4-4c3a-b983-ce13c13d41d9"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO report_raw_ghl_appointments (appointment_id, contact_id, calendar_id, assigned_user_id, location_id, title, status, start_at, end_at, notes, payload_json, batch_id, loaded_at)\nSELECT $1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9::timestamptz, $10, $11::jsonb, $12, $13::timestamptz\nON CONFLICT (appointment_id) DO UPDATE SET\n  status = EXCLUDED.status,\n  start_at = EXCLUDED.start_at,\n  end_at = EXCLUDED.end_at,\n  notes = EXCLUDED.notes,\n  payload_json = EXCLUDED.payload_json,\n  loaded_at = NOW()",
+          "options": {
+            "queryReplacement": "={{ [ $json.appointment_id || $json.source_key, $json.contact_id, $json.calendar_id, $json.assigned_user_id, $json.location_id, $json.title, $json.status, $json.start_at, $json.end_at, $json.notes, JSON.stringify($json.payload_json || {}), $json.batch_id, $json.loaded_at ] }}",
+            "queryBatching": "independently"
+          }
+        },
+        "name": "Upsert Appointments to Postgres",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        },
+        "id": "12c3a362-eac7-401c-8fcb-fe6695100930"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "return [{ json: { ok: true, workflow: 'LT - GHL Daily Appointments Ingest', status: 'completed' } }];"
+        },
+        "name": "Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          240
+        ],
+        "id": "bcc96094-29dc-49c8-b49b-43baa3ff6d3c"
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Fetch Appointments",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Appointments": {
+        "main": [
+          [
+            {
+              "node": "Upsert Appointments to Postgres",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Appointments to Postgres": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-07T21:08:04.396Z",
+        "id": 1277,
+        "workflowId": "yWZVSqEcjTbMT3kG",
+        "versionId": "bc420cfe-250e-4615-ab85-c562c34e3733",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-05-07T21:08:04.427Z",
+        "id": 1278,
+        "workflowId": "yWZVSqEcjTbMT3kG",
+        "versionId": "bc420cfe-250e-4615-ab85-c562c34e3733",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-05-07T21:08:11.367Z",
+        "id": 1279,
+        "workflowId": "yWZVSqEcjTbMT3kG",
+        "versionId": "bc420cfe-250e-4615-ab85-c562c34e3733",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-05-07T21:08:11.394Z",
+        "id": 1280,
+        "workflowId": "yWZVSqEcjTbMT3kG",
+        "versionId": "bc420cfe-250e-4615-ab85-c562c34e3733",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

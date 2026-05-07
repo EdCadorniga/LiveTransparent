@@ -38,6 +38,9 @@
 | LT - Report Config Sync | `aomO3Z4AXJIgEvvN` | Active |
 | LT - Report Publish Refresh | `3gXztCnBEN6sGINb` | Active |
 | LT - Report Postgres Bootstrap Apply | `3XHThUiUSNa4sTb9` | Active |
+| LT - Report Pipeline Velocity | `iFfwh0jpYUZoDhDR` | **Active** (computes stage velocity from pipeline history) |
+| LT - GHL Daily Calls Ingest | `SqNQ0BYaTdcqyt1l` | **Inactive** (GHL conversations endpoint 404; awaiting API access) |
+| LT - GHL Daily Appointments Ingest | `yWZVSqEcjTbMT3kG` | **Active** (GHL calendar events ingestion every 6h; calendarId `SrtXcFVyea7pFl3nTiIK`) |
 | LT - GA4 Daily Ingest | `6pCSGzFmrMDFL5Yq` | **Active** (GA4 enabled 2026-04-30) |
 | LT - GA4 Traffic Rollup Bridge | `0P2AZcQYWYZjXbRi` | **Active** (bridges GA4 raw to rollup tables) |
 
@@ -61,6 +64,7 @@
 - **Funnel semantics normalized** — `contact_to_opportunity_rate` now uses a contact-safe cohort metric in `LT - Report Executive Summary API` instead of the raw multi-opportunity rollup total.
 - **Current cohort result** — the present 30-day new-contact cohort is showing `contact_to_opportunity_rate = 0`, which means no newly created contacts in the window are currently matching through to opportunities under the stricter cohort-safe definition.
 - **Attribution coverage is materially improved** — after normalizing raw contact ids, adding GHL attribution fallbacks, and rebuilding the rolling bridge window, the current 30-day cohort is now: `cohortContacts = 97`, `contactsWithSourceFields = 45`, `contactsWithBridgeMatch = 45`, `contactsWithSaleMatch = 22`, `contactBridgeMatchRate = 46.4%`, `opportunityMatchCoverageRate = 100%`.
+- **Pipeline velocity is live** — `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`) computes stage-by-stage timing from `report_raw_ghl_pipeline_history` using CTE + LEAD window function, upserts into `report_stage_velocity_summary` (14 stages across 3 pipelines) and `report_opp_stage_timeline` (50,522 rows). Data surfaces in Executive Report via `stageVelocity` field.
 
 ### Other Live Systems
 - **SimpleTexting**: SMS Send, Delivery Events, Inbound Reply, and Unsubscribe webhooks are active. Pool Dispatcher and Campaign Sequencer are inactive by design.
@@ -71,7 +75,7 @@
 - **All Vapi webhooks** route to: `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback` (single merged path)
 - **Production workflows**
   - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — canonical merged callback + tool router; published
-  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) — canonical queue dialer; published
+  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`1ogCy9ScVjtF0Cqf`) — canonical queue dialer; published
 - **Archived / non-production workflows**
   - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) — validation copy, archived in n8n
   - `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`) — archived test workflow
@@ -83,7 +87,13 @@
   - `log_call_outcome` → upsert `voice_call_attempt` with disposition/notes/followUpAt
   - `notify_sales` → Slack `#leads` alert (reuses `wl-slack-channel-update-v2` pattern)
 - **VAPI_PHONE_NUMBER_ID** now set in `.env`
-- Outbound Dialer (`orJrDqR6hQjgPLpg`) + Callback+Tools (`fx4UvKUWbqJEY3LK`) are the production pair in n8n
+- **GHL_LOCATION_ID** now set in `.env` as `Zwz4relUXVPxx8uohnjV`
+- **GHL_API_KEY** is now an alias of `GHL_PIT` in `.env` so voice workflow HTTP nodes resolve correctly
+- Voice GHL smoke test completed on test contact `WWuQ3TgiaxFs97lSHWSn`:
+  - tags `AI Call Attempted` and `do_not_call` added successfully
+  - contact note write succeeded
+  - readback confirmed tags are present
+- Outbound Dialer (`1ogCy9ScVjtF0Cqf`) + Callback+Tools (`fx4UvKUWbqJEY3LK`) are the production pair in n8n
 
 ### Secret Hygiene (remaining work)
 - SimpleTexting API tokens, GHL keys, and webhook secrets are still in workflow `Config` nodes.
@@ -122,7 +132,7 @@
 
 ## Immediate Next Steps (priority order)
 1. **Voice Agent Phase 2 hardening**:
-   - Keep `fx4UvKUWbqJEY3LK` and `orJrDqR6hQjgPLpg` as the only production voice workflows.
+   - Keep `fx4UvKUWbqJEY3LK` and `1ogCy9ScVjtF0Cqf` as the only production voice workflows.
    - Finish moving any remaining secrets out of workflow `Config` nodes into credentials or env-backed config.
    - In Vapi dashboard, keep the 4 tools and end-of-call webhook pointed at `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
 2. Expose a richer contact-capture panel with both counts and conversion rates by channel and landing page.

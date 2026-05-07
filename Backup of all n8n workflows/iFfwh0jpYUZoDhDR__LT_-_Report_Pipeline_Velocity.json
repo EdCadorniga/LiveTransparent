@@ -1,0 +1,474 @@
+{
+  "updatedAt": "2026-05-07T19:50:23.827Z",
+  "createdAt": "2026-05-07T19:16:46.369Z",
+  "id": "iFfwh0jpYUZoDhDR",
+  "name": "LT - Report Pipeline Velocity",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7e7b07b6-1514-4221-ac8d-86c1ed264e55",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "5481e97b-cf83-42a0-a912-9b6b0726aea7",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const sql = [\n  \"WITH\",\n  \"timeline AS (\",\n  \"  SELECT\",\n  \"    h.source_key AS opportunity_id,\",\n  \"    COALESCE(NULLIF(h.dimensions_json->>'pipeline_id', ''), NULLIF(h.payload_json->>'pipelineId', ''), 'Unknown') AS pipeline,\",\n  \"    COALESCE(NULLIF(h.dimensions_json->>'pipeline_stage_id', ''), NULLIF(h.payload_json->>'pipelineStageId', ''), 'Unknown') AS stage,\",\n  \"    COALESCE(NULLIF(h.payload_json->>'createdAt', '')::timestamptz, NULLIF(h.dimensions_json->>'source_created_at', '')::timestamptz, NOW()) AS stage_entered_at,\",\n  \"    COALESCE(NULLIF(h.payload_json->>'lastStatusChangeAt', '')::timestamptz, NULLIF(h.payload_json->>'updatedAt', '')::timestamptz, NOW()) AS stage_exited_at\",\n  \"  FROM report_raw_ghl_pipeline_history h\",\n  \"  WHERE h.source_system = 'ghl' AND h.payload_json IS NOT NULL\",\n  \"),\",\n  \"durations AS (\",\n  \"  SELECT\",\n  \"    opportunity_id, pipeline, stage, stage_entered_at, stage_exited_at,\",\n  \"    COALESCE(LEAD(stage_entered_at) OVER (PARTITION BY opportunity_id ORDER BY stage_entered_at), stage_exited_at) AS next_stage_entered_at,\",\n  \"    EXTRACT(EPOCH FROM (COALESCE(LEAD(stage_entered_at) OVER (PARTITION BY opportunity_id ORDER BY stage_entered_at), stage_exited_at) - stage_entered_at)) / 86400.0 AS days_in_stage\",\n  \"  FROM timeline\",\n  \"),\",\n  \"velocity AS (\",\n  \"  SELECT pipeline, stage,\",\n  \"    COUNT(*)::int AS opp_count,\",\n  \"    ROUND(AVG(days_in_stage), 2)::numeric AS avg_days_in_stage,\",\n  \"    FLOOR(MIN(days_in_stage))::int AS min_days,\",\n  \"    CEIL(MAX(days_in_stage))::int AS max_days,\",\n  \"    ROUND(AVG(days_in_stage), 2)::numeric AS median_days_approx,\",\n  \"    SUM(CASE WHEN days_in_stage >= 0 THEN 1 ELSE 0 END)::int AS total_transitions\",\n  \"  FROM durations WHERE days_in_stage IS NOT NULL AND days_in_stage >= 0\",\n  \"  GROUP BY pipeline, stage\",\n  \"),\",\n  \"upsert_vel AS (\",\n  \"  INSERT INTO report_stage_velocity_summary (pipeline, stage, opp_count, avg_days_in_stage, min_days, max_days, median_days, total_transitions, metadata, computed_at)\",\n  \"  SELECT pipeline, stage, opp_count, avg_days_in_stage, min_days, max_days, median_days_approx, total_transitions,\",\n  \"    jsonb_build_object('computed_from', 'pipeline_history'), NOW()\",\n  \"  FROM velocity\",\n  \"  ON CONFLICT (pipeline, stage) DO UPDATE SET\",\n  \"    opp_count = EXCLUDED.opp_count, avg_days_in_stage = EXCLUDED.avg_days_in_stage,\",\n  \"    min_days = EXCLUDED.min_days, max_days = EXCLUDED.max_days,\",\n  \"    median_days = EXCLUDED.median_days, total_transitions = EXCLUDED.total_transitions,\",\n  \"    metadata = EXCLUDED.metadata, computed_at = NOW()\",\n  \"  RETURNING id\",\n  \"),\",\n  \"upsert_tl AS (\",\n  \"  INSERT INTO report_opp_stage_timeline (opportunity_id, pipeline, stage, entered_at, exited_at, days_in_stage, is_final, metadata)\",\n  \"  SELECT opportunity_id, pipeline, stage, stage_entered_at, COALESCE(next_stage_entered_at, stage_exited_at),\",\n  \"    ROUND(days_in_stage, 2), next_stage_entered_at IS NULL, jsonb_build_object('source', 'pipeline_history')\",\n  \"  FROM durations WHERE days_in_stage IS NOT NULL\",\n  \"  ON CONFLICT DO NOTHING RETURNING id\",\n  \"),\",\n  \"stage_list AS (\",\n  \"  SELECT pipeline, json_agg(json_build_object(\",\n  \"    'stage', stage, 'avg_days', avg_days_in_stage, 'opp_count', opp_count\",\n  \"  ) ORDER BY avg_days_in_stage DESC) AS stages\",\n  \"  FROM velocity GROUP BY pipeline\",\n  \")\",\n  \"SELECT json_build_object(\",\n  \"  'stage_count', (SELECT COUNT(*) FROM velocity),\",\n  \"  'vel_inserts', (SELECT COUNT(*) FROM upsert_vel),\",\n  \"  'tl_inserts', (SELECT COUNT(*) FROM upsert_tl),\",\n  \"  'pipelines', (SELECT json_agg(json_build_object('pipeline', pipeline, 'stages', stages)) FROM stage_list)\",\n  \") AS result;\"\n].join(\"\\n\");\nreturn [{ json: { sql } }];"
+      },
+      "id": "82e08818-f04d-44d2-b03d-dfb629570d0e",
+      "name": "Build Velocity SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "d75a5b42-c48b-4fdd-82cd-2c3103aa7b34",
+      "name": "Execute Velocity SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const result = $input.first()?.json?.result || {};\nconst pipelines = result.pipelines || [];\nconst stageCount = result.stage_count || 0;\nconst batchId = 'velocity-' + new Date().toISOString().slice(0, 10) + '-' + Date.now();\nconst now = new Date().toISOString();\nconst runSql = \"INSERT INTO report_sync_runs (workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata) \" + \"VALUES ('LT - Report Pipeline Velocity', 'ghl', CURRENT_DATE, '\" + batchId + \"', 'completed', '\" + now + \"', '\" + now + \"', \" + stageCount + \", 0, 0, CURRENT_DATE::text, NULL, \" + \"jsonb_build_object('workflow', 'LT - Report Pipeline Velocity', 'pipelines', '\" + JSON.stringify(pipelines).replace(/'/g, \"''\") + \"'))\";\nconst wmSql = \"INSERT INTO report_sync_watermarks (workflow_name, source_system, watermark_key, watermark_value, updated_at) \" + \"VALUES ('LT - Report Pipeline Velocity', 'ghl', 'last_velocity_compute', CURRENT_DATE::text, NOW()) \" + \"ON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET watermark_value = EXCLUDED.watermark_value, updated_at = NOW()\";\nconst hlSql = \"INSERT INTO report_source_health (source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at) \" + \"VALUES ('velocity', 'ready', '\" + now + \"', '\" + now + \"', \" + stageCount + \", 48, NULL, \" + \"jsonb_build_object('workflow', 'LT - Report Pipeline Velocity'), NOW()) \" + \"ON CONFLICT (source_system) DO UPDATE SET status = EXCLUDED.status, last_success_at = EXCLUDED.last_success_at, last_attempt_at = EXCLUDED.last_attempt_at, last_row_count = EXCLUDED.last_row_count, metadata = EXCLUDED.metadata, updated_at = NOW()\";\nreturn [{ json: { sql: runSql + ';' + wmSql + ';' + hlSql } }];"
+      },
+      "id": "0f78ae52-bc1f-409e-a7d0-80f8a5b3ae7d",
+      "name": "Build Summary SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {
+          "queryBatching": "transaction"
+        }
+      },
+      "id": "eaa6f0d6-fadf-44b6-9c02-d8ada8fffd20",
+      "name": "Write Sync Records",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1440,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{ json: { ok: true, workflow: 'LT - Report Pipeline Velocity', status: 'completed' } }];"
+      },
+      "id": "4201036b-0668-4019-b819-84564bde7568",
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Velocity SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Velocity SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Velocity SQL": {
+      "main": [
+        [
+          {
+            "node": "Execute Velocity SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Velocity SQL": {
+      "main": [
+        [
+          {
+            "node": "Build Summary SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summary SQL": {
+      "main": [
+        [
+          {
+            "node": "Write Sync Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Sync Records": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "8f806fdd-db09-4664-8b4c-a73210025348",
+  "activeVersionId": "8f806fdd-db09-4664-8b4c-a73210025348",
+  "versionCounter": 67,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-07T19:16:46.369Z",
+      "createdAt": "2026-05-07T19:16:46.369Z",
+      "role": "workflow:owner",
+      "workflowId": "iFfwh0jpYUZoDhDR",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-07T19:50:23.829Z",
+    "createdAt": "2026-05-07T19:50:23.829Z",
+    "versionId": "8f806fdd-db09-4664-8b4c-a73210025348",
+    "workflowId": "iFfwh0jpYUZoDhDR",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "7e7b07b6-1514-4221-ac8d-86c1ed264e55",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 24
+              }
+            ]
+          }
+        },
+        "id": "5481e97b-cf83-42a0-a912-9b6b0726aea7",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          500
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const sql = [\n  \"WITH\",\n  \"timeline AS (\",\n  \"  SELECT\",\n  \"    h.source_key AS opportunity_id,\",\n  \"    COALESCE(NULLIF(h.dimensions_json->>'pipeline_id', ''), NULLIF(h.payload_json->>'pipelineId', ''), 'Unknown') AS pipeline,\",\n  \"    COALESCE(NULLIF(h.dimensions_json->>'pipeline_stage_id', ''), NULLIF(h.payload_json->>'pipelineStageId', ''), 'Unknown') AS stage,\",\n  \"    COALESCE(NULLIF(h.payload_json->>'createdAt', '')::timestamptz, NULLIF(h.dimensions_json->>'source_created_at', '')::timestamptz, NOW()) AS stage_entered_at,\",\n  \"    COALESCE(NULLIF(h.payload_json->>'lastStatusChangeAt', '')::timestamptz, NULLIF(h.payload_json->>'updatedAt', '')::timestamptz, NOW()) AS stage_exited_at\",\n  \"  FROM report_raw_ghl_pipeline_history h\",\n  \"  WHERE h.source_system = 'ghl' AND h.payload_json IS NOT NULL\",\n  \"),\",\n  \"durations AS (\",\n  \"  SELECT\",\n  \"    opportunity_id, pipeline, stage, stage_entered_at, stage_exited_at,\",\n  \"    COALESCE(LEAD(stage_entered_at) OVER (PARTITION BY opportunity_id ORDER BY stage_entered_at), stage_exited_at) AS next_stage_entered_at,\",\n  \"    EXTRACT(EPOCH FROM (COALESCE(LEAD(stage_entered_at) OVER (PARTITION BY opportunity_id ORDER BY stage_entered_at), stage_exited_at) - stage_entered_at)) / 86400.0 AS days_in_stage\",\n  \"  FROM timeline\",\n  \"),\",\n  \"velocity AS (\",\n  \"  SELECT pipeline, stage,\",\n  \"    COUNT(*)::int AS opp_count,\",\n  \"    ROUND(AVG(days_in_stage), 2)::numeric AS avg_days_in_stage,\",\n  \"    FLOOR(MIN(days_in_stage))::int AS min_days,\",\n  \"    CEIL(MAX(days_in_stage))::int AS max_days,\",\n  \"    ROUND(AVG(days_in_stage), 2)::numeric AS median_days_approx,\",\n  \"    SUM(CASE WHEN days_in_stage >= 0 THEN 1 ELSE 0 END)::int AS total_transitions\",\n  \"  FROM durations WHERE days_in_stage IS NOT NULL AND days_in_stage >= 0\",\n  \"  GROUP BY pipeline, stage\",\n  \"),\",\n  \"upsert_vel AS (\",\n  \"  INSERT INTO report_stage_velocity_summary (pipeline, stage, opp_count, avg_days_in_stage, min_days, max_days, median_days, total_transitions, metadata, computed_at)\",\n  \"  SELECT pipeline, stage, opp_count, avg_days_in_stage, min_days, max_days, median_days_approx, total_transitions,\",\n  \"    jsonb_build_object('computed_from', 'pipeline_history'), NOW()\",\n  \"  FROM velocity\",\n  \"  ON CONFLICT (pipeline, stage) DO UPDATE SET\",\n  \"    opp_count = EXCLUDED.opp_count, avg_days_in_stage = EXCLUDED.avg_days_in_stage,\",\n  \"    min_days = EXCLUDED.min_days, max_days = EXCLUDED.max_days,\",\n  \"    median_days = EXCLUDED.median_days, total_transitions = EXCLUDED.total_transitions,\",\n  \"    metadata = EXCLUDED.metadata, computed_at = NOW()\",\n  \"  RETURNING id\",\n  \"),\",\n  \"upsert_tl AS (\",\n  \"  INSERT INTO report_opp_stage_timeline (opportunity_id, pipeline, stage, entered_at, exited_at, days_in_stage, is_final, metadata)\",\n  \"  SELECT opportunity_id, pipeline, stage, stage_entered_at, COALESCE(next_stage_entered_at, stage_exited_at),\",\n  \"    ROUND(days_in_stage, 2), next_stage_entered_at IS NULL, jsonb_build_object('source', 'pipeline_history')\",\n  \"  FROM durations WHERE days_in_stage IS NOT NULL\",\n  \"  ON CONFLICT DO NOTHING RETURNING id\",\n  \"),\",\n  \"stage_list AS (\",\n  \"  SELECT pipeline, json_agg(json_build_object(\",\n  \"    'stage', stage, 'avg_days', avg_days_in_stage, 'opp_count', opp_count\",\n  \"  ) ORDER BY avg_days_in_stage DESC) AS stages\",\n  \"  FROM velocity GROUP BY pipeline\",\n  \")\",\n  \"SELECT json_build_object(\",\n  \"  'stage_count', (SELECT COUNT(*) FROM velocity),\",\n  \"  'vel_inserts', (SELECT COUNT(*) FROM upsert_vel),\",\n  \"  'tl_inserts', (SELECT COUNT(*) FROM upsert_tl),\",\n  \"  'pipelines', (SELECT json_agg(json_build_object('pipeline', pipeline, 'stages', stages)) FROM stage_list)\",\n  \") AS result;\"\n].join(\"\\n\");\nreturn [{ json: { sql } }];"
+        },
+        "id": "82e08818-f04d-44d2-b03d-dfb629570d0e",
+        "name": "Build Velocity SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}",
+          "options": {}
+        },
+        "id": "d75a5b42-c48b-4fdd-82cd-2c3103aa7b34",
+        "name": "Execute Velocity SQL",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const result = $input.first()?.json?.result || {};\nconst pipelines = result.pipelines || [];\nconst stageCount = result.stage_count || 0;\nconst batchId = 'velocity-' + new Date().toISOString().slice(0, 10) + '-' + Date.now();\nconst now = new Date().toISOString();\nconst runSql = \"INSERT INTO report_sync_runs (workflow_name, source_system, report_date, batch_id, status, started_at, finished_at, row_count, error_count, retry_count, cursor_value, error_message, metadata) \" + \"VALUES ('LT - Report Pipeline Velocity', 'ghl', CURRENT_DATE, '\" + batchId + \"', 'completed', '\" + now + \"', '\" + now + \"', \" + stageCount + \", 0, 0, CURRENT_DATE::text, NULL, \" + \"jsonb_build_object('workflow', 'LT - Report Pipeline Velocity', 'pipelines', '\" + JSON.stringify(pipelines).replace(/'/g, \"''\") + \"'))\";\nconst wmSql = \"INSERT INTO report_sync_watermarks (workflow_name, source_system, watermark_key, watermark_value, updated_at) \" + \"VALUES ('LT - Report Pipeline Velocity', 'ghl', 'last_velocity_compute', CURRENT_DATE::text, NOW()) \" + \"ON CONFLICT (workflow_name, source_system, watermark_key) DO UPDATE SET watermark_value = EXCLUDED.watermark_value, updated_at = NOW()\";\nconst hlSql = \"INSERT INTO report_source_health (source_system, status, last_success_at, last_attempt_at, last_row_count, stale_after_hours, last_error, metadata, updated_at) \" + \"VALUES ('velocity', 'ready', '\" + now + \"', '\" + now + \"', \" + stageCount + \", 48, NULL, \" + \"jsonb_build_object('workflow', 'LT - Report Pipeline Velocity'), NOW()) \" + \"ON CONFLICT (source_system) DO UPDATE SET status = EXCLUDED.status, last_success_at = EXCLUDED.last_success_at, last_attempt_at = EXCLUDED.last_attempt_at, last_row_count = EXCLUDED.last_row_count, metadata = EXCLUDED.metadata, updated_at = NOW()\";\nreturn [{ json: { sql: runSql + ';' + wmSql + ';' + hlSql } }];"
+        },
+        "id": "0f78ae52-bc1f-409e-a7d0-80f8a5b3ae7d",
+        "name": "Build Summary SQL",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}",
+          "options": {
+            "queryBatching": "transaction"
+          }
+        },
+        "id": "eaa6f0d6-fadf-44b6-9c02-d8ada8fffd20",
+        "name": "Write Sync Records",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1440,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "return [{ json: { ok: true, workflow: 'LT - Report Pipeline Velocity', status: 'completed' } }];"
+        },
+        "id": "4201036b-0668-4019-b819-84564bde7568",
+        "name": "Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1680,
+          300
+        ]
+      }
+    ],
+    "connections": {
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Build Velocity SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Build Velocity SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Velocity SQL": {
+        "main": [
+          [
+            {
+              "node": "Execute Velocity SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Velocity SQL": {
+        "main": [
+          [
+            {
+              "node": "Build Summary SQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Summary SQL": {
+        "main": [
+          [
+            {
+              "node": "Write Sync Records",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write Sync Records": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-07T19:50:23.911Z",
+        "id": 1211,
+        "workflowId": "iFfwh0jpYUZoDhDR",
+        "versionId": "8f806fdd-db09-4664-8b4c-a73210025348",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-05-07T19:50:23.937Z",
+        "id": 1212,
+        "workflowId": "iFfwh0jpYUZoDhDR",
+        "versionId": "8f806fdd-db09-4664-8b4c-a73210025348",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-05-07T19:50:30.198Z",
+        "id": 1213,
+        "workflowId": "iFfwh0jpYUZoDhDR",
+        "versionId": "8f806fdd-db09-4664-8b4c-a73210025348",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-05-07T19:50:30.221Z",
+        "id": 1214,
+        "workflowId": "iFfwh0jpYUZoDhDR",
+        "versionId": "8f806fdd-db09-4664-8b4c-a73210025348",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

@@ -16,6 +16,10 @@ Use it for current decisions. Use the deeper runbooks for implementation detail.
 - Use `n8n-lt` to verify live workflow state before runtime changes.
 - Use `ghl_official` first for supported GHL reads and writes.
 - Treat `ghl_workflows` as secondary.
+- Current PIT/auth state:
+  - `GHL_PIT` in root `.env` was updated and validated against location-scoped GHL contact/opportunity queries.
+  - `GHL_API_KEY` is aliased to `GHL_PIT` in root `.env` for workflow compatibility.
+  - Local Codex `ghl_official` MCP config was updated to use the new PIT, but the session must be restarted before the wrapper will definitely pick up the change.
 - If an MCP wrapper fails on a valid endpoint, verify through direct GHL API before assuming the PIT is invalid.
 - GA4/GSC traffic is not available natively in GHL and must be pulled into the report layer separately.
 

@@ -8,7 +8,7 @@ Connect n8n to Vapi with production-ready tool calling:
 
 ## Canonical Production State
 - Production workflow pair:
-  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`)
+  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`1ogCy9ScVjtF0Cqf`)
   - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
 - Archived / non-production workflows:
   - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) — archived in n8n after validation
@@ -17,12 +17,13 @@ Connect n8n to Vapi with production-ready tool calling:
   - `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`) — archived in n8n
 
 ## What's Already Done
-- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) — production dialer, polls queue, starts Vapi call, logs GHL note
+- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`1ogCy9ScVjtF0Cqf`) — production dialer, polls queue, starts Vapi call, logs GHL note
 - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — production merged callback/tool router, receives end-of-call webhook + all 4 tool calls, routes by `tool.name`
 - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) — archived validation copy, not used in production
 - Phone number: `+1 (562) 534 1977` (`bd4ba248-a2b4-4738-b701-7c6a5ebb5bb4`)
 - Assistant ID: `3f9bbfd2-efa6-4381-81e6-26f2452d28f1`
 - Postgres schema: `voice_call_queue`, `voice_call_attempt`, `voice_call_transcript_turn`
+- GHL location ID: `Zwz4relUXVPxx8uohnjV`
 
 ## Phase 2 Work
 
@@ -53,6 +54,19 @@ Queue query now fetches `first_name` (was missing, causing Vapi variable to alwa
 ALTER TABLE voice_call_queue ADD COLUMN first_name text;
 ```
 
+### 5. GHL config — location ID ✅
+`GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV`
+
+### 6. GHL auth alias — workflow compatibility ✅
+`GHL_API_KEY` now aliases `GHL_PIT` in root `.env` so the voice workflow nodes that still reference `GHL_API_KEY` continue to work.
+
+### 7. Voice GHL smoke test ✅
+Using test contact `WWuQ3TgiaxFs97lSHWSn`:
+- `AI Call Attempted` tag added
+- `do_not_call` tag added
+- contact note write succeeded
+- tag readback confirmed
+
 ## Vapi Dashboard Tool Config (manual step)
 Register 4 tools in Vapi dashboard, each pointing to:
 ```
@@ -71,7 +85,7 @@ Also set end-of-call webhook → same URL.
 | Workflow | Status | Notes |
 |----------|--------|-------|
 | `fx4UvKUWbqJEY3LK` — Callback + Tools | Published in production | Canonical merged callback/tool router |
-| `orJrDqR6hQjgPLpg` — Outbound Dialer | Published in production | Canonical queue dialer |
+| `1ogCy9ScVjtF0Cqf` — Outbound Dialer | Published in production | Canonical queue dialer |
 | `R1gTdLkbjJUPAr6u` — Callback + Tools Copy | Archived in n8n | Validation copy only; do not use in production |
 
 ## Acceptance Criteria
@@ -82,4 +96,6 @@ Also set end-of-call webhook → same URL.
 - [ ] Vapi calls `notify_sales` with lead name + summary to `#leads`
 - [ ] Each completed call has a row in `voice_call_attempt`
 - [ ] GHL contact note written for every call
+- [x] Voice workflows use the shared `GHL_LOCATION_ID` where location-scoped reads are needed
+- [x] GHL tag and note paths smoke-tested against a test contact
 - [ ] Archived workflows remain inactive
