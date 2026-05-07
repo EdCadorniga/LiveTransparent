@@ -668,3 +668,50 @@ CREATE TABLE IF NOT EXISTS voice_call_transcript_turn (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_voice_call_transcript_turn_unique
   ON voice_call_transcript_turn(call_id, turn_index);
+
+-- Meta Ads campaign/adset/ad name map — populated from Graph API
+-- Used to resolve URL-encoded UTM values to human-readable campaign names
+CREATE TABLE IF NOT EXISTS report_meta_campaign_map (
+  id SERIAL PRIMARY KEY,
+  ad_account_id TEXT NOT NULL,
+  ad_account_name TEXT,
+  campaign_id TEXT,
+  campaign_name TEXT,
+  campaign_status TEXT,
+  adset_id TEXT,
+  adset_name TEXT,
+  adset_status TEXT,
+  ad_id TEXT,
+  ad_name TEXT,
+  ad_status TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (ad_account_id, COALESCE(campaign_id, ''), COALESCE(adset_id, ''), COALESCE(ad_id, ''))
+);
+
+CREATE INDEX IF NOT EXISTS idx_meta_campaign_map_campaign_name
+  ON report_meta_campaign_map (campaign_name);
+
+CREATE INDEX IF NOT EXISTS idx_meta_campaign_map_adset_name
+  ON report_meta_campaign_map (adset_name);
+
+-- Seed campaign map from live Meta API query (2026-05-07)
+-- act_975543647768982 — Livetransparent
+INSERT INTO report_meta_campaign_map (ad_account_id, ad_account_name, campaign_id, campaign_name, campaign_status, adset_id, adset_name, adset_status, ad_id, ad_name, ad_status) VALUES
+('act_975543647768982','Livetransparent','120247206237760159','Transparent-LeadForm-List','ACTIVE','120247206237750159','List-11.20.25','ACTIVE',null,null,null),
+('act_975543647768982','Livetransparent','120246336171860159','LV-Template','PAUSED','120246336171870159','New Traffic Ad Set','ACTIVE',null,null,null),
+('act_975543647768982','Livetransparent','120246017455700159','Transparent-Posts','PAUSED','120246017455690159','List-11.20.25','ACTIVE',null,null,null),
+('act_975543647768982','Livetransparent','120241213439880159','Transparent-LeadForm-MJBizCon','ACTIVE','120241213439870159','Convention-11.20.25','ACTIVE',null,null,null),
+('act_975543647768982','Livetransparent','120241212056450159','Transparent-Traffic-MJBiz','ACTIVE','120241300131650159','ConventionLAL-11.20.25','ACTIVE',null,null,null),
+('act_975543647768982','Livetransparent','120241212056450159','Transparent-Traffic-MJBiz','ACTIVE','120241212056430159','Convention-11.20.25','ACTIVE',null,null,null),
+('act_975543647768982','Livetransparent','120241058805550159','Transparent-Traffic','ACTIVE','120248139310460159','List-11.20.25 - Copy','ACTIVE',null,null,null),
+('act_975543647768982','Livetransparent','120241058805550159','Transparent-Traffic','ACTIVE','120241058805570159','List-11.20.25','PAUSED',null,null,null),
+('act_975543647768982','Livetransparent','120240619542520159','Transparent-LeadForm-Rem','ACTIVE','120240619542530159','List-11.20.25','ACTIVE',null,null,null),
+-- act_24843211111954088 — Livetransparent-2 (HYPE)
+('act_24843211111954088','Livetransparent-2','120244608199430363','HYPE-Stilo Supply - Shop Now V1 - April (Evergreen) - DTS','ACTIVE','120244608199420363','Stilo Supply - Shop Now V1 Ad 1 - April 22 to Evergreen - DTS','ACTIVE',null,null,null),
+('act_24843211111954088','Livetransparent-2','120244608146670363','HYPE-Chkn''n Wafflez - Shop Now V1 - April (Evergreen) - DTS','ACTIVE','120244608182680363','Chkn''n Wafflez - Shop Now V1 Ad 1 - April 22 to Evergreen - DTS','ACTIVE',null,null,null),
+('act_24843211111954088','Livetransparent-2','120244518262720363','Hyperwolf - Template','PAUSED','120244518262730363','Hyperwolf - Shop Now V1 Ad 1 - April 22 to Evergreen - DTS','ACTIVE',null,null,null),
+('act_24843211111954088','Livetransparent-2','120244443459370363','HYPE-Hyperwolf - Shop Now V1 - April (Evergreen) - DTS','ACTIVE','120244443459380363','Hyperwolf - Shop Now V1 Ad 1 - April 22 to Evergreen - DTS','ACTIVE',null,null,null)
+ON CONFLICT (ad_account_id, COALESCE(campaign_id, ''), COALESCE(adset_id, ''), COALESCE(ad_id, '')) DO UPDATE SET
+  campaign_name = EXCLUDED.campaign_name, campaign_status = EXCLUDED.campaign_status,
+  adset_name = EXCLUDED.adset_name, adset_status = EXCLUDED.adset_status,
+  updated_at = NOW();
