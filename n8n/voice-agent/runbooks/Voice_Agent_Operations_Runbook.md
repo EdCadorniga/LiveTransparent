@@ -1,49 +1,62 @@
-# Voice Agent Operations Runbook (V1)
+# Voice Agent Operations Runbook (Phase 2 Vapi Production)
 
 ## Purpose
-Deploy and operate the outbound voice AI agent safely in the LiveTransparent stack.
+Deploy and operate the production Vapi voice agent safely in the LiveTransparent stack.
+
+## Scope
+- Production workflow pair:
+  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`)
+  - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
+- Archived / non-production workflows:
+  - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`)
+  - `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`)
+  - `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`)
+  - `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`)
 
 ## Pre-deploy checks
 - Confirm required env vars exist in Coolify for n8n.
 - Apply `postgres/voice_agent_schema.sql` to reporting Postgres.
-- Confirm Cameron calendar id is correct in `GHL_CALENDAR_ID_CAMERON`.
+- Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
 - Verify DNC source of truth and queue feed workflow are active.
+- Confirm archived workflows are not active in n8n.
 
 ## Deployment sequence
-1. Import `n8n-workflow/lt-voice-agent-v1.json` as inactive.
-2. Bind Postgres, GHL, and HTTP credentials.
-3. Validate test queue record in Postgres.
-4. Run one manual execution against a sandbox contact.
-5. Confirm:
+1. Restore or update `n8n-workflow/lt-voice-agent-vapi-callback-v1-merged.json` for the canonical callback/tool router if a rebuild is required.
+2. Restore or update `n8n-workflow/lt-voice-agent-v1.json` for the canonical outbound dialer if a rebuild is required.
+3. Bind Postgres, GHL, Slack, and HTTP credentials.
+4. Validate test queue record in Postgres.
+5. Run one manual execution against a sandbox contact.
+6. Confirm:
    - queue item picked,
    - provider call start request sent,
    - GHL note written.
-6. Activate workflow with low cadence.
+7. Activate workflows with low cadence.
 
 ## Callback workflow requirement
-Create a separate inbound callback workflow from the voice provider to:
-- capture transcript + recording links,
-- evaluate qualification/handoff flags,
-- fetch free slots from GHL calendar,
-- create appointment,
-- write final summary note and follow-up task.
+The production callback workflow is merged:
+- captures end-of-call events and live tool calls on the same webhook,
+- routes by `tool.name`,
+- writes dispositions, DNC updates, and sales alerts,
+- logs attempts and contact notes.
+
+Do not reintroduce the older split callback workflow into production.
 
 ## Required observability
-- Dashboard query for daily dispositions and booking rate.
+- Dashboard query for daily dispositions, tool usage, and call logging completeness.
 - Alert on:
   - repeated provider failures,
-  - booking error spikes,
-  - transcript write failures,
+  - callback parse or routing failures,
+  - tool execution failures,
   - queue backlog growth.
 
 ## Safety controls
 - Hard stop when call is outside allowed PST window.
 - Hard stop on DNC or invalid phone.
 - No direct legal/compliance answers.
-- Human handoff on complex objection/compliance path.
+- Human handoff on complex objection/compliance path if that behavior is enabled later.
 
 ## Daily QA checklist
 - Sample 5 completed call summaries.
-- Open 2 full transcripts and verify summary accuracy.
-- Verify at least 1 booked call has correct calendar event.
-- Verify handoff-required calls created human tasks in GHL.
+- Verify tool-call payloads are routed to the correct branch.
+- Verify completed calls create one `voice_call_attempt` row each.
+- Verify archived workflows remain archived and are not active.

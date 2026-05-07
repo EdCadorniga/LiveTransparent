@@ -1,0 +1,503 @@
+{
+  "name": "LT - Voice Agent V1 Vapi Callback + Tools",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-voice-agent-vapi-callback",
+        "responseMode": "lastNode"
+      },
+      "id": "webhook_1",
+      "name": "Webhook - Vapi",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst isToolCall = !!(body.tool && body.tool.name);\nreturn [{ json: { _isToolCall: isToolCall, _raw: body } }];"
+      },
+      "id": "code_detect",
+      "name": "Code - Detect Tool vs Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json._isToolCall}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if_tool",
+      "name": "If - Is Tool Call",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json._raw;\nconst call = raw.call || raw;\nconst artifact = raw.artifact || {};\nconst analysis = raw.analysis || {};\nconst meta = (call.assistantOverrides && call.assistantOverrides.metadata) || call.metadata || {};\nconst contactId = String(meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || '').trim();\nconst status = String(call.status || raw.status || '').toLowerCase();\nconst endedReason = String(call.endedReason || '').toLowerCase();\nconst successEvaluation = !!analysis.successEvaluation;\nconst summary = String(analysis.summary || artifact.summary || '').trim();\nconst recordingUrl = artifact.recordingUrl || call.recordingUrl || '';\nlet disposition = 'failed';\nif (status.includes('ended') || status.includes('completed')) {\n  if (endedReason.includes('customer-did-not-answer') || endedReason.includes('no-answer')) disposition = 'no_answer';\n  else if (endedReason.includes('voicemail')) disposition = 'voicemail';\n  else disposition = successEvaluation ? 'qualified_booked' : 'connected';\n}\nreturn [{ json: { contact_id: contactId, queue_id: queueId, call_id: String(call.id || raw.id || ''), disposition, summary: summary || 'No summary returned by Vapi.', recording_url: recordingUrl } }];"
+      },
+      "id": "code_eoc",
+      "name": "Code - Normalize End Of Call",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json._raw;\nconst tool = raw.tool || {};\nconst params = tool.parameters || {};\nconst meta = raw.metadata || {};\nconst toolName = String(tool.name || '').toLowerCase();\nconst contactId = String(params.ghl_contact_id || params.contact_id || meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || params.queue_id || '').trim();\nconst callId = String(meta.call_id || params.call_id || '').trim();\nconst s = (v) => String(v ?? '').replace(/'/g, \"''\").trim();\nreturn [{ json: { tool_name: toolName, contact_id: contactId, queue_id: queueId, call_id: callId, disposition: s(params.disposition || ''), notes: s(params.notes || ''), follow_up_at: params.followUpAt || params.follow_up_at || null, reason: s(params.reason || ''), lead_name: s(params.lead_name || params.leadName || ''), company: s(params.company || '') } }];"
+      },
+      "id": "code_tool",
+      "name": "Code - Normalize Tool Call",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value": "={{ $json.tool_name }}",
+        "rules": {
+          "values": [
+            {
+              "operation": "equals",
+              "value": "update_lead_status",
+              "output": 0
+            },
+            {
+              "operation": "equals",
+              "value": "add_to_dnc",
+              "output": 1
+            },
+            {
+              "operation": "equals",
+              "value": "log_call_outcome",
+              "output": 2
+            },
+            {
+              "operation": "equals",
+              "value": "notify_sales",
+              "output": 3
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          }
+        },
+        "fallbackOutput": 4
+      },
+      "id": "switch_tool",
+      "name": "Switch - Route Tool",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2.1,
+      "position": [
+        1200,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE voice_call_queue SET status = 'completed', updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
+      },
+      "id": "pg_status",
+      "name": "Postgres - Update Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1480,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}/tags",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GHL_API_KEY }}"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"tags\": [\"AI Call Attempted\"]}"
+      },
+      "id": "ghl_tags",
+      "name": "GHL - Update Tags",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE voice_call_queue SET dnc = true, status = 'completed', updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
+      },
+      "id": "pg_dnc",
+      "name": "Postgres - Set DNC",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1480,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}/tags",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GHL_API_KEY }}"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"tags\": [\"do_not_call\"]}"
+      },
+      "id": "ghl_dnc",
+      "name": "GHL - DNC Tag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO voice_call_attempt (call_id, queue_id, contact_id, provider_call_id, idempotency_key, disposition, summary, follow_up_at, handoff_required, updated_at)\nVALUES (\n  nullif('{{ $json.call_id }}', '')::uuid,\n  nullif('{{ $json.queue_id }}', '')::uuid,\n  '{{ $json.contact_id }}',\n  '{{ $json.call_id }}',\n  '{{ $json.call_id }}:{{ $json.disposition }}',\n  '{{ $json.disposition }}',\n  '{{ $json.notes }}',\n  {{ $json.follow_up_at ? \"'\" + $json.follow_up_at + \"'\" : \"null\" }},\n  false,\n  now()\n)\nON CONFLICT (idempotency_key) DO UPDATE SET disposition = EXCLUDED.disposition, summary = EXCLUDED.summary, updated_at = now();"
+      },
+      "id": "pg_log",
+      "name": "Postgres - Log Outcome",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1480,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SLACK_WEBHOOK_URL}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"text\": \"*Voice AI Lead Alert*\\n*Name:* \" + ($json.lead_name || \"Unknown\") + \"\\n*Company:* \" + ($json.company || \"N/A\") + \"\\n*Disposition:* \" + ($json.disposition || \"N/A\") + \"\\n*Notes:* \" + ($json.notes || \"None\") + \"\\n*Contact ID:* \" + ($json.contact_id || \"N/A\")}"
+      },
+      "id": "http_slack",
+      "name": "HTTP - Slack #leads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1480,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO voice_call_attempt (call_id, queue_id, contact_id, provider_call_id, idempotency_key, disposition, summary, transcript_url, recording_url)\nVALUES (\n  nullif('{{ $json.call_id }}', '')::uuid,\n  nullif('{{ $json.queue_id }}', '')::uuid,\n  '{{ $json.contact_id }}',\n  '{{ $json.call_id }}',\n  '{{ $json.call_id }}:{{ $json.disposition }}',\n  '{{ $json.disposition }}',\n  '{{ $json.summary.replace(/'/g, \"''\") }}',\n  '',\n  '{{ $json.recording_url }}'\n)\nON CONFLICT (idempotency_key) DO NOTHING;"
+      },
+      "id": "pg_eoc",
+      "name": "Postgres - Insert Attempt",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}/notes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GHL_API_KEY }}"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"body\": \"AI call completed. Disposition: \" + $json.disposition + \"\\nSummary: \" + ($json.summary || \"n/a\") + \"\\nRecording: \" + ($json.recording_url || \"n/a\")}"
+      },
+      "id": "ghl_note",
+      "name": "GHL - Contact Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"ok\": true, \"contact_id\": \"{{ $json.contact_id }}\", \"queue_id\": \"{{ $json.queue_id }}\", \"tool\": \"{{ $json.tool_name }}\"}"
+      },
+      "id": "resp",
+      "name": "Respond - 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.3,
+      "position": [
+        1920,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Vapi": {
+      "main": [
+        [
+          {
+            "node": "Code - Detect Tool vs Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Detect Tool vs Callback": {
+      "main": [
+        [
+          {
+            "node": "If - Is Tool Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Is Tool Call": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code - Normalize End Of Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Normalize Tool Call": {
+      "main": [
+        [
+          {
+            "node": "Switch - Route Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Route Tool": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Update Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres - Set DNC",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres - Log Outcome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP - Slack #leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Update Status": {
+      "main": [
+        [
+          {
+            "node": "GHL - Update Tags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Update Tags": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Set DNC": {
+      "main": [
+        [
+          {
+            "node": "GHL - DNC Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - DNC Tag": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Log Outcome": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Slack #leads": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Normalize End Of Call": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Insert Attempt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Insert Attempt": {
+      "main": [
+        [
+          {
+            "node": "GHL - Contact Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Contact Note": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "active": false
+}

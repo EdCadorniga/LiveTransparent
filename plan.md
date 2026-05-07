@@ -1,67 +1,85 @@
-# Vapi + n8n Outbound Voice Agent Plan (LiveTransparent)
+# Vapi + n8n Outbound Voice Agent Plan — Phase 2 (2026-05-07)
 
 ## Goal
-Launch a production-safe outbound AI call agent where:
-- Vapi handles realtime voice/audio + model runtime.
-- n8n handles queue orchestration, CRM sync, booking policy, and persistence.
-- GHL remains CRM source of truth for contact/opportunity state.
+Connect n8n to Vapi with production-ready tool calling:
+- Vapi can call out to contacts via n8n queue.
+- 4 agent tools close the loop: disposition, DNC, sales alert, call logging.
+- All routing through single merged webhook.
 
-## Current State (2026-05-06)
-- Live workflow created: `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) - inactive.
-- Live workflow created: `LT - Voice Agent V1 Vapi Callback Sync` (`fx4UvKUWbqJEY3LK`) - inactive.
-- Repo workflow specs live under `n8n/voice-agent/n8n-workflow/`.
+## Canonical Production State
+- Production workflow pair:
+  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`)
+  - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
+- Archived / non-production workflows:
+  - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) — archived in n8n after validation
+  - `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`) — archived in n8n
+  - `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`) — archived in n8n
+  - `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`) — archived in n8n
 
-## Architecture
-1. `Outbound Dialer (n8n)`
-- Poll `voice_call_queue` for callable leads.
-- Enforce DNC + max attempts + next_attempt gating.
-- Start Vapi call with assistant variables (`contact_id`, `queue_id`, `campaign_id`, context fields).
-- Log call-start note in GHL.
+## What's Already Done
+- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) — production dialer, polls queue, starts Vapi call, logs GHL note
+- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — production merged callback/tool router, receives end-of-call webhook + all 4 tool calls, routes by `tool.name`
+- `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) — archived validation copy, not used in production
+- Phone number: `+1 (562) 534 1977` (`bd4ba248-a2b4-4738-b701-7c6a5ebb5bb4`)
+- Assistant ID: `3f9bbfd2-efa6-4381-81e6-26f2452d28f1`
+- Postgres schema: `voice_call_queue`, `voice_call_attempt`, `voice_call_transcript_turn`
 
-2. `Call Runtime (Vapi)`
-- Twilio/telephony + speech + OpenRouter model inference.
-- Assistant prompt handles intro, FAQ scope, intent+fit qualification, and booking dialogue.
+## Phase 2 Work
 
-3. `Callback Sync (n8n)`
-- Accept end-of-call webhook from Vapi.
-- Normalize disposition + summary + transcript/recording metadata.
-- Persist attempt in Postgres.
-- Write call summary note to GHL.
+### 1. Set VAPI_PHONE_NUMBER_ID in .env ✅
+`VAPI_PHONE_NUMBER_ID=bd4ba248-a2b4-4738-b701-7c6a5ebb5bb4`
 
-## Required Configuration
-- In Vapi:
-  - `VAPI_API_KEY`
-  - Assistant configured with OpenRouter model.
-  - Phone number + telephony routing configured.
-  - End-of-call webhook pointed to n8n callback URL.
-- In n8n env/Coolify:
-  - `VAPI_API_KEY`
-  - `VAPI_PHONE_NUMBER_ID`
-  - `VAPI_ASSISTANT_ID`
-  - `VAPI_BASE_URL` (optional; defaults to `https://api.vapi.ai/call`)
-  - `GHL_API_KEY`
-- In Postgres:
-  - Apply `n8n/voice-agent/postgres/voice_agent_schema.sql`.
+### 2. Merged callback workflow ✅ (2026-05-07)
+Single workflow at path `/webhook/lt-voice-agent-vapi-callback` handles:
+- `POST` — Vapi end-of-call events
+- `POST` — Vapi tool calls during live call (routed by `tool.name`)
 
-## Next Steps (Execution Order)
-1. Configure OpenRouter model + assistant behavior in Vapi.
-2. Set n8n env vars for Vapi IDs/keys in Coolify.
-3. Apply Postgres schema and confirm tables/indexes exist.
-4. Wire Vapi end-of-call webhook to `LT - Voice Agent V1 Vapi Callback Sync`.
-5. Run one test contact through queue and verify:
-   - Vapi call starts,
-   - callback hits n8n,
-   - Postgres attempt row is inserted,
-   - GHL note is created.
-6. Add stage/tag outcome mapping in callback workflow:
-   - `AI-Call-Successful`, `AI-Call-No-Answer`, `AI-Handoff-Required`.
-7. Add booking-sync branch in callback workflow:
-   - when booked, write appointment metadata to GHL contact/opportunity.
-8. Activate workflows at low volume and monitor for 48 hours.
+Tool routing:
+- `update_lead_status` → Postgres UPDATE queue status + GHL tags (`AI Call Attempted`)
+- `add_to_dnc` → Postgres UPDATE dnc=true + GHL DNC tag (`do_not_call`)
+- `log_call_outcome` → Postgres INSERT/UPDATE `voice_call_attempt`
+- `notify_sales` → HTTP POST to Slack `#leads`
+
+Webhook URL for all Vapi callbacks + tools:
+```
+https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback
+```
+
+### 3. Outbound dialer — first_name fix ✅
+Queue query now fetches `first_name` (was missing, causing Vapi variable to always be empty)
+
+### 4. voice_call_queue schema — first_name column ✅
+```sql
+ALTER TABLE voice_call_queue ADD COLUMN first_name text;
+```
+
+## Vapi Dashboard Tool Config (manual step)
+Register 4 tools in Vapi dashboard, each pointing to:
+```
+https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback
+```
+| Tool Name | Parameters |
+|-----------|------------|
+| `update_lead_status` | `ghl_contact_id`, `disposition`, `notes`, `followUpAt` |
+| `add_to_dnc` | `ghl_contact_id`, `reason` |
+| `log_call_outcome` | `call_id`, `disposition`, `notes`, `followUpAt`, `handoff_required` |
+| `notify_sales` | `lead_name`, `company`, `disposition`, `notes`, `contact_id` |
+
+Also set end-of-call webhook → same URL.
+
+## Activation Status
+| Workflow | Status | Notes |
+|----------|--------|-------|
+| `fx4UvKUWbqJEY3LK` — Callback + Tools | Published in production | Canonical merged callback/tool router |
+| `orJrDqR6hQjgPLpg` — Outbound Dialer | Published in production | Canonical queue dialer |
+| `R1gTdLkbjJUPAr6u` — Callback + Tools Copy | Archived in n8n | Validation copy only; do not use in production |
 
 ## Acceptance Criteria
-- Calls only start for eligible queue rows.
-- Every completed call has a recorded disposition in Postgres.
-- Every completed call writes a summary note in GHL.
-- No duplicate bookings or duplicate attempts for same idempotency key.
-- Manual QA of 5 transcripts matches summary quality expectations.
+- [ ] Outbound calls start for queue rows with `status=pending`, `dnc=false`, `attempt_count < max_attempts`
+- [ ] Vapi calls `update_lead_status` after qualifying/hanging up
+- [ ] Vapi calls `add_to_dnc` when prospect opts out
+- [ ] Vapi calls `log_call_outcome` with disposition + notes + follow-up
+- [ ] Vapi calls `notify_sales` with lead name + summary to `#leads`
+- [ ] Each completed call has a row in `voice_call_attempt`
+- [ ] GHL contact note written for every call
+- [ ] Archived workflows remain inactive

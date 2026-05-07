@@ -1,23 +1,30 @@
-# GHL Voice Agent V1 (Outbound Cold Call + Direct Booking)
+# LiveTransparent Voice Agent V1 (Phase 2 Vapi Production)
 
-This package defines the v1 implementation scaffold for a customer-facing outbound voice AI agent.
+This package documents the current production Vapi voice-agent implementation and the historical V1 scaffold that preceded it.
 
 ## Objectives
 - Run outbound calls from a controlled queue.
-- Answer basic LiveTransparent company FAQs.
-- Offer Cameron calendar slots and book directly.
-- Persist full transcript and call metadata.
-- Sync structured call outcomes into GHL.
+- Handle Vapi end-of-call webhooks and live tool calls through a single merged callback workflow.
+- Persist call outcomes, DNC updates, and sales alerts into GHL/Postgres/Slack.
+- Keep the production workflow pair explicit so older exports are not mistaken for live assets.
 
 ## Components
-- `Voice_Agent_V1_Implementation_Spec.md` - decision-complete implementation spec.
-- `Call_Agent_Prompt_Policy.md` - system prompt and runtime guardrails.
-- `postgres/voice_agent_schema.sql` - queue/transcript/attempt schema.
-- `n8n-workflow/lt-voice-agent-v1.json` - n8n workflow skeleton (import base).
-- `runbooks/Voice_Agent_Operations_Runbook.md` - deployment and operations checks.
+- `Voice_Agent_V1_Implementation_Spec.md` - historical V1 implementation spec retained for reference.
+- `Call_Agent_Prompt_Policy.md` - historical V1 prompt policy retained for reference.
+- `postgres/voice_agent_schema.sql` - queue/attempt/transcript schema.
+- `n8n-workflow/lt-voice-agent-v1.json` - legacy outbound dialer export.
+- `n8n-workflow/lt-voice-agent-vapi-callback-v1-merged.json` - canonical merged callback/tool workflow export.
+- `runbooks/Voice_Agent_Operations_Runbook.md` - production deployment and operations checks.
+- `ARCHIVE.md` - archive index for retired voice workflows and exports.
 
 ## Runtime assumptions
 - GHL remains the CRM system of record.
-- n8n orchestrates queueing, policy checks, booking, and sync.
+- n8n orchestrates queueing, callback/tool routing, and CRM sync.
 - Voice provider and LLM provider are env-driven and swappable.
 - Transcript system of record is Postgres; GHL stores summary + link.
+- Production workflow IDs:
+  - `fx4UvKUWbqJEY3LK` - canonical merged callback/tool router
+  - `orJrDqR6hQjgPLpg` - canonical outbound dialer
+- Archived workflows:
+  - `R1gTdLkbjJUPAr6u` - archived validation copy
+  - `cd3Gv3llKB8XOUgg`, `pMMPwm2RLjuYqjZ7`, `Qdl2a9KMJnIw745d` - archived tests

@@ -1,17 +1,25 @@
 # Voice Agent V1 Implementation Spec
 
+> Status: historical reference only. Production now uses the Phase 2 merged callback/tool router described in `plan.md`.
+
 ## Objective
-Implement an outbound cold-call AI agent that introduces itself as a LiveTransparent representative, answers basic company questions, and books qualified prospects directly with Cameron.
+Document the original V1 outbound cold-call design. The live implementation no longer uses the older split callback flow or direct-booking path.
 
 ## Locked Decisions
 - Channel: Voice calls only.
 - Runtime: External AI runtime orchestrated by n8n.
 - Queue model: Task Queue Dial.
-- Booking mode: Offer slots and book directly.
+- Booking mode: historical V1 direct-booking design; not the current production flow.
 - Qualification gate: Intent + fit.
 - Handoff: Compliance/complexity or explicit human request.
 - Transcript sink: Postgres full transcript + GHL summary note.
 - Call window: Mon-Fri business hours in PST.
+
+## Current Production Mapping
+- Dialer: `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`)
+- Callback/tool router: `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
+- Archived validation copy: `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`)
+- Archived tests: `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`), `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`), `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`)
 
 ## Core Flow
 1. Pull next callable item from queue (`pending`, within policy window, not DNC, attempts remaining).
@@ -22,6 +30,9 @@ Implement an outbound cold-call AI agent that introduces itself as a LiveTranspa
 6. Persist transcript, call metadata, and disposition.
 7. Upsert GHL note/task/opportunity updates.
 8. Mark queue item outcome and schedule retry/follow-up if needed.
+
+## Production Note
+The production Phase 2 implementation keeps the queue, call metadata, disposition, and CRM sync behavior, but the live workflow now routes Vapi tool calls through the merged callback workflow instead of the older direct-booking-specific split design.
 
 ## Public Contracts
 

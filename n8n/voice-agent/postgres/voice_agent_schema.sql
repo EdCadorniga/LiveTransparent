@@ -3,6 +3,7 @@
 create table if not exists voice_call_queue (
   queue_id uuid primary key,
   contact_id text not null,
+  first_name text,
   phone_e164 text not null,
   campaign_id text not null,
   lead_timezone text,

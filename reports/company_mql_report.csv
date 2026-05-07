@@ -1,0 +1,4 @@
+company_key,company_name,contact_count,contact_ids,pipelines,stage_names,company_operating_state,company_cannabis_marketing_signal,latest_contact_date
+"acme.com","Acme Corp","2","[{contact_id1},{contact_id2}]","Warm|Sales Outreach","Qualified (MQL)|Discovery Scheduled","California","active_cannabis_marketing","2026-05-06"
+"example.com","Example Co","3","[{contact_id3},{contact_id4},{contact_id5}]","Sales Outreach","Booked|Negotiation","Colorado","high_intent","2026-05-05"
+"name::unknown-company","Unknown Company","2","[{contact_id6},{contact_id7}]","Warm","New|Qualified (MQL)","","","2026-05-04"

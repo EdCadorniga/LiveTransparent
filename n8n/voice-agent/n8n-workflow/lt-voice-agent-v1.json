@@ -16,18 +16,24 @@
       "name": "Cron - Queue Poll",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [240, 280]
+      "position": [
+        240,
+        280
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "select queue_id, contact_id, phone_e164, campaign_id, lead_timezone, max_attempts, attempt_count\nfrom voice_call_queue\nwhere status = 'pending'\n  and dnc = false\n  and attempt_count < max_attempts\n  and (next_attempt_at is null or next_attempt_at <= now())\norder by coalesce(next_attempt_at, created_at) asc\nlimit 1;"
+        "query": "select queue_id, contact_id, first_name, phone_e164, campaign_id, lead_timezone, max_attempts, attempt_count\nfrom voice_call_queue\nwhere status = 'pending'\n  and dnc = false\n  and attempt_count < max_attempts\n  and (next_attempt_at is null or next_attempt_at <= now())\norder by coalesce(next_attempt_at, created_at) asc\nlimit 1;"
       },
       "id": "pg_1",
       "name": "Postgres - Fetch Next Queue Item",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [520, 280]
+      "position": [
+        520,
+        280
+      ]
     },
     {
       "parameters": {
@@ -37,7 +43,10 @@
       "name": "Code - Queue Guard",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [760, 280]
+      "position": [
+        760,
+        280
+      ]
     },
     {
       "parameters": {
@@ -54,7 +63,10 @@
       "name": "If - Skip Empty",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [980, 280]
+      "position": [
+        980,
+        280
+      ]
     },
     {
       "parameters": {
@@ -81,7 +93,10 @@
       "name": "HTTP - Start Vapi Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1220, 360]
+      "position": [
+        1220,
+        360
+      ]
     },
     {
       "parameters": {
@@ -116,7 +131,10 @@
       "name": "GHL - Create Call Note",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1450, 360]
+      "position": [
+        1450,
+        360
+      ]
     }
   ],
   "connections": {

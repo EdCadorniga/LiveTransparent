@@ -1,0 +1,203 @@
+{
+  "name": "LT - Company MQL Google Sheets Sync",
+  "description": "Syncs company-level MQL data from Postgres to Google Sheets",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{
+            "field": "cronExpression",
+            "expression": "0 6 * * *",
+            "tz": "America/New_York"
+          }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [240, 500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  COALESCE(e.company_domain_key, c.dimensions_json->>'company_name') AS company_key,\n  COALESCE(e.company_name, c.dimensions_json->>'company_name', 'Unknown') AS company_name,\n  COUNT(DISTINCT c.contact_id) AS contact_count,\n  STRING_AGG(DISTINCT c.email, ', ' ORDER BY c.email) AS contact_emails,\n  STRING_AGG(DISTINCT o.pipeline_name, '|' ORDER BY o.pipeline_name) AS pipelines,\n  STRING_AGG(DISTINCT o.stage_name, '|' ORDER BY o.stage_name) AS stages,\n  MAX(e.company_operating_state) AS operating_state,\n  MAX(e.company_cannabis_marketing_signal) AS marketing_signal,\n  MAX(c.created_at::date) AS latest_contact_date\nFROM report_raw_ghl_contacts c\nJOIN report_raw_ghl_opportunities o \n  ON o.contact_id = c.contact_id\nLEFT JOIN \"Emerald_Contacts\" e \n  ON e.ghl_contact_id = c.contact_id\nWHERE o.pipeline_name IN ('Warm', 'Sales Outreach')\n  AND o.stage_name NOT IN ('Disqualified', 'Closed Lost', 'Closed Won')\nGROUP BY company_key, company_name, e.company_operating_state, e.company_cannabis_marketing_signal\nHAVING COUNT(DISTINCT c.contact_id) >= 1\nORDER BY contact_count DESC, latest_contact_date DESC\nLIMIT 500;",
+        "options": {
+          "queryReplacement": "",
+          "replaceEmptyStrings": false
+        }
+      },
+      "id": "query-postgres",
+      "name": "Query Company MQL Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "operation": "create",
+        "title": "LiveTransparent - Company MQL Report",
+        "sheetsUi": {
+          "sheetValues": [{
+            "title": "Company MQLs",
+            "hidden": false
+          }]
+        },
+        "options": {
+          "locale": "en_US",
+          "autoRecalc": "ON_CHANGE"
+        }
+      },
+      "id": "create-spreadsheet",
+      "name": "Create Spreadsheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1140, 300]
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "={{ $json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Company MQLs"
+        },
+        "clear": "wholeSheet",
+        "keepFirstRow": true
+      },
+      "id": "clear-sheet",
+      "name": "Clear Old Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1440, 300]
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "={{ $json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Company MQLs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "company_key": "={{ $json.company_key }}",
+            "company_name": "={{ $json.company_name }}",
+            "contact_count": "={{ $json.contact_count }}",
+            "contact_emails": "={{ $json.contact_emails }}",
+            "pipelines": "={{ $json.pipelines }}",
+            "stages": "={{ $json.stages }}",
+            "operating_state": "={{ $json.operating_state }}",
+            "marketing_signal": "={{ $json.marketing_signal }}",
+            "latest_contact_date": "={{ $json.latest_contact_date }}"
+          }
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED",
+          "useAppend": true
+        }
+      },
+      "id": "append-data",
+      "name": "Append to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1740, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "spreadsheet_url",
+              "value": "https://docs.google.com/spreadsheets/d/{{ $json.spreadsheetId }}"
+            },
+            {
+              "name": "generated_at",
+              "value": "={{ new Date().toISOString() }}"
+            },
+            {
+              "name": "total_companies",
+              "value": "={{ $items().length }}"
+            }
+          ]
+        }
+      },
+      "id": "set-metadata",
+      "name": "Add Metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2040, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [{
+        "node": "Query Company MQL Data",
+        "type": "main",
+        "index": 0
+      }]
+    },
+    "Daily Schedule": {
+      "main": [{
+        "node": "Query Company MQL Data",
+        "type": "main",
+        "index": 0
+      }]
+    },
+    "Query Company MQL Data": {
+      "main": [{
+        "node": "Create Spreadsheet",
+        "type": "main",
+        "index": 0
+      }]
+    },
+    "Create Spreadsheet": {
+      "main": [{
+        "node": "Clear Old Data",
+        "type": "main",
+        "index": 0
+      }]
+    },
+    "Clear Old Data": {
+      "main": [{
+        "node": "Append to Sheet",
+        "type": "main",
+        "index": 0
+      }]
+    },
+    "Append to Sheet": {
+      "main": [{
+        "node": "Add Metadata",
+        "type": "main",
+        "index": 0
+      }]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": ["reporting", "company-mql", "google-sheets"]
+}

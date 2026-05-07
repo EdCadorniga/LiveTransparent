@@ -6,7 +6,10 @@ Implement a production-ready outbound AI call agent that can:
 - Answer basic approved company questions.
 - Qualify on intent + fit.
 - Capture full call outcome/transcript context.
-- Support downstream booking and CRM routing workflows.
+- Support downstream CRM routing workflows and tool calling.
+
+## Status
+This specification describes the current production Vapi Phase 2 implementation. The older split callback / direct-booking voice-agent artifacts are archived and should not be treated as live sources of truth.
 
 ## System Boundaries
 - `Vapi`: realtime call runtime (voice, ASR/TTS, model execution).
@@ -15,8 +18,14 @@ Implement a production-ready outbound AI call agent that can:
 - `Postgres`: durable call-attempt event log and transcript metadata.
 
 ## Live Workflows (n8n)
-- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) - inactive.
-- `LT - Voice Agent V1 Vapi Callback Sync` (`fx4UvKUWbqJEY3LK`) - inactive.
+- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) - production dialer.
+- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) - production merged callback/tool router.
+
+## Archived Voice Workflows
+- `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) - archived validation copy.
+- `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`) - archived test workflow.
+- `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`) - archived test workflow.
+- `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`) - archived test workflow.
 
 ## Data Contracts
 - Queue row minimum fields:

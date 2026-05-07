@@ -66,12 +66,24 @@
 - **SimpleTexting**: SMS Send, Delivery Events, Inbound Reply, and Unsubscribe webhooks are active. Pool Dispatcher and Campaign Sequencer are inactive by design.
 - **Unipile/LinkedIn**: `LT - GHL LinkedIn Connect Dispatcher` (`S32vc8pjJIBZZHLK`) is active and LIVE (dry-run off). Runs hourly Mon-Fri 10am-4pm EST. Uses `POST /contacts/search` with filter `contact.apollo_person_linkedin_url is_not_empty`, skips contacts tagged `linkedin_connection_requested`, processes 10/run from queue of 50, caps at 50/day via staticData. `LT - UNIPILE LinkedIn Connection Request` (`Zt8p2aYtIuY0HK18`) is active (internal test webhook).
 - **GHL warm intake/routing**, **Apollo enrichment**, **Emerald/Cold outreach** workflows all active.
-- **Voice AI (Vapi + n8n) is now scaffolded live**:
-  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) created in n8n (inactive).
-  - `LT - Voice Agent V1 Vapi Callback Sync` (`fx4UvKUWbqJEY3LK`) created in n8n (inactive).
-  - Outbound workflow starts calls via Vapi with assistant variable injection.
-  - Callback workflow receives end-of-call payload, persists call attempt metadata, and writes GHL contact note.
-  - OpenRouter model selection/connection is configured in Vapi assistant (not in n8n).
+### Voice AI (Vapi + n8n) — Phase 2 (2026-05-07)
+- **Phone**: `+1 (562) 534 1977` (`bd4ba248-a2b4-4738-b701-7c6a5ebb5bb4`)
+- **All Vapi webhooks** route to: `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback` (single merged path)
+- **Production workflows**
+  - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — canonical merged callback + tool router; published
+  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) — canonical queue dialer; published
+- **Archived / non-production workflows**
+  - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) — validation copy, archived in n8n
+  - `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`) — archived test workflow
+  - `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`) — archived test workflow
+  - `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`) — archived test workflow
+- **4 tools wired into callback workflow** (`fx4UvKUWbqJEY3LK`):
+  - `update_lead_status` → GHL tag + Postgres disposition update
+  - `add_to_dnc` → set `dnc=true` in `voice_call_queue` + GHL DNC tag
+  - `log_call_outcome` → upsert `voice_call_attempt` with disposition/notes/followUpAt
+  - `notify_sales` → Slack `#leads` alert (reuses `wl-slack-channel-update-v2` pattern)
+- **VAPI_PHONE_NUMBER_ID** now set in `.env`
+- Outbound Dialer (`orJrDqR6hQjgPLpg`) + Callback+Tools (`fx4UvKUWbqJEY3LK`) are the production pair in n8n
 
 ### Secret Hygiene (remaining work)
 - SimpleTexting API tokens, GHL keys, and webhook secrets are still in workflow `Config` nodes.
@@ -109,9 +121,13 @@
 - `Backup of all n8n workflows/` — Canonical workflow backups (45 files, 1 per live workflow)
 
 ## Immediate Next Steps (priority order)
-1. Expose a richer contact-capture panel with both counts and conversion rates by channel and landing page.
-2. Build matched funnel views by channel, campaign, and landing page.
-3. Harden the Meta attribution view in the Executive Report so Meta-tagged visits and downstream calls/opportunities are visible without relying on spend metrics.
-4. Build `WL - Nurture - 14 Day` workflow — moving a lead to `Nurture Active` (stage `98775f02-0018-4629-9e69-0b1fcab293eb`) currently has no email automation. Need to: apply `LT Nurture Active` tag, start 14-day nurture sequence, skip if tag already present.
-5. Finish SimpleTexting hardening: move secrets out of workflow `Config` nodes into credentials.
-6. GA4/GSC — retry access, then enable blocked ingest workflows.
+1. **Voice Agent Phase 2 hardening**:
+   - Keep `fx4UvKUWbqJEY3LK` and `orJrDqR6hQjgPLpg` as the only production voice workflows.
+   - Finish moving any remaining secrets out of workflow `Config` nodes into credentials or env-backed config.
+   - In Vapi dashboard, keep the 4 tools and end-of-call webhook pointed at `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
+2. Expose a richer contact-capture panel with both counts and conversion rates by channel and landing page.
+3. Build matched funnel views by channel, campaign, and landing page.
+4. Harden the Meta attribution view in the Executive Report so Meta-tagged visits and downstream calls/opportunities are visible without relying on spend metrics.
+5. Build `WL - Nurture - 14 Day` workflow — moving a lead to `Nurture Active` (stage `98775f02-0018-4629-9e69-0b1fcab293eb`) currently has no email automation. Need to: apply `LT Nurture Active` tag, start 14-day nurture sequence, skip if tag already present.
+6. Finish SimpleTexting hardening: move secrets out of workflow `Config` nodes into credentials.
+7. GA4/GSC — retry access, then enable blocked ingest workflows.

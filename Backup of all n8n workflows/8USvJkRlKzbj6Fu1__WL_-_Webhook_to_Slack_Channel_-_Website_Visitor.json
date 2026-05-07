@@ -1,0 +1,242 @@
+{
+  "updatedAt": "2026-02-24T18:20:12.982Z",
+  "createdAt": "2026-02-24T18:06:21.504Z",
+  "id": "8USvJkRlKzbj6Fu1",
+  "name": "WL - Webhook to Slack Channel - Website Visitor",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "30df5fe6-5ac4-4e0d-8811-e4a28dfe0540",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "3eeba7d3-90cb-4715-b3f3-41ca9e39498f",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        272,
+        304
+      ],
+      "webhookId": "30df5fe6-5ac4-4e0d-8811-e4a28dfe0540"
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = ($json.body && typeof $json.body === 'object') ? $json.body : $json;\n\nconst firstName = String(incoming.firstName || incoming.first_name || incoming.name || '').trim();\nconst lastName = String(incoming.lastName || incoming.last_name || '').trim();\nconst fullName = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown visitor';\nconst email = String(incoming.email || '').trim() || 'N/A';\nconst phone = String(incoming.phone || '').trim() || 'N/A';\n\nconst pageUrl = String(\n  incoming.pageUrl || incoming.page_url || incoming.url || incoming.websiteUrl || incoming.currentPage || ''\n).trim() || 'N/A';\nconst referrer = String(incoming.referrer || incoming.referer || incoming.sourceUrl || '').trim() || 'N/A';\nconst eventType = String(incoming.eventType || incoming.event || incoming.trigger || 'Website Visitor Alert').trim();\nconst leadSource = String(incoming.leadSource || incoming.source || incoming.channel || 'Website').trim();\n\nconst utmSource = String(incoming.utmSource || incoming.utm_source || '').trim() || 'N/A';\nconst utmMedium = String(incoming.utmMedium || incoming.utm_medium || '').trim() || 'N/A';\nconst utmCampaign = String(incoming.utmCampaign || incoming.utm_campaign || '').trim() || 'N/A';\n\nconst happenedAtRaw = incoming.eventTime || incoming.timestamp || incoming.createdAt || incoming.created_at || new Date().toISOString();\nconst happenedAt = (() => {\n  const dt = new Date(happenedAtRaw);\n  return Number.isNaN(dt.getTime()) ? String(happenedAtRaw) : dt.toISOString();\n})();\n\nconst text = [\n  'New website visitor alert (#leads)',\n  `Event: ${eventType}`,\n  `Name: ${fullName}`,\n  `Email: ${email}`,\n  `Phone: ${phone}`,\n  `Page: ${pageUrl}`,\n  `Referrer: ${referrer}`,\n  `Lead Source: ${leadSource}`,\n  `UTM Source: ${utmSource}`,\n  `UTM Medium: ${utmMedium}`,\n  `UTM Campaign: ${utmCampaign}`,\n  `Time: ${happenedAt}`\n].join('\\n');\n\nreturn [{\n  json: {\n    text,\n    sourcePayload: incoming\n  }\n}];\n"
+      },
+      "id": "6e099754-99ee-45b0-80cd-184a72e13621",
+      "name": "Build Slack Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SLACK_WEBHOOK_URL}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { text: $json.text } }}",
+        "options": {},
+        "authentication": "none"
+      },
+      "id": "09c317c4-ee9e-4de8-a611-cade4d1ecf35",
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        784,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Slack Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Slack Payload": {
+      "main": [
+        [
+          {
+            "node": "Post to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "662164fe-6641-4c27-ae53-fa57399dec77",
+  "activeVersionId": "662164fe-6641-4c27-ae53-fa57399dec77",
+  "versionCounter": 19,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-24T18:06:21.504Z",
+      "createdAt": "2026-02-24T18:06:21.504Z",
+      "role": "workflow:owner",
+      "workflowId": "8USvJkRlKzbj6Fu1",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-02-24T18:20:12.992Z",
+    "createdAt": "2026-02-24T18:20:12.992Z",
+    "versionId": "662164fe-6641-4c27-ae53-fa57399dec77",
+    "workflowId": "8USvJkRlKzbj6Fu1",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "30df5fe6-5ac4-4e0d-8811-e4a28dfe0540",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "3eeba7d3-90cb-4715-b3f3-41ca9e39498f",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          272,
+          304
+        ],
+        "webhookId": "30df5fe6-5ac4-4e0d-8811-e4a28dfe0540"
+      },
+      {
+        "parameters": {
+          "jsCode": "const incoming = ($json.body && typeof $json.body === 'object') ? $json.body : $json;\n\nconst firstName = String(incoming.firstName || incoming.first_name || incoming.name || '').trim();\nconst lastName = String(incoming.lastName || incoming.last_name || '').trim();\nconst fullName = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown visitor';\nconst email = String(incoming.email || '').trim() || 'N/A';\nconst phone = String(incoming.phone || '').trim() || 'N/A';\n\nconst pageUrl = String(\n  incoming.pageUrl || incoming.page_url || incoming.url || incoming.websiteUrl || incoming.currentPage || ''\n).trim() || 'N/A';\nconst referrer = String(incoming.referrer || incoming.referer || incoming.sourceUrl || '').trim() || 'N/A';\nconst eventType = String(incoming.eventType || incoming.event || incoming.trigger || 'Website Visitor Alert').trim();\nconst leadSource = String(incoming.leadSource || incoming.source || incoming.channel || 'Website').trim();\n\nconst utmSource = String(incoming.utmSource || incoming.utm_source || '').trim() || 'N/A';\nconst utmMedium = String(incoming.utmMedium || incoming.utm_medium || '').trim() || 'N/A';\nconst utmCampaign = String(incoming.utmCampaign || incoming.utm_campaign || '').trim() || 'N/A';\n\nconst happenedAtRaw = incoming.eventTime || incoming.timestamp || incoming.createdAt || incoming.created_at || new Date().toISOString();\nconst happenedAt = (() => {\n  const dt = new Date(happenedAtRaw);\n  return Number.isNaN(dt.getTime()) ? String(happenedAtRaw) : dt.toISOString();\n})();\n\nconst text = [\n  'New website visitor alert (#leads)',\n  `Event: ${eventType}`,\n  `Name: ${fullName}`,\n  `Email: ${email}`,\n  `Phone: ${phone}`,\n  `Page: ${pageUrl}`,\n  `Referrer: ${referrer}`,\n  `Lead Source: ${leadSource}`,\n  `UTM Source: ${utmSource}`,\n  `UTM Medium: ${utmMedium}`,\n  `UTM Campaign: ${utmCampaign}`,\n  `Time: ${happenedAt}`\n].join('\\n');\n\nreturn [{\n  json: {\n    text,\n    sourcePayload: incoming\n  }\n}];\n"
+        },
+        "id": "6e099754-99ee-45b0-80cd-184a72e13621",
+        "name": "Build Slack Payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          528,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{$env.SLACK_WEBHOOK_URL}}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { text: $json.text } }}",
+          "options": {},
+          "authentication": "none"
+        },
+        "id": "09c317c4-ee9e-4de8-a611-cade4d1ecf35",
+        "name": "Post to Slack",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          784,
+          304
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Build Slack Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Slack Payload": {
+        "main": [
+          [
+            {
+              "node": "Post to Slack",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-02-24T18:20:13.186Z",
+        "id": 121,
+        "workflowId": "8USvJkRlKzbj6Fu1",
+        "versionId": "662164fe-6641-4c27-ae53-fa57399dec77",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-02-24T18:20:13.866Z",
+        "id": 122,
+        "workflowId": "8USvJkRlKzbj6Fu1",
+        "versionId": "662164fe-6641-4c27-ae53-fa57399dec77",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}
