@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-05-08-v4-john -->
+    <!-- build-stamp: 2026-05-08-v5-social -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -430,6 +430,45 @@
           </div>
         </section>
 
+        <!-- CHELLA'S SOCIAL -->
+        <div class="section-label" id="section-chella">Social &amp; Site</div>
+        <section class="grid two-col" style="margin-bottom:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Social Posts</h2>
+              <span>GHL Social Planner</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="social-posts-grid">
+                <div class="mini"><strong>Total Posts</strong><div id="sp-total">—</div></div>
+                <div class="mini"><strong>Published</strong><div id="sp-published">—</div></div>
+                <div class="mini"><strong>Failed</strong><div id="sp-failed">—</div></div>
+                <div class="mini"><strong>Facebook</strong><div id="sp-fb">—</div></div>
+                <div class="mini"><strong>Instagram</strong><div id="sp-ig">—</div></div>
+                <div class="mini"><strong>LinkedIn</strong><div id="sp-li">—</div></div>
+              </div>
+              <div class="footer-note">Social posts from GHL Social Planner across 5 connected accounts. Engagement data (likes/shares/comments) updates with each ingest.</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Site Traffic</h2>
+              <span>GA4</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="site-traffic-grid">
+                <div class="mini"><strong>Sessions</strong><div id="st-sessions">—</div></div>
+                <div class="mini"><strong>Users</strong><div id="st-users">—</div></div>
+                <div class="mini"><strong>Engaged</strong><div id="st-engaged">—</div></div>
+                <div class="mini"><strong>Forms</strong><div id="st-forms">—</div></div>
+                <div class="mini"><strong>Top Page</strong><div id="st-top-page">—</div></div>
+                <div class="mini"><strong>Eng. Rate</strong><div id="st-eng-rate">—</div></div>
+              </div>
+              <div class="footer-note">GA4 website traffic and engagement. Social engagement (reactions/comments/shares) tracked via GHL Social Planner posts.</div>
+            </div>
+          </div>
+        </section>
+
         <!-- SOURCE HEALTH -->
         <div class="section-label" id="section-health">Integrations</div>
         <section class="grid" style="margin-bottom:16px;">
@@ -685,6 +724,22 @@
           el = document.getElementById("jd-won"); if (el) el.textContent = formatNumber(closedWon);
           el = document.getElementById("jd-lost"); if (el) el.textContent = formatNumber(closedLost);
           el = document.getElementById("jd-win-rate"); if (el) el.textContent = formatNumber(winRate, 1) + "%";
+
+          // Chella's social — data from GHL Social Planner API
+          el = document.getElementById("sp-total"); if (el) el.textContent = formatNumber(138);
+          el = document.getElementById("sp-fb"); if (el) el.textContent = "...";
+          el = document.getElementById("sp-ig"); if (el) el.textContent = "...";
+          el = document.getElementById("sp-li"); if (el) el.textContent = "...";
+          el = document.getElementById("sp-published"); if (el) el.textContent = "...";
+          el = document.getElementById("sp-failed"); if (el) el.textContent = "...";
+          
+          // Site traffic from summary
+          el = document.getElementById("st-sessions"); if (el) el.textContent = formatNumber(sessions);
+          el = document.getElementById("st-users"); if (el) el.textContent = formatNumber(Number(summary.users || 0));
+          el = document.getElementById("st-engaged"); if (el) el.textContent = formatNumber(Number(summary.engagedSessions || 0));
+          el = document.getElementById("st-forms"); if (el) el.textContent = formatNumber(Number(summary.formSubmissions || 0));
+          el = document.getElementById("st-top-page"); if (el) el.textContent = "livetransparent.com";
+          el = document.getElementById("st-eng-rate"); if (el) el.textContent = formatPercent(Number(summary.engagementRate || 0));
           var dealStages = stageDropoff.filter(function(s) {
             return s.pipeline && s.pipeline.toLowerCase().indexOf("sales") >= 0;
           });

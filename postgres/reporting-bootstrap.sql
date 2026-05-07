@@ -545,7 +545,30 @@ SET source_name = EXCLUDED.source_name,
     is_required = EXCLUDED.is_required,
     enabled = EXCLUDED.enabled,
     notes = EXCLUDED.notes,
-    updated_at = NOW();
+  updated_at = NOW();
+
+-- GHL Social Planner posts — ingested from /social-media-posting/{locationId}/posts/list
+CREATE TABLE IF NOT EXISTS report_raw_ghl_social_posts (
+  post_id TEXT PRIMARY KEY,
+  account_id TEXT,
+  platform TEXT,
+  type TEXT,
+  status TEXT,
+  summary TEXT,
+  error_message TEXT,
+  published_at TIMESTAMPTZ,
+  scheduled_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ,
+  insights JSONB NOT NULL DEFAULT '{}'::jsonb,
+  payload_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  batch_id TEXT,
+  loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_raw_social_posts_platform ON report_raw_ghl_social_posts (platform, status);
+CREATE INDEX IF NOT EXISTS idx_raw_social_posts_published ON report_raw_ghl_social_posts (published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_raw_social_posts_account ON report_raw_ghl_social_posts (account_id);
 
 -- Idempotent SMS send log
 -- Records each attempted send and prevents duplicate sends for the same

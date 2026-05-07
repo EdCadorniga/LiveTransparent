@@ -1,0 +1,452 @@
+{
+  "updatedAt": "2026-05-07T22:04:07.539Z",
+  "createdAt": "2026-05-07T22:04:06.137Z",
+  "id": "QZoqCaTwDhbym80O",
+  "name": "LT - GHL Daily Social Ingest",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        160
+      ],
+      "id": "446b75ef-1da4-46e1-8839-7c3823c6aa63"
+    },
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        320
+      ],
+      "id": "413ba1ca-9fd0-4d7c-bc4e-584c42409b1a"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflowName",
+              "name": "workflowName",
+              "type": "string",
+              "value": "LT - GHL Daily Social Ingest"
+            },
+            {
+              "id": "locationId",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "apiBaseUrl",
+              "name": "apiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "sourceSystem",
+              "name": "sourceSystem",
+              "type": "string",
+              "value": "ghl_social"
+            },
+            {
+              "type": "string",
+              "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28",
+              "name": "apiKey",
+              "id": "apiKey"
+            }
+          ]
+        }
+      },
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        240
+      ],
+      "id": "c2d5e50e-2b08-405b-b183-64b20a920c3e"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const cfg = $input.first()?.json || {};\nif (!cfg.apiKey) throw new Error('Config missing apiKey');\n\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst locationId = String(cfg.locationId || '').trim();\nconst sourceSystem = String(cfg.sourceSystem || 'ghl_social');\n\nconst headers = {\n  Authorization: 'Bearer ' + apiKey,\n  Version: '2021-04-15',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nconst batchId = 'lt-social-' + new Date().toISOString().replace(/[:.]/g, '-');\nconst now = new Date().toISOString();\n\n// Fetch posts via POST /social-media-posting/{locationId}/posts/list\nlet response;\ntry {\n  response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: apiBaseUrl + '/social-media-posting/' + encodeURIComponent(locationId) + '/posts/list',\n    headers,\n    body: {},\n    json: true,\n    timeout: 60000,\n  });\n} catch (error) {\n  const body = error?.response?.body || error?.message || error;\n  return [{ json: { ok: false, error: 'GHL social posts failed', detail: String(body).substring(0, 300), batchId } }];\n}\n\nconst posts = Array.isArray(response?.results?.posts) ? response.results.posts : [];\n\nif (posts.length === 0) {\n  return [{ json: { ok: true, skipped: true, reason: 'no_posts', batchId } }];\n}\n\nreturn posts.map(function(p) {\n  return {\n    json: {\n      post_id: p._id || p.id || '',\n      account_id: p.accountId || '',\n      platform: p.platform || 'unknown',\n      type: p.type || 'post',\n      status: p.status || 'draft',\n      summary: p.summary || '',\n      error_message: p.error || '',\n      published_at: p.publishedAt || null,\n      scheduled_at: p.scheduleDate || null,\n      created_at: p.createdAt || null,\n      updated_at: p.updatedAt || null,\n      insights: p.insights || {},\n      payload_json: p,\n      batch_id: batchId,\n      loaded_at: now\n    }\n  };\n});"
+      },
+      "name": "Fetch Social Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ],
+      "id": "15ba7469-f150-4c0a-be94-3ff5788f4bf4"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO report_raw_ghl_social_posts (post_id, account_id, platform, type, status, summary, error_message, published_at, scheduled_at, created_at, updated_at, insights, payload_json, batch_id, loaded_at)\nSELECT $1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9::timestamptz, $10::timestamptz, $11::timestamptz, $12::jsonb, $13::jsonb, $14, $15::timestamptz\nON CONFLICT (post_id) DO UPDATE SET\n  status = EXCLUDED.status, error_message = EXCLUDED.error_message,\n  published_at = EXCLUDED.published_at, insights = EXCLUDED.insights,\n  payload_json = EXCLUDED.payload_json, loaded_at = NOW()",
+        "options": {
+          "queryReplacement": "={{ [ $json.post_id, $json.account_id, $json.platform, $json.type, $json.status, $json.summary, $json.error_message, $json.published_at, $json.scheduled_at, $json.created_at, $json.updated_at, JSON.stringify($json.insights || {}), JSON.stringify($json.payload_json || {}), $json.batch_id, $json.loaded_at ] }}",
+          "queryBatching": "independently"
+        }
+      },
+      "name": "Upsert Posts to Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      },
+      "id": "cac3167b-3449-463c-acdc-c01cf2c81b91"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{ json: { ok: true, workflow: 'LT - GHL Daily Social Ingest', status: 'completed', postsProcessed: $input.all().filter(function(i) { return i.json.post_id; }).length } }];"
+      },
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ],
+      "id": "e8795183-eb5e-4db6-9e8d-0001386256f8"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch Social Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Social Posts": {
+      "main": [
+        [
+          {
+            "node": "Upsert Posts to Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Posts to Postgres": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 1800,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "b5dc2a97-00fa-421b-b98b-209f5c4914ab",
+  "activeVersionId": "b5dc2a97-00fa-421b-b98b-209f5c4914ab",
+  "versionCounter": 5,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-07T22:04:06.137Z",
+      "createdAt": "2026-05-07T22:04:06.137Z",
+      "role": "workflow:owner",
+      "workflowId": "QZoqCaTwDhbym80O",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-07T22:04:07.54Z",
+    "createdAt": "2026-05-07T22:04:07.54Z",
+    "versionId": "b5dc2a97-00fa-421b-b98b-209f5c4914ab",
+    "workflowId": "QZoqCaTwDhbym80O",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 12
+              }
+            ]
+          }
+        },
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          160
+        ],
+        "id": "446b75ef-1da4-46e1-8839-7c3823c6aa63"
+      },
+      {
+        "parameters": {},
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          320
+        ],
+        "id": "413ba1ca-9fd0-4d7c-bc4e-584c42409b1a"
+      },
+      {
+        "parameters": {
+          "mode": "manual",
+          "assignments": {
+            "assignments": [
+              {
+                "id": "workflowName",
+                "name": "workflowName",
+                "type": "string",
+                "value": "LT - GHL Daily Social Ingest"
+              },
+              {
+                "id": "locationId",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "apiBaseUrl",
+                "name": "apiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "sourceSystem",
+                "name": "sourceSystem",
+                "type": "string",
+                "value": "ghl_social"
+              },
+              {
+                "type": "string",
+                "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28",
+                "name": "apiKey",
+                "id": "apiKey"
+              }
+            ]
+          }
+        },
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          480,
+          240
+        ],
+        "id": "c2d5e50e-2b08-405b-b183-64b20a920c3e"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const cfg = $input.first()?.json || {};\nif (!cfg.apiKey) throw new Error('Config missing apiKey');\n\nconst apiBaseUrl = String(cfg.apiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String(cfg.apiKey || '').trim();\nconst locationId = String(cfg.locationId || '').trim();\nconst sourceSystem = String(cfg.sourceSystem || 'ghl_social');\n\nconst headers = {\n  Authorization: 'Bearer ' + apiKey,\n  Version: '2021-04-15',\n  'Content-Type': 'application/json',\n  Accept: 'application/json',\n};\n\nconst batchId = 'lt-social-' + new Date().toISOString().replace(/[:.]/g, '-');\nconst now = new Date().toISOString();\n\n// Fetch posts via POST /social-media-posting/{locationId}/posts/list\nlet response;\ntry {\n  response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: apiBaseUrl + '/social-media-posting/' + encodeURIComponent(locationId) + '/posts/list',\n    headers,\n    body: {},\n    json: true,\n    timeout: 60000,\n  });\n} catch (error) {\n  const body = error?.response?.body || error?.message || error;\n  return [{ json: { ok: false, error: 'GHL social posts failed', detail: String(body).substring(0, 300), batchId } }];\n}\n\nconst posts = Array.isArray(response?.results?.posts) ? response.results.posts : [];\n\nif (posts.length === 0) {\n  return [{ json: { ok: true, skipped: true, reason: 'no_posts', batchId } }];\n}\n\nreturn posts.map(function(p) {\n  return {\n    json: {\n      post_id: p._id || p.id || '',\n      account_id: p.accountId || '',\n      platform: p.platform || 'unknown',\n      type: p.type || 'post',\n      status: p.status || 'draft',\n      summary: p.summary || '',\n      error_message: p.error || '',\n      published_at: p.publishedAt || null,\n      scheduled_at: p.scheduleDate || null,\n      created_at: p.createdAt || null,\n      updated_at: p.updatedAt || null,\n      insights: p.insights || {},\n      payload_json: p,\n      batch_id: batchId,\n      loaded_at: now\n    }\n  };\n});"
+        },
+        "name": "Fetch Social Posts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          240
+        ],
+        "id": "15ba7469-f150-4c0a-be94-3ff5788f4bf4"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO report_raw_ghl_social_posts (post_id, account_id, platform, type, status, summary, error_message, published_at, scheduled_at, created_at, updated_at, insights, payload_json, batch_id, loaded_at)\nSELECT $1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9::timestamptz, $10::timestamptz, $11::timestamptz, $12::jsonb, $13::jsonb, $14, $15::timestamptz\nON CONFLICT (post_id) DO UPDATE SET\n  status = EXCLUDED.status, error_message = EXCLUDED.error_message,\n  published_at = EXCLUDED.published_at, insights = EXCLUDED.insights,\n  payload_json = EXCLUDED.payload_json, loaded_at = NOW()",
+          "options": {
+            "queryReplacement": "={{ [ $json.post_id, $json.account_id, $json.platform, $json.type, $json.status, $json.summary, $json.error_message, $json.published_at, $json.scheduled_at, $json.created_at, $json.updated_at, JSON.stringify($json.insights || {}), JSON.stringify($json.payload_json || {}), $json.batch_id, $json.loaded_at ] }}",
+            "queryBatching": "independently"
+          }
+        },
+        "name": "Upsert Posts to Postgres",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        },
+        "id": "cac3167b-3449-463c-acdc-c01cf2c81b91"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "return [{ json: { ok: true, workflow: 'LT - GHL Daily Social Ingest', status: 'completed', postsProcessed: $input.all().filter(function(i) { return i.json.post_id; }).length } }];"
+        },
+        "name": "Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          240
+        ],
+        "id": "e8795183-eb5e-4db6-9e8d-0001386256f8"
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Fetch Social Posts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Social Posts": {
+        "main": [
+          [
+            {
+              "node": "Upsert Posts to Postgres",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Posts to Postgres": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-07T22:04:21.692Z",
+        "id": 1331,
+        "workflowId": "QZoqCaTwDhbym80O",
+        "versionId": "b5dc2a97-00fa-421b-b98b-209f5c4914ab",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}
