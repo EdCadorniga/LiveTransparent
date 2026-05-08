@@ -14,11 +14,11 @@
 - Keep config values centralized in the root `.env` file (n8n/.env has been consolidated into root).
 - Environment variables for n8n and Postgres are set in Coolify; the root `.env` is the reference copy.
 
-## Current Progress Snapshot (updated 2026-05-06)
+## Current Progress Snapshot (updated 2026-05-08)
 - **n8n-lt MCP is working** — confirmed connected and operational.
   - Uses `mcp-remote` with the remote endpoint `https://automations.livetransparent.com/mcp-server/http`.
   - Token lives in root `.env` as `N8N_MCP_ACCESS_TOKEN`.
-- **n8n version**: `2.17.7` in production (docker-compose pinned to same).
+- **n8n version**: `2.19.5` target (docker-compose pinned to same; redeploy in Coolify to apply).
 - Codebase cleanup completed on 2026-05-05:
   - Deleted `config.toml.bak`, `config.toml.bk` (contained stale multi-project secrets).
   - Consolidated `n8n/.env` into root `.env`, deleted `n8n/.env`.
@@ -46,7 +46,7 @@
 | LT - GA4 Traffic Rollup Bridge | `0P2AZcQYWYZjXbRi` | **Active** (bridges GA4 raw to rollup tables) |
 
 ### Deferred / Inactive
-- `LT - GSC Daily Ingest` (`if0Siw6KzlBItEbd`) — blocked on Search Console access
+- `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) — **built and tested** but blocked on OAuth2 scope (needs `webmasters.readonly` added to Google OAuth2 credential)
 - `LT - GHL Executive Report Menu Sync` (`8YtaPmPnTXUkBDAd`) — one-time provision, inactive
 - **Meta Ads API access is now live** — validated on 2026-05-05 with system user app token against active ad account `act_2186975138800404` (`Livetransparent-3`).
   - Root `.env` now holds `META_TOKEN` and `META_AD_ACCOUNT_ID`.
@@ -141,4 +141,4 @@
 4. Harden the Meta attribution view in the Executive Report so Meta-tagged visits and downstream calls/opportunities are visible without relying on spend metrics.
 5. Build `WL - Nurture - 14 Day` workflow — moving a lead to `Nurture Active` (stage `98775f02-0018-4629-9e69-0b1fcab293eb`) currently has no email automation. Need to: apply `LT Nurture Active` tag, start 14-day nurture sequence, skip if tag already present.
 6. Finish SimpleTexting hardening: move secrets out of workflow `Config` nodes into credentials.
-7. GA4/GSC — retry access, then enable blocked ingest workflows.
+7. GSC credential — re-authorize Google OAuth2 credential (`suzEHDZE7MwohGCr`) with `https://www.googleapis.com/auth/webmasters.readonly` scope, then activate GSC workflow.

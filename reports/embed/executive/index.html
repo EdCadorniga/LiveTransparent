@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-05-08-v5-response-fix -->
+    <!-- build-stamp: 2026-05-08-v6-stage-utm-fixes -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -100,6 +100,7 @@
       .mini strong { display: block; margin-bottom: 8px; color: var(--muted); font-size: 0.8rem; }
       .mini div { font-size: 1.3rem; font-weight: 700; }
       .mini-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .mini-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
       .bar-list { display: grid; gap: 12px; }
       .bar-item { display: grid; grid-template-columns: 180px 1fr 68px; gap: 12px; align-items: center; }
       .bar-label { color: var(--text); font-size: 0.92rem; }
@@ -118,7 +119,7 @@
         .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
         .kpi-row { grid-template-columns: repeat(3, 1fr); }
         .three-col, .two-col { grid-template-columns: 1fr; }
-        .mini-grid, .mini-grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .mini-grid, .mini-grid-2, .mini-grid-4 { grid-template-columns: repeat(2, 1fr); }
         .bar-item { grid-template-columns: 1fr; }
         .bar-value { text-align: left; }
       }
@@ -495,7 +496,36 @@
     </div>
     <script>
       (function () {
-        var BUILD_STAMP = "2026-05-08-v4-health-fixes";
+        var BUILD_STAMP = "2026-05-08-v6-stage-utm-fixes";
+        // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
+        var PIPELINE_NAMES = {
+          "FRjpDZ1HWj3UPgczsu3t": "Warm",
+          "dhdlf3O4tymxFtHk4aqq": "Sales Outreach",
+          "MThKauqlvnEFuFmAkyWX": "Sales"
+        };
+        var STAGE_NAMES = {
+          "b961de1f-34fd-4b66-b032-f21225654868": "New",
+          "3b3bd98d-cbb9-4c50-8cf3-b4eba29061c2": "Qualified (MQL)",
+          "477c0b59-4a64-4566-81d6-63e233362520": "Routed to Outreach",
+          "98775f02-0018-4629-9e69-0b1fcab293eb": "Nurture Active",
+          "dae2ddc5-a031-4ffa-bcdb-79d5c9afe91b": "Disqualified",
+          "3529dd3d-cab0-4279-967c-1aea203de4fb": "New",
+          "b97e42b1-b4c2-4759-8212-33596a085cf2": "Attempting Contact 1st",
+          "c46c3be3-a216-4489-8ae3-c4284cfc747f": "2nd attempt",
+          "c8b7a450-462a-497d-ab86-65f9a8e9b082": "3rd attempt",
+          "9ced8010-dfd7-4d5b-aa9c-c2eb58fca94d": "Engaged",
+          "1ab47457-c945-4d16-9dd7-305583823114": "Meeting Requested",
+          "1f95dd0a-1cf2-4d31-abad-825d97d3ef69": "Booked",
+          "23276991-fbb3-4b0f-8d65-35c737b62bdd": "Unresponsive",
+          "6f5aa304-a190-40da-8556-7c65bbc52733": "Discovery Scheduled",
+          "facd3d31-c634-40c5-9271-17d608b4379c": "Discovery Completed",
+          "42b12e59-9b51-4c82-b597-4a9c972322c9": "Proposal Sent",
+          "f9022c83-7791-45c9-903d-381668454b2f": "Negotiation",
+          "f6b65baa-eac8-4f02-b91e-2ab0c8841b2d": "Closed Won",
+          "d7784617-96f4-4ae4-8b3e-e2088b62627d": "Closed Lost"
+        };
+        function resolvePipeline(id) { return PIPELINE_NAMES[id] || id; }
+        function resolveStage(id) { return STAGE_NAMES[id] || id; }
         var params = new URLSearchParams(window.location.search);
         var view = params.get("view") || "overview";
         var validRanges = ["7d", "30d", "90d"];
@@ -708,8 +738,10 @@
           renderBars(document.getElementById("stage-movement-list"), stageDropoff.slice(0, 8).map(function (s) {
             return { label: (s.pipeline || "?") + " \u2192 " + (s.stage || "?"), sessions: s.moved_out_count || 0, sub: "in:" + formatNumber(s.moved_in_count || 0) + " out:" + formatNumber(s.moved_out_count || 0) };
           }), "No stage data yet.");
-          renderBars(document.getElementById("velocity-list"), stageVelocity.slice(0, 8).map(function (v) {
-            return { label: (v.pipeline || "?") + " \u2192 " + (v.stage || "?"), sessions: v.avg_days_in_stage || 0, sub: "avg:" + formatNumber(v.avg_days_in_stage, 1) + "d | " + formatNumber(v.opp_count) + " opps | " + formatNumber(v.total_transitions) + " transitions" };
+          renderBars(document.getElementById("velocity-list"), stageVelocity.map(function (v) {
+            var pipeName = resolvePipeline(v.pipeline);
+            var stageName = resolveStage(v.stage);
+            return { label: pipeName + " \u2192 " + stageName, sessions: v.avg_days_in_stage || 0, sub: "avg:" + formatNumber(v.avg_days_in_stage, 1) + "d | " + formatNumber(v.opp_count) + " opps | " + formatNumber(v.total_transitions) + " transitions" };
           }), "No velocity data yet.");
           el = document.getElementById("sq-cycle"); if (el) el.textContent = salesQuality.avgCycleLengthDays ? salesQuality.avgCycleLengthDays + "d" : "—";
           el = document.getElementById("sq-best-channel"); if (el) el.textContent = salesQuality.bestChannel || bestChannel || "—";
@@ -748,10 +780,7 @@
           el = document.getElementById("st-forms"); if (el) el.textContent = formatNumber(Number(summary.formSubmissions || 0));
           el = document.getElementById("st-top-page"); if (el) el.textContent = "livetransparent.com";
           el = document.getElementById("st-eng-rate"); if (el) el.textContent = formatPercent(Number(summary.engagementRate || 0));
-          var dealStages = stageDropoff.filter(function(s) {
-            return s.pipeline && s.pipeline.toLowerCase().indexOf("sales") >= 0;
-          });
-          renderBars(document.getElementById("deals-pipeline-list"), dealStages.slice(0, 8).map(function(s) {
+          renderBars(document.getElementById("deals-pipeline-list"), stageDropoff.slice(0, 10).map(function(s) {
             return { label: s.stage || "?", sessions: (s.stage_count || s.moved_in_count || 0), sub: "in:" + formatNumber(s.moved_in_count || 0) + " out:" + formatNumber(s.moved_out_count || 0) + " won:" + formatNumber(s.won_count || 0) + " lost:" + formatNumber(s.lost_count || 0) };
           }), "No Sales pipeline data.");
           
@@ -760,8 +789,29 @@
           el = document.getElementById("st-proposals"); if (el) el.textContent = formatNumber(salesQuality.proposalsOut || "—");
           el = document.getElementById("st-negotiation"); if (el) el.textContent = formatNumber(salesQuality.inNegotiation || "—");
           el = document.getElementById("st-pipeline-value"); if (el) el.textContent = formatCurrency(revenue);
-          renderBars(document.getElementById("utm-list"), utmBreakdown.slice(0, 12).map(function (u) {
-            return { label: (u.source || "?") + " / " + (u.medium || "?"), sessions: u.sessions || 0, sub: "leads:" + formatNumber(u.leads || 0) + " opps:" + formatNumber(u.opportunities || 0) };
+          var utmRows = [];
+          var unknownPaths = {};
+          utmBreakdown.forEach(function (u) {
+            var src = (u.source || "").toLowerCase();
+            var med = (u.medium || "").toLowerCase();
+            var camp = (u.campaign || "").toLowerCase();
+            if (src === "unknown" && med === "unknown" && camp === "unknown") {
+              var page = u.landingPage || "";
+              var path = page.replace(/^https?:\/\/[^\/]+/i, "") || "/";
+              if (!unknownPaths[path]) unknownPaths[path] = 0;
+              unknownPaths[path] += Number(u.sessions || 0);
+            } else if (src === "unknown" || med === "unknown" || src === "(not set)") {
+              utmRows.push({ source: u.source || "?", medium: u.medium || "?", campaign: u.campaign || "", sessions: u.sessions || 0 });
+            } else {
+              utmRows.push(u);
+            }
+          });
+          Object.keys(unknownPaths).sort(function(a,b){return (unknownPaths[b]||0)-(unknownPaths[a]||0);}).forEach(function(path) {
+            utmRows.push({ source: "direct", medium: path, campaign: "", sessions: unknownPaths[path] });
+          });
+          renderBars(document.getElementById("utm-list"), utmRows.slice(0, 12).map(function (u) {
+            var label = (u.source === "direct") ? u.medium : (u.source || "?") + " / " + (u.medium || "?");
+            return { label: label, sessions: u.sessions || 0, sub: "leads:" + formatNumber(u.leads || 0) + " opps:" + formatNumber(u.opportunities || 0) };
           }), "No UTM data yet.");
           health.forEach(function (h) {
             var key = h.source_system || h.source || "";

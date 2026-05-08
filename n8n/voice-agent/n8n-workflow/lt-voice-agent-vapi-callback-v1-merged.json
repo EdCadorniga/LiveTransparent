@@ -2,80 +2,140 @@
   "name": "LT - Voice Agent V1 Vapi Callback + Tools",
   "nodes": [
     {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "lt-voice-agent-vapi-callback",
-        "responseMode": "lastNode"
-      },
-      "id": "webhook_1",
+      "id": "02665fd1-db60-4b37-aa9e-cc45bf8e1a4a",
       "name": "Webhook - Vapi",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
         240,
         340
-      ]
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "voice-callback",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "8e8009a3-f8c9-4b25-ae22-4d55d9f11055"
     },
     {
-      "parameters": {
-        "jsCode": "const body = $json.body || $json;\nconst isToolCall = !!(body.tool && body.tool.name);\nreturn [{ json: { _isToolCall: isToolCall, _raw: body } }];"
-      },
-      "id": "code_detect",
+      "id": "6c88452b-1eff-4720-88c9-1055b45c6725",
       "name": "Code - Detect Tool vs Callback",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         480,
         340
-      ]
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const body = $json.body || $json;\nconst message = body.message || body;\nconst call = message.call || body.call || {};\nconst assistantId = String(call.assistantId || call.assistant_id || '').trim();\nconst callId = String(call.id || body.id || body.callId || message.callId || '').trim();\nconst status = String(message.status || call.status || body.status || '').toLowerCase();\nconst eventType = String(message.type || body.type || '').toLowerCase();\nconst isToolCall = !!(body.tool && body.tool.name);\nconst isStatusUpdate = eventType === 'status-update';\nconst controlUrl = String((call.monitor && call.monitor.controlUrl) || call.controlUrl || body.controlUrl || '').trim();\nconst trackedAssistants = ['43f379ff-bb7e-4cd4-96f1-7299832dbc4b', '3f9bbfd2-efa6-4381-81e6-26f2452d28f1'];\nconst isTrackedAssistant = trackedAssistants.includes(assistantId);\nreturn [{ json: { _isToolCall: isToolCall, _isStatusUpdate: isStatusUpdate, _raw: body, event_type: isToolCall ? 'tool' : isStatusUpdate ? 'status-update' : 'callback', call_id: callId, assistant_id: assistantId, call_status: status, control_url: controlUrl, is_tracked_assistant: isTrackedAssistant } }];"
+      }
     },
     {
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{$json._isToolCall}}",
-              "value2": true
-            }
-          ]
-        }
-      },
-      "id": "if_tool",
+      "id": "bd04c074-1bce-41cc-9f90-9191a9dcc912",
       "name": "If - Is Tool Call",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
         720,
         340
-      ]
+      ],
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "value1": "={{$json._isToolCall}}",
+              "value2": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue"
+              }
+            }
+          ],
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      }
     },
     {
-      "parameters": {
-        "jsCode": "const raw = $json._raw;\nconst call = raw.call || raw;\nconst artifact = raw.artifact || {};\nconst analysis = raw.analysis || {};\nconst meta = (call.assistantOverrides && call.assistantOverrides.metadata) || call.metadata || {};\nconst contactId = String(meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || '').trim();\nconst status = String(call.status || raw.status || '').toLowerCase();\nconst endedReason = String(call.endedReason || '').toLowerCase();\nconst successEvaluation = !!analysis.successEvaluation;\nconst summary = String(analysis.summary || artifact.summary || '').trim();\nconst recordingUrl = artifact.recordingUrl || call.recordingUrl || '';\nlet disposition = 'failed';\nif (status.includes('ended') || status.includes('completed')) {\n  if (endedReason.includes('customer-did-not-answer') || endedReason.includes('no-answer')) disposition = 'no_answer';\n  else if (endedReason.includes('voicemail')) disposition = 'voicemail';\n  else disposition = successEvaluation ? 'qualified_booked' : 'connected';\n}\nreturn [{ json: { contact_id: contactId, queue_id: queueId, call_id: String(call.id || raw.id || ''), disposition, summary: summary || 'No summary returned by Vapi.', recording_url: recordingUrl } }];"
-      },
-      "id": "code_eoc",
-      "name": "Code - Normalize End Of Call",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        960,
-        500
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const raw = $json._raw;\nconst tool = raw.tool || {};\nconst params = tool.parameters || {};\nconst meta = raw.metadata || {};\nconst toolName = String(tool.name || '').toLowerCase();\nconst contactId = String(params.ghl_contact_id || params.contact_id || meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || params.queue_id || '').trim();\nconst callId = String(meta.call_id || params.call_id || '').trim();\nconst s = (v) => String(v ?? '').replace(/'/g, \"''\").trim();\nreturn [{ json: { tool_name: toolName, tool_call_id: String(raw.toolCallId || raw.tool_call_id || tool.toolCallId || tool.tool_call_id || meta.tool_call_id || '').trim(), contact_id: contactId, queue_id: queueId, call_id: callId, route_update: toolName === 'update_lead_status', route_dnc: toolName === 'add_to_dnc', route_log: toolName === 'log_call_outcome', route_notify: toolName === 'notify_sales', route_referral: toolName === 'report_referral', disposition: s(params.disposition || ''), notes: s(params.notes || ''), follow_up_at: params.followUpAt || params.follow_up_at || null, reason: s(params.reason || ''), lead_name: s(params.lead_name || params.leadName || ''), company: s(params.company || ''), referral_name: s(params.referral_name || params.full_name || params.name || ''), referral_phone: s(params.referral_phone || params.phone || ''), referral_email: s(params.referral_email || params.email || ''), referral_role: s(params.referral_role || params.role || params.title || ''), referral_company: s(params.referral_company || params.company_name || params.company || ''), referrer_name: s(params.referrer_name || params.referrer || params.referred_by || '') } }];"
-      },
-      "id": "code_tool",
+      "id": "37f4cdf5-bff5-401e-87fa-2287231fbd19",
       "name": "Code - Normalize Tool Call",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         960,
         180
-      ]
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const raw = $json._raw;\nconst tool = raw.tool || {};\nconst params = tool.parameters || {};\nconst meta = raw.metadata || {};\nconst toolName = String(tool.name || '').toLowerCase();\nconst contactId = String(params.ghl_contact_id || params.contact_id || meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || params.queue_id || '').trim();\nconst callId = String(meta.call_id || params.call_id || '').trim();\nconst s = (v) => String(v ?? '').replace(/'/g, \"''\").trim();\nreturn [{ json: { tool_name: toolName, contact_id: contactId, queue_id: queueId, call_id: callId, route_update: toolName === 'update_lead_status', route_dnc: toolName === 'add_to_dnc', route_log: toolName === 'log_call_outcome', route_notify: toolName === 'notify_sales', route_referral: toolName === 'report_referral', disposition: s(params.disposition || ''), notes: s(params.notes || ''), follow_up_at: params.followUpAt || params.follow_up_at || null, reason: s(params.reason || ''), lead_name: s(params.lead_name || params.leadName || ''), company: s(params.company || '') } }];"
+      }
     },
     {
+      "id": "0a3110a8-b067-4356-a5a4-02502d8cd43b",
+      "name": "Respond - Immediate Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.3,
+      "position": [
+        960,
+        620
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"ok\": true, \"event_type\": \"{{ $json.event_type || \"\" }}\", \"call_id\": \"{{ $json.call_id || \"\" }}\", \"assistant_id\": \"{{ $json.assistant_id || \"\" }}\"}",
+        "options": {}
+      }
+    },
+    {
+      "id": "ac0a425f-048a-4a2f-8996-73a7c52f5f1c",
+      "name": "If - Is Status Update",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        500
+      ],
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "value1": "={{$json._isStatusUpdate}}",
+              "value2": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue"
+              }
+            }
+          ],
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "462da294-2340-4563-a580-b28a61406bc7",
+      "name": "Switch - Route Tool",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2.1,
+      "position": [
+        1200,
+        180
+      ],
       "parameters": {
         "dataType": "string",
         "value": "={{ $json.tool_name }}",
@@ -113,252 +173,113 @@
           }
         },
         "fallbackOutput": 5
-      },
-      "id": "switch_tool",
-      "name": "Switch - Route Tool",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 2.1,
-      "position": [
-        1200,
-        180
-      ]
+      }
     },
     {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE voice_call_queue SET status = 'completed', locked_at = null, lock_owner = null, updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
-      },
-      "id": "pg_status",
+      "id": "eafd5307-4034-4e39-920a-d95bccd962e5",
       "name": "Postgres - Update Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
         1480,
         -80
-      ]
-    },
-    {
-      "parameters": {
-        "method": "PUT",
-        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}/tags",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.GHL_API_KEY }}"
-            },
-            {
-              "name": "Version",
-              "value": "2021-07-28"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\"tags\": [\"AI Call Attempted\"]}"
-      },
-      "id": "ghl_tags",
-      "name": "GHL - Update Tags",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1760,
-        -80
-      ]
-    },
-    {
+      ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE voice_call_queue SET dnc = true, status = 'completed', locked_at = null, lock_owner = null, updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
+        "query": "UPDATE voice_call_queue SET status = 'completed', updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
       },
-      "id": "pg_dnc",
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "e8e165a2-74f4-4eb0-b694-d7ca6eed3530",
       "name": "Postgres - Set DNC",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
         1480,
         20
-      ]
-    },
-    {
-      "parameters": {
-        "method": "PUT",
-        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}/tags",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.GHL_API_KEY }}"
-            },
-            {
-              "name": "Version",
-              "value": "2021-07-28"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\"tags\": [\"do_not_call\"]}"
-      },
-      "id": "ghl_dnc",
-      "name": "GHL - DNC Tag",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1760,
-        20
-      ]
-    },
-    {
+      ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO voice_call_attempt (call_id, queue_id, contact_id, provider_call_id, idempotency_key, disposition, summary, follow_up_at, handoff_required, updated_at)\nVALUES (\n  nullif('{{ $json.call_id }}', '')::uuid,\n  nullif('{{ $json.queue_id }}', '')::uuid,\n  '{{ $json.contact_id }}',\n  '{{ $json.call_id }}',\n  '{{ $json.call_id }}:{{ $json.disposition }}',\n  '{{ $json.disposition }}',\n  '{{ $json.notes }}',\n  {{ $json.follow_up_at ? \"'\" + $json.follow_up_at + \"'\" : \"null\" }},\n  false,\n  now()\n)\nON CONFLICT (idempotency_key) DO UPDATE SET disposition = EXCLUDED.disposition, summary = EXCLUDED.summary, updated_at = now();"
+        "query": "UPDATE voice_call_queue SET dnc = true, status = 'completed', updated_at = now() WHERE queue_id = nullif('{{ $json.queue_id }}', '')::uuid;"
       },
-      "id": "pg_log",
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "ef62a889-910d-4211-9dad-03e20267110c",
       "name": "Postgres - Log Outcome",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
         1480,
         120
-      ]
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO voice_call_attempt (call_id, queue_id, contact_id, provider_call_id, idempotency_key, disposition, summary, follow_up_at, handoff_required, updated_at)\nVALUES (\n  nullif('{{ $json.call_id }}', '')::uuid,\n  nullif('{{ $json.queue_id }}', '')::uuid,\n  '{{ $json.contact_id }}',\n  '{{ $json.call_id }}',\n  '{{ $json.call_id }}:{{ $json.disposition }}',\n  '{{ $json.disposition }}',\n  '{{ $json.notes }}',\n  {{ $json.follow_up_at ? \"'\" + $json.follow_up_at + \"'\" : \"null\" }},\n  false,\n  now()\n)\nON CONFLICT (idempotency_key) DO UPDATE SET disposition = EXCLUDED.disposition, summary = EXCLUDED.summary, updated_at = now();"
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
     },
     {
-      "parameters": {
-        "method": "POST",
-        "url": "={{$env.SLACK_WEBHOOK_URL}}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\"text\": \"*Voice AI Lead Alert*\\n*Name:* \" + ($json.lead_name || \"Unknown\") + \"\\n*Company:* \" + ($json.company || \"N/A\") + \"\\n*Disposition:* \" + ($json.disposition || \"N/A\") + \"\\n*Notes:* \" + ($json.notes || \"None\") + \"\\n*Contact ID:* \" + ($json.contact_id || \"N/A\")}"
-      },
-      "id": "http_slack",
+      "id": "98b80899-5f7e-4606-a4e4-37a518337130",
       "name": "HTTP - Slack #leads",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         1480,
         220
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const raw = $json;\nconst referralName = String(raw.referral_name || '').trim();\nconst referralPhone = String(raw.referral_phone || '').replace(/\\D/g, '').trim();\nconst referralEmail = String(raw.referral_email || '').trim().toLowerCase();\nconst referralRole = String(raw.referral_role || '').trim();\nconst referralCompany = String(raw.referral_company || '').trim();\nconst referrerName = String(raw.referrer_name || '').trim();\nconst lookupType = referralEmail ? 'email' : referralPhone ? 'phone' : referralName ? 'name' : 'none';\nconst lookupValue = referralEmail || referralPhone || referralName || '';\nreturn [{ json: { ...raw, referral_name: referralName, referral_phone: referralPhone, referral_email: referralEmail, referral_role: referralRole, referral_company: referralCompany, referrer_name: referrerName, referral_lookup_type: lookupType, referral_lookup_value: lookupValue, referral_lookup_status: lookupType === 'none' ? 'no_lookup_key' : 'pending', referral_found: false, referral_contact_id: '', referral_match_method: '', referral_contact_name: '', referral_contact_email: '', referral_contact_phone: '', referral_contact_company: '' } }];"
-      },
-      "id": "b7a55f48-31c9-4f0b-b39c-054d64f4dc9b",
-      "name": "Code - Prepare Referral Lookup",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1480,
-        320
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.referral_lookup_type !== 'none' }}",
-              "value2": true
-            }
-          ]
-        }
-      },
-      "id": "1fe059d4-3dad-4374-b3f1-f12e38b5b6c0",
-      "name": "If - Referral Has Lookup",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1720,
-        320
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const locationId = String($env.GHL_LOCATION_ID || 'Zwz4relUXVPxx8uohnjV').trim();\nconst apiBaseUrl = String($env.GHL_API_BASE_URL || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = String($env.GHL_API_KEY || '').trim();\nconst referralName = String($json.referral_name || '').trim();\nconst referralPhone = String($json.referral_phone || '').trim();\nconst referralEmail = String($json.referral_email || '').trim().toLowerCase();\nconst lookupType = String($json.referral_lookup_type || 'none');\nconst headers = { Authorization: `Bearer ${apiKey}`, Version: '2021-07-28', 'Content-Type': 'application/json', Accept: 'application/json' };\n\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\n\nasync function apiRequest(method, path, body) {\n  const options = { method, url: `${apiBaseUrl}${path}`, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return { ok: false, data: err?.response?.body || err?.message || err };\n  }\n}\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction normalizeSpace(v) { return String(v || '').trim().replace(/\\s+/g, ' '); }\nfunction asContacts(payload) {\n  if (Array.isArray(payload?.contacts)) return payload.contacts;\n  if (Array.isArray(payload?.data?.contacts)) return payload.data.contacts;\n  if (Array.isArray(payload?.data)) return payload.data;\n  if (Array.isArray(payload)) return payload;\n  return [];\n}\n\nlet referralFound = false;\nlet referralContactId = '';\nlet referralMatchMethod = '';\nlet referralContactName = '';\nlet referralContactEmail = '';\nlet referralContactPhone = '';\nlet referralContactCompany = '';\nlet referralLookupStatus = 'not_found';\n\nif (lookupType === 'email') {\n  const dup = await apiRequest.call(this, 'GET', `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(referralEmail)}`);\n  if (dup.ok && dup.data?.contact?.id) {\n    referralFound = true;\n    referralContactId = clean(dup.data.contact.id);\n    referralMatchMethod = 'email_duplicate';\n    referralLookupStatus = 'found';\n  } else if (!dup.ok) {\n    referralLookupStatus = 'lookup_error';\n  }\n}\n\nif (!referralFound && lookupType === 'phone') {\n  const dup = await apiRequest.call(this, 'GET', `/contacts/search/duplicate?locationId=${encodeURIComponent(locationId)}&number=${encodeURIComponent(referralPhone)}`);\n  if (dup.ok && dup.data?.contact?.id) {\n    referralFound = true;\n    referralContactId = clean(dup.data.contact.id);\n    referralMatchMethod = 'phone_duplicate';\n    referralLookupStatus = 'found';\n  } else if (!dup.ok) {\n    referralLookupStatus = 'lookup_error';\n  }\n}\n\nif (!referralFound && lookupType === 'name' && referralName) {\n  const byName = await apiRequest.call(this, 'GET', `/contacts/?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(referralName)}&limit=50`);\n  if (byName.ok) {\n    const contacts = asContacts(byName.data);\n    const target = normalizeSpace(referralName).toLowerCase();\n    const exact = contacts.find((c) => {\n      const fn = normalizeSpace(`${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();\n      const nm = normalizeSpace(c.name || '').toLowerCase();\n      return fn === target || nm === target;\n    });\n    if (exact?.id) {\n      referralFound = true;\n      referralContactId = clean(exact.id);\n      referralMatchMethod = 'full_name';\n      referralLookupStatus = 'found';\n      referralContactName = normalizeSpace(`${exact.firstName || ''} ${exact.lastName || ''}`) || normalizeSpace(exact.name || '');\n      referralContactEmail = clean(exact.email || '');\n      referralContactPhone = clean(exact.phone || '');\n      referralContactCompany = clean(exact.companyName || exact.company_name || exact.company || '');\n    }\n  } else {\n    referralLookupStatus = 'lookup_error';\n  }\n}\n\nif (referralFound && referralContactId && (!referralContactName || !referralContactEmail || !referralContactPhone || !referralContactCompany)) {\n  const detail = await apiRequest.call(this, 'GET', `/contacts/${encodeURIComponent(referralContactId)}`);\n  if (detail.ok) {\n    const contact = detail.data?.contact || detail.data || {};\n    referralContactName = referralContactName || normalizeSpace(`${contact.firstName || ''} ${contact.lastName || ''}`) || clean(contact.name || '');\n    referralContactEmail = referralContactEmail || clean(contact.email || '');\n    referralContactPhone = referralContactPhone || clean(contact.phone || '');\n    referralContactCompany = referralContactCompany || clean(contact.companyName || contact.company_name || contact.company || '');\n  }\n}\n\nreturn [{ json: { ...$json, referral_found: referralFound, referral_contact_id: referralContactId, referral_match_method: referralMatchMethod, referral_contact_name: referralContactName, referral_contact_email: referralContactEmail, referral_contact_phone: referralContactPhone, referral_contact_company: referralContactCompany, referral_lookup_status: referralLookupStatus } }];"
-      },
-      "id": "15d2e7f5-2ab4-4f01-bc0e-dbf56c7dbcf2",
-      "name": "Code - Resolve Referral Contact",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1960,
-        320
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.referral_found }}",
-              "value2": true
-            }
-          ]
-        }
-      },
-      "id": "8f15e6a5-cedc-4ac3-8b68-5fa24fd9e7dc",
-      "name": "If - Referral Exists",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        2200,
-        320
-      ]
-    },
-    {
+      ],
       "parameters": {
         "method": "POST",
         "url": "={{$env.SLACK_WEBHOOK_URL}}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"text\": \"*New referral contact*\\n*Name:* \" + ($json.referral_name || \"Unknown\") + \"\\n*Phone:* \" + ($json.referral_phone || \"N/A\") + \"\\n*Email:* \" + ($json.referral_email || \"N/A\") + \"\\n*Role:* \" + ($json.referral_role || \"N/A\") + \"\\n*Company:* \" + ($json.referral_company || \"N/A\") + \"\\n*Referred by:* \" + ($json.referrer_name || \"Unknown\") + \"\\n*GHL Match:* not found\\n*Lookup Status:* \" + ($json.referral_lookup_status || \"unknown\")}"
-      },
-      "id": "9a54e6f3-4334-4bfe-b4e1-6ba2a5b6a3e9",
-      "name": "HTTP - Slack Referral",
+        "jsonBody": "={\"text\": \"*Voice AI Lead Alert*\n*Name:* \" + ($json.lead_name || \"Unknown\") + \"\n*Company:* \" + ($json.company || \"N/A\") + \"\n*Disposition:* \" + ($json.disposition || \"N/A\") + \"\n*Notes:* \" + ($json.notes || \"None\") + \"\n*Contact ID:* \" + ($json.contact_id || \"N/A\")}",
+        "options": {}
+      }
+    },
+    {
+      "id": "05b15f77-093b-4a90-bf08-0c3473d1444c",
+      "name": "Code - Normalize End Of Call",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        500
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const raw = $json._raw;\nconst body = raw.message || raw;\nconst call = body.call || raw.call || {};\nconst artifact = raw.artifact || {};\nconst analysis = raw.analysis || {};\nconst meta = (call.assistantOverrides && call.assistantOverrides.metadata) || call.metadata || {};\nconst contactId = String(meta.contact_id || '').trim();\nconst queueId = String(meta.queue_id || '').trim();\nconst status = String(call.status || body.status || raw.status || '').toLowerCase();\nconst endedReason = String(call.endedReason || body.endedReason || '').toLowerCase();\nconst successEvaluation = !!analysis.successEvaluation;\nconst summary = String(analysis.summary || artifact.summary || '').trim();\nconst recordingUrl = artifact.recordingUrl || call.recordingUrl || '';\nconst callId = String(call.id || body.id || raw.id || '').trim();\nconst store = this.getWorkflowStaticData('global');\nstore.voiceCallTimers = store.voiceCallTimers || {};\nif (callId) {\n  const state = store.voiceCallTimers[callId] || { callId };\n  state.ended = true;\n  state.endedAt = new Date().toISOString();\n  state.lastStatus = status || state.lastStatus || '';\n  store.voiceCallTimers[callId] = state;\n}\nlet disposition = 'failed';\nif (status.includes('ended') || status.includes('completed')) {\n  if (endedReason.includes('customer-did-not-answer') || endedReason.includes('no-answer')) disposition = 'no_answer';\n  else if (endedReason.includes('voicemail')) disposition = 'voicemail';\n  else disposition = successEvaluation ? 'qualified_booked' : 'connected';\n}\nreturn [{ json: { contact_id: contactId, queue_id: queueId, call_id: callId, disposition, summary: summary || 'No summary returned by Vapi.', recording_url: recordingUrl } }];"
+      }
+    },
+    {
+      "id": "ba67aa5c-3006-411b-8775-1db14c8dfe6f",
+      "name": "GHL - Update Tags",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2440,
-        480
-      ]
-    },
-    {
+        1760,
+        -80
+      ],
       "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO voice_call_attempt (call_id, queue_id, contact_id, provider_call_id, idempotency_key, disposition, summary, transcript_url, recording_url)\nVALUES (\n  nullif('{{ $json.call_id }}', '')::uuid,\n  nullif('{{ $json.queue_id }}', '')::uuid,\n  '{{ $json.contact_id }}',\n  '{{ $json.call_id }}',\n  '{{ $json.call_id }}:{{ $json.disposition }}',\n  '{{ $json.disposition }}',\n  '{{ $json.summary.replace(/'/g, \"''\") }}',\n  '',\n  '{{ $json.recording_url }}'\n)\nON CONFLICT (idempotency_key) DO NOTHING;"
-      },
-      "id": "pg_eoc",
-      "name": "Postgres - Insert Attempt",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.5,
-      "position": [
-        1240,
-        500
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}/notes",
+        "method": "PUT",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $(\"Code - Normalize Tool Call\").item.json.contact_id }}/tags",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -382,30 +303,297 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"body\": \"AI call completed. Disposition: \" + $json.disposition + \"\\nSummary: \" + ($json.summary || \"n/a\") + \"\\nRecording: \" + ($json.recording_url || \"n/a\")}"
-      },
-      "id": "ghl_note",
-      "name": "GHL - Contact Note",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1520,
-        500
-      ]
+        "jsonBody": "={\"tags\":[\"AI Call Attempted\"]}",
+        "options": {}
+      }
     },
     {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ $json.tool_call_id ? ({ results: [{ toolCallId: $json.tool_call_id, result: { ok: true, tool: $json.tool_name || '', contact_id: $json.contact_id || '', queue_id: $json.queue_id || '', existsInGhl: !!$json.referral_found, referral_found: !!$json.referral_found, referral_contact_id: $json.referral_contact_id || '', referral_contact_name: $json.referral_contact_name || '', referral_contact_email: $json.referral_contact_email || '', referral_contact_phone: $json.referral_contact_phone || '', referral_contact_company: $json.referral_contact_company || '', referral_match_method: $json.referral_match_method || '', referral_lookup_type: $json.referral_lookup_type || '', referral_lookup_value: $json.referral_lookup_value || '', referral_lookup_status: $json.referral_lookup_status || '', referral_name: $json.referral_name || '', referral_phone: $json.referral_phone || '', referral_email: $json.referral_email || '', referral_role: $json.referral_role || '', referral_company: $json.referral_company || '', referrer_name: $json.referrer_name || '', message: $json.tool_name === 'report_referral' ? ($json.referral_found ? ('Found them in GoHighLevel. ' + ($json.referral_contact_name ? ('Contact: ' + $json.referral_contact_name + '. ') : '') + ($json.referral_contact_email ? ('Email: ' + $json.referral_contact_email + '. ') : '') + ($json.referral_contact_phone ? ('Phone: ' + $json.referral_contact_phone + '. ') : '') + ($json.referral_contact_company ? ('Company: ' + $json.referral_contact_company + '. ') : '') + 'I’ll make sure Cameron reaches out to the right person.') : 'Thanks, got it. I’ll pass this to our team for follow-up.') : 'OK' } }] }) : ({ ok: true, contact_id: $json.contact_id || '', queue_id: $json.queue_id || '', tool: $json.tool_name || '', referral_found: $json.referral_found || false, referral_contact_id: $json.referral_contact_id || '', referral_contact_name: $json.referral_contact_name || '', referral_contact_email: $json.referral_contact_email || '', referral_contact_phone: $json.referral_contact_phone || '', referral_contact_company: $json.referral_contact_company || '', referral_match_method: $json.referral_match_method || '', referral_lookup_type: $json.referral_lookup_type || '', referral_lookup_value: $json.referral_lookup_value || '', referral_lookup_status: $json.referral_lookup_status || '', referral_name: $json.referral_name || '', referral_phone: $json.referral_phone || '', referral_email: $json.referral_email || '', referral_role: $json.referral_role || '', referral_company: $json.referral_company || '', referrer_name: $json.referrer_name || '' }) }}"
-      },
-      "id": "resp",
+      "id": "46c96523-7056-45a9-abdf-c0d845d49e73",
       "name": "Respond - 200",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.3,
       "position": [
         1920,
         300
-      ]
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"ok\": true, \"contact_id\": \"{{ $(\"Code - Normalize Tool Call\").item.json.contact_id || \"\" }}\", \"queue_id\": \"{{ $(\"Code - Normalize Tool Call\").item.json.queue_id || \"\" }}\", \"tool\": \"{{ $(\"Code - Normalize Tool Call\").item.json.tool_name || \"\" }}\"}",
+        "options": {}
+      }
+    },
+    {
+      "id": "f77d1161-fe28-459d-9d27-6596784f16f1",
+      "name": "GHL - DNC Tag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        20
+      ],
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $(\"Code - Normalize Tool Call\").item.json.contact_id }}/tags",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GHL_API_KEY }}"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"tags\":[\"do_not_call\"]}",
+        "options": {}
+      }
+    },
+    {
+      "id": "73b00324-a829-4c96-93e5-ebd68a5a0880",
+      "name": "Code - Prepare Timer State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        500
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const store = this.getWorkflowStaticData('global');\nstore.voiceCallTimers = store.voiceCallTimers || {};\nconst now = new Date().toISOString();\nconst callId = String($json.call_id || '').trim();\nconst assistantId = String($json.assistant_id || '').trim();\nconst controlUrl = String($json.control_url || '').trim();\nconst status = String($json.call_status || '').toLowerCase();\nconst tracked = !!$json.is_tracked_assistant;\nif (!callId || !tracked) {\n  return [{ json: { ...$json, action: 'skip', timer_state: 'untracked' } }];\n}\nconst state = store.voiceCallTimers[callId] || { callId };\nstate.lastStatus = status;\nstate.lastEventAt = now;\nstate.assistantId = assistantId || state.assistantId || '';\nstate.controlUrl = controlUrl || state.controlUrl || '';\nif (status === 'ended') {\n  state.ended = true;\n  state.endedAt = now;\n  store.voiceCallTimers[callId] = state;\n  return [{ json: { ...$json, action: 'skip', timer_state: 'ended' } }];\n}\nif (status !== 'in-progress') {\n  store.voiceCallTimers[callId] = state;\n  return [{ json: { ...$json, action: 'skip', timer_state: 'ignored' } }];\n}\nif (state.ended || state.timersScheduled) {\n  store.voiceCallTimers[callId] = state;\n  return [{ json: { ...$json, action: 'skip', timer_state: state.ended ? 'ended' : 'duplicate' } }];\n}\nstate.timersScheduled = true;\nstate.startedAt = now;\nstate.backgroundMessageSent = false;\nstate.endCallSent = false;\nstate.ended = false;\nstore.voiceCallTimers[callId] = state;\nreturn [{ json: { ...$json, action: 'schedule', timer_state: 'scheduled' } }];"
+      }
+    },
+    {
+      "id": "fea1849c-31ae-4ab5-9b9b-2a61c01da9bc",
+      "name": "If - Should Start Timers",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        500
+      ],
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "value1": "={{$json.action}}",
+              "value2": "schedule",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5f1e2c9e-0005-4907-9259-8b8c1fe5f037",
+      "name": "Wait - 285 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1680,
+        500
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 285,
+        "unit": "seconds"
+      },
+      "webhookId": "2f12c5ad-6988-46ad-84da-97a4c8ba99e5"
+    },
+    {
+      "id": "c8987a79-4ac4-40f6-bf9b-1709fba4b9b9",
+      "name": "Code - Prepare Background Warning",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        500
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const store = this.getWorkflowStaticData('global');\nstore.voiceCallTimers = store.voiceCallTimers || {};\nconst callId = String($json.call_id || '').trim();\nconst state = callId ? (store.voiceCallTimers[callId] || {}) : {};\nif (!callId || !state.timersScheduled || state.ended || state.backgroundMessageSent) {\n  return [{ json: { ...$json, action: 'skip', timer_state: state.ended ? 'ended' : 'skip' } }];\n}\nstate.backgroundMessageSent = true;\nstate.backgroundMessageSentAt = new Date().toISOString();\nstore.voiceCallTimers[callId] = state;\nreturn [{ json: { ...$json, action: 'warn', timer_state: 'warn-ready' } }];"
+      }
+    },
+    {
+      "id": "68a6e558-b5c0-4257-8065-fd302266c66a",
+      "name": "HTTP - Send Background Warning",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        500
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.vapi.ai/call/{{ $json.call_id }}/background-messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.VAPI_PRIVATE_KEY || $env.VAPI_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"messages\":[{\"role\":\"system\",\"content\":\"Time limit: 15 seconds remaining. Wrap up now and end the call by 5:00. Do not mention this time limit to the customer.\"}]}",
+        "options": {}
+      }
+    },
+    {
+      "id": "8b4884d4-66e8-48bc-acbc-7ba89cc9ffd0",
+      "name": "Wait - 15 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2400,
+        500
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 15,
+        "unit": "seconds"
+      },
+      "webhookId": "60c3ce2b-8fd0-4b3c-86b9-443f26fe94f4"
+    },
+    {
+      "id": "f993d380-b879-4fb0-ac58-89762682a0f7",
+      "name": "Code - Prepare Hard Stop",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        500
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const store = this.getWorkflowStaticData('global');\nstore.voiceCallTimers = store.voiceCallTimers || {};\nconst callId = String($json.call_id || '').trim();\nconst state = callId ? (store.voiceCallTimers[callId] || {}) : {};\nif (!callId || !state.timersScheduled || state.ended || state.endCallSent || !String($json.control_url || state.controlUrl || '').trim()) {\n  return [{ json: { ...$json, action: 'skip', timer_state: state.ended ? 'ended' : 'skip' } }];\n}\nstate.endCallSent = true;\nstate.endCallSentAt = new Date().toISOString();\nstore.voiceCallTimers[callId] = state;\nreturn [{ json: { ...$json, action: 'end', timer_state: 'end-ready', control_url: String($json.control_url || state.controlUrl || '').trim() } }];"
+      }
+    },
+    {
+      "id": "48160a0f-7685-400a-9666-7acfd2b864d0",
+      "name": "HTTP - Force End Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2880,
+        500
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.control_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"type\":\"end-call\"}",
+        "options": {}
+      }
+    },
+    {
+      "id": "85f22b6f-e5b0-45f9-8305-368a0f5cd5e8",
+      "name": "Postgres - Insert Attempt",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1240,
+        500
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO voice_call_attempt (call_id, queue_id, contact_id, provider_call_id, idempotency_key, disposition, summary, transcript_url, recording_url)\nVALUES (\n  nullif('{{ $json.call_id }}', '')::uuid,\n  nullif('{{ $json.queue_id }}', '')::uuid,\n  '{{ $json.contact_id }}',\n  '{{ $json.call_id }}',\n  '{{ $json.call_id }}:{{ $json.disposition }}',\n  '{{ $json.disposition }}',\n  '{{ $json.summary.replace(/'/g, \"''\") }}',\n  '',\n  '{{ $json.recording_url }}'\n)\nON CONFLICT (idempotency_key) DO NOTHING;"
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "d24fd031-926b-4f64-9b54-de2206d96bf1",
+      "name": "GHL - Contact Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        500
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $(\"Code - Normalize End Of Call\").item.json.contact_id }}/notes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GHL_API_KEY }}"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"body\":\"AI call completed. Disposition: {{ $(\"Code - Normalize End Of Call\").item.json.disposition }}\nSummary: {{ $(\"Code - Normalize End Of Call\").item.json.summary || \"n/a\" }}\nRecording: {{ $(\"Code - Normalize End Of Call\").item.json.recording_url || \"n/a\" }}\"}",
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -433,10 +621,21 @@
     },
     "If - Is Tool Call": {
       "main": [
-        [],
         [
           {
-            "node": "Code - Normalize End Of Call",
+            "node": "Code - Normalize Tool Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Immediate Ack",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If - Is Status Update",
             "type": "main",
             "index": 0
           }
@@ -448,6 +647,24 @@
         [
           {
             "node": "Switch - Route Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Is Status Update": {
+      "main": [
+        [
+          {
+            "node": "Code - Prepare Timer State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code - Normalize End Of Call",
             "type": "main",
             "index": 0
           }
@@ -486,14 +703,7 @@
         ],
         [
           {
-            "node": "Code - Prepare Referral Lookup",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Respond - 200",
+            "node": "Code - Normalize End Of Call",
             "type": "main",
             "index": 0
           }
@@ -511,33 +721,11 @@
         ]
       ]
     },
-    "GHL - Update Tags": {
-      "main": [
-        [
-          {
-            "node": "Respond - 200",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Postgres - Set DNC": {
       "main": [
         [
           {
             "node": "GHL - DNC Tag",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "GHL - DNC Tag": {
-      "main": [
-        [
-          {
-            "node": "Respond - 200",
             "type": "main",
             "index": 0
           }
@@ -577,6 +765,105 @@
         ]
       ]
     },
+    "GHL - Update Tags": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - DNC Tag": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Prepare Timer State": {
+      "main": [
+        [
+          {
+            "node": "If - Should Start Timers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - Should Start Timers": {
+      "main": [
+        [
+          {
+            "node": "Wait - 285 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait - 285 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Code - Prepare Background Warning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Prepare Background Warning": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Send Background Warning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Send Background Warning": {
+      "main": [
+        [
+          {
+            "node": "Wait - 15 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait - 15 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Code - Prepare Hard Stop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Prepare Hard Stop": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Force End Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Postgres - Insert Attempt": {
       "main": [
         [
@@ -587,88 +874,10 @@
           }
         ]
       ]
-    },
-    "GHL - Contact Note": {
-      "main": [
-        [
-          {
-            "node": "Respond - 200",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code - Prepare Referral Lookup": {
-      "main": [
-        [
-          {
-            "node": "If - Referral Has Lookup",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If - Referral Has Lookup": {
-      "main": [
-        [
-          {
-            "node": "Code - Resolve Referral Contact",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "HTTP - Slack Referral",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code - Resolve Referral Contact": {
-      "main": [
-        [
-          {
-            "node": "If - Referral Exists",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If - Referral Exists": {
-      "main": [
-        [
-          {
-            "node": "Respond - 200",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "HTTP - Slack Referral",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP - Slack Referral": {
-      "main": [
-        [
-          {
-            "node": "Respond - 200",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
-  "settings": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
   "active": false
 }

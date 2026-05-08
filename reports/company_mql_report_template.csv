@@ -1,6 +1,6 @@
-company_key,company_name,contact_count,contact_emails,pipelines,stages,operating_state,marketing_signal,latest_contact_date
-acme.com,Acme Corp,3,contact1@acme.com|contact2@acme.com|contact3@acme.com,Warm|Sales Outreach,Qualified (MQL)|Discovery Scheduled|Negotiation,California,active_cannabis_marketing,2026-05-06
-example.com,Example Co,2,user1@example.com|user2@example.com,Sales Outreach,Booked|Proposal Sent,Colorado,high_intent,2026-05-05
-cannabis-co.com,Cannabis Company,4,info@cannabis-co.com|sales@cannabis-co.com|support@cannabis-co.com|contact@cannabis-co.com,Warm|Sales Outreach,New|Qualified (MQL)|Discovery Completed,Washington,high_intent,2026-05-06
-name::unknown-company,Unknown Company,2,personal1@gmail.com|personal2@gmail.com,Warm,New|Qualified (MQL),,,2026-05-04
-potENTIAL-client.com,Potential Client LLC,2,hello@potENTIAL-client.com|info@potENTIAL-client.com,Sales Outreach,Discovery Scheduled|Negotiation,Oregon,medium_intent,2026-05-03
+company_key,company_name,contact_count,pipeline_contact_count,contact_emails,pipelines,stages,operating_state,marketing_signal,latest_contact_date
+acme.com,Acme Corp,3,2,contact1@acme.com|contact2@acme.com|contact3@acme.com,Warm|Sales Outreach,Qualified (MQL)|Discovery Scheduled|Negotiation,California,active_cannabis_marketing,2026-05-06
+example.com,Example Co,2,2,user1@example.com|user2@example.com,Sales Outreach,Booked|Proposal Sent,Colorado,high_intent,2026-05-05
+cannabis-co.com,Cannabis Company,4,3,info@cannabis-co.com|sales@cannabis-co.com|support@cannabis-co.com|contact@cannabis-co.com,Warm|Sales Outreach,New|Qualified (MQL)|Discovery Completed,Washington,high_intent,2026-05-06
+name::unknown-company,Unknown Company,2,1,personal1@gmail.com|personal2@gmail.com,Warm,New|Qualified (MQL),,,2026-05-04
+potENTIAL-client.com,Potential Client LLC,2,2,hello@potENTIAL-client.com|info@potENTIAL-client.com,Sales Outreach,Discovery Scheduled|Negotiation,Oregon,medium_intent,2026-05-03

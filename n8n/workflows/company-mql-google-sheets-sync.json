@@ -29,7 +29,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH contacts AS (\n  SELECT\n    regexp_replace(c.source_key, '^contact:', '') AS ghl_contact_id,\n    LOWER(TRIM(COALESCE(\n      NULLIF(c.dimensions_json->>'company_name', ''),\n      NULLIF(c.payload_json->>'companyName', ''),\n      NULLIF(c.payload_json->>'company_name', ''),\n      NULLIF(c.dimensions_json->>'company_name_for_emails', ''),\n      NULLIF(c.payload_json->>'company_name_for_emails', ''),\n      NULLIF(split_part(COALESCE(c.dimensions_json->>'email', c.payload_json->>'email', c.payload_json->>'emailAddress', ''), '@', 2), ''),\n      regexp_replace(c.source_key, '^contact:', '')\n    ))) AS company_name_key,\n    COALESCE(\n      NULLIF(c.dimensions_json->>'email', ''),\n      NULLIF(c.payload_json->>'email', ''),\n      NULLIF(c.payload_json->>'emailAddress', ''),\n      ''\n    ) AS email,\n    COALESCE(\n      NULLIF(c.dimensions_json->>'company_name', ''),\n      NULLIF(c.payload_json->>'companyName', ''),\n      NULLIF(c.payload_json->>'company_name', ''),\n      'Unknown'\n    ) AS company_name,\n    COALESCE(\n      NULLIF(c.dimensions_json->>'em_company_operating_state', ''),\n      NULLIF(c.payload_json->>'em_company_operating_state', ''),\n      NULLIF(c.dimensions_json->>'company_operating_state', ''),\n      NULLIF(c.payload_json->>'company_operating_state', '')\n    ) AS operating_state,\n    COALESCE(\n      NULLIF(c.dimensions_json->>'em_cannabis_marketing_signal', ''),\n      NULLIF(c.payload_json->>'em_cannabis_marketing_signal', ''),\n      NULLIF(c.dimensions_json->>'company_cannabis_marketing_signal', ''),\n      NULLIF(c.payload_json->>'company_cannabis_marketing_signal', '')\n    ) AS marketing_signal,\n    COALESCE(\n      NULLIF(c.payload_json->>'createdAt', ''),\n      NULLIF(c.payload_json->>'created_at', ''),\n      NULLIF(c.payload_json->>'dateAdded', ''),\n      c.loaded_at::text\n    )::date AS contact_date,\n    NULLIF(LOWER(TRIM(COALESCE(\n      NULLIF(c.dimensions_json->>'lead_temperature', ''),\n      NULLIF(c.payload_json->>'lead_temperature', ''),\n      NULLIF(c.dimensions_json->>'warm_source', ''),\n      NULLIF(c.payload_json->>'warm_source', ''),\n      NULLIF(c.dimensions_json->>'lt_last_routing_channel', ''),\n      NULLIF(c.payload_json->>'lt_last_routing_channel', ''),\n      ''\n    ))), '') IS NOT NULL AS is_mql\n  FROM report_raw_ghl_contacts c\n),\nopportunities AS (\n  SELECT\n    COALESCE(\n      NULLIF(o.dimensions_json->>'contact_id', ''),\n      NULLIF(o.dimensions_json->>'contact.id', ''),\n      NULLIF(o.payload_json->>'contactId', ''),\n      NULLIF(o.payload_json->>'contact_id', ''),\n      NULLIF(o.payload_json->'contact'->>'id', '')\n    ) AS ghl_contact_id,\n    LOWER(TRIM(COALESCE(\n      NULLIF(o.dimensions_json->>'company_name', ''),\n      NULLIF(o.payload_json->>'companyName', ''),\n      NULLIF(o.payload_json->>'company_name', ''),\n      NULLIF(o.payload_json->'company'->>'name', ''),\n      NULLIF(split_part(COALESCE(o.payload_json->>'email', o.payload_json->>'emailAddress', ''), '@', 2), ''),\n      NULLIF(o.payload_json->>'contactId', ''),\n      NULLIF(o.payload_json->>'contact_id', '')\n    ))) AS company_name_key,\n    COALESCE(\n      NULLIF(o.dimensions_json->>'pipeline_name', ''),\n      NULLIF(o.payload_json->>'pipelineName', ''),\n      NULLIF(o.payload_json->'pipeline'->>'name', ''),\n      'Unknown'\n    ) AS pipeline_name,\n    COALESCE(\n      NULLIF(o.dimensions_json->>'pipeline_stage_name', ''),\n      NULLIF(o.payload_json->>'pipelineStageName', ''),\n      NULLIF(o.payload_json->'pipelineStage'->>'name', ''),\n      NULLIF(o.payload_json->>'stage', ''),\n      'Unknown'\n    ) AS stage_name\n  FROM report_raw_ghl_opportunities o\n)\nSELECT\n  COALESCE(e.company_domain_key, c.company_name) AS company_key,\n  COALESCE(NULLIF(c.company_name_key, 'unknown'), c.company_name) AS company_name,\n  COUNT(DISTINCT c.ghl_contact_id) AS contact_count,\n  json_agg(DISTINCT jsonb_build_object('contact_id', c.ghl_contact_id, 'email', c.email)) AS contacts,\n  STRING_AGG(DISTINCT o.pipeline_name, '|' ORDER BY o.pipeline_name) AS pipelines,\n  STRING_AGG(DISTINCT o.stage_name, '|' ORDER BY o.stage_name) AS stage_names,\n  COALESCE(MAX(e.company_operating_state), MAX(c.operating_state)) AS operating_state,\n  COALESCE(MAX(e.company_cannabis_marketing_signal), MAX(c.marketing_signal)) AS marketing_signal,\n  MAX(c.contact_date) AS latest_contact_date\nFROM contacts c\nLEFT JOIN opportunities o\n  ON o.company_name_key = c.company_name_key\nLEFT JOIN \"Emerald_Contacts\" e\n  ON e.ghl_contact_id = c.ghl_contact_id\nWHERE c.is_mql\n   OR (\n     o.pipeline_name IN ('Warm', 'Sales Outreach')\n     AND o.stage_name NOT IN ('Disqualified', 'Closed Lost', 'Closed Won')\n   )\nGROUP BY COALESCE(e.company_domain_key, c.company_name), COALESCE(NULLIF(c.company_name_key, 'unknown'), c.company_name)\nHAVING COUNT(DISTINCT c.ghl_contact_id) >= 1\nORDER BY contact_count DESC, latest_contact_date DESC\nLIMIT 500;",
+        "query": "WITH contacts AS (\n  SELECT\n    regexp_replace(c.source_key, '^contact:', '') AS ghl_contact_id,\n    LOWER(TRIM(COALESCE(\n      NULLIF(e.company_domain_key, ''),\n      NULLIF(split_part(COALESCE(c.dimensions_json->>'email', c.payload_json->>'email', c.payload_json->>'emailAddress', ''), '@', 2), ''),\n      NULLIF(c.dimensions_json->>'company_name_for_emails', ''),\n      NULLIF(c.payload_json->>'company_name_for_emails', ''),\n      NULLIF(c.dimensions_json->>'company_name', ''),\n      NULLIF(c.payload_json->>'companyName', ''),\n      NULLIF(c.payload_json->>'company_name', ''),\n      regexp_replace(c.source_key, '^contact:', '')\n    ))) AS company_key,\n    COALESCE(\n      NULLIF(c.dimensions_json->>'email', ''),\n      NULLIF(c.payload_json->>'email', ''),\n      NULLIF(c.payload_json->>'emailAddress', ''),\n      ''\n    ) AS email,\n    COALESCE(\n      NULLIF(e.company_name, ''),\n      NULLIF(c.dimensions_json->>'company_name', ''),\n      NULLIF(c.payload_json->>'companyName', ''),\n      NULLIF(c.payload_json->>'company_name', ''),\n      NULLIF(c.dimensions_json->>'company_name_for_emails', ''),\n      NULLIF(c.payload_json->>'company_name_for_emails', ''),\n      'Unknown'\n    ) AS company_name,\n    COALESCE(\n      NULLIF(c.dimensions_json->>'em_company_operating_state', ''),\n      NULLIF(c.payload_json->>'em_company_operating_state', ''),\n      NULLIF(c.dimensions_json->>'company_operating_state', ''),\n      NULLIF(c.payload_json->>'company_operating_state', '')\n    ) AS operating_state,\n    COALESCE(\n      NULLIF(c.dimensions_json->>'em_cannabis_marketing_signal', ''),\n      NULLIF(c.payload_json->>'em_cannabis_marketing_signal', ''),\n      NULLIF(c.dimensions_json->>'company_cannabis_marketing_signal', ''),\n      NULLIF(c.payload_json->>'company_cannabis_marketing_signal', '')\n    ) AS marketing_signal,\n    COALESCE(\n      NULLIF(c.payload_json->>'createdAt', ''),\n      NULLIF(c.payload_json->>'created_at', ''),\n      NULLIF(c.payload_json->>'dateAdded', ''),\n      c.loaded_at::text\n    )::date AS contact_date\n  FROM report_raw_ghl_contacts c\n  LEFT JOIN \"Emerald_Contacts\" e\n    ON e.ghl_contact_id = regexp_replace(c.source_key, '^contact:', '')\n),\nopportunities AS (\n  SELECT\n    COALESCE(\n      NULLIF(o.dimensions_json->>'contact_id', ''),\n      NULLIF(o.dimensions_json->>'contact.id', ''),\n      NULLIF(o.payload_json->>'contactId', ''),\n      NULLIF(o.payload_json->>'contact_id', ''),\n      NULLIF(o.payload_json->'contact'->>'id', '')\n    ) AS ghl_contact_id,\n    COALESCE(\n      NULLIF(o.payload_json->>'pipelineId', ''),\n      NULLIF(o.dimensions_json->>'pipeline_id', ''),\n      ''\n    ) AS pipeline_id,\n    COALESCE(\n      NULLIF(o.payload_json->>'pipelineStageId', ''),\n      NULLIF(o.dimensions_json->>'pipeline_stage_id', ''),\n      ''\n    ) AS stage_id,\n    COALESCE(\n      NULLIF(o.dimensions_json->>'pipeline_name', ''),\n      NULLIF(o.payload_json->>'pipelineName', ''),\n      NULLIF(o.payload_json->'pipeline'->>'name', ''),\n      'Warm'\n    ) AS pipeline_name,\n    COALESCE(\n      NULLIF(o.dimensions_json->>'pipeline_stage_name', ''),\n      NULLIF(o.payload_json->>'pipelineStageName', ''),\n      NULLIF(o.payload_json->'pipelineStage'->>'name', ''),\n      NULLIF(o.payload_json->>'stage', ''),\n      'MQL'\n    ) AS stage_name\n  FROM report_raw_ghl_opportunities o\n),\ncompany_rollup AS (\n  SELECT\n    c.company_key,\n    COALESCE(NULLIF(MAX(c.company_name), ''), 'Unknown') AS company_name,\n    COUNT(DISTINCT c.ghl_contact_id) AS contact_count,\n    COUNT(DISTINCT c.ghl_contact_id) FILTER (WHERE o.ghl_contact_id IS NOT NULL) AS pipeline_contact_count,\n    STRING_AGG(DISTINCT c.email, ', ' ORDER BY c.email) AS contact_emails,\n    STRING_AGG(DISTINCT o.pipeline_name, '|' ORDER BY o.pipeline_name) FILTER (WHERE o.ghl_contact_id IS NOT NULL) AS pipelines,\n    STRING_AGG(DISTINCT o.stage_name, '|' ORDER BY o.stage_name) FILTER (WHERE o.ghl_contact_id IS NOT NULL) AS stages,\n    MAX(c.operating_state) AS operating_state,\n    MAX(c.marketing_signal) AS marketing_signal,\n    MAX(c.contact_date) AS latest_contact_date\n  FROM contacts c\n  LEFT JOIN opportunities o\n    ON o.ghl_contact_id = c.ghl_contact_id\n   AND COALESCE(o.stage_name, '') NOT IN ('Disqualified', 'Closed Lost', 'Closed Won')\n  WHERE c.company_key IS NOT NULL\n  GROUP BY c.company_key\n  HAVING COUNT(DISTINCT c.ghl_contact_id) FILTER (WHERE o.ghl_contact_id IS NOT NULL) >= 1\n)\nSELECT\n  company_key,\n  company_name,\n  contact_count,\n  pipeline_contact_count,\n  contact_emails,\n  COALESCE(pipelines, '') AS pipelines,\n  COALESCE(stages, '') AS stages,\n  operating_state,\n  marketing_signal,\n  latest_contact_date\nFROM company_rollup\nORDER BY pipeline_contact_count DESC, contact_count DESC, latest_contact_date DESC\nLIMIT 5000;",
         "options": {
           "queryReplacement": "",
           "replaceEmptyStrings": false
@@ -43,62 +43,55 @@
     },
     {
       "parameters": {
-        "resource": "sheet",
-        "operation": "clear",
-        "documentId": {
-          "__rl": true,
-          "mode": "id",
-          "value": "1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY"
-        },
-        "sheetName": {
-          "__rl": true,
-          "mode": "name",
-          "value": "Company MQLs"
-        },
-        "clear": "wholeSheet",
-        "keepFirstRow": true
+        "jsCode": "const items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  const json = item.json || {};\n\n  result.push({\n    json: {\n      company_key: json.company_key || '',\n      company_name: json.company_name || json.company_key || 'Unknown',\n      contact_count: json.contact_count || 0,\n      pipeline_contact_count: json.pipeline_contact_count || 0,\n      contact_emails: json.contact_emails || '',\n      pipelines: json.pipelines || '',\n      stages: json.stages || '',\n      operating_state: json.operating_state || '',\n      marketing_signal: json.marketing_signal || '',\n      latest_contact_date: json.latest_contact_date || ''\n    }\n  });\n}\n\nreturn result;"
       },
-      "id": "clear-sheet",
-      "name": "Clear Old Data",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [1440, 300]
+      "id": "prepare-sheet-data",
+      "name": "Prepare Sheet Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 300]
     },
     {
       "parameters": {
-        "resource": "sheet",
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "mode": "id",
-          "value": "1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY"
+        "jsCode": "const headers = [\n  'company_key',\n  'company_name',\n  'contact_count',\n  'pipeline_contact_count',\n  'contact_emails',\n  'pipelines',\n  'stages',\n  'operating_state',\n  'marketing_signal',\n  'latest_contact_date',\n];\n\nconst targetRowCount = 4999;\nconst sourceRows = $input.all().map((item) => item.json || {}).slice(0, targetRowCount);\nconst dataRows = sourceRows.map((row) => headers.map((key) => {\n  const value = row[key];\n  return value === null || value === undefined ? '' : String(value);\n}));\n\nwhile (dataRows.length < targetRowCount) {\n  dataRows.push(Array(headers.length).fill(''));\n}\n\nreturn [{\n  json: {\n    values: [headers, ...dataRows],\n    generated_at: new Date().toISOString(),\n    total_companies: sourceRows.length,\n    spreadsheet_url: 'https://docs.google.com/spreadsheets/d/1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY',\n  },\n}];"
+      },
+      "id": "build-sheet-payload",
+      "name": "Build Sheet Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY/values/Company%20MQLs!A1:J5000?valueInputOption=USER_ENTERED&includeValuesInResponse=false",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
         },
-        "sheetName": {
-          "__rl": true,
-          "mode": "name",
-          "value": "Company MQLs"
-        },
-        "columns": {
-          "mappingMode": "autoMapInputData",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { majorDimension: 'ROWS', values: $json.values } }}",
         "options": {
-          "dataLocationOnSheet": {
-            "headerRow": 1,
-            "firstDataRow": 2
-          },
-          "handlingExtraData": "insertInNewColumn"
+          "timeout": 30000
         }
       },
-      "id": "append-data",
-      "name": "Append to Sheet",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [1740, 300]
+      "id": "write-sheet-snapshot",
+      "name": "Write Sheet Snapshot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1320, 300]
     },
     {
       "parameters": {
@@ -114,7 +107,7 @@
             },
             {
               "name": "total_companies",
-              "value": "={{ $items().length }}"
+              "value": "={{ $json.total_companies || 0 }}"
             }
           ]
         }
@@ -123,7 +116,7 @@
       "name": "Add Metadata",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [2040, 300]
+      "position": [1560, 300]
     }
   ],
   "connections": {
@@ -143,19 +136,26 @@
     },
     "Query Company MQL Data": {
       "main": [{
-        "node": "Clear Sheet",
+        "node": "Prepare Sheet Data",
         "type": "main",
         "index": 0
       }]
     },
-    "Clear Sheet": {
+    "Prepare Sheet Data": {
       "main": [{
-        "node": "Append to Sheet",
+        "node": "Build Sheet Payload",
         "type": "main",
         "index": 0
       }]
     },
-    "Append to Sheet": {
+    "Build Sheet Payload": {
+      "main": [{
+        "node": "Write Sheet Snapshot",
+        "type": "main",
+        "index": 0
+      }]
+    },
+    "Write Sheet Snapshot": {
       "main": [{
         "node": "Add Metadata",
         "type": "main",

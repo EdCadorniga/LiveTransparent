@@ -18,7 +18,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 - Apply `postgres/voice_agent_schema.sql` to reporting Postgres.
 - Confirm `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV` is present in root `.env`.
 - Confirm `GHL_API_KEY` aliases `GHL_PIT` in root `.env` and that the Codex session has been restarted after any PIT rotation.
-- Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
+- Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/voice-callback`.
 - Verify DNC source of truth and queue feed workflow are active.
 - Confirm archived workflows are not active in n8n.
 
@@ -34,6 +34,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
    - provider call start request sent,
    - GHL note written.
 7. Activate workflows with low cadence.
+8. Enforce the hard 5-minute limit on the two active assistants with a 4:45 background warning and a 5:00 force-end.
 
 ## Callback workflow requirement
 The production callback workflow is merged:

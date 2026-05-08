@@ -14,7 +14,7 @@ This package documents the current production Vapi voice-agent implementation an
 - `postgres/voice_agent_schema.sql` - queue/attempt/transcript schema.
 - `n8n-workflow/lt-voice-agent-v1.json` - legacy outbound dialer export.
 - `n8n-workflow/lt-voice-agent-vapi-callback-v1-merged.json` - canonical merged callback/tool workflow export.
-- `runbooks/Voice_Agent_Operations_Runbook.md` - production deployment and operations checks.
+- `runbooks/Voice_Agent_Operations_Runbook.md` - production deployment and operations checks, including the 5-minute call limit.
 - `runbooks/Vapi_Outbound_Call_Training.md` - training guide for how the dialer and callback workflows work with Vapi.
 - `ARCHIVE.md` - archive index for retired voice workflows and exports.
 
@@ -24,7 +24,7 @@ This package documents the current production Vapi voice-agent implementation an
 - Voice provider and LLM provider are env-driven and swappable.
 - Transcript system of record is Postgres; GHL stores summary + link.
 - Production workflow IDs:
-  - `fx4UvKUWbqJEY3LK` - canonical merged callback/tool router
+  - `fx4UvKUWbqJEY3LK` - canonical merged callback/tool router on `/webhook/voice-callback`
   - `1ogCy9ScVjtF0Cqf` - canonical outbound dialer
 - GHL config:
   - `GHL_PIT` - auth token
