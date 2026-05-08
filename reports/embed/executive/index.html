@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-05-08-v6-stage-utm-fixes -->
+    <!-- build-stamp: 2026-05-09-v7-acquisition-sources -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -256,6 +256,31 @@
           </div>
         </section>
 
+        <!-- SECTION: ACQUISITION SOURCES -->
+        <div class="section-label" id="section-acquisition">Acquisition Sources</div>
+        <section class="grid two-col" style="margin-bottom:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Contact Acquisition Sources</h2>
+              <span>Attribution</span>
+            </div>
+            <div class="panel-body">
+              <div class="bar-list" id="contact-sources-list"><div class="loading">Loading...</div></div>
+              <div class="footer-note">Shows which sources brought in contacts. Campaign details enriched from GA4 bridge when contact-level UTM data is available.</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Leadform &amp; Ad Traffic</h2>
+              <span>GA4 UTM</span>
+            </div>
+            <div class="panel-body">
+              <div class="bar-list" id="ad-utm-list"><div class="loading">Loading...</div></div>
+              <div class="footer-note">Sessions from ad platforms detected via UTM tags. Source <code>an</code> = Leadform/AdForm; <code>facebook/instagram</code> = Meta Ads. Contact attribution requires GA4-GHL bridge to be populated for these sessions.</div>
+            </div>
+          </div>
+        </section>
+
         <!-- SECTION 2: FUNNEL EFFICIENCY & ATTRIBUTION -->
         <div class="section-label" id="section-funnel">Funnel &amp; Attribution</div>
         <section class="grid two-col" style="margin-bottom:16px;">
@@ -496,7 +521,7 @@
     </div>
     <script>
       (function () {
-        var BUILD_STAMP = "2026-05-08-v6-stage-utm-fixes";
+        var BUILD_STAMP = "2026-05-09-v7-acquisition-sources";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -652,8 +677,55 @@
           el = document.getElementById("meta-opps"); if (el) el.textContent = formatNumber(totalOpps);
           el = document.getElementById("meta-booked"); if (el) el.textContent = formatNumber(totalBooked);
           renderBars(document.getElementById("meta-campaign-list"), contacts.slice(0, 12).map(function (i) {
-            return { label: i.campaign || i.source || "Meta", sessions: i.contacts || 0, sub: "contacts:" + formatNumber(i.contacts || 0) + " opps:" + formatNumber(i.opportunities || 0) + " booked:" + formatNumber(i.bookedContacts || 0) };
+            var label = (i.campaign && i.campaign !== "unknown") ? i.campaign : (i.source || "Meta");
+            if (i.medium && i.medium !== "unknown") label += " (" + i.medium + ")";
+            return { label: label, sessions: i.contacts || 0, sub: "contacts:" + formatNumber(i.contacts || 0) + " opps:" + formatNumber(i.opportunities || 0) + " booked:" + formatNumber(i.bookedContacts || 0) };
           }), "No Meta-attributed contacts in this window.");
+        }
+        function renderContactSources(data) {
+          var sources = Array.isArray(data.contactSources) ? data.contactSources : [];
+          var metaSources = Array.isArray(data.metaAttribution) ? data.metaAttribution : [];
+          if (sources.length === 0 && metaSources.length > 0) {
+            sources = metaSources.map(function (i) {
+              return { source: i.source || "Meta", medium: i.medium || "", campaign: (i.campaign !== "unknown" ? i.campaign : "") || "", contacts: i.contacts || 0, opportunities: i.opportunities || 0 };
+            });
+          }
+          if (sources.length === 0) {
+            var el = document.getElementById("contact-sources-list");
+            if (el) el.innerHTML = "<div class=\"loading\">Contact-level attribution data pending bridge enrichment.</div>";
+            return;
+          }
+          renderBars(document.getElementById("contact-sources-list"), sources.map(function (s) {
+            var label = s.source || "Unknown";
+            if (s.medium && s.medium !== "Unknown" && s.medium !== "") label += " / " + s.medium;
+            var sub = "contacts:" + formatNumber(s.contacts||0) + " opps:" + formatNumber(s.opportunities||0);
+            if (s.campaign && s.campaign !== "") sub += " cmp:" + s.campaign;
+            return { label: label, sessions: s.contacts || 0, sub: sub };
+          }), "No acquisition source data.");
+        }
+        function renderAdUtmTraffic(data) {
+          var utms = Array.isArray(data.utmBreakdown) ? data.utmBreakdown : [];
+          var adRows = utms.filter(function (u) {
+            var src = (u.source || "").toLowerCase();
+            var med = (u.medium || "").toLowerCase();
+            var camp = (u.campaign || "").toLowerCase();
+            return ["an", "facebook", "instagram", "fb", "ig", "meta"].indexOf(src) >= 0 ||
+              med.indexOf("facebook") >= 0 || med.indexOf("instagram") >= 0 || med.indexOf("leadform") >= 0 ||
+              camp.indexOf("meta") >= 0 || camp.indexOf("leadform") >= 0 ||
+              (u.landingPage || "").indexOf("utm_id=") >= 0 || (u.landingPage || "").indexOf("utm_source=an") >= 0;
+          });
+          if (adRows.length === 0) {
+            var el = document.getElementById("ad-utm-list");
+            if (el) el.innerHTML = "<div class=\"loading\">No ad-tagged sessions in this window.</div>";
+            return;
+          }
+          var maxAd = Math.max(1, ...adRows.map(function (i) { return i.sessions || 0; }));
+          renderBars(document.getElementById("ad-utm-list"), adRows.slice(0, 8).map(function (u) {
+            var label = (u.source || "?") + " / " + (u.medium || "?");
+            if (u.campaign) label += " [" + u.campaign + "]";
+            var value = u.sessions || 0;
+            return { label: label, sessions: value, sub: "sessions:" + formatNumber(value) + (u.leads > 0 ? " leads:" + formatNumber(u.leads) : "") };
+          }), "No ad traffic data.");
         }
         function getHealthStatus(lastSuccessAt) {
           if (!lastSuccessAt) return { label: "Unknown", cls: "pending" };
@@ -713,6 +785,8 @@
             return { label: c.label || c.channel || "?", value: formatNumber(c.sessions || 0) + " sess / " + formatNumber(c.leads || 0) + " leads" };
           }), null);
           renderMetaAttribution(data);
+          renderContactSources(data);
+          renderAdUtmTraffic(data);
           var bestChannel = channelBreakdown.length > 0 ? (channelBreakdown[0].label || "GHL ready") : "GHL ready";
           el = document.getElementById("fn-session-to-form"); if (el) el.textContent = formatPercent(Number(summary.sessionToFormRate || 0));
           el = document.getElementById("fn-session-to-contact"); if (el) el.textContent = formatPercent(Number(summary.sessionToContactRate || 0));
