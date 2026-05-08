@@ -713,6 +713,9 @@
           el = document.getElementById("sq-won"); if (el) { el.textContent = formatNumber(closedWon); el.className = closedWon > 0 ? "value good" : ""; }
           el = document.getElementById("sq-lost"); if (el) el.textContent = formatNumber(closedLost);
           el = document.getElementById("sq-win-rate"); if (el) el.textContent = formatNumber(winRate, 1) + "%";
+          renderBars(document.getElementById("deal-stage-list"), stageDropoff.slice(0, 10).map(function (s) {
+            return { label: (s.pipeline || "?") + " → " + (s.stage || "?"), sessions: s.stage_count || 0, sub: "in:" + formatNumber(s.moved_in_count || 0) + " out:" + formatNumber(s.moved_out_count || 0) };
+          }), "No stage data yet.");
           
           // John's view — appointments + deals
           renderBars(document.getElementById("appointments-list"), appointments.map(function(a) {
