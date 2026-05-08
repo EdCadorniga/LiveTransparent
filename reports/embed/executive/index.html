@@ -495,7 +495,7 @@
     </div>
     <script>
       (function () {
-        var BUILD_STAMP = "2026-05-08-v3-sales";
+        var BUILD_STAMP = "2026-05-08-v4-health-fixes";
         var params = new URLSearchParams(window.location.search);
         var view = params.get("view") || "overview";
         var validRanges = ["7d", "30d", "90d"];
@@ -672,10 +672,14 @@
           el = document.getElementById("kpi-meetings"); if (el) el.textContent = formatNumber(meetings);
           el = document.getElementById("kpi-closed-won"); if (el) { el.textContent = formatNumber(closedWon); el.className = "value" + (closedWon > 0 ? " good" : ""); }
           el = document.getElementById("kpi-revenue"); if (el) { el.textContent = formatCurrency(revenue); el.className = "value" + (revenue > 0 ? " good" : ""); }
-          renderBars(document.getElementById("channels-list"), channelBreakdown.map(function (c) {
+          var filteredChannels = channelBreakdown.filter(function(c) {
+            var lbl = (c.label || c.channel || "").toLowerCase();
+            return lbl !== "unattributed" && lbl !== "unknown" || (c.sessions || 0) > 0;
+          });
+          renderBars(document.getElementById("channels-list"), filteredChannels.map(function (c) {
             return { label: c.label || c.channel || "Other", sessions: c.sessions || 0, value: c.sessions || 0 };
           }), "No channel data yet.");
-          renderMiniGrid(document.getElementById("channel-detail-grid"), channelBreakdown.slice(0, 6).map(function (c) {
+          renderMiniGrid(document.getElementById("channel-detail-grid"), filteredChannels.slice(0, 6).map(function (c) {
             return { label: c.label || c.channel || "?", value: formatNumber(c.sessions || 0) + " sess / " + formatNumber(c.leads || 0) + " leads" };
           }), null);
           renderMetaAttribution(data);
@@ -760,11 +764,39 @@
             return { label: (u.source || "?") + " / " + (u.medium || "?"), sessions: u.sessions || 0, sub: "leads:" + formatNumber(u.leads || 0) + " opps:" + formatNumber(u.opportunities || 0) };
           }), "No UTM data yet.");
           health.forEach(function (h) {
-            var status = getHealthStatus(h.last_success_at);
-            var label = h.source_system || h.source || "?";
-            var idMap = { "ghl": "hl-ghl", "ga4": "hl-ga4", "gsc": "hl-gsc" };
-            var id = idMap[label.toLowerCase()] || null;
-            if (id) { el = document.getElementById(id); if (el) { el.textContent = status.label; el.className = status.cls; } }
+            var key = h.source_system || h.source || "";
+            var idMap = {
+              "ghl": "hl-ghl",
+              "ga4": "hl-ga4",
+              "gsc": "hl-gsc",
+              "meta_ads": "hl-meta",
+              "rollups": "hl-rollups",
+              "bridge": "hl-bridge",
+              "velocity": "hl-velocity",
+              "appointments": "hl-calls"
+            };
+            var id = idMap[key] || null;
+            if (!id) return;
+            el = document.getElementById(id);
+            if (!el) return;
+            if (h.status === "success" || h.status === "ready") {
+              var hours = h.last_success_at ? (Date.now() - new Date(h.last_success_at).getTime()) / 3600000 : null;
+              if (hours === null || hours === undefined) {
+                el.textContent = "Unknown"; el.className = "pending";
+              } else if (hours <= 48) {
+                el.textContent = "Healthy"; el.className = "good";
+              } else if (hours <= 96) {
+                el.textContent = "Stale"; el.className = "warn";
+              } else {
+                el.textContent = "Failed"; el.className = "bad";
+              }
+            } else if (h.status === "blocked") {
+              el.textContent = "Blocked"; el.className = "bad";
+            } else if (h.status === "pending") {
+              el.textContent = "Pending"; el.className = "pending";
+            } else {
+              el.textContent = h.status || "—"; el.className = "";
+            }
           });
         }
         syncNavLinks();
