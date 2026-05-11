@@ -131,7 +131,7 @@ Apollo continues doing:
 | Matched funnel by landing page | Planned | Needed for ad creative analysis |
 | GHL → LinkedIn automation | Planned | LinkedIn connect dispatcher active; full workflow deferred |
 | GHL Calls & Appointments Ingest | Active | Appointments ingest live (`yWZVSqEcjTbMT3kG`, calendar `SrtXcFVyea7pFl3nTiIK`); Calls ingest live from GHL Conversations |
-| Pipeline stage velocity (days per stage) | Active | `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`) computes from event timestamps via CTE + LEAD window |
+| Pipeline stage velocity (days per stage) | Active | `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`) calculates this by combining pipeline history events with the previous stage record for each opportunity |
 
 ---
 
@@ -161,11 +161,11 @@ Minimum v1 output from the executive report:
 | Moved-out count | Working | Computed via LAG window comparing previous day's stage count |
 | Won/lost counts | Working | From opportunity status mapping |
 | Pipeline history raw events | Captured | `report_raw_ghl_pipeline_history` table populated by GHL Daily Sales Ingest |
-| Stage-by-stage velocity | Live | Computed by `LT - Report Pipeline Velocity` using CTE + LEAD from `report_raw_ghl_pipeline_history`; writes to `report_stage_velocity_summary` and `report_opp_stage_timeline` |
+| Stage-by-stage velocity | Live | Computed by `LT - Report Pipeline Velocity` using pipeline history events plus the previous stage for each opportunity; writes to `report_stage_velocity_summary` and `report_opp_stage_timeline` |
 | Opportunity cycle length | Live | Now computed from actual event timestamps via `report_opp_stage_timeline.days_in_stage` |
 | True stage transition timestamps | Live | `report_opp_stage_timeline` has `entered_at` / `exited_at` per opportunity per stage |
 
-**Resolved**: Pipeline velocity (avg days between stages) is now computed from actual pipeline history event timestamps by `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`). The workflow uses a CTE-based query with LEAD window functions and writes to `report_stage_velocity_summary` (14 stages across 3 pipelines) and `report_opp_stage_timeline` (50,522 rows). Runs daily at 24h interval.
+**Resolved**: Pipeline velocity (avg days between stages) is now computed from actual pipeline history event timestamps by `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`). The workflow uses a query that compares each stage event to the previous stage event for the same opportunity, then writes to `report_stage_velocity_summary` (14 stages across 3 pipelines) and `report_opp_stage_timeline` (50,522 rows). Runs daily at 24h interval.
 
 Additional reporting requests that would be sub sections under the main section and can be covered in calls more in depth by team leads
 Sales (john)

@@ -152,6 +152,7 @@
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-funnel" data-view="overview" data-scroll="section-funnel"><span class="nav-dot"></span> Funnel &amp; Attribution</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-acquisition" data-view="overview" data-scroll="section-acquisition"><span class="nav-dot"></span> Acquisition Sources</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-sales" data-view="overview" data-scroll="section-sales"><span class="nav-dot"></span> Sales &amp; Pipeline</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-gsc" data-view="overview" data-scroll="section-gsc"><span class="nav-dot"></span> Search Console</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-calls" data-view="overview" data-scroll="section-calls"><span class="nav-dot"></span> Calls &amp; Conversations</a>
         </div>
         <div class="nav-group">
@@ -518,8 +519,14 @@
               <span>GHL Appointments</span>
             </div>
             <div class="panel-body">
+              <div class="mini-grid" id="appointments-grid" style="margin-bottom:12px;">
+                <div class="mini"><strong>Total</strong><div id="appointments-total">—</div></div>
+                <div class="mini"><strong>Showed</strong><div id="appointments-showed">—</div></div>
+                <div class="mini"><strong>No-show</strong><div id="appointments-noshow">—</div></div>
+                <div class="mini"><strong>Cancelled</strong><div id="appointments-cancelled">—</div></div>
+              </div>
               <div class="bar-list" id="appointments-list"><div class="loading">Loading appointment data...</div></div>
-              <div class="footer-note">Appointments from calendar SrtXcFVyea7pFl3nTiIK — Regulated Ads On Social/Search. Call activity is shown separately in the Calls &amp; Conversations section.</div>
+              <div class="footer-note">Appointments from calendar SrtXcFVyea7pFl3nTiIK — Regulated Ads On Social/Search. The status counts below come from the current GHL appointment status saved on each record. Call activity is shown separately in the Calls &amp; Conversations section.</div>
             </div>
           </div>
           <div class="panel">
@@ -626,11 +633,31 @@
             </div>
           </div>
         </section>
+
+        <!-- SEARCH CONSOLE -->
+        <div class="section-label" id="section-gsc">Search Console</div>
+        <section class="grid" style="margin-bottom:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>GSC Search</h2>
+              <span>Google Search Console</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="gsc-grid">
+                <div class="mini"><strong>Clicks</strong><div id="gsc-clicks">—</div></div>
+                <div class="mini"><strong>Impressions</strong><div id="gsc-impressions">—</div></div>
+                <div class="mini"><strong>CTR</strong><div id="gsc-ctr">—</div></div>
+                <div class="mini"><strong>Avg Position</strong><div id="gsc-position">—</div></div>
+              </div>
+              <div class="footer-note">Google Search Console is live. This panel shows the high-level search performance. Query and page detail stays in the dedicated GSC workflow.</div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
     <script>
       (function () {
-        var BUILD_STAMP = "2026-05-12-v9-calls";
+        var BUILD_STAMP = "2026-05-12-v10-gsc-appointments";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -870,6 +897,19 @@
           var callStatusBreakdown = Array.isArray(data.callStatusBreakdown) ? data.callStatusBreakdown : [];
           var utmBreakdown = Array.isArray(data.utmBreakdown) ? data.utmBreakdown : [];
           var health = Array.isArray(data.health) ? data.health : [];
+          var gscClicks = Number(summary.gscClicks || 0);
+          var gscImpressions = Number(summary.gscImpressions || 0);
+          var gscCtr = Number(summary.gscCtr || 0);
+          var gscPosition = Number(summary.gscPosition || 0);
+          var appointmentCounts = appointments.reduce(function (acc, item) {
+            var status = String(item && item.status ? item.status : 'unknown').toLowerCase();
+            var count = Number(item && (item.count || item.appointment_count || 0) || 0);
+            acc.total += count;
+            if (status === 'showed') acc.showed += count;
+            else if (status === 'no-show') acc.noShow += count;
+            else if (status === 'cancelled') acc.cancelled += count;
+            return acc;
+          }, { total: 0, showed: 0, noShow: 0, cancelled: 0 });
           var sessions = Number(summary.trafficNumeric || summary.sessions || 0);
           var contacts = Number(summary.leadsNumeric || summary.contactsCreated || 0);
           var opps = Number(summary.opportunitiesCreated || 0);
@@ -888,6 +928,10 @@
           var callVoicemail = Number(summary.callVoicemailCount || 0);
           var callInbound = Number(summary.callInboundCount || 0);
           var callOutbound = Number(summary.callOutboundCount || 0);
+          var appointmentTotal = Number(summary.appointmentTotal || appointmentCounts.total || 0);
+          var appointmentShowed = Number(summary.appointmentShowedCount || appointmentCounts.showed || 0);
+          var appointmentNoShow = Number(summary.appointmentNoShowCount || appointmentCounts.noShow || 0);
+          var appointmentCancelled = Number(summary.appointmentCancelledCount || appointmentCounts.cancelled || 0);
           var winRate = closedWon + closedLost > 0 ? (closedWon / (closedWon + closedLost)) * 100 : 0;
           var userToContactRate = users > 0 ? (contacts / users) : 0;
           var userToFormRate = users > 0 ? (forms / users) : 0;
@@ -931,6 +975,10 @@
           el = document.getElementById("cg-opportunities"); if (el) el.textContent = formatNumber(opps);
           el = document.getElementById("cg-meetings"); if (el) el.textContent = formatNumber(meetings);
           el = document.getElementById("cg-closed-won"); if (el) el.textContent = formatNumber(closedWon);
+          el = document.getElementById("gsc-clicks"); if (el) el.textContent = formatNumber(gscClicks);
+          el = document.getElementById("gsc-impressions"); if (el) el.textContent = formatNumber(gscImpressions);
+          el = document.getElementById("gsc-ctr"); if (el) el.textContent = formatPercent(gscCtr);
+          el = document.getElementById("gsc-position"); if (el) el.textContent = formatNumber(gscPosition, 1);
           renderMiniGrid(document.getElementById("pipeline-grid"), pipelineDropoff.map(function (p) {
             return { label: p.label || p.pipeline || "Pipeline", value: formatNumber(p.value || p.stageCount || 0) };
           }), [{ label: "Warm", value: "—" }, { label: "Sales Outreach", value: "—" }, { label: "Sales", value: "—" }]);
@@ -953,6 +1001,10 @@
           }), "No active opportunity data yet.");
           
           // John's view — appointments + deals
+          el = document.getElementById("appointments-total"); if (el) el.textContent = formatNumber(appointmentTotal);
+          el = document.getElementById("appointments-showed"); if (el) el.textContent = formatNumber(appointmentShowed);
+          el = document.getElementById("appointments-noshow"); if (el) el.textContent = formatNumber(appointmentNoShow);
+          el = document.getElementById("appointments-cancelled"); if (el) el.textContent = formatNumber(appointmentCancelled);
           renderBars(document.getElementById("appointments-list"), appointments.map(function(a) {
             return { label: a.status || "?", sessions: a.count || 0, sub: formatNumber(a.count || 0) + " total" };
           }), "No appointment data yet.");
