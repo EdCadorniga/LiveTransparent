@@ -89,22 +89,35 @@ Naming standards matter because the report can only group what is named consiste
 - If a naming field is used in reporting, treat it as a data contract. Changing it should be a conscious decision, not an individual preference.
 
 # Part 5: Improvement Suggestions
-These are the most useful next improvements if the report needs to become easier to review or harder to misread.
+These are split into two groups:
 
-| Priority | Suggestion | Why it helps |
+- `Safe now` means we can add it to the report or guide without deleting or rewriting the current records.
+- `Needs more setup` means it still should not destroy data, but it may need extra coordination or a small amount of historical cleanup.
+
+None of the `Safe now` items require us to erase or rewrite existing records. They either change the wording, add a clearer explanation, or show information we already have.
+
+## Safe now
+
+| Suggestion | Why we need it | Data impact |
 |---|---|---|
-| High | Move the range definition into the summary API response. | That makes the trailing-day rule a source-of-truth value instead of just UI copy. |
-| High | Emit user-based conversion rates server-side. | The dashboard currently computes them from summary fields; moving them into the API removes ambiguity and keeps the docs aligned with the payload. |
-| High | Return a metric glossary object from the API. | This lets the UI and the training guide use the same definitions without drift. |
-| High | Define active-opportunity criteria server-side and expose touched/stage-moved counts. | This removes ambiguity about whether the report is counting open deals, worked deals, or only new deal creation. |
-| High | Standardize naming for ads, ad sets, campaigns, and other measured variables. | Use consistent, machine-readable patterns so reporting can group traffic correctly. For example: campaigns = {brand}-{channel}-{objective}-{audience}-{geo}-{date}; ad sets = {brand}-{campaign}-{audience}-{geo}-{date}; ads = {brand}-{campaign}-{adset}-{creative}-{format}-{date}. Apply the same discipline to UTM source, medium, campaign, content, and landing page slugs. |
-| Medium | Add a true owner-scoped sales filter if Johns Deals is meant to be owner-specific. | Right now the report presents the same opportunity payload in two lenses; a real owner filter would make the distinction explicit. |
-| Medium | Add a campaign registry or created-UTM catalog. | This would answer the common question of why a GHL-created UTM does not appear in observed traffic. |
-| Medium | Add a note-level activity join if "worked" must include touches that do not change stage. | Notes-only activity can be missed if the underlying opportunity row is not updated in a way the report can see. |
-| Medium | Add Search Console surfacing once organic search should be reviewed in the executive view. | GSC is live in the data layer now, so the reporting surface can expose clicks, impressions, and query data when the team is ready. |
-| Medium | Add a social failure drilldown by post ID and error message. | That would make the Failed count actionable instead of only descriptive. |
-| Medium | Expose range metadata in the header. | Show the exact from/to dates so reviewers do not infer a calendar week incorrectly. |
-| Low | Add a short onboarding note about contact capture paths. | This would explain why forms, routing, manual entry, imports, and follow-up can all create contacts. |
+| Show the exact date window at the top of the report. | People should not have to guess whether a range means a calendar week or a trailing window. | No historical data changes. |
+| Keep the metric definitions inside the report and the guide. | Everyone should read the same meaning for each card, not a different guess. | No historical data changes. |
+| Show user-based conversion rates directly in the report. | This makes the funnel easier to understand because the rate is shown instead of calculated in someone's head. | Uses the numbers already collected. |
+| Define active deals, worked deals, and stage movers in plain language. | This removes confusion about whether the report is counting new deals, open deals, or deals that were actually touched. | Uses current opportunity records. |
+| Add a simple drilldown for failed social posts. | Management can see which posts failed and why instead of only seeing a total. | No historical data changes. |
+| Show search performance in the report when the team wants to review organic search. | It gives leadership one place to see search demand, clicks, and impressions. | No historical data changes. |
+| Add an owner filter if `John's Deals` is meant to show John's own pipeline only. | It makes the owner view match the person's actual book of business. | No historical data changes. |
+| Standardize names for campaigns, ad sets, ads, UTMs, and landing pages going forward. | Clean names make the report group results correctly and reduce manual cleanup. | Past records stay as-is; future records improve. |
+| Keep a master list of the campaigns and UTMs we intentionally launched. | This helps the team tell the difference between something we launched on purpose and something the report never saw. | No historical data changes. |
+| Add a note about how contacts can be created. | It explains why contacts may come from forms, routing, manual entry, imports, or follow-up. | No historical data changes. |
+
+## Needs More Setup
+
+| Suggestion | Why we need it | Data impact |
+|---|---|---|
+| Count a deal as worked when notes or updates are added, even if the stage does not change. | Right now, some active work may not show up unless the deal itself changed stage or was updated in a way the report can see. | Still additive, but it needs a clearer rule for what counts as work. |
+| Add a cleaner match between contacts and sales when the contact record is incomplete. | This helps reduce the `Unknown` bucket and makes attribution easier to trust. | Still additive, but it may need extra matching rules. |
+| Keep the report and the guide using the same definitions. | That prevents the dashboard and the training guide from drifting apart over time. | No historical data changes, but it needs a small maintenance process. |
 
 # Part 6: Current Guardrails
 
