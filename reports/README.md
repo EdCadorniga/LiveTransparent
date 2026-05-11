@@ -21,7 +21,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary dedupe and stage-aware win logic integrated into production.
 - `LT - Report Daily Rollups` now preserves GA-backed channel, UTM, landing-page, and daily traffic rows so the report host keeps live Channel Breakdown after rollups run.
 - `LT - Report Rollup Corrections` has been deactivated because the production Rollups workflow now owns those fixes.
-- `LT - Report Executive Summary API` now returns funnel-efficiency metrics for the embedded report, including traffic-to-contact and opportunity-stage conversion rates.
+- `LT - Report Executive Summary API` now returns funnel-efficiency metrics for the embedded report, including traffic-to-contact and opportunity-stage conversion rates, plus the live `activeOpportunityCount`, `workedOpportunityCount`, and `stageMoverCount` fields.
 - `LT - Report Executive Summary API` now uses a contact-safe cohort definition for `contactToOpportunityRate` so the embedded funnel is not inflated by multi-opportunity rollup semantics.
 - `LT - Report Executive Summary API` now also exposes attribution-coverage metrics for the new-contact cohort so the report can separate funnel weakness from matching weakness.
 - Meta reporting in the Executive Report is currently attribution-first:
@@ -35,7 +35,8 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - `7d`, `30d`, and `90d` are trailing complete-day presets ending yesterday, not click-day-dependent calendar blocks.
 - The `Acquisition Sources` sidebar entry opens the contact-level attribution view.
 - The `UTM / Campaign Breakdown` section shows observed traffic rows, not every UTM ever created in GHL.
-- `Sales Team` and `John's Deals` are two presentations of the same opportunity payload, with the latter framed as a deal-centred view.
+- `Active Opportunities Summary` and `John's Active Deals` are two presentations of the same opportunity payload, with the latter framed as a deal-centred view.
+- In the active-opportunity view, `active` means the latest open snapshot, `worked` means the opportunity was updated or moved stage in the selected window, and `stage movers` means the opportunity changed stage at least once in that window.
 - Contacts are not guaranteed to be created by forms; they can also arrive through routing, manual CRM entry, imports, and follow-up.
 - The GHL sidebar menu record is already live in GHL.
 

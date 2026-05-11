@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-05-11-v8-metric-glossary -->
+    <!-- build-stamp: 2026-05-11-v9-active-opps -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -193,7 +193,7 @@
             <div class="sub">GHL</div>
           </div>
           <div class="kpi-card">
-            <div class="label">Opportunities</div>
+            <div class="label">Opps Created</div>
             <div class="value" id="kpi-opportunities">—</div>
             <div class="sub">GHL</div>
           </div>
@@ -248,7 +248,19 @@
               </div>
               <div class="definition-card">
                 <strong>Sales Panels</strong>
-                <p><b>Sales Team</b> is the team-wide summary. <b>John's Deals</b> is the same opportunity payload presented as a deal-centred view, not a separate source table.</p>
+                <p><b>Active Opportunities Summary</b> is the team-wide open-deal view. <b>John's Active Deals</b> is the same opportunity payload presented as a deal-centred view, not a separate source table.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Active Opportunities</strong>
+                <p><b>Active Open</b> counts the latest opportunity snapshot whose status is still open as of the selected end date. It is not the same thing as opportunities created in the window.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Worked Opportunities</strong>
+                <p><b>Worked</b> counts active opportunities that were updated or had a stage change inside the selected window. This is the closest dashboard proxy for deals that were definitely touched.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Stage Movers</strong>
+                <p><b>Stage Movers</b> counts active opportunities that changed stage at least once inside the selected window. The stage lists below show where those open deals currently sit.</p>
               </div>
               <div class="definition-card">
                 <strong>Social Posts</strong>
@@ -442,7 +454,7 @@
                 <div class="mini"><strong>Best Channel</strong><div id="sq-best-channel">—</div></div>
               </div>
               <div class="divider"></div>
-              <div class="sub-head">Deal Stage Pipeline</div>
+              <div class="sub-head">Active Deals by Current Stage</div>
               <div class="bar-list" id="deal-stage-list"><div class="loading">Loading deal data...</div></div>
             </div>
           </div>
@@ -467,27 +479,27 @@
         <section class="grid two-col" style="margin-bottom:16px;">
           <div class="panel">
             <div class="panel-head">
-              <h2>Active Deals by Stage</h2>
+              <h2>Current Open Deals by Stage</h2>
               <span>GHL</span>
             </div>
             <div class="panel-body">
               <div class="bar-list" id="deals-pipeline-list"><div class="loading">Loading pipeline data...</div></div>
-              <div class="footer-note">Active opportunities grouped by pipeline stage.</div>
+              <div class="footer-note">Active opportunities are current open deals as of the selected end date. Worked deals are those with a recent update or stage movement in the selected window.</div>
             </div>
           </div>
           <div class="panel">
             <div class="panel-head">
-              <h2>Sales Team Summary</h2>
+              <h2>Active Opportunities Summary</h2>
               <span>GHL</span>
             </div>
             <div class="panel-body" id="sales-team-panel">
               <div class="mini-grid" id="sales-team-grid">
-                <div class="mini"><strong>Total Opps</strong><div id="st-total-opps">—</div></div>
-                <div class="mini"><strong>Proposals Out</strong><div id="st-proposals">—</div></div>
-                <div class="mini"><strong>In Negotiation</strong><div id="st-negotiation">—</div></div>
+                <div class="mini"><strong>Active Open</strong><div id="st-total-opps">—</div></div>
+                <div class="mini"><strong>Worked</strong><div id="st-worked-opps">—</div></div>
+                <div class="mini"><strong>Stage Movers</strong><div id="st-stage-movers">—</div></div>
                 <div class="mini"><strong>Pipeline Value</strong><div id="st-pipeline-value">—</div></div>
               </div>
-              <div class="footer-note">Team totals are company-wide opportunity totals and pipeline value. Calls &amp; appointments pending GHL API access. Meeting show rate tracked once appointment ingest is live.</div>
+              <div class="footer-note">Team totals use the latest open opportunity snapshot as of the selected end date. Worked means the opportunity updated or moved stage inside the selected window.</div>
             </div>
           </div>
         </section>
@@ -507,19 +519,19 @@
           </div>
           <div class="panel">
             <div class="panel-head">
-              <h2>John's Deals</h2>
+              <h2>John's Active Deals</h2>
               <span>GHL</span>
             </div>
             <div class="panel-body">
               <div class="mini-grid" id="john-deals-grid">
-                <div class="mini"><strong>Active Opps</strong><div id="jd-opps">—</div></div>
-                <div class="mini"><strong>Proposals</strong><div id="jd-proposals">—</div></div>
-                <div class="mini"><strong>Negotiation</strong><div id="jd-negotiation">—</div></div>
+                <div class="mini"><strong>Active Open</strong><div id="jd-opps">—</div></div>
+                <div class="mini"><strong>Worked</strong><div id="jd-worked">—</div></div>
+                <div class="mini"><strong>Stage Movers</strong><div id="jd-stage-movers">—</div></div>
                 <div class="mini"><strong>Won</strong><div id="jd-won">—</div></div>
                 <div class="mini"><strong>Lost</strong><div id="jd-lost">—</div></div>
                 <div class="mini"><strong>Win Rate</strong><div id="jd-win-rate">—</div></div>
               </div>
-              <div class="footer-note">This is the same opportunity payload as the team summary, presented as a more deal-centred operating view rather than a separate source table.</div>
+              <div class="footer-note">This is the same opportunity payload as the team summary. Active open is the latest open snapshot; worked and stage movers are the opportunities that were touched or moved inside the selected window.</div>
             </div>
           </div>
         </section>
@@ -824,6 +836,7 @@
           var pipelineDropoff = Array.isArray(data.pipelineDropoff) ? data.pipelineDropoff : [];
           var stageDropoff = Array.isArray(data.stageDropoff) ? data.stageDropoff : [];
           var stageVelocity = Array.isArray(data.stageVelocity) ? data.stageVelocity : [];
+          var opportunityStageBreakdown = Array.isArray(data.opportunityStageBreakdown) ? data.opportunityStageBreakdown : [];
           var appointments = Array.isArray(data.appointments) ? data.appointments : [];
           var utmBreakdown = Array.isArray(data.utmBreakdown) ? data.utmBreakdown : [];
           var health = Array.isArray(data.health) ? data.health : [];
@@ -836,6 +849,9 @@
           var closedWon = Number(summary.closedWonCount || 0);
           var closedLost = Number(summary.closedLostCount || 0);
           var revenue = Number(summary.closedWonRevenue || 0);
+          var activeOpps = Number(summary.activeOpportunityCount || 0);
+          var workedOpps = Number(summary.workedOpportunityCount || 0);
+          var stageMovers = Number(summary.stageMoverCount || 0);
           var winRate = closedWon + closedLost > 0 ? (closedWon / (closedWon + closedLost)) * 100 : 0;
           var userToContactRate = users > 0 ? (contacts / users) : 0;
           var userToFormRate = users > 0 ? (forms / users) : 0;
@@ -896,17 +912,17 @@
           el = document.getElementById("sq-won"); if (el) { el.textContent = formatNumber(closedWon); el.className = closedWon > 0 ? "value good" : ""; }
           el = document.getElementById("sq-lost"); if (el) el.textContent = formatNumber(closedLost);
           el = document.getElementById("sq-win-rate"); if (el) el.textContent = formatNumber(winRate, 1) + "%";
-          renderBars(document.getElementById("deal-stage-list"), stageDropoff.slice(0, 10).map(function (s) {
-            return { label: (s.pipeline || "?") + " → " + (s.stage || "?"), sessions: s.stage_count || 0, sub: "in:" + formatNumber(s.moved_in_count || 0) + " out:" + formatNumber(s.moved_out_count || 0) };
-          }), "No stage data yet.");
+          renderBars(document.getElementById("deal-stage-list"), opportunityStageBreakdown.slice(0, 10).map(function (s) {
+            return { label: (s.pipeline || "?") + " → " + (s.stage || "?"), sessions: s.active_opportunities || 0, sub: "worked:" + formatNumber(s.worked_opportunities || 0) + " movers:" + formatNumber(s.stage_movers || 0) };
+          }), "No active opportunity data yet.");
           
           // John's view — appointments + deals
           renderBars(document.getElementById("appointments-list"), appointments.map(function(a) {
             return { label: a.status || "?", sessions: a.count || 0, sub: formatNumber(a.count || 0) + " total" };
           }), "No appointment data yet.");
-          el = document.getElementById("jd-opps"); if (el) el.textContent = formatNumber(opps);
-          el = document.getElementById("jd-proposals"); if (el) el.textContent = formatNumber(salesQuality.proposalsOut || "—");
-          el = document.getElementById("jd-negotiation"); if (el) el.textContent = formatNumber(salesQuality.inNegotiation || "—");
+          el = document.getElementById("jd-opps"); if (el) el.textContent = formatNumber(activeOpps);
+          el = document.getElementById("jd-worked"); if (el) el.textContent = formatNumber(workedOpps);
+          el = document.getElementById("jd-stage-movers"); if (el) el.textContent = formatNumber(stageMovers);
           el = document.getElementById("jd-won"); if (el) el.textContent = formatNumber(closedWon);
           el = document.getElementById("jd-lost"); if (el) el.textContent = formatNumber(closedLost);
           el = document.getElementById("jd-win-rate"); if (el) el.textContent = formatNumber(winRate, 1) + "%";
@@ -927,14 +943,14 @@
           el = document.getElementById("st-forms"); if (el) el.textContent = formatNumber(Number(summary.formSubmissions || 0));
           el = document.getElementById("st-top-page"); if (el) el.textContent = "livetransparent.com";
           el = document.getElementById("st-eng-rate"); if (el) el.textContent = formatPercent(Number(summary.engagementRate || 0));
-          renderBars(document.getElementById("deals-pipeline-list"), stageDropoff.slice(0, 10).map(function(s) {
-            return { label: s.stage || "?", sessions: (s.stage_count || s.moved_in_count || 0), sub: "in:" + formatNumber(s.moved_in_count || 0) + " out:" + formatNumber(s.moved_out_count || 0) + " won:" + formatNumber(s.won_count || 0) + " lost:" + formatNumber(s.lost_count || 0) };
-          }), "No Sales pipeline data.");
+          renderBars(document.getElementById("deals-pipeline-list"), opportunityStageBreakdown.slice(0, 10).map(function(s) {
+            return { label: (s.pipeline || "?") + " → " + (s.stage || "?"), sessions: s.active_opportunities || 0, sub: "worked:" + formatNumber(s.worked_opportunities || 0) + " movers:" + formatNumber(s.stage_movers || 0) };
+          }), "No active opportunity data.");
           
           // Sales team panel
-          el = document.getElementById("st-total-opps"); if (el) el.textContent = formatNumber(opps);
-          el = document.getElementById("st-proposals"); if (el) el.textContent = formatNumber(salesQuality.proposalsOut || "—");
-          el = document.getElementById("st-negotiation"); if (el) el.textContent = formatNumber(salesQuality.inNegotiation || "—");
+          el = document.getElementById("st-total-opps"); if (el) el.textContent = formatNumber(activeOpps);
+          el = document.getElementById("st-worked-opps"); if (el) el.textContent = formatNumber(workedOpps);
+          el = document.getElementById("st-stage-movers"); if (el) el.textContent = formatNumber(stageMovers);
           el = document.getElementById("st-pipeline-value"); if (el) el.textContent = formatCurrency(revenue);
           var utmRows = [];
           var unknownPaths = {};

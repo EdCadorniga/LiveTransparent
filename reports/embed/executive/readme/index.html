@@ -212,7 +212,7 @@
           </div>
         </article>
         <article class="panel span-3">
-          <h2>Opportunities</h2>
+          <h2>Active Opportunities</h2>
           <div class="stat">
             <strong id="opps-value">0</strong>
             <span id="opps-note" class="loading">Waiting for live data.</span>
@@ -255,7 +255,7 @@
         </article>
 
         <article class="panel span-6">
-          <h2>Top Stages</h2>
+          <h2>Current Open Deals by Stage</h2>
           <div class="list" id="stages-list">
             <div class="loading">Loading stage counts.</div>
           </div>
@@ -348,16 +348,21 @@
           const summary = data.summary || {};
           const health = Array.isArray(data.health) ? data.health : [];
           const stages = Array.isArray(data.stageDropoff) ? data.stageDropoff : [];
+          const opportunityStageBreakdown = Array.isArray(data.opportunityStageBreakdown) ? data.opportunityStageBreakdown : [];
           const pipelines = Array.isArray(data.pipelineDropoff) ? data.pipelineDropoff : [];
           const leads = Number(data.leads ?? summary.leadsNumeric ?? summary.leads ?? 0) || 0;
           const sales = Number(data.sales ?? summary.salesNumeric ?? summary.sales ?? 0) || 0;
-          const opportunities = Number(summary.opportunitiesCreated ?? 0) || 0;
+          const createdOpps = Number(summary.opportunitiesCreated ?? 0) || 0;
+          const activeOpps = Number(summary.activeOpportunityCount ?? 0) || 0;
+          const workedOpps = Number(summary.workedOpportunityCount ?? 0) || 0;
+          const stageMovers = Number(summary.stageMoverCount ?? 0) || 0;
           const sessions = Number(data.traffic ?? summary.trafficNumeric ?? 0) || 0;
           const users = Number(summary.users ?? 0) || 0;
           const engagementRate = Number(summary.engagementRate ?? 0) || 0;
           const from = data.window?.from || "";
           const to = data.window?.to || "";
-          const topStage = stages[0] || null;
+          const stageRows = opportunityStageBreakdown.length ? opportunityStageBreakdown : stages;
+          const topStage = stageRows[0] || null;
           const topPipeline = pipelines[0] || null;
           const staleHealth = health.filter((item) => (daysStale(item.last_success_at) || 0) >= 2);
           const warningItems = [];
@@ -368,7 +373,7 @@
 
           sessionsValue.textContent = formatNumber(sessions);
           leadsValue.textContent = formatNumber(leads);
-          oppsValue.textContent = formatNumber(opportunities);
+          oppsValue.textContent = formatNumber(activeOpps);
           salesValue.textContent = formatNumber(summary.closedWonCount ?? sales);
 
           sessionsNote.textContent = sessions === 0
@@ -377,9 +382,9 @@
           leadsNote.textContent = leads === 0
             ? "No contacts were recorded in the current 7-day report window."
             : "Contacts come from the executive summary API and can be created by forms, routing, manual entry, imports, or follow-up.";
-          oppsNote.textContent = opportunities > 0 && leads === 0
-            ? "Opportunity volume is higher than contact volume, which needs validation."
-            : "Opportunity volume reflects the current report payload.";
+          oppsNote.textContent = activeOpps === 0
+            ? "No open opportunities are visible in the latest snapshot."
+            : `${formatNumber(createdOpps)} created · ${formatNumber(workedOpps)} worked · ${formatNumber(stageMovers)} stage movers in the selected window.`;
           salesNote.textContent = Number(summary.closedWonCount ?? sales) === 0
             ? "No closed-won sales are reported for this week."
             : "Closed-won sales are present in the current report payload.";
@@ -410,15 +415,17 @@
               tone: leads === 0 ? "tone-bad" : "tone-good",
             },
             {
-              title: "Pipeline creation",
-              body: `The report shows ${formatNumber(opportunities)} opportunities created during the same 7-day window.`,
-              meta: opportunities > leads && leads === 0 ? "Mismatch" : "Live",
-              tone: opportunities > leads && leads === 0 ? "tone-warn" : "tone-good",
+              title: "Opportunity activity",
+              body: activeOpps === 0
+                ? "The latest snapshot shows no active opportunities."
+                : `The latest snapshot shows ${formatNumber(activeOpps)} active opportunities. ${formatNumber(workedOpps)} were worked in-window and ${formatNumber(stageMovers)} moved stage. ${formatNumber(createdOpps)} were created in the same window.`,
+              meta: activeOpps === 0 ? "Needs review" : "Live",
+              tone: activeOpps === 0 ? "tone-bad" : "tone-good",
             },
             {
               title: "Most populated stage",
               body: topStage
-                ? `${topStage.pipeline || "Pipeline"} -> ${topStage.stage || "Stage"} is the largest visible stage with ${formatNumber(topStage.stage_count || 0)} records.`
+                ? `${topStage.pipeline || "Pipeline"} -> ${topStage.stage || "Stage"} is the largest visible stage with ${formatNumber(topStage.active_opportunities ?? topStage.stage_count ?? 0)} active deals.`
                 : "No stage rows were returned.",
               meta: topStage ? "Live" : "Missing",
               tone: topStage ? "tone-good" : "tone-warn",
@@ -442,9 +449,9 @@
             tone: healthTone(item.status),
           })));
 
-          renderList(stagesList, stages.slice(0, 6).map((item) => ({
+          renderList(stagesList, stageRows.slice(0, 6).map((item) => ({
             title: `${item.pipeline || "Pipeline"} -> ${item.stage || "Stage"}`,
-            body: `Count ${formatNumber(item.stage_count || 0)}. Moved in ${formatNumber(item.moved_in_count || 0)}. Moved out ${formatNumber(item.moved_out_count || 0)}.`,
+            body: `Active ${formatNumber(item.active_opportunities ?? item.stage_count ?? 0)}. Worked ${formatNumber(item.worked_opportunities ?? item.moved_in_count ?? 0)}. Stage movers ${formatNumber(item.stage_movers ?? 0)}.`,
             meta: "Live",
             tone: "tone-good",
           })));
@@ -471,6 +478,12 @@
               tone: "tone-good",
             },
             {
+              title: "Active opportunities",
+              body: "Active opportunities are the open deals in the latest snapshot. Worked opportunities are open deals updated or moved stage in the selected window. Stage movers are the open deals that changed stage at least once.",
+              meta: "Key diagnostic",
+              tone: "tone-warn",
+            },
+            {
               title: "Contacts vs forms",
               body: "Contacts are GHL CRM records created in the window. Forms are tracked submissions, but contacts are not 1:1 with forms because they can also come from routing, manual entry, imports, and follow-up.",
               meta: "Important",
@@ -490,7 +503,7 @@
             },
             {
               title: "Sales views",
-              body: "Sales Team is the team-wide summary. John's Deals is the same opportunity payload shown as a deal-centred view rather than a separate source table.",
+              body: "Active Opportunities Summary is the team-wide open-deal view. John's Active Deals is the same opportunity payload shown as a deal-centred view rather than a separate source table.",
               meta: "Same payload",
               tone: "tone-good",
             },
