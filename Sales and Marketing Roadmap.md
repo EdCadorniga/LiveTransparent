@@ -33,7 +33,7 @@
 | Apollo.io | Production — enrichment, outbound sequences |
 | Meta Ads API | Validated — attribution-first reporting live |
 | GA4 | Live — sessions, channels, engagement |
-| GSC | Deferred — access pending |
+| GSC | Live — Search Console clicks, impressions, CTR, position |
 | Clay | Planned — Phase 2 |
 | n8n Orchestration | Production — all report workflows active |
 
@@ -50,6 +50,7 @@ The executive report (`reports/embed/executive/index.html`) surfaces data from:
 | GHL Calls | `LT - GHL Daily Calls Ingest` | Voice call logs: status, direction, duration |
 | GHL Appointments | `LT - GHL Daily Appointments Ingest` | Calendar events: booked, showed, no-show |
 | GA4 Sessions | `LT - GA4 Daily Ingest` | Sessions, users, engagement by channel/landing page |
+| GSC Search | `LT - GSC Daily Ingest` | Clicks, impressions, CTR, average position, queries, pages |
 | Attribution Bridge | `LT - Report Attribution Bridge` | Traffic → contact matching |
 | Daily Rollups | `LT - Report Daily Rollups` | Aggregated summary, channel, UTM, landing page tables |
 | Executive API | `LT - Report Executive Summary API` | JSON served to embed via n8n webhook |
@@ -124,12 +125,12 @@ Apollo continues doing:
 
 | Item | Status | Notes |
 |------|--------|-------|
-| GSC Daily Ingest | Blocked | Access not yet granted |
+| GSC Daily Ingest | Active | Search Console access granted; workflow healthy |
 | Meta Ads raw spend ingest | Deferred | Attribution-first path live; spend reporting deferred |
 | Clay integration | Planned Phase 2 | Not started |
 | Matched funnel by landing page | Planned | Needed for ad creative analysis |
 | GHL → LinkedIn automation | Planned | LinkedIn connect dispatcher active; full workflow deferred |
-| GHL Calls & Appointments Ingest | Partial | Appointments ingest live (`yWZVSqEcjTbMT3kG`, calendar `SrtXcFVyea7pFl3nTiIK`); Calls ingest blocked (GHL `/conversations/search` 404) |
+| GHL Calls & Appointments Ingest | Active | Appointments ingest live (`yWZVSqEcjTbMT3kG`, calendar `SrtXcFVyea7pFl3nTiIK`); Calls ingest live from GHL Conversations |
 | Pipeline stage velocity (days per stage) | Active | `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`) computes from event timestamps via CTE + LEAD window |
 
 ---
@@ -147,7 +148,7 @@ Minimum v1 output from the executive report:
 - [x] Meta attribution panel (GA4 UTM + GHL bridge)
 - [x] Pipeline stage velocity (avg days per stage, per-opp timeline)
 - [x] Sales Detail panel (win rate, deals by stage, pipeline value)
-- [ ] GSC clicks and impressions (blocked)
+- [x] GSC clicks and impressions
 - [ ] Meta raw spend/clicks/impressions (deferred)
 - [ ] Matched funnel by landing page (deferred)
 
@@ -168,7 +169,7 @@ Minimum v1 output from the executive report:
 
 Additional reporting requests that would be sub sections under the main section and can be covered in calls more in depth by team leads
 Sales (john)
-- Total calls by status → Pending GHL API access (workflow `SqNQ0BYaTdcqyt1l` built but endpoint 404)
+- Total calls by status → Available via `report_raw_ghl_calls` and the Calls & Conversations panel in the Executive Report
 - Total meetings and if they showed → Available via `report_raw_ghl_appointments` (ingested by `LT - GHL Daily Appointments Ingest`, calendar `SrtXcFVyea7pFl3nTiIK`)
 - Contract closed and pending → Available via Sales Detail panel and Deal Stage Pipeline in executive report
 - Win rate (closed won / closed total) → Available in Sales Quality panel

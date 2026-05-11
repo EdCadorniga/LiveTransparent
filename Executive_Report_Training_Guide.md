@@ -45,6 +45,7 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 | Worked Opportunities | Open opportunities updated or moved stage during the selected window. | This is the best current proxy for deals that were actively worked. |
 | Stage Movers | Open opportunities that changed stage at least once during the selected window. | Use this to see which deals progressed, even if no new deal was created. |
 | Meetings | Booked appointments or discovery calls in the selected window. | These are GHL appointments when available. |
+| Calls | GHL conversation call logs and status breakdown. | Use this for answered, missed, voicemail, inbound, and outbound call activity. |
 | Closed Won | Deals marked as won. | Use this for outcome reporting, not top-of-funnel conversion. |
 | Revenue | Total dollar value of closed-won deals. | This is reported revenue, not spend or profit. |
 | User -> Form | Unique users divided by form submissions in the selected window. | Primary traffic-to-lead capture rate. |
@@ -67,17 +68,22 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 
 # Part 3: How to Present the Report
 
-- Do not assume contacts are created by forms. That is the most common interpretation mistake in this report.
-- Do not assume the GA4 term `sessions` is the same phrase everyone uses for website visits. In this report, we call that metric `Recorded Visits` to make the label explicit.
-- Do not treat the UTM breakdown as a master campaign catalog. It only shows what the data actually observed.
-- If someone asks about Acquisition Sources, point them to the dedicated section rather than the channel breakdown.
-- If someone asks about Sales Team vs Johns Deals, explain that the payload is the same and the difference is the lens.
-- If someone asks why a social post is marked Failed, define it as a status value from the ingest, not a subjective judgment.
-- If someone asks what the date range means, say it is trailing complete days ending yesterday, not a click-day-dependent calendar block.
-- If someone asks what counts as an active opportunity, say the report now separates open opportunities from worked opportunities and stage movers. Active means open in the latest snapshot; worked means updated or moved stage in the window.
+- Contacts are not always created by forms. Routing, manual CRM entry, imports, and follow-up can also create contacts, which is why the contact count does not always line up with form submissions.
+- The GA4 term `sessions` is not the same phrase everyone uses for website visits, so this report labels the metric `Recorded Visits` to make the meaning clear.
+- The UTM breakdown is a view of what the data actually observed, not a master campaign catalog of everything ever created in GHL.
+- Acquisition Sources is the contact-level section. It is the right place to go when the question is where contacts came from.
+- Sales Team and John's Deals use the same opportunity payload. The difference is only the lens: one is the team view and the other is the deal-centred view.
+- Calls and Conversations show GHL call records grouped by status. That is the place to explain call activity without mixing it up with SMS or appointments.
+- A social post marked Failed means the latest recorded status is failed or error. It is a status value from the ingest, not a subjective review of the post.
+- The date range is a trailing complete-day window ending yesterday. That means the selected range always points to finished days, not a click-day-dependent calendar block.
+- Active opportunities are the open deals in the latest snapshot. Worked opportunities are the open deals that were updated or moved stage inside the selected window, and stage movers are the ones that actually changed stage.
 
 # Part 4: Naming Standards for Measured Variables
 Naming standards matter because the report can only group what is named consistently. This section should be read as part of the measurement contract, not as optional marketing style guidance.
+
+The UTM fields themselves are standard. The exact naming pattern we use for campaigns, ad sets, ads, and landing pages is our internal house standard so the data stays readable and groupable.
+
+That means the tracking fields are not the problem. The important part is making sure every ad link, landing page, and contact intake path writes into those fields the same way every time.
 
 - Use one naming pattern across campaigns, ad sets, ads, UTMs, and landing pages so the report can group traffic without manual cleanup.
 - For campaigns, use a stable pattern such as `{brand}-{channel}-{objective}-{audience}-{geo}-{date}`.
@@ -98,6 +104,8 @@ None of the `Safe now` items require us to erase or rewrite existing records. Th
 
 ## Safe now
 
+The report already has UTM capture fields in GHL. The practical improvement is to make sure every ad, page, and contact path writes into those fields the same way every time.
+
 | Suggestion | Why we need it | Data impact |
 |---|---|---|
 | Show the exact date window at the top of the report. | People should not have to guess whether a range means a calendar week or a trailing window. | No historical data changes. |
@@ -107,8 +115,8 @@ None of the `Safe now` items require us to erase or rewrite existing records. Th
 | Add a simple drilldown for failed social posts. | Management can see which posts failed and why instead of only seeing a total. | No historical data changes. |
 | Show search performance in the report when the team wants to review organic search. | It gives leadership one place to see search demand, clicks, and impressions. | No historical data changes. |
 | Add an owner filter if `John's Deals` is meant to show John's own pipeline only. | It makes the owner view match the person's actual book of business. | No historical data changes. |
-| Standardize names for campaigns, ad sets, ads, UTMs, and landing pages going forward. | Clean names make the report group results correctly and reduce manual cleanup. | Past records stay as-is; future records improve. |
-| Keep a master list of the campaigns and UTMs we intentionally launched. | This helps the team tell the difference between something we launched on purpose and something the report never saw. | No historical data changes. |
+| Standardize names for campaigns, ad sets, ads, UTMs, and landing pages going forward. | Clean names make the report group results correctly and reduce manual cleanup. The existing `UTM Source First/Last`, `UTM Medium First/Last`, `UTM Campaign First/Last`, `UTM Content First/Last`, `UTM Term First/Last`, and landing page fields are already there to hold this data. The pattern itself is our house standard, built on common UTM fields. | Past records stay as-is; future records improve. |
+| Keep a master list of the campaigns and UTMs we intentionally launched. | This helps the team tell the difference between something we launched on purpose and something the report never saw, and it makes it easier to check whether the existing UTM fields were filled correctly. | No historical data changes. |
 | Add a note about how contacts can be created. | It explains why contacts may come from forms, routing, manual entry, imports, or follow-up. | No historical data changes. |
 
 ## Needs More Setup

@@ -17,7 +17,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The Executive Report now surfaces a Meta attribution panel using the live summary payload. It is intentionally focused on which Meta-tagged ads/campaigns are driving recorded visits and downstream opportunities, not spend.
 - The Postgres reporting bootstrap has been applied to the live database.
 - GHL leads/sales/report workflows are live and active.
-- GA4 is now live and flowing to the executive report (recorded visits, users, engagement by channel). GSC is still deferred.
+- GA4 is now live and flowing to the executive report (recorded visits, users, engagement by channel). GSC is also live and feeds the search section in the report.
 - `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary dedupe and stage-aware win logic integrated into production.
 - `LT - Report Daily Rollups` now preserves GA-backed channel, UTM, landing-page, and daily traffic rows so the report host keeps live Channel Breakdown after rollups run.
 - `LT - Report Rollup Corrections` has been deactivated because the production Rollups workflow now owns those fixes.
@@ -52,7 +52,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - This host is designed to stay external while being embedded inside GHL.
 - That keeps the dashboard flexible while leaving CRM, navigation, and user access inside HighLevel.
 - If the team later wants a dashboard-page view instead, the same host can also be embedded through a GHL dashboard widget.
-- GA4 traffic data is now live in the report. GSC sections can be added later without changing the GHL menu entry or the report URL.
+- GA4 traffic data and GSC search data are now live in the report. The same report URL and GHL menu entry continue to work.
 
 ## Planned API Contract
 

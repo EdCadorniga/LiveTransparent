@@ -2,12 +2,12 @@
 
 ## Purpose
 This document defines the minimum data contract for the executive report.
-Use it as the bridge between GHL and the Postgres rollup layer now, with GA4 and GSC reserved for later expansion.
+Use it as the bridge between GHL, GA4, and GSC and the Postgres rollup layer in the current live build.
 
 ## Source Systems
-- GHL: leads, opportunities, pipeline movement, forms, and revenue
-- GA4: traffic and on-site engagement, deferred for later
-- GSC: organic search visibility, deferred for later
+- GHL: leads, opportunities, pipeline movement, forms, revenue, and calls
+- GA4: traffic and on-site engagement
+- GSC: organic search visibility, queries, pages, and site data
 
 ## Required Identifiers
 - GHL location ID: `Zwz4relUXVPxx8uohnjV`
@@ -52,6 +52,12 @@ Use the live custom fields from the operating snapshot and warm-routing spec:
 - `LT Routing Priority`
 - `LT Last Event Fingerprint`
 - `LT Last Event At`
+
+## UTM Capture Rule
+The UTM field names themselves are standard and already part of the contract. The house standard is how we fill them:
+- Every ad and tracked link should use the same `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, and `utm_term` pattern.
+- GHL should preserve the original source in the `First` fields and update the latest observed source in the `Last` fields.
+- If a contact arrives without UTMs, the workflow should record the fallback source clearly instead of leaving it implied.
 
 ### Canonical Field Keys
 These are the exact keys the ingest and attribution layer should consume:
@@ -139,19 +145,19 @@ These live workflow families create or mutate the records the report reads:
   - `LT - GHL Executive Report Menu Sync`
 
 ## Raw Tables
+- `report_raw_ga4_sessions`
+- `report_raw_ga4_pages`
+- `report_raw_ga4_events`
 - `report_raw_ghl_contacts`
 - `report_raw_ghl_opportunities`
 - `report_raw_ghl_pipeline_history`
 - `report_raw_ghl_forms`
-
-## Deferred Later-Phase Tables
-- `report_raw_ga4_sessions`
-- `report_raw_ga4_pages`
-- `report_raw_ga4_events`
+- `report_raw_ghl_calls`
 - `report_raw_gsc_queries`
 - `report_raw_gsc_pages`
 - `report_raw_gsc_site`
 
+## Deferred Later-Phase Tables
 ## Bridge Tables
 - `report_bridge_lead_to_sale`
 - `report_bridge_identity_map`

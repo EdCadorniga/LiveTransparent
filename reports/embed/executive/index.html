@@ -152,6 +152,7 @@
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-funnel" data-view="overview" data-scroll="section-funnel"><span class="nav-dot"></span> Funnel &amp; Attribution</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-acquisition" data-view="overview" data-scroll="section-acquisition"><span class="nav-dot"></span> Acquisition Sources</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-sales" data-view="overview" data-scroll="section-sales"><span class="nav-dot"></span> Sales &amp; Pipeline</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-calls" data-view="overview" data-scroll="section-calls"><span class="nav-dot"></span> Calls &amp; Conversations</a>
         </div>
         <div class="nav-group">
           <div class="nav-title">Channels</div>
@@ -249,6 +250,10 @@
               <div class="definition-card">
                 <strong>Sales Panels</strong>
                 <p><b>Active Opportunities Summary</b> is the team-wide open-deal view. <b>John's Active Deals</b> is the same opportunity payload presented as a deal-centred view, not a separate source table.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Calls &amp; Conversations</strong>
+                <p>This panel shows GHL conversation call records. It groups calls by the raw CRM status so the team can see answered, missed, and voicemail activity without guessing from SMS or Twilio data.</p>
               </div>
               <div class="definition-card">
                 <strong>Active Opportunities</strong>
@@ -514,7 +519,7 @@
             </div>
             <div class="panel-body">
               <div class="bar-list" id="appointments-list"><div class="loading">Loading appointment data...</div></div>
-              <div class="footer-note">Appointments from calendar SrtXcFVyea7pFl3nTiIK — Regulated Ads On Social/Search. Calls blocked — GHL Conversations API unavailable on this plan.</div>
+              <div class="footer-note">Appointments from calendar SrtXcFVyea7pFl3nTiIK — Regulated Ads On Social/Search. Call activity is shown separately in the Calls &amp; Conversations section.</div>
             </div>
           </div>
           <div class="panel">
@@ -532,6 +537,30 @@
                 <div class="mini"><strong>Win Rate</strong><div id="jd-win-rate">—</div></div>
               </div>
               <div class="footer-note">This is the same opportunity payload as the team summary. Active open is the latest open snapshot; worked and stage movers are the opportunities that were touched or moved inside the selected window.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CALLS -->
+        <div class="section-label" id="section-calls">Calls &amp; Conversations</div>
+        <section class="grid" style="margin-bottom:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>GHL Calls</h2>
+              <span>Conversations</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-grid" id="calls-grid">
+                <div class="mini"><strong>Total Calls</strong><div id="calls-total">—</div></div>
+                <div class="mini"><strong>Answered</strong><div id="calls-answered">—</div></div>
+                <div class="mini"><strong>Missed</strong><div id="calls-missed">—</div></div>
+                <div class="mini"><strong>Voicemail</strong><div id="calls-voicemail">—</div></div>
+                <div class="mini"><strong>Inbound</strong><div id="calls-inbound">—</div></div>
+                <div class="mini"><strong>Outbound</strong><div id="calls-outbound">—</div></div>
+              </div>
+              <div class="divider"></div>
+              <div class="bar-list" id="call-status-list"><div class="loading">Loading call data...</div></div>
+              <div class="footer-note">Calls are read from GHL Conversations. Status groups use the raw CRM status plus answered timestamp so the report reflects what the CRM actually stores.</div>
             </div>
           </div>
         </section>
@@ -589,8 +618,8 @@
                 <div class="mini"><strong>GA4</strong><div id="hl-ga4">—</div></div>
                 <div class="mini"><strong>n8n</strong><div id="hl-n8n">—</div></div>
                 <div class="mini"><strong>Postgres</strong><div id="hl-postgres">—</div></div>
-                <div class="mini"><strong>GSC</strong><div id="hl-gsc">Blocked</div></div>
-                <div class="mini"><strong>Calls/Appts</strong><div id="hl-calls">Pending</div></div>
+                <div class="mini"><strong>GSC</strong><div id="hl-gsc">Pending</div></div>
+                <div class="mini"><strong>Appointments</strong><div id="hl-calls">Pending</div></div>
                 <div class="mini"><strong>Meta Ads</strong><div id="hl-meta">Pending</div></div>
               </div>
               <div class="footer-note">Green = last sync within 48h. Amber = 48-96h. Red = &gt;96h or failed.</div>
@@ -601,7 +630,7 @@
     </div>
     <script>
       (function () {
-        var BUILD_STAMP = "2026-05-11-v8-metric-glossary";
+        var BUILD_STAMP = "2026-05-12-v9-calls";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -838,6 +867,7 @@
           var stageVelocity = Array.isArray(data.stageVelocity) ? data.stageVelocity : [];
           var opportunityStageBreakdown = Array.isArray(data.opportunityStageBreakdown) ? data.opportunityStageBreakdown : [];
           var appointments = Array.isArray(data.appointments) ? data.appointments : [];
+          var callStatusBreakdown = Array.isArray(data.callStatusBreakdown) ? data.callStatusBreakdown : [];
           var utmBreakdown = Array.isArray(data.utmBreakdown) ? data.utmBreakdown : [];
           var health = Array.isArray(data.health) ? data.health : [];
           var sessions = Number(summary.trafficNumeric || summary.sessions || 0);
@@ -852,6 +882,12 @@
           var activeOpps = Number(summary.activeOpportunityCount || 0);
           var workedOpps = Number(summary.workedOpportunityCount || 0);
           var stageMovers = Number(summary.stageMoverCount || 0);
+          var callTotal = Number(summary.callTotal || 0);
+          var callAnswered = Number(summary.callAnsweredCount || 0);
+          var callMissed = Number(summary.callMissedCount || 0);
+          var callVoicemail = Number(summary.callVoicemailCount || 0);
+          var callInbound = Number(summary.callInboundCount || 0);
+          var callOutbound = Number(summary.callOutboundCount || 0);
           var winRate = closedWon + closedLost > 0 ? (closedWon / (closedWon + closedLost)) * 100 : 0;
           var userToContactRate = users > 0 ? (contacts / users) : 0;
           var userToFormRate = users > 0 ? (forms / users) : 0;
@@ -920,6 +956,15 @@
           renderBars(document.getElementById("appointments-list"), appointments.map(function(a) {
             return { label: a.status || "?", sessions: a.count || 0, sub: formatNumber(a.count || 0) + " total" };
           }), "No appointment data yet.");
+          el = document.getElementById("calls-total"); if (el) el.textContent = formatNumber(callTotal);
+          el = document.getElementById("calls-answered"); if (el) el.textContent = formatNumber(callAnswered);
+          el = document.getElementById("calls-missed"); if (el) el.textContent = formatNumber(callMissed);
+          el = document.getElementById("calls-voicemail"); if (el) el.textContent = formatNumber(callVoicemail);
+          el = document.getElementById("calls-inbound"); if (el) el.textContent = formatNumber(callInbound);
+          el = document.getElementById("calls-outbound"); if (el) el.textContent = formatNumber(callOutbound);
+          renderBars(document.getElementById("call-status-list"), callStatusBreakdown.map(function (s) {
+            return { label: s.status || "unknown", sessions: s.call_count || 0, sub: "answered:" + formatNumber(s.answered_count || 0) + " in:" + formatNumber(s.inbound_count || 0) + " out:" + formatNumber(s.outbound_count || 0) };
+          }), "No call data yet.");
           el = document.getElementById("jd-opps"); if (el) el.textContent = formatNumber(activeOpps);
           el = document.getElementById("jd-worked"); if (el) el.textContent = formatNumber(workedOpps);
           el = document.getElementById("jd-stage-movers"); if (el) el.textContent = formatNumber(stageMovers);
