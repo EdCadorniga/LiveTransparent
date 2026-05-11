@@ -717,6 +717,31 @@ CREATE INDEX IF NOT EXISTS idx_meta_campaign_map_campaign_name
 CREATE INDEX IF NOT EXISTS idx_meta_campaign_map_adset_name
   ON report_meta_campaign_map (adset_name);
 
+-- Meta Ads daily performance — time-series data from Insights API
+CREATE TABLE IF NOT EXISTS report_meta_ads_daily_summary (
+  report_date DATE NOT NULL,
+  ad_account_id TEXT NOT NULL,
+  ad_account_name TEXT,
+  campaign_id TEXT NOT NULL,
+  campaign_name TEXT NOT NULL,
+  adset_id TEXT,
+  adset_name TEXT,
+  ad_id TEXT NOT NULL,
+  ad_name TEXT NOT NULL,
+  impressions INTEGER DEFAULT 0,
+  clicks INTEGER DEFAULT 0,
+  spend NUMERIC(12,2) DEFAULT 0,
+  leads INTEGER DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (report_date, ad_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_meta_ads_daily_date
+  ON report_meta_ads_daily_summary (report_date DESC);
+
+CREATE INDEX IF NOT EXISTS idx_meta_ads_daily_campaign
+  ON report_meta_ads_daily_summary (campaign_name);
+
 -- Seed campaign map from live Meta API query (2026-05-07)
 -- act_975543647768982 — Livetransparent
 INSERT INTO report_meta_campaign_map (ad_account_id, ad_account_name, campaign_id, campaign_name, campaign_status, adset_id, adset_name, adset_status, ad_id, ad_name, ad_status) VALUES

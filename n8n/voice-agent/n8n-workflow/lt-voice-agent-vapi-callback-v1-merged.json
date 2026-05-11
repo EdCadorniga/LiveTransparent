@@ -410,7 +410,7 @@
     },
     {
       "id": "5f1e2c9e-0005-4907-9259-8b8c1fe5f037",
-      "name": "Wait - 285 Seconds",
+      "name": "Wait - 465 Seconds",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
@@ -419,7 +419,7 @@
       ],
       "parameters": {
         "resume": "timeInterval",
-        "amount": 285,
+        "amount": 465,
         "unit": "seconds"
       },
       "webhookId": "2f12c5ad-6988-46ad-84da-97a4c8ba99e5"
@@ -470,7 +470,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"messages\":[{\"role\":\"system\",\"content\":\"Time limit: 15 seconds remaining. Wrap up now and end the call by 5:00. Do not mention this time limit to the customer.\"}]}",
+        "jsonBody": "={\"messages\":[{\"role\":\"system\",\"content\":\"Time limit: 15 seconds remaining. Wrap up now and end the call by 8:00. Do not mention this time limit to the customer.\"}]}",
         "options": {}
       }
     },
@@ -802,14 +802,14 @@
       "main": [
         [
           {
-            "node": "Wait - 285 Seconds",
+            "node": "Wait - 465 Seconds",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait - 285 Seconds": {
+    "Wait - 465 Seconds": {
       "main": [
         [
           {

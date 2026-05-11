@@ -30,6 +30,13 @@ This folder holds the external dashboard surface that GHL will load inside an if
   - Meta spend, clicks, and impression truth remain in the staged raw ingest and source health path, but are not shown in the Executive Report yet by design.
 - The current cohort view now shows usable source-field coverage, bridge-match coverage, and lead-to-sale match coverage separately so attribution quality can be diagnosed without inflating funnel metrics.
 - `LT - Report Attribution Bridge` now rebuilds a rolling 90-day window using normalized raw contact ids and stored GHL attribution fields, which materially improved cohort bridge coverage in the live report.
+- The embedded report now includes a metric glossary so the visible cards are defined where they appear.
+- The primary funnel cards now use Users as the denominator for conversion rates, while Sessions remains traffic volume context.
+- `7d`, `30d`, and `90d` are trailing complete-day presets ending yesterday, not click-day-dependent calendar blocks.
+- The `Acquisition Sources` sidebar entry opens the contact-level attribution view.
+- The `UTM / Campaign Breakdown` section shows observed traffic rows, not every UTM ever created in GHL.
+- `Sales Team` and `John's Deals` are two presentations of the same opportunity payload, with the latter framed as a deal-centred view.
+- Contacts are not guaranteed to be created by forms; they can also arrive through routing, manual CRM entry, imports, and follow-up.
 - The GHL sidebar menu record is already live in GHL.
 
 ## Expected Runtime Flow

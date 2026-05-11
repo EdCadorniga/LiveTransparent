@@ -94,6 +94,14 @@ WITH contact_base AS (
       NULLIF(c.payload_json->>'company_name_for_emails', ''),
       'Unknown'
     ) AS company_name,
+    NULLIF(LOWER(TRIM(REGEXP_REPLACE(COALESCE(
+      NULLIF(e.company_name, ''),
+      NULLIF(c.dimensions_json->>'company_name', ''),
+      NULLIF(c.payload_json->>'companyName', ''),
+      NULLIF(c.payload_json->>'company_name', ''),
+      NULLIF(c.dimensions_json->>'company_name_for_emails', ''),
+      NULLIF(c.payload_json->>'company_name_for_emails', '')
+    ), '[^a-z0-9]+', '-', 'g'))), '') AS company_key_from_name,
     COALESCE(
       NULLIF(c.dimensions_json->>'em_company_operating_state', ''),
       NULLIF(c.payload_json->>'em_company_operating_state', ''),
@@ -112,6 +120,42 @@ WITH contact_base AS (
       NULLIF(c.payload_json->>'dateAdded', ''),
       c.loaded_at::text
     )::date AS contact_date,
+    CASE
+      WHEN NULLIF(LOWER(TRIM(COALESCE(
+        NULLIF(e.company_domain_key, ''),
+        NULLIF(split_part(COALESCE(
+          c.dimensions_json->>'email',
+          c.payload_json->>'email',
+          c.payload_json->>'emailAddress',
+          ''
+        ), '@', 2), ''),
+        NULLIF(c.dimensions_json->>'company_name_for_emails', ''),
+        NULLIF(c.payload_json->>'company_name_for_emails', '')
+      ))), '') ~* '^[a-z0-9][a-z0-9.-]*\\.[a-z]{2,}$'
+      AND NULLIF(LOWER(TRIM(COALESCE(
+        NULLIF(e.company_domain_key, ''),
+        NULLIF(split_part(COALESCE(
+          c.dimensions_json->>'email',
+          c.payload_json->>'email',
+          c.payload_json->>'emailAddress',
+          ''
+        ), '@', 2), ''),
+        NULLIF(c.dimensions_json->>'company_name_for_emails', ''),
+        NULLIF(c.payload_json->>'company_name_for_emails', '')
+      ))), '') !~* '^(gmail\\.com|yahoo\\.com|outlook\\.com|hotmail\\.com|icloud\\.com|aol\\.com|live\\.com|proton\\.me|protonmail\\.com|me\\.com|mail\\.com|twitter\\.com|x\\.com|linkedin\\.com|facebook\\.com|instagram\\.com|tiktok\\.com|youtube\\.com)$'
+      THEN LOWER(TRIM(COALESCE(
+        NULLIF(e.company_domain_key, ''),
+        NULLIF(split_part(COALESCE(
+          c.dimensions_json->>'email',
+          c.payload_json->>'email',
+          c.payload_json->>'emailAddress',
+          ''
+        ), '@', 2), ''),
+        NULLIF(c.dimensions_json->>'company_name_for_emails', ''),
+        NULLIF(c.payload_json->>'company_name_for_emails', '')
+      )))
+      ELSE NULL
+    END AS company_key_from_domain,
     NULLIF(LOWER(TRIM(COALESCE(
       NULLIF(c.dimensions_json->>'lead_temperature', ''),
       NULLIF(c.payload_json->>'lead_temperature', ''),
@@ -134,12 +178,17 @@ contacts AS (
     marketing_signal,
     contact_date,
     CASE
-      WHEN NULLIF(email_domain, '') ~* '^(gmail\\.com|yahoo\\.com|outlook\\.com|hotmail\\.com|icloud\\.com|aol\\.com|live\\.com|proton\\.me|protonmail\\.com|me\\.com|mail\\.com|twitter\\.com|x\\.com|linkedin\\.com|facebook\\.com|instagram\\.com|tiktok\\.com|youtube\\.com)$'
-      THEN NULL
-      ELSE LOWER(TRIM(COALESCE(
-        NULLIF(email_domain, ''),
-        NULLIF(company_key_candidate, '')
-      )))
+      WHEN company_key_from_domain IS NOT NULL
+       AND split_part(company_key_from_domain, '.', 1) NOT IN (
+        'gmail', 'yahoo', 'outlook', 'hotmail', 'icloud', 'aol', 'live',
+        'proton', 'protonmail', 'mail', 'googlemail', 'me', 'mac', 'msn',
+        'att', 'verizon', 'comcast', 'yandex', 'gmx', 'zoho', 'mailchimp',
+        'twitter', 'x', 'linkedin', 'facebook', 'instagram', 'tiktok', 'youtube'
+       )
+      THEN company_key_from_domain
+      WHEN company_key_from_name IS NOT NULL AND company_key_from_name <> 'unknown'
+      THEN company_key_from_name
+      ELSE NULL
     END AS company_key,
     is_mql
   FROM contact_base
@@ -195,6 +244,7 @@ company_rollup AS (
     COALESCE(NULLIF(MAX(ck.company_name), ''), 'Unknown') AS company_name,
     COUNT(DISTINCT ck.ghl_contact_id) AS contact_count,
     COUNT(DISTINCT ck.ghl_contact_id) FILTER (WHERE o.ghl_contact_id IS NOT NULL) AS pipeline_contact_count,
+    STRING_AGG(DISTINCT ck.email, ', ' ORDER BY ck.email) AS contact_emails,
     jsonb_agg(DISTINCT jsonb_build_object('contact_id', ck.ghl_contact_id, 'email', ck.email)) AS contacts,
     COALESCE(STRING_AGG(DISTINCT o.pipeline_name, '|' ), '') AS pipelines,
     COALESCE(STRING_AGG(DISTINCT o.stage_name, '|' ), '') AS stage_names,
@@ -215,6 +265,7 @@ SELECT
   company_name,
   contact_count,
   pipeline_contact_count,
+  contact_emails,
   contacts,
   pipelines,
   stage_names,
@@ -223,6 +274,8 @@ SELECT
   latest_contact_date
 FROM company_rollup
 WHERE contact_count >= 1
+  AND pipeline_contact_count >= 2
+  AND company_key IS NOT NULL
 ORDER BY pipeline_contact_count DESC, contact_count DESC, latest_contact_date DESC
 LIMIT 5000;
       `,
@@ -477,6 +530,42 @@ WITH contact_base AS (
       NULLIF(c.payload_json->>'dateAdded', ''),
       c.loaded_at::text
     )::date AS contact_date,
+    CASE
+      WHEN NULLIF(LOWER(TRIM(COALESCE(
+        NULLIF(e.company_domain_key, ''),
+        NULLIF(split_part(COALESCE(
+          c.dimensions_json->>'email',
+          c.payload_json->>'email',
+          c.payload_json->>'emailAddress',
+          ''
+        ), '@', 2), ''),
+        NULLIF(c.dimensions_json->>'company_name_for_emails', ''),
+        NULLIF(c.payload_json->>'company_name_for_emails', '')
+      ))), '') ~* '^[a-z0-9][a-z0-9.-]*\\.[a-z]{2,}$'
+      AND NULLIF(LOWER(TRIM(COALESCE(
+        NULLIF(e.company_domain_key, ''),
+        NULLIF(split_part(COALESCE(
+          c.dimensions_json->>'email',
+          c.payload_json->>'email',
+          c.payload_json->>'emailAddress',
+          ''
+        ), '@', 2), ''),
+        NULLIF(c.dimensions_json->>'company_name_for_emails', ''),
+        NULLIF(c.payload_json->>'company_name_for_emails', '')
+      ))), '') !~* '^(gmail\\.com|yahoo\\.com|outlook\\.com|hotmail\\.com|icloud\\.com|aol\\.com|live\\.com|proton\\.me|protonmail\\.com|me\\.com|mail\\.com|twitter\\.com|x\\.com|linkedin\\.com|facebook\\.com|instagram\\.com|tiktok\\.com|youtube\\.com)$'
+      THEN LOWER(TRIM(COALESCE(
+        NULLIF(e.company_domain_key, ''),
+        NULLIF(split_part(COALESCE(
+          c.dimensions_json->>'email',
+          c.payload_json->>'email',
+          c.payload_json->>'emailAddress',
+          ''
+        ), '@', 2), ''),
+        NULLIF(c.dimensions_json->>'company_name_for_emails', ''),
+        NULLIF(c.payload_json->>'company_name_for_emails', '')
+      )))
+      ELSE NULL
+    END AS company_key_from_domain,
     NULLIF(LOWER(TRIM(COALESCE(
       NULLIF(c.dimensions_json->>'lead_temperature', ''),
       NULLIF(c.payload_json->>'lead_temperature', ''),
@@ -499,12 +588,15 @@ contacts AS (
     marketing_signal,
     contact_date,
     CASE
-      WHEN NULLIF(email_domain, '') ~* '^(gmail\\.com|yahoo\\.com|outlook\\.com|hotmail\\.com|icloud\\.com|aol\\.com|live\\.com|proton\\.me|protonmail\\.com|me\\.com|mail\\.com|twitter\\.com|x\\.com|linkedin\\.com|facebook\\.com|instagram\\.com|tiktok\\.com|youtube\\.com)$'
-      THEN NULL
-      ELSE LOWER(TRIM(COALESCE(
-        NULLIF(email_domain, ''),
-        NULLIF(company_key_candidate, '')
-      )))
+      WHEN company_key_from_domain IS NOT NULL
+       AND split_part(company_key_from_domain, '.', 1) NOT IN (
+        'gmail', 'yahoo', 'outlook', 'hotmail', 'icloud', 'aol', 'live',
+        'proton', 'protonmail', 'mail', 'googlemail', 'me', 'mac', 'msn',
+        'att', 'verizon', 'comcast', 'yandex', 'gmx', 'zoho', 'mailchimp',
+        'twitter', 'x', 'linkedin', 'facebook', 'instagram', 'tiktok', 'youtube'
+       )
+      THEN company_key_from_domain
+      ELSE NULL
     END AS company_key,
     is_mql
   FROM contact_base
@@ -577,6 +669,7 @@ SELECT
   latest_contact_date
 FROM company_rollup
 WHERE contact_count >= 1
+  AND company_key IS NOT NULL
 ORDER BY pipeline_contact_count DESC, contact_count DESC, latest_contact_date DESC
 LIMIT 5000;
       `,

@@ -205,7 +205,7 @@
           </div>
         </article>
         <article class="panel span-3">
-          <h2>Leads</h2>
+          <h2>Contacts</h2>
           <div class="stat">
             <strong id="leads-value">0</strong>
             <span id="leads-note" class="loading">Waiting for live data.</span>
@@ -230,6 +230,13 @@
           <h2>Traffic overview</h2>
           <div class="list" id="traffic-list">
             <div class="loading">Loading traffic summary.</div>
+          </div>
+        </article>
+
+        <article class="panel span-12">
+          <h2>Metric Definitions</h2>
+          <div class="list" id="definitions-list">
+            <div class="loading">Loading metric definitions.</div>
           </div>
         </article>
 
@@ -283,6 +290,7 @@
         const salesNote = document.getElementById("sales-note");
         const summaryList = document.getElementById("summary-list");
         const trafficList = document.getElementById("traffic-list");
+        const definitionsList = document.getElementById("definitions-list");
         const healthList = document.getElementById("health-list");
         const stagesList = document.getElementById("stages-list");
         const pipelinesList = document.getElementById("pipelines-list");
@@ -355,8 +363,8 @@
           const warningItems = [];
 
           subtitle.textContent = from && to
-            ? `Live 7-day summary for ${from} to ${to}. This page turns the executive report numbers into a short weekly narrative.`
-            : "Live 7-day summary based on the latest report API response.";
+            ? `Live 7-day summary for ${from} to ${to}. This page turns the executive report numbers into a short weekly narrative. Preset ranges are trailing complete days ending yesterday.`
+            : "Live 7-day summary based on the latest report API response. Preset ranges are trailing complete days ending yesterday.";
 
           sessionsValue.textContent = formatNumber(sessions);
           leadsValue.textContent = formatNumber(leads);
@@ -367,10 +375,10 @@
             ? "No sessions recorded for this 7-day window."
             : `${formatNumber(users)} users · ${(engagementRate * 100).toFixed(1)}% engaged`;
           leadsNote.textContent = leads === 0
-            ? "No leads were recorded in the current 7-day report window."
-            : "Lead volume comes from the executive summary API.";
+            ? "No contacts were recorded in the current 7-day report window."
+            : "Contacts come from the executive summary API and can be created by forms, routing, manual entry, imports, or follow-up.";
           oppsNote.textContent = opportunities > 0 && leads === 0
-            ? "Opportunity volume is higher than lead volume, which needs validation."
+            ? "Opportunity volume is higher than contact volume, which needs validation."
             : "Opportunity volume reflects the current report payload.";
           salesNote.textContent = Number(summary.closedWonCount ?? sales) === 0
             ? "No closed-won sales are reported for this week."
@@ -394,10 +402,10 @@
               tone: engagementRate > 0.5 ? "tone-good" : engagementRate > 0.2 ? "tone-warn" : "tone-bad",
             },
             {
-              title: "Lead generation",
+              title: "Contact creation",
               body: leads === 0
-                ? "The report currently shows zero new leads for the last 7 days. That is a reporting problem unless the business truly had no contact creation during the week."
-                : `The report shows ${formatNumber(leads)} leads for the week.`,
+                ? "The report currently shows zero new contacts for the last 7 days. That is a reporting problem unless the business truly had no contact creation during the week."
+                : `The report shows ${formatNumber(leads)} contacts for the week. Contacts are not always created by forms.`,
               meta: leads === 0 ? "Needs review" : "Live",
               tone: leads === 0 ? "tone-bad" : "tone-good",
             },
@@ -450,15 +458,60 @@
 
           renderList(trafficList, (Array.isArray(data.channelBreakdown) ? data.channelBreakdown : []).slice(0, 6).map((item) => ({
             title: item.label || item.channel || "Channel",
-            body: `${formatNumber(item.sessions || item.value || 0)} sessions · ${formatNumber(item.leads || 0)} leads · ${formatNumber(item.opportunities || 0)} opportunities`,
+            body: `${formatNumber(item.sessions || item.value || 0)} sessions · ${formatNumber(item.leads || 0)} contacts · ${formatNumber(item.opportunities || 0)} opportunities`,
             meta: item.sessions ? `${Math.round(((item.sessions || 0) / Math.max(sessions, 1)) * 100)}% of traffic` : "",
             tone: (item.sessions || 0) > 0 ? "tone-good" : "",
           })));
 
+          renderList(definitionsList, [
+            {
+              title: "Traffic",
+              body: "Sessions are GA4 visits in the selected window. Users are unique visitors and are the primary denominator for the funnel cards.",
+              meta: "Read first",
+              tone: "tone-good",
+            },
+            {
+              title: "Contacts vs forms",
+              body: "Contacts are GHL CRM records created in the window. Forms are tracked submissions, but contacts are not 1:1 with forms because they can also come from routing, manual entry, imports, and follow-up.",
+              meta: "Important",
+              tone: "tone-warn",
+            },
+            {
+              title: "Attribution coverage",
+              body: "Cohort contacts are the new contacts created in the window. Source coverage means usable source fields exist, bridge matched means the contact links to a GA4 session, and sale matched means the contact links to an opportunity.",
+              meta: "Key diagnostic",
+              tone: "tone-good",
+            },
+            {
+              title: "UTM / campaign breakdown",
+              body: "This table shows observed traffic rows, not every UTM ever created in GHL. A UTM only appears once it is observed in traffic or matched through the bridge.",
+              meta: "Observed data",
+              tone: "tone-good",
+            },
+            {
+              title: "Sales views",
+              body: "Sales Team is the team-wide summary. John's Deals is the same opportunity payload shown as a deal-centred view rather than a separate source table.",
+              meta: "Same payload",
+              tone: "tone-good",
+            },
+            {
+              title: "Social posts",
+              body: "Failed counts posts whose latest status is failed or error in the selected window, including API error responses surfaced by the ingest.",
+              meta: "Status-based",
+              tone: "tone-warn",
+            },
+            {
+              title: "Date ranges",
+              body: "7d, 30d, and 90d are trailing complete days ending yesterday. Example: clicking 7d on a Tuesday shows the previous Tuesday through Monday.",
+              meta: "Preset rule",
+              tone: "tone-good",
+            }
+          ]);
+
           if (leads === 0 && opportunities > 0) {
             warningItems.push({
-              title: "Lead ingest is likely stale",
-              body: "The live 7-day report shows zero leads but still shows opportunities and stage counts. That usually means the leads ingest is behind the rest of the reporting chain.",
+              title: "Contact ingest is likely stale",
+              body: "The live 7-day report shows zero contacts but still shows opportunities and stage counts. That usually means the contact ingest is behind the rest of the reporting chain.",
               meta: "Critical",
               tone: "tone-bad",
             });

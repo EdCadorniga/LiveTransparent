@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-05-09-v7-acquisition-sources -->
+    <!-- build-stamp: 2026-05-11-v8-metric-glossary -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -101,6 +101,15 @@
       .mini div { font-size: 1.3rem; font-weight: 700; }
       .mini-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
       .mini-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+      .definition-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .definition-card {
+        padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .definition-card strong {
+        display: block; margin-bottom: 8px; color: var(--text); font-size: 0.9rem; letter-spacing: 0.03em;
+      }
+      .definition-card p { color: var(--muted); font-size: 0.84rem; line-height: 1.5; }
       .bar-list { display: grid; gap: 12px; }
       .bar-item { display: grid; grid-template-columns: 180px 1fr 68px; gap: 12px; align-items: center; }
       .bar-label { color: var(--text); font-size: 0.92rem; }
@@ -120,6 +129,7 @@
         .kpi-row { grid-template-columns: repeat(3, 1fr); }
         .three-col, .two-col { grid-template-columns: 1fr; }
         .mini-grid, .mini-grid-2, .mini-grid-4 { grid-template-columns: repeat(2, 1fr); }
+        .definition-grid { grid-template-columns: 1fr; }
         .bar-item { grid-template-columns: 1fr; }
         .bar-value { text-align: left; }
       }
@@ -140,6 +150,7 @@
           <a class="nav-item active" href="?view=overview&range=30d&embed=1&section=section-kpis" data-view="overview" data-scroll="section-kpis"><span class="nav-dot"></span> Executive Summary</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-traffic" data-view="overview" data-scroll="section-traffic"><span class="nav-dot"></span> Traffic &amp; Channels</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-funnel" data-view="overview" data-scroll="section-funnel"><span class="nav-dot"></span> Funnel &amp; Attribution</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-acquisition" data-view="overview" data-scroll="section-acquisition"><span class="nav-dot"></span> Acquisition Sources</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-sales" data-view="overview" data-scroll="section-sales"><span class="nav-dot"></span> Sales &amp; Pipeline</a>
         </div>
         <div class="nav-group">
@@ -200,6 +211,59 @@
             <div class="label">Revenue</div>
             <div class="value" id="kpi-revenue">—</div>
             <div class="sub">GHL</div>
+          </div>
+        </section>
+
+        <!-- METRIC GLOSSARY -->
+        <section class="panel" style="margin-bottom:16px;">
+          <div class="panel-head">
+            <h2>Metric Glossary</h2>
+            <span>Definitions as shown</span>
+          </div>
+          <div class="panel-body">
+            <div class="definition-grid">
+              <div class="definition-card">
+                <strong>Traffic</strong>
+                <p><b>Sessions</b> are GA4 visits in the selected window. <b>Users</b> are unique visitors and are the primary denominator for the funnel cards below.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Lead Capture</strong>
+                <p><b>Forms</b> are tracked submissions. <b>Contacts</b> are GHL contacts created in the window from any source, so the counts are not 1:1.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Funnel Efficiency</strong>
+                <p><b>User → Form</b> and <b>User → Contact</b> show how efficiently unique visitors become form submissions or CRM contacts. Session-based rates stay available only as secondary context.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Attribution Coverage</strong>
+                <p><b>Cohort Contacts</b> are new contacts created in the window. <b>Source Coverage</b> means usable source fields exist, <b>Bridge Matched</b> means the contact was linked to a GA4 session, and <b>Sale Matched</b> means it was linked to an opportunity.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Acquisition Sources</strong>
+                <p>This section shows contact-level source / medium / campaign attribution. It is the visible home for the dashboard's acquisition source view.</p>
+              </div>
+              <div class="definition-card">
+                <strong>UTM / Campaign Breakdown</strong>
+                <p>This table shows observed UTM traffic rows. A UTM created in GHL will only appear here once it is actually observed in traffic or matched through the bridge.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Sales Panels</strong>
+                <p><b>Sales Team</b> is the team-wide summary. <b>John's Deals</b> is the same opportunity payload presented as a deal-centred view, not a separate source table.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Social Posts</strong>
+                <p><b>Failed</b> counts posts whose latest status is failed or error in the selected window, including API error responses when present.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Date Ranges</strong>
+                <p><b>7d</b>, <b>30d</b>, and <b>90d</b> are trailing complete days ending yesterday. Example: clicking 7d on a Tuesday shows the previous Tuesday through Monday.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Channel Breakdown</strong>
+                <p>This is the GA4 channel summary for the selected window. It is traffic volume, not contact volume.</p>
+              </div>
+            </div>
+            <div class="footer-note">The glossary is the source of truth for how each visible card should be read. If a metric is not defined here, it should be treated as incomplete until the definition is added.</div>
           </div>
         </section>
 
@@ -271,12 +335,12 @@
           </div>
           <div class="panel">
             <div class="panel-head">
-              <h2>Leadform &amp; Ad Traffic</h2>
+              <h2>Observed UTM &amp; Ad Traffic</h2>
               <span>GA4 UTM</span>
             </div>
             <div class="panel-body">
               <div class="bar-list" id="ad-utm-list"><div class="loading">Loading...</div></div>
-              <div class="footer-note">Sessions from ad platforms detected via UTM tags. Source <code>an</code> = Leadform/AdForm; <code>facebook/instagram</code> = Meta Ads. Contact attribution requires GA4-GHL bridge to be populated for these sessions.</div>
+              <div class="footer-note">Observed sessions from UTM-tagged traffic. Source <code>an</code> = Leadform/AdForm; <code>facebook/instagram</code> = Meta Ads. A UTM created in GHL will only appear here once it is actually observed in traffic or matched through the bridge.</div>
             </div>
           </div>
         </section>
@@ -291,13 +355,14 @@
             </div>
             <div class="panel-body">
               <div class="mini-grid" id="funnel-grid">
-                <div class="mini"><strong>Session → Form</strong><div id="fn-session-to-form">—</div></div>
-                <div class="mini"><strong>Session → Contact</strong><div id="fn-session-to-contact">—</div></div>
+                <div class="mini"><strong>User → Form</strong><div id="fn-session-to-form">—</div></div>
+                <div class="mini"><strong>User → Contact</strong><div id="fn-session-to-contact">—</div></div>
                 <div class="mini"><strong>Contact → Opp</strong><div id="fn-contact-to-opp">—</div></div>
                 <div class="mini"><strong>Opp → Meeting</strong><div id="fn-opp-to-meeting">—</div></div>
                 <div class="mini"><strong>Meeting → Won</strong><div id="fn-meeting-to-won">—</div></div>
                 <div class="mini"><strong>Best Channel</strong><div id="fn-best-channel">—</div></div>
               </div>
+              <div class="footer-note">Primary funnel cards use <b>Users</b> as the denominator. Session-based rates remain in the glossary for cross-checking.</div>
             </div>
           </div>
           <div class="panel">
@@ -314,7 +379,7 @@
                 <div class="mini"><strong>Source Coverage</strong><div id="attr-source-rate">—</div></div>
                 <div class="mini"><strong>Bridge Match Rate</strong><div id="attr-bridge-rate">—</div></div>
               </div>
-              <div class="footer-note">Shows how many contacts have usable attribution data. Bridge matched = linked to GA4 session. Sale matched = linked to opportunity.</div>
+              <div class="footer-note">Cohort contacts are the new contacts created in the selected window. Source coverage means the contact has usable source fields. Bridge matched means the contact was linked to a GA4 session. Sale matched means the contact was linked to an opportunity.</div>
             </div>
           </div>
         </section>
@@ -335,6 +400,7 @@
                 <div class="mini"><strong>Meetings</strong><div id="cg-meetings">—</div></div>
                 <div class="mini"><strong>Closed Won</strong><div id="cg-closed-won">—</div></div>
               </div>
+              <div class="footer-note">Contacts are not strictly downstream of forms. They can also come from routed leads, manual CRM entry, imports, and follow-up conversions, so this block is absolute volume rather than a step-by-step funnel.</div>
             </div>
           </div>
         </section>
@@ -391,6 +457,7 @@
             </div>
             <div class="panel-body">
               <div class="bar-list" id="utm-list"><div class="loading">Waiting for UTM data...</div></div>
+              <div class="footer-note">This is an observed traffic table, not a master list of every UTM created in GHL. Only rows that appear in traffic or bridge data can surface here.</div>
             </div>
           </div>
         </section>
@@ -410,7 +477,7 @@
           </div>
           <div class="panel">
             <div class="panel-head">
-              <h2>Sales Team</h2>
+              <h2>Sales Team Summary</h2>
               <span>GHL</span>
             </div>
             <div class="panel-body" id="sales-team-panel">
@@ -420,13 +487,13 @@
                 <div class="mini"><strong>In Negotiation</strong><div id="st-negotiation">—</div></div>
                 <div class="mini"><strong>Pipeline Value</strong><div id="st-pipeline-value">—</div></div>
               </div>
-              <div class="footer-note">Calls &amp; appointments pending GHL API access. Meeting show rate tracked once appointment ingest is live.</div>
+              <div class="footer-note">Team totals are company-wide opportunity totals and pipeline value. Calls &amp; appointments pending GHL API access. Meeting show rate tracked once appointment ingest is live.</div>
             </div>
           </div>
         </section>
 
         <!-- JOHN'S DATA -->
-        <div class="section-label" id="section-john">Sales Team Lead</div>
+        <div class="section-label" id="section-john">Sales Detail</div>
         <section class="grid two-col" style="margin-bottom:16px;">
           <div class="panel">
             <div class="panel-head">
@@ -452,6 +519,7 @@
                 <div class="mini"><strong>Lost</strong><div id="jd-lost">—</div></div>
                 <div class="mini"><strong>Win Rate</strong><div id="jd-win-rate">—</div></div>
               </div>
+              <div class="footer-note">This is the same opportunity payload as the team summary, presented as a more deal-centred operating view rather than a separate source table.</div>
             </div>
           </div>
         </section>
@@ -473,7 +541,7 @@
                 <div class="mini"><strong>Instagram</strong><div id="sp-ig">—</div></div>
                 <div class="mini"><strong>LinkedIn</strong><div id="sp-li">—</div></div>
               </div>
-              <div class="footer-note">Social posts from GHL Social Planner across 5 connected accounts. Engagement data (likes/shares/comments) updates with each ingest.</div>
+              <div class="footer-note">Social posts from GHL Social Planner across 5 connected accounts. Failed means the latest post status is failed or error, including API error responses surfaced by the ingest. Engagement data (likes/shares/comments) updates with each ingest.</div>
             </div>
           </div>
           <div class="panel">
@@ -521,7 +589,7 @@
     </div>
     <script>
       (function () {
-        var BUILD_STAMP = "2026-05-09-v7-acquisition-sources";
+        var BUILD_STAMP = "2026-05-11-v8-metric-glossary";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -568,6 +636,7 @@
         if (range) parts.push(range);
         if (from && to) parts.push(from + " to " + to);
         parts.push("Sources: GHL, GA4, Meta attribution");
+        parts.push("Preset windows: trailing complete days ending yesterday");
         subtitle.textContent = parts.join(" \u00b7 ") || "Loading...";
         if (buildBadge) buildBadge.textContent = "build: " + BUILD_STAMP;
         function formatNumber(value, digits) {
@@ -724,7 +793,7 @@
             var label = (u.source || "?") + " / " + (u.medium || "?");
             if (u.campaign) label += " [" + u.campaign + "]";
             var value = u.sessions || 0;
-            return { label: label, sessions: value, sub: "sessions:" + formatNumber(value) + (u.leads > 0 ? " leads:" + formatNumber(u.leads) : "") };
+            return { label: label, sessions: value, sub: "sessions:" + formatNumber(value) + (u.leads > 0 ? " contacts:" + formatNumber(u.leads) : "") };
           }), "No ad traffic data.");
         }
         function getHealthStatus(lastSuccessAt) {
@@ -762,10 +831,14 @@
           var contacts = Number(summary.leadsNumeric || summary.contactsCreated || 0);
           var opps = Number(summary.opportunitiesCreated || 0);
           var meetings = Number(summary.meetingsBooked || 0);
+          var users = Number(summary.users || 0);
+          var forms = Number(summary.formSubmissions || 0);
           var closedWon = Number(summary.closedWonCount || 0);
           var closedLost = Number(summary.closedLostCount || 0);
           var revenue = Number(summary.closedWonRevenue || 0);
           var winRate = closedWon + closedLost > 0 ? (closedWon / (closedWon + closedLost)) * 100 : 0;
+          var userToContactRate = users > 0 ? (contacts / users) : 0;
+          var userToFormRate = users > 0 ? (forms / users) : 0;
           var el;
           el = document.getElementById("kpi-sessions");
           if (el) { el.textContent = sessions > 0 ? formatNumber(sessions) : "GA4 pending"; el.className = "value"; }
@@ -782,14 +855,14 @@
             return { label: c.label || c.channel || "Other", sessions: c.sessions || 0, value: c.sessions || 0 };
           }), "No channel data yet.");
           renderMiniGrid(document.getElementById("channel-detail-grid"), filteredChannels.slice(0, 6).map(function (c) {
-            return { label: c.label || c.channel || "?", value: formatNumber(c.sessions || 0) + " sess / " + formatNumber(c.leads || 0) + " leads" };
+            return { label: c.label || c.channel || "?", value: formatNumber(c.sessions || 0) + " sess / " + formatNumber(c.leads || 0) + " contacts" };
           }), null);
           renderMetaAttribution(data);
           renderContactSources(data);
           renderAdUtmTraffic(data);
           var bestChannel = channelBreakdown.length > 0 ? (channelBreakdown[0].label || "GHL ready") : "GHL ready";
-          el = document.getElementById("fn-session-to-form"); if (el) el.textContent = formatPercent(Number(summary.sessionToFormRate || 0));
-          el = document.getElementById("fn-session-to-contact"); if (el) el.textContent = formatPercent(Number(summary.sessionToContactRate || 0));
+          el = document.getElementById("fn-session-to-form"); if (el) el.textContent = formatPercent(userToFormRate);
+          el = document.getElementById("fn-session-to-contact"); if (el) el.textContent = formatPercent(userToContactRate);
           el = document.getElementById("fn-contact-to-opp"); if (el) el.textContent = formatPercent(Number(summary.contactToOpportunityRate || 0));
           el = document.getElementById("fn-opp-to-meeting"); if (el) el.textContent = formatPercent(Number(summary.opportunityToMeetingRate || 0));
           el = document.getElementById("fn-meeting-to-won"); if (el) el.textContent = formatPercent(Number(summary.meetingToClosedWonRate || 0));
@@ -885,7 +958,7 @@
           });
           renderBars(document.getElementById("utm-list"), utmRows.slice(0, 12).map(function (u) {
             var label = (u.source === "direct") ? u.medium : (u.source || "?") + " / " + (u.medium || "?");
-            return { label: label, sessions: u.sessions || 0, sub: "leads:" + formatNumber(u.leads || 0) + " opps:" + formatNumber(u.opportunities || 0) };
+            return { label: label, sessions: u.sessions || 0, sub: "contacts:" + formatNumber(u.leads || 0) + " opps:" + formatNumber(u.opportunities || 0) };
           }), "No UTM data yet.");
           health.forEach(function (h) {
             var key = h.source_system || h.source || "";

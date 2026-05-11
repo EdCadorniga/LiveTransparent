@@ -261,15 +261,15 @@ const waitWarn = node({
   type: 'n8n-nodes-base.wait',
   version: 1.1,
   config: {
-    name: 'Wait - 285 Seconds',
+    name: 'Wait - 465 Seconds',
     parameters: {
       resume: 'timeInterval',
-      amount: 285,
+      amount: 465,
       unit: 'seconds',
     },
     position: [1680, 500],
   },
-  output: [{ json: { waited: 285 } }],
+  output: [{ json: { waited: 465 } }],
 });
 
 const warnCheck = node({
@@ -301,7 +301,7 @@ const warnHttp = node({
       },
       sendBody: true,
       specifyBody: 'json',
-      jsonBody: '={\"messages\":[{\"role\":\"system\",\"content\":\"Time limit: 15 seconds remaining. Wrap up now and end the call by 5:00. Do not mention this time limit to the customer.\"}]}',
+      jsonBody: '={\"messages\":[{\"role\":\"system\",\"content\":\"Time limit: 15 seconds remaining. Wrap up now and end the call by 8:00. Do not mention this time limit to the customer.\"}]}',
       options: {},
     },
     position: [2160, 500],

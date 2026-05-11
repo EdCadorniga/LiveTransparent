@@ -34,6 +34,8 @@ The dashboard should be read-only, GHL-first, and backed by Postgres.
 - Never expose write actions in the iframe surface.
 - Keep the URL stable so GHL can embed it without churn.
 - Support a consistent default view and a date-range switcher.
+- Treat `7d`, `30d`, and `90d` as trailing complete-day presets ending yesterday.
+- Surface the metric glossary in the dashboard so visible cards are defined where they are shown.
 
 ## Access Model
 

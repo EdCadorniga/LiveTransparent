@@ -34,7 +34,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
    - provider call start request sent,
    - GHL note written.
 7. Activate workflows with low cadence.
-8. Enforce the hard 5-minute limit on the two active assistants with a 4:45 background warning and a 5:00 force-end.
+8. Enforce the hard 8-minute limit on the two active assistants with a 7:45 background warning and an 8:00 force-end.
 
 ## Callback workflow requirement
 The production callback workflow is merged:
