@@ -198,7 +198,7 @@
 
       <section class="grid">
         <article class="panel span-3">
-          <h2>Sessions</h2>
+          <h2>Recorded Visits</h2>
           <div class="stat">
             <strong id="sessions-value">0</strong>
             <span id="sessions-note" class="loading">Waiting for live data.</span>
@@ -377,7 +377,7 @@
           salesValue.textContent = formatNumber(summary.closedWonCount ?? sales);
 
           sessionsNote.textContent = sessions === 0
-            ? "No sessions recorded for this 7-day window."
+            ? "No recorded visits for this 7-day window."
             : `${formatNumber(users)} users · ${(engagementRate * 100).toFixed(1)}% engaged`;
           leadsNote.textContent = leads === 0
             ? "No contacts were recorded in the current 7-day report window."
@@ -393,15 +393,15 @@
             {
               title: "Traffic volume",
               body: sessions === 0
-                ? "The report currently shows zero sessions for the last 7 days. This may indicate GA4 data hasn't yet been ingested for this window."
-                : `${formatNumber(sessions)} sessions from ${formatNumber(users)} users across 6 channels. Top channel: Email with ${formatNumber(Number((Array.isArray(data.channelBreakdown) && data.channelBreakdown[0] ? data.channelBreakdown[0].sessions : 0)))} sessions.`,
+                ? "The report currently shows zero recorded visits for the last 7 days. This may indicate GA4 data hasn't yet been ingested for this window."
+                : `${formatNumber(sessions)} recorded visits from ${formatNumber(users)} users across 6 channels. Top channel: Email with ${formatNumber(Number((Array.isArray(data.channelBreakdown) && data.channelBreakdown[0] ? data.channelBreakdown[0].sessions : 0)))} recorded visits.`,
               meta: sessions === 0 ? "No data" : "Live",
               tone: sessions === 0 ? "tone-bad" : "tone-good",
             },
             {
               title: "Engagement",
               body: engagementRate > 0
-                ? `Engagement rate is ${(engagementRate * 100).toFixed(1)}% across all channels. ${formatNumber(Number(summary.engagedSessions ?? 0))} of ${formatNumber(sessions)} sessions were engaged.`
+                ? `Engagement rate is ${(engagementRate * 100).toFixed(1)}% across all channels. ${formatNumber(Number(summary.engagedSessions ?? 0))} of ${formatNumber(sessions)} recorded visits were engaged.`
                 : "Engagement data is not yet available for this window.",
               meta: engagementRate > 0.5 ? "Strong" : engagementRate > 0.2 ? "Moderate" : "Low",
               tone: engagementRate > 0.5 ? "tone-good" : engagementRate > 0.2 ? "tone-warn" : "tone-bad",
@@ -465,7 +465,7 @@
 
           renderList(trafficList, (Array.isArray(data.channelBreakdown) ? data.channelBreakdown : []).slice(0, 6).map((item) => ({
             title: item.label || item.channel || "Channel",
-            body: `${formatNumber(item.sessions || item.value || 0)} sessions · ${formatNumber(item.leads || 0)} contacts · ${formatNumber(item.opportunities || 0)} opportunities`,
+            body: `${formatNumber(item.sessions || item.value || 0)} recorded visits · ${formatNumber(item.leads || 0)} contacts · ${formatNumber(item.opportunities || 0)} opportunities`,
             meta: item.sessions ? `${Math.round(((item.sessions || 0) / Math.max(sessions, 1)) * 100)}% of traffic` : "",
             tone: (item.sessions || 0) > 0 ? "tone-good" : "",
           })));
@@ -473,7 +473,7 @@
           renderList(definitionsList, [
             {
               title: "Traffic",
-              body: "Sessions are GA4 visits in the selected window. Users are unique visitors and are the primary denominator for the funnel cards.",
+              body: "Recorded visits are the GA4 session count in the selected window. Users are unique visitors and are the primary denominator for the funnel cards.",
               meta: "Read first",
               tone: "tone-good",
             },
@@ -491,7 +491,7 @@
             },
             {
               title: "Attribution coverage",
-              body: "Cohort contacts are the new contacts created in the window. Source coverage means usable source fields exist, bridge matched means the contact links to a GA4 session, and sale matched means the contact links to an opportunity.",
+              body: "Contacts created in window are the new contacts created in the window. Source coverage means usable source fields exist, bridge matched means the contact links to a GA4 session, and sale matched means the contact links to an opportunity.",
               meta: "Key diagnostic",
               tone: "tone-good",
             },

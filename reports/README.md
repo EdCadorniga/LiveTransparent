@@ -13,11 +13,11 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.
 - n8n writes the raw data, bridge rows, rollups, QA rows, and publish markers.
-- The live executive summary webhook is wired to the report host and serves JSON from the Postgres reporting tables. GA4 traffic is ingested daily and bridged into the rollup tables (sessions, users, engaged_sessions, engagement_rate) alongside GHL CRM data.
-- The Executive Report now surfaces a Meta attribution panel using the live summary payload. It is intentionally focused on which Meta-tagged ads/campaigns are driving website visits and downstream opportunities, not spend.
+- The live executive summary webhook is wired to the report host and serves JSON from the Postgres reporting tables. GA4 traffic is ingested daily and bridged into the rollup tables (recorded visits, users, engaged_sessions, engagement_rate) alongside GHL CRM data.
+- The Executive Report now surfaces a Meta attribution panel using the live summary payload. It is intentionally focused on which Meta-tagged ads/campaigns are driving recorded visits and downstream opportunities, not spend.
 - The Postgres reporting bootstrap has been applied to the live database.
 - GHL leads/sales/report workflows are live and active.
-- GA4 is now live and flowing to the executive report (sessions, users, engagement by channel). GSC is still deferred.
+- GA4 is now live and flowing to the executive report (recorded visits, users, engagement by channel). GSC is still deferred.
 - `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary dedupe and stage-aware win logic integrated into production.
 - `LT - Report Daily Rollups` now preserves GA-backed channel, UTM, landing-page, and daily traffic rows so the report host keeps live Channel Breakdown after rollups run.
 - `LT - Report Rollup Corrections` has been deactivated because the production Rollups workflow now owns those fixes.
@@ -31,7 +31,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The current cohort view now shows usable source-field coverage, bridge-match coverage, and lead-to-sale match coverage separately so attribution quality can be diagnosed without inflating funnel metrics.
 - `LT - Report Attribution Bridge` now rebuilds a rolling 90-day window using normalized raw contact ids and stored GHL attribution fields, which materially improved cohort bridge coverage in the live report.
 - The embedded report now includes a metric glossary so the visible cards are defined where they appear.
-- The primary funnel cards now use Users as the denominator for conversion rates, while Sessions remains traffic volume context.
+- The primary funnel cards now use Users as the denominator for conversion rates, while Recorded Visits remains traffic volume context.
 - `7d`, `30d`, and `90d` are trailing complete-day presets ending yesterday, not click-day-dependent calendar blocks.
 - The `Acquisition Sources` sidebar entry opens the contact-level attribution view.
 - The `UTM / Campaign Breakdown` section shows observed traffic rows, not every UTM ever created in GHL.

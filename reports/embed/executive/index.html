@@ -183,9 +183,9 @@
         <!-- KPI ROW -->
         <section class="grid kpi-row" style="margin-bottom:16px;">
           <div class="kpi-card">
-            <div class="label">Sessions</div>
+            <div class="label">Recorded Visits</div>
             <div class="value" id="kpi-sessions">—</div>
-            <div class="sub" id="kpi-sessions-sub">GA4</div>
+            <div class="sub" id="kpi-sessions-sub">GA4 recorded visits</div>
           </div>
           <div class="kpi-card">
             <div class="label">Contacts</div>
@@ -221,10 +221,10 @@
             <span>Definitions as shown</span>
           </div>
           <div class="panel-body">
-            <div class="definition-grid">
+              <div class="definition-grid">
               <div class="definition-card">
                 <strong>Traffic</strong>
-                <p><b>Sessions</b> are GA4 visits in the selected window. <b>Users</b> are unique visitors and are the primary denominator for the funnel cards below.</p>
+                <p><b>Recorded visits</b> are the visits GA4 captured in the selected window. <b>Users</b> are unique visitors and are the primary denominator for the funnel cards below.</p>
               </div>
               <div class="definition-card">
                 <strong>Lead Capture</strong>
@@ -232,11 +232,11 @@
               </div>
               <div class="definition-card">
                 <strong>Funnel Efficiency</strong>
-                <p><b>User → Form</b> and <b>User → Contact</b> show how efficiently unique visitors become form submissions or CRM contacts. Session-based rates stay available only as secondary context.</p>
+                <p><b>User → Form</b> and <b>User → Contact</b> show how efficiently unique visitors become form submissions or CRM contacts. Recorded-visit-based rates stay available only as secondary context.</p>
               </div>
               <div class="definition-card">
                 <strong>Attribution Coverage</strong>
-                <p><b>Cohort Contacts</b> are new contacts created in the window. <b>Source Coverage</b> means usable source fields exist, <b>Bridge Matched</b> means the contact was linked to a GA4 session, and <b>Sale Matched</b> means it was linked to an opportunity.</p>
+                <p><b>Contacts Created in Window</b> are new contacts created in the window. <b>Source Coverage</b> means usable source fields exist, <b>Bridge Matched</b> means the contact was linked to a GA4 recorded visit, and <b>Sale Matched</b> means it was linked to an opportunity.</p>
               </div>
               <div class="definition-card">
                 <strong>Acquisition Sources</strong>
@@ -312,12 +312,12 @@
             </div>
             <div class="panel-body">
               <div class="mini-grid-4" id="meta-summary-grid">
-                <div class="mini"><strong>Visits</strong><div id="meta-visits">—</div></div>
+                <div class="mini"><strong>Recorded Visits</strong><div id="meta-visits">—</div></div>
                 <div class="mini"><strong>Contacts</strong><div id="meta-contacts">—</div></div>
                 <div class="mini"><strong>Opps</strong><div id="meta-opps">—</div></div>
                 <div class="mini"><strong>Booked</strong><div id="meta-booked">—</div></div>
               </div>
-              <div class="footer-note">Meta-attributed traffic and downstream GHL conversions from GA4 session + UTM data.</div>
+              <div class="footer-note">Meta-attributed traffic and downstream GHL conversions from GA4 recorded visits and UTM data.</div>
             </div>
           </div>
           <div class="panel">
@@ -352,7 +352,7 @@
             </div>
             <div class="panel-body">
               <div class="bar-list" id="ad-utm-list"><div class="loading">Loading...</div></div>
-              <div class="footer-note">Observed sessions from UTM-tagged traffic. Source <code>an</code> = Leadform/AdForm; <code>facebook/instagram</code> = Meta Ads. A UTM created in GHL will only appear here once it is actually observed in traffic or matched through the bridge.</div>
+              <div class="footer-note">Observed recorded visits from UTM-tagged traffic. Source <code>an</code> = Leadform/AdForm; <code>facebook/instagram</code> = Meta Ads. A UTM created in GHL will only appear here once it is actually observed in traffic or matched through the bridge.</div>
             </div>
           </div>
         </section>
@@ -384,14 +384,14 @@
             </div>
             <div class="panel-body">
               <div class="mini-grid" id="attribution-grid">
-                <div class="mini"><strong>Cohort Contacts</strong><div id="attr-cohort">—</div></div>
+                <div class="mini"><strong>Contacts Created in Window</strong><div id="attr-cohort">—</div></div>
                 <div class="mini"><strong>With Source Fields</strong><div id="attr-source">—</div></div>
                 <div class="mini"><strong>Bridge Matched</strong><div id="attr-bridge">—</div></div>
                 <div class="mini"><strong>Sale Matched</strong><div id="attr-sale">—</div></div>
                 <div class="mini"><strong>Source Coverage</strong><div id="attr-source-rate">—</div></div>
                 <div class="mini"><strong>Bridge Match Rate</strong><div id="attr-bridge-rate">—</div></div>
               </div>
-              <div class="footer-note">Cohort contacts are the new contacts created in the selected window. Source coverage means the contact has usable source fields. Bridge matched means the contact was linked to a GA4 session. Sale matched means the contact was linked to an opportunity.</div>
+              <div class="footer-note">Contacts created in window are the new contacts created in the selected window. Source coverage means the contact has usable source fields. Bridge matched means the contact was linked to a GA4 session. Sale matched means the contact was linked to an opportunity.</div>
             </div>
           </div>
         </section>
@@ -405,7 +405,7 @@
             </div>
             <div class="panel-body">
               <div class="mini-grid" id="capture-gaps-grid">
-                <div class="mini"><strong>Sessions</strong><div id="cg-sessions">—</div></div>
+                <div class="mini"><strong>Recorded Visits</strong><div id="cg-sessions">—</div></div>
                 <div class="mini"><strong>Forms</strong><div id="cg-forms">—</div></div>
                 <div class="mini"><strong>Contacts</strong><div id="cg-contacts">—</div></div>
                 <div class="mini"><strong>Opportunities</strong><div id="cg-opportunities">—</div></div>
@@ -563,7 +563,7 @@
             </div>
             <div class="panel-body">
               <div class="mini-grid" id="site-traffic-grid">
-                <div class="mini"><strong>Sessions</strong><div id="st-sessions">—</div></div>
+                <div class="mini"><strong>Recorded Visits</strong><div id="st-sessions">—</div></div>
                 <div class="mini"><strong>Users</strong><div id="st-users">—</div></div>
                 <div class="mini"><strong>Engaged</strong><div id="st-engaged">—</div></div>
                 <div class="mini"><strong>Forms</strong><div id="st-forms">—</div></div>
@@ -797,7 +797,7 @@
           });
           if (adRows.length === 0) {
             var el = document.getElementById("ad-utm-list");
-            if (el) el.innerHTML = "<div class=\"loading\">No ad-tagged sessions in this window.</div>";
+            if (el) el.innerHTML = "<div class=\"loading\">No ad-tagged recorded visits in this window.</div>";
             return;
           }
           var maxAd = Math.max(1, ...adRows.map(function (i) { return i.sessions || 0; }));
@@ -805,7 +805,7 @@
             var label = (u.source || "?") + " / " + (u.medium || "?");
             if (u.campaign) label += " [" + u.campaign + "]";
             var value = u.sessions || 0;
-            return { label: label, sessions: value, sub: "sessions:" + formatNumber(value) + (u.leads > 0 ? " contacts:" + formatNumber(u.leads) : "") };
+            return { label: label, sessions: value, sub: "recorded visits:" + formatNumber(value) + (u.leads > 0 ? " contacts:" + formatNumber(u.leads) : "") };
           }), "No ad traffic data.");
         }
         function getHealthStatus(lastSuccessAt) {
@@ -871,7 +871,7 @@
             return { label: c.label || c.channel || "Other", sessions: c.sessions || 0, value: c.sessions || 0 };
           }), "No channel data yet.");
           renderMiniGrid(document.getElementById("channel-detail-grid"), filteredChannels.slice(0, 6).map(function (c) {
-            return { label: c.label || c.channel || "?", value: formatNumber(c.sessions || 0) + " sess / " + formatNumber(c.leads || 0) + " contacts" };
+            return { label: c.label || c.channel || "?", value: formatNumber(c.sessions || 0) + " recorded visits / " + formatNumber(c.leads || 0) + " contacts" };
           }), null);
           renderMetaAttribution(data);
           renderContactSources(data);
