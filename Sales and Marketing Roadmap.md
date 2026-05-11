@@ -7,6 +7,11 @@
 - Open / response rates in sequences
 - Appointment show rate
 
+### Next Week Report Plan
+- Add sequence-event ingest so we can show real sequence performance instead of only enrollments.
+- Tighten landing-page and form tracking so we can trust the matched funnel by landing page.
+- [x] Show a short summary of the most visited pages on the website using the landing-page rollup we already have.
+
 ### Conversion
 - Lead → MQL → SQL conversion rate
 - SQL → Proposal → Close rate
@@ -128,7 +133,8 @@ Apollo continues doing:
 | GSC Daily Ingest | Active | Search Console access granted; workflow healthy |
 | Meta Ads raw spend ingest | Deferred | Attribution-first path live; spend reporting deferred |
 | Clay integration | Planned Phase 2 | Not started |
-| Matched funnel by landing page | Planned | Needed for ad creative analysis |
+| Matched funnel by landing page | Planned | Needs tighter landing-page and form tracking first |
+| Sequence event performance | Planned next week | Need open, reply, click, bounce, and unsubscribe events from Apollo sequences |
 | GHL → LinkedIn automation | Planned | LinkedIn connect dispatcher active; full workflow deferred |
 | GHL Calls & Appointments Ingest | Active | Appointments ingest live (`yWZVSqEcjTbMT3kG`, calendar `SrtXcFVyea7pFl3nTiIK`); Calls ingest live from GHL Conversations |
 | Pipeline stage velocity (days per stage) | Active | `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`) calculates this by combining pipeline history events with the previous stage record for each opportunity |
@@ -150,7 +156,8 @@ Minimum v1 output from the executive report:
 - [x] Sales Detail panel (win rate, deals by stage, pipeline value)
 - [x] GSC clicks and impressions
 - [ ] Meta raw spend/clicks/impressions (deferred)
-- [ ] Matched funnel by landing page (deferred)
+- [ ] Matched funnel by landing page (after tracking is tightened)
+- [ ] Sequence event performance (opens, replies, clicks, bounces, unsubscribes)
 
 ### Pipeline Movement Tracking
 
@@ -178,3 +185,8 @@ Social and site (chella)
 - Social engagement: comments, reactions etc. → Needs Meta/Facebook Graph API (not in GHL)
 - Website visits and traffic source → Already available via GA4 + channel breakdown
 - Interactions on website: page visited, form fills etc. → Already available via GA4 landing pages + GHL forms
+
+Next-week follow-up
+- Sequence reporting → add event-level ingest for opens, replies, clicks, bounces, and unsubscribes so the report shows sequence performance, not just enrollments.
+- Landing pages → preserve page URL and UTM fields consistently on every link and form so a matched funnel by landing page becomes reliable.
+- Website pages → show the most visited pages as a short summary using the landing-page rollup while the deeper funnel tracking is being tightened.

@@ -151,6 +151,7 @@
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-traffic" data-view="overview" data-scroll="section-traffic"><span class="nav-dot"></span> Traffic &amp; Channels</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-funnel" data-view="overview" data-scroll="section-funnel"><span class="nav-dot"></span> Funnel &amp; Attribution</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-acquisition" data-view="overview" data-scroll="section-acquisition"><span class="nav-dot"></span> Acquisition Sources</a>
+          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-pages" data-view="overview" data-scroll="section-pages"><span class="nav-dot"></span> Top Pages</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-sales" data-view="overview" data-scroll="section-sales"><span class="nav-dot"></span> Sales &amp; Pipeline</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-gsc" data-view="overview" data-scroll="section-gsc"><span class="nav-dot"></span> Search Console</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-calls" data-view="overview" data-scroll="section-calls"><span class="nav-dot"></span> Calls &amp; Conversations</a>
@@ -359,6 +360,21 @@
             <div class="panel-body">
               <div class="bar-list" id="ad-utm-list"><div class="loading">Loading...</div></div>
               <div class="footer-note">Observed recorded visits from UTM-tagged traffic. Source <code>an</code> = Leadform/AdForm; <code>facebook/instagram</code> = Meta Ads. A UTM created in GHL will only appear here once it is actually observed in traffic or matched through the bridge.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION: TOP PAGES -->
+        <div class="section-label" id="section-pages">Top Pages</div>
+        <section class="grid" style="margin-bottom:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Most Visited Pages</h2>
+              <span>GA4 landing pages</span>
+            </div>
+            <div class="panel-body">
+              <div class="bar-list" id="top-pages-list"><div class="loading">Loading page summary...</div></div>
+              <div class="footer-note">This is a short page summary based on the landing-page rollup we already capture. It shows the pages that received the most recorded visits, plus form and opportunity activity when available.</div>
             </div>
           </div>
         </section>
@@ -657,7 +673,7 @@
     </div>
     <script>
       (function () {
-        var BUILD_STAMP = "2026-05-12-v10-gsc-appointments";
+        var BUILD_STAMP = "2026-05-12-v11-top-pages";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -928,6 +944,7 @@
           var callVoicemail = Number(summary.callVoicemailCount || 0);
           var callInbound = Number(summary.callInboundCount || 0);
           var callOutbound = Number(summary.callOutboundCount || 0);
+          var topPages = Array.isArray(data.topPages) ? data.topPages : [];
           var appointmentTotal = Number(summary.appointmentTotal || appointmentCounts.total || 0);
           var appointmentShowed = Number(summary.appointmentShowedCount || appointmentCounts.showed || 0);
           var appointmentNoShow = Number(summary.appointmentNoShowCount || appointmentCounts.noShow || 0);
@@ -956,6 +973,16 @@
           renderMetaAttribution(data);
           renderContactSources(data);
           renderAdUtmTraffic(data);
+          renderBars(document.getElementById("top-pages-list"), topPages.slice(0, 8).map(function (p) {
+            var page = String(p.landing_page || p.landingPage || "Unknown");
+            page = page.replace(/^https?:\/\/[^\/]+/i, "");
+            if (!page) page = "/";
+            return {
+              label: page,
+              sessions: Number(p.sessions || 0),
+              sub: "forms:" + formatNumber(Number(p.form_submissions || 0)) + " opps:" + formatNumber(Number(p.opportunities || 0)) + " revenue:" + formatCurrency(Number(p.closed_won_revenue || 0))
+            };
+          }), "No page summary yet.");
           var bestChannel = channelBreakdown.length > 0 ? (channelBreakdown[0].label || "GHL ready") : "GHL ready";
           el = document.getElementById("fn-session-to-form"); if (el) el.textContent = formatPercent(userToFormRate);
           el = document.getElementById("fn-session-to-contact"); if (el) el.textContent = formatPercent(userToContactRate);
@@ -1038,7 +1065,13 @@
           el = document.getElementById("st-users"); if (el) el.textContent = formatNumber(Number(summary.users || 0));
           el = document.getElementById("st-engaged"); if (el) el.textContent = formatNumber(Number(summary.engagedSessions || 0));
           el = document.getElementById("st-forms"); if (el) el.textContent = formatNumber(Number(summary.formSubmissions || 0));
-          el = document.getElementById("st-top-page"); if (el) el.textContent = "livetransparent.com";
+          el = document.getElementById("st-top-page");
+          if (el) {
+            var topPageLabel = topPages.length > 0 ? String(topPages[0].landing_page || topPages[0].landingPage || "Unknown") : "No page data yet";
+            topPageLabel = topPageLabel.replace(/^https?:\/\/[^\/]+/i, "");
+            if (!topPageLabel) topPageLabel = "/";
+            el.textContent = topPageLabel;
+          }
           el = document.getElementById("st-eng-rate"); if (el) el.textContent = formatPercent(Number(summary.engagementRate || 0));
           renderBars(document.getElementById("deals-pipeline-list"), opportunityStageBreakdown.slice(0, 10).map(function(s) {
             return { label: (s.pipeline || "?") + " → " + (s.stage || "?"), sessions: s.active_opportunities || 0, sub: "worked:" + formatNumber(s.worked_opportunities || 0) + " movers:" + formatNumber(s.stage_movers || 0) };
