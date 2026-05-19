@@ -1,0 +1,179 @@
+{
+  "name": "LT - Voice Dequeue Next",
+  "nodes": [
+    {
+      "id": "73789b9d-7006-417e-9fc8-755304ad381d",
+      "name": "Webhook - Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 96],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "voice-dequeue-next",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "2767454d-3eca-45d8-a1b9-fc6d6e2dd5bd"
+    },
+    {
+      "id": "57e50f2f-263e-4541-b939-423f0d79c20e",
+      "name": "Postgres - Dequeue Next",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [224, 96],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with candidate as (select queue_id from voice_call_queue where status = 'pending' and pipeline_stage = 'queued' and dnc = false and attempt_count < max_attempts order by created_at asc limit 1) update voice_call_queue q set locked_at = now(), lock_owner = 'dequeue-next', attempt_count = attempt_count + 1, last_attempt_at = now(), next_attempt_at = now() + interval '15 minutes', updated_at = now(), pipeline_stage = 'dialing' from candidate c where q.queue_id = c.queue_id returning q.queue_id, q.contact_id, q.first_name, q.phone_e164, q.campaign_id, q.lead_timezone, q.max_attempts, q.attempt_count;",
+        "options": {}
+      }
+    },
+    {
+      "id": "8deb2a7b-9713-42ae-a812-2612a0859d30",
+      "name": "Switch - Has Item",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [448, 96],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.queue_id ? 1 : 0 }}",
+        "looseTypeValidation": true
+      }
+    },
+    {
+      "id": "cc7d7d83-705d-439e-bb81-da067ac716ca",
+      "name": "NoOp - Empty Queue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1344, 0],
+      "parameters": {
+        "jsCode": "return [{ json: { dequeued: false, reason: 'empty_queue' } }];"
+      }
+    },
+    {
+      "id": "fea77351-9d6c-4753-a183-e38dfe5991df",
+      "name": "Respond - 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.3,
+      "position": [1568, 96],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, dequeued: $json.dequeued !== false, queue_id: $json.queue_id || null } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "53ad9fd3-a7c1-4b79-9ab0-27dfbbce027e",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [672, 192],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "workflowName", "name": "workflowName", "type": "string", "value": "LT - Voice Dequeue Next" },
+            { "id": "ghlApiBaseUrl", "name": "ghlApiBaseUrl", "type": "string", "value": "https://services.leadconnectorhq.com" },
+            { "id": "ghlApiKey", "name": "ghlApiKey", "type": "string", "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28" },
+            { "id": "vapiApiBaseUrl", "name": "vapiApiBaseUrl", "type": "string", "value": "https://api.vapi.ai" },
+            { "id": "vapiApiKey", "name": "vapiApiKey", "type": "string", "value": "2fa39f7d-28d8-4b43-aca9-3330461c56db" },
+            { "id": "vapiPhoneNumberId", "name": "vapiPhoneNumberId", "type": "string", "value": "bd4ba248-a2b4-4738-b701-7c6a5ebb5bb4" },
+            { "id": "vapiAssistantId", "name": "vapiAssistantId", "type": "string", "value": "3f9bbfd2-efa6-4381-81e6-26f2452d28f1" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bedf97ad-4849-4060-b42b-fc12a4565587",
+      "name": "HTTP - Start Vapi Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [896, 192],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $(\"Config\").item.json.vapiApiBaseUrl + \"/call\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $(\"Config\").item.json.vapiApiKey }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { phoneNumberId: $(\"Config\").item.json.vapiPhoneNumberId, customer: { number: $json.phone_e164 }, assistantId: $(\"Config\").item.json.vapiAssistantId, assistantOverrides: { variableValues: { contact_id: $json.contact_id, queue_id: $json.queue_id, campaign_id: $json.campaign_id, lead_timezone: $json.lead_timezone || \"\", first_name: $json.first_name || \"\" }, metadata: { source: \"n8n-dequeue-next\", contact_id: $json.contact_id, queue_id: $json.queue_id, campaign_id: $json.campaign_id } } } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d8a8be3b-3904-4600-9ef2-a9fabe559583",
+      "name": "Code - Restore Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 192],
+      "parameters": {
+        "jsCode": "const ctx = $('Postgres - Dequeue Next').item.json; return [{ json: { ...ctx, vapi_response: $json } }];"
+      }
+    },
+    {
+      "id": "2a3d276f-6858-45f9-9d80-a4c908ac17ae",
+      "name": "GHL - Call Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [1344, 192],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ \"https://services.leadconnectorhq.com/contacts/\" + $json.contact_id + \"/notes\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $(\"Config\").item.json.ghlApiKey }}" },
+            { "name": "Version", "value": "2023-02-21" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { body: \"AI outbound Vapi call started (dequeue-next). queue_id=\" + $json.queue_id } }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook - Trigger": {
+      "main": [[{ "node": "Postgres - Dequeue Next", "type": "main", "index": 0 }]]
+    },
+    "Postgres - Dequeue Next": {
+      "main": [[{ "node": "Switch - Has Item", "type": "main", "index": 0 }]]
+    },
+    "Switch - Has Item": {
+      "main": [
+        [{ "node": "NoOp - Empty Queue", "type": "main", "index": 0 }],
+        [{ "node": "Config", "type": "main", "index": 0 }]
+      ]
+    },
+    "NoOp - Empty Queue": {
+      "main": [[{ "node": "Respond - 200", "type": "main", "index": 0 }]]
+    },
+    "Config": {
+      "main": [[{ "node": "HTTP - Start Vapi Call", "type": "main", "index": 0 }]]
+    },
+    "HTTP - Start Vapi Call": {
+      "main": [[{ "node": "Code - Restore Context", "type": "main", "index": 0 }]]
+    },
+    "Code - Restore Context": {
+      "main": [[{ "node": "GHL - Call Note", "type": "main", "index": 0 }]]
+    },
+    "GHL - Call Note": {
+      "main": [[{ "node": "Respond - 200", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "active": true,
+  "tags": [],
+  "meta": { "aiBuilderAssisted": true }
+}
