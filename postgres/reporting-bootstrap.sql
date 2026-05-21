@@ -536,7 +536,7 @@ CREATE INDEX IF NOT EXISTS idx_report_opp_stage_timeline_pipeline_stage ON repor
 -- Light-touch bootstrap values so the workflows have a predictable baseline.
 INSERT INTO report_source_registry (source_system, source_name, is_required, enabled, notes)
 VALUES
-  ('ga4', 'Google Analytics 4', TRUE, TRUE, 'Traffic source; blocked until property ID arrives.'),
+  ('ga4', 'Google Analytics 4', TRUE, TRUE, 'Traffic source; active in production.'),
   ('gsc', 'Google Search Console', TRUE, TRUE, 'Organic search source.'),
   ('ghl', 'GoHighLevel', TRUE, TRUE, 'CRM source of truth for leads and sales.'),
   ('velocity', 'Pipeline Velocity', FALSE, TRUE, 'Per-stage avg days from pipeline history timestamps.')
@@ -763,3 +763,37 @@ ON CONFLICT (ad_account_id, COALESCE(campaign_id, ''), COALESCE(adset_id, ''), C
   campaign_name = EXCLUDED.campaign_name, campaign_status = EXCLUDED.campaign_status,
   adset_name = EXCLUDED.adset_name, adset_status = EXCLUDED.adset_status,
   updated_at = NOW();
+
+-- LinkedIn connection state store
+CREATE TABLE IF NOT EXISTS linkedin_connection_state (
+  ghl_contact_id TEXT PRIMARY KEY,
+  location_id TEXT NOT NULL,
+  unipile_account_id TEXT NOT NULL DEFAULT '',
+  linkedin_profile_url TEXT NOT NULL DEFAULT '',
+  linkedin_public_identifier TEXT NOT NULL DEFAULT '',
+  linkedin_provider_id TEXT NOT NULL DEFAULT '',
+  connection_request_tag TEXT NOT NULL DEFAULT 'linkedin_connection_requested',
+  connection_status TEXT NOT NULL DEFAULT 'requested',
+  request_sent_at TIMESTAMPTZ,
+  connected_at TIMESTAMPTZ,
+  dm_sequence_started_at TIMESTAMPTZ,
+  last_checked_at TIMESTAMPTZ,
+  request_message TEXT,
+  request_message_hash TEXT,
+  sequence_step INTEGER NOT NULL DEFAULT 0,
+  payload_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS linkedin_connection_state_provider_uq
+  ON linkedin_connection_state (unipile_account_id, linkedin_provider_id)
+  WHERE linkedin_provider_id <> '';
+
+CREATE UNIQUE INDEX IF NOT EXISTS linkedin_connection_state_identifier_uq
+  ON linkedin_connection_state (unipile_account_id, linkedin_public_identifier)
+  WHERE linkedin_public_identifier <> '';
+
+CREATE INDEX IF NOT EXISTS linkedin_connection_state_status_idx
+  ON linkedin_connection_state (connection_status, updated_at DESC);

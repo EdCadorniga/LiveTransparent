@@ -14,4 +14,4 @@ This folder contains the LiveTransparent reporting schema bootstrap.
 ## Intended Result
 
 - The reporting stack can write the GHL reporting data immediately.
-- GA4 and Search Console remain available for later expansion if traffic reporting returns to scope.
+- GA4 is active and Search Console raw ingest is active; the remaining gap is summary surfacing for GSC in the Executive Report.

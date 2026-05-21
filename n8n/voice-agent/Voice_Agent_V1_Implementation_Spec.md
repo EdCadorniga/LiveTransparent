@@ -70,11 +70,11 @@ The production Phase 2 implementation keeps the queue, call metadata, dispositio
 - Read contact and existing opportunity context.
 - Create contact note with summary, disposition, next step, transcript link.
 - Create follow-up task when not booked or when handoff required.
-- Update tags for call outcomes:
-  - `AI Call Attempted`
-  - `AI Qualified`
-  - `AI Booked`
-  - `AI Human Handoff`
+- Update tags for call outcomes (historical V1 names; current production uses `vapi_*` tags — see the training runbook):
+  - ~~`AI Call Attempted`~~ → `vapi_call_attempted`
+  - ~~`AI Qualified`~~ → `vapi_qualified`
+  - ~~`AI Booked`~~ → `vapi_nurture` / `vapi_qualified`
+  - ~~`AI Human Handoff`~~ → (not used in Phase 2)
 
 ## Safety and guardrails
 - Do not provide legal/regulatory advice.

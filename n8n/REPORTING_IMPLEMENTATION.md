@@ -13,12 +13,13 @@ It is operational, phase-based, and safe to use before the GA4 property ID arriv
 6. Build the bridge and rollups.
 7. Add QA and publish refresh.
 
-All report workflows are now active and published in n8n as of 2026-05-02:
+Current live status as of 2026-05-13:
 - **Active**: `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report Executive Summary API`, `LT - Report QA and Alerts`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, `LT - Report Postgres Bootstrap Apply`.
 - **GA4 Active**: `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`), `LT - GA4 Traffic Rollup Bridge` (`0P2AZcQYWYZjXbRi`).
-- **Inactive/deferred**: `LT - GSC Daily Ingest`, `LT - GHL Executive Report Menu Sync` (one-time provision, inactive).
-Current status: GA4 is live, the rollups draft has been restored from the active workflow definition, and the published Rollups workflow now includes the daily-summary correction logic directly.
-The published Rollups workflow also preserves GA-backed summary, channel, UTM, and landing-page rows so Channel Breakdown and traffic totals survive the CRM rollup pass.
+- **GSC Active Raw Ingest**: `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) writes raw query/page/site rows and source health, and the Executive Report search section now surfaces an estimated unique visitors proxy from GA4 Organic Search users alongside native GSC metrics.
+- **Inactive/deferred**: `LT - GHL Executive Report Menu Sync` (one-time provision, inactive).
+Current status: GA4 is live, GSC raw ingest is live, the rollups draft has been restored from the active workflow definition, and the published Rollups workflow now includes the daily-summary correction logic directly.
+The published Rollups workflow preserves GA-backed summary, channel, UTM, and landing-page rows so Channel Breakdown and traffic totals survive the CRM rollup pass. GSC search metrics now render in the Executive Report, with GA4 Organic Search users used as the unique-visitor proxy.
 
 ## Live Pattern To Reuse
 The live workflows in this repo generally follow this shape:
@@ -82,7 +83,7 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
    - The live workflow is active and derives row dates from opportunity timestamps.
 
 ### 4. `LT - GA4 Daily Ingest`
-- Status: blocked until GA4 property ID arrives.
+- Status: active in production.
 - Purpose: pull sessions, channels, landing pages, and event data from GA4.
 - Trigger: Cron.
 - Outputs:
@@ -95,7 +96,7 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - Leave the property id field empty or disabled until Cameron provides it.
 
 ### 5. `LT - GSC Daily Ingest`
-- Status: not blocked by GA4, but requires verified Search Console access.
+- Status: active raw ingest; summary surfacing is still pending.
 - Purpose: pull search clicks, impressions, CTR, and position data.
 - Trigger: Cron.
 - Outputs:
@@ -106,7 +107,7 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - This can be built in parallel with the GHL workflows.
 
 ### 6. `LT - Report Attribution Bridge`
-- Status: partially blocked by GA4 for the traffic side.
+- Status: active.
 - Purpose: join traffic, lead, and sales records into one report-ready bridge.
 - Trigger: after raw ingest or on schedule.
 - Outputs:
@@ -119,7 +120,7 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - The live workflow is now scaffolded in n8n and writes GHL-only bridge rows.
 
 ### 7. `LT - Report Daily Rollups`
-- Status: partially blocked by GA4 for full traffic metrics.
+- Status: active.
 - Purpose: aggregate dashboard-ready metrics.
 - Trigger: after bridge success.
 - Outputs:
@@ -128,8 +129,8 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - pipeline summary rows
   - traffic, lead, and sales KPI rows
 - Notes:
-- GHL-only rollups can start now.
-- Full report rollups wait for GA4.
+- GHL-only rollups are live.
+- GA4 and GSC are both live in raw form, and the Executive Report now shows GSC clicks/impressions/CTR/position plus an estimated unique visitors proxy from GA4 Organic Search users.
 - The live workflow draft was restored on 2026-05-02 after a broken `PLACEHOLDER_SQL_CODE` save.
 - The active workflow remains safe.
 - The Rollups draft was manually validated on 2026-05-02 after integrating the same logic into `Build Rollup SQL`.
@@ -188,12 +189,13 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
 - publish refresh
 - Postgres bootstrap apply
 - embedded report shell and sidebar launch point
-- GSC/GA4 ingest stubs (blocked, record pending-state runs)
+- GSC raw ingest writes Search Console rows and source health; GA4 ingest and the GA4 bridge are live.
 
-### Wait for GA4 property ID
+### Current Live Sources
 - GA4 daily ingest (live data)
 - GA4 side of attribution bridge
 - GA4 traffic rollups
+- Search Console raw ingest (live; proxy surfaced in report)
 - any metrics that depend on GA4 session or landing page data
 
 ## Node Shape
@@ -211,28 +213,28 @@ For GHL workflows, the read step can be the GHL app node or an HTTP Request to t
 For GA4 and GSC, prefer HTTP Request plus a normalization Code step.
 
 ## Minimal Execution Checklist
-### Before GA4 property ID arrives
+### Current Live Checklist
 - [x] Create the report config row and runtime flags.
 - [x] Create and publish the GHL leads ingest.
 - [x] Create and publish the GHL sales ingest.
 - [x] Create and publish the QA workflow.
 - [x] Create and publish the report publish refresh.
 - [x] Decide where report snapshots will live in GHL.
-- [ ] Confirm the Search Console property and access level.
+- [x] Search Console raw ingest is active; the Executive Report now surfaces an estimated unique visitors proxy from GA4 Organic Search users.
 - [x] Define the daily report date window and timezone rule.
 - [x] Fix `opportunitiesCreated` inflation with `LT - Report Rollup Corrections`.
 - [x] Verify `closed_won = 0` is genuine.
 
-### After GA4 property ID arrives
+### Live Verification
 - [x] Enable GA4 ingest with the property id.
 - [x] Test GA4 raw pull with one known date window.
 - [x] Connect GA4 rows into the bridge workflow.
-- [ ] Verify rollups against GHL contact and opportunity totals.
-- [ ] Turn on publish refresh for the report surface.
+- [x] Verify rollups against GHL contact and opportunity totals.
+- [x] Turn on publish refresh for the report surface.
 
 ## What Is Already Prepared
 - All report workflows are active and published in n8n (leads ingest, sales ingest, attribution bridge, daily rollups, executive summary API, QA and alerts, config sync, publish refresh, Postgres bootstrap apply).
-- `LT - GSC Daily Ingest` and `LT - GA4 Daily Ingest` record blocked pending-state runs until access is confirmed.
+- `LT - GSC Daily Ingest` writes raw Search Console rows and source health, while `LT - GA4 Daily Ingest` and the GA4 bridge are live; the Executive Report search section now includes an estimated unique visitors proxy from GA4 Organic Search users.
 - The Postgres reporting bootstrap exists in `postgres/reporting-bootstrap.sql`.
 - The embedded report host contract exists in `reporting/Embedded_Report_Host_Spec.md`.
 - The report workflow inventory is tracked in `reporting/Workflow_Shell_Index.md`.

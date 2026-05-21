@@ -5,7 +5,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 
 ## Scope
 - Production workflow pair:
-  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`1ogCy9ScVjtF0Cqf`)
+  - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`)
   - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
 - Archived / non-production workflows:
   - `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`)
@@ -18,7 +18,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 - Apply `postgres/voice_agent_schema.sql` to reporting Postgres.
 - Confirm `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV` is present in root `.env`.
 - Confirm `GHL_API_KEY` aliases `GHL_PIT` in root `.env` and that the Codex session has been restarted after any PIT rotation.
-- Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/voice-callback`.
+- Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
 - Verify DNC source of truth and queue feed workflow are active.
 - Confirm archived workflows are not active in n8n.
 
@@ -65,3 +65,5 @@ Do not reintroduce the older split callback workflow into production.
 - Verify completed calls create one `voice_call_attempt` row each.
 - Verify queue rows are locked on claim and are only eligible again after the stale lock window.
 - Verify archived workflows remain archived and are not active.
+- Verify the vapi\_\* tags are applied correctly on a sample of completed calls.
+- Spot-check that failed/null disposition calls did not receive auto tags (expected).

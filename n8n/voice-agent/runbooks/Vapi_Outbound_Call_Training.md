@@ -4,7 +4,7 @@ This document explains how the two production voice workflows work together with
 
 ## Production Workflows
 
-- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`1ogCy9ScVjtF0Cqf`)
+- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`)
 - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
 
 These two workflows are the live production pair.
@@ -211,10 +211,10 @@ Tool behavior:
 
 - `update_lead_status`
   - marks the queue row completed
-  - adds the `AI Call Attempted` tag in GHL
+  - adds the `vapi_call_attempted` tag in GHL
 - `add_to_dnc`
   - marks the queue row as DNC and completed
-  - adds the `do_not_call` tag in GHL
+  - adds the `vapi_dnc` tag in GHL
 - `log_call_outcome`
   - upserts a `voice_call_attempt` row
 - `notify_sales`
@@ -246,13 +246,19 @@ This booking behavior belongs in the assistant conversation flow, not in the dia
 When the payload is not a tool call, the workflow:
 
 - normalizes the Vapi call result
-- derives a disposition such as:
-  - `no_answer`
-  - `voicemail`
-  - `connected`
-  - `qualified_booked`
+- derives a disposition and matching `vapi_*` tags from `call.endedReason`:
+  - `no_answer` — customer did not answer
+  - `voicemail` — voicemail left
+  - `busy` — customer was busy
+  - `wrong_number` — wrong number reached
+  - `contact_disconnected` — customer dropped during call
+  - `qualified_booked` — human answered and was interested (`analysis.successEvaluation = true`)
+  - `connected` — human answered but not interested (`analysis.successEvaluation = false`)
+- maps each disposition to the corresponding `vapi_*` GHL tags
 - inserts a `voice_call_attempt` row
-- writes a GHL contact note with the summary and recording link
+- applies the `vapi_*` tags to the GHL contact via `GHL - Apply Tags`
+- writes a GHL contact note with the disposition, summary, and recording link
+- triggers `Code - Trigger Dequeue Next` to pull the next queue item
 
 ## Data Written By The System
 
@@ -264,13 +270,31 @@ The voice system uses these tables:
 - `voice_call_attempt`
 - `voice_call_transcript_turn`
 
-### GHL
+### GHL Tags
+
+Every end-of-call event applies `vapi_call_attempted` plus one outcome-specific tag:
+
+| GHL Tag | Applies When |
+|---------|-------------|
+| `vapi_call_attempted` | Always — every completed call attempt |
+| `vapi_no_answer` | `call.endedReason` contains `customer-did-not-answer` or `no-answer` |
+| `vapi_voicemail` | `call.endedReason` contains `voicemail` (paired with `vapi_voicemail_left`) |
+| `vapi_voicemail_left` | Same as `vapi_voicemail` — both applied together |
+| `vapi_busy` | `call.endedReason` contains `customer-busy` or `busy` |
+| `vapi_wrong_number` | `call.endedReason` contains `wrong-number` |
+| `vapi_contact_disconnected` | `call.endedReason` contains `customer-dropped` |
+| `vapi_qualified` | Human answered and `analysis.successEvaluation = true` (interested) |
+| `vapi_nurture` | Human answered and `analysis.successEvaluation = false` (not interested) |
+| `vapi_dnc` | Added by the `add_to_dnc` tool (manual DNC action) |
+
+**Important**: Calls with disposition `failed` or `null` in `voice_call_attempt` never connected to Vapi, so no end-of-call webhook fires and no `vapi_*` tags are automatically applied. Those contacts must be handled outside the voice system.
+
+### GHL notes
 
 The workflows write:
 
 - call-start notes
-- call-completion notes
-- tags for attempt and DNC status
+- call-completion notes with disposition, summary, and recording link
 
 ### Slack
 

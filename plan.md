@@ -1,4 +1,4 @@
-# Vapi + n8n Outbound Voice Agent Plan — Phase 2 (2026-05-07)
+# Vapi + n8n Outbound Voice Agent Plan — Phase 2 (2026-05-14)
 
 ## Goal
 Connect n8n to Vapi with production-ready tool calling:
@@ -85,17 +85,44 @@ Also set end-of-call webhook → same URL.
 | Workflow | Status | Notes |
 |----------|--------|-------|
 | `fx4UvKUWbqJEY3LK` — Callback + Tools | Published in production | Canonical merged callback/tool router |
-| `1ogCy9ScVjtF0Cqf` — Outbound Dialer | Published in production | Canonical queue dialer |
+| `1ogCy9ScVjtF0Cqf` — Outbound Dialer | Published in production | Canonical queue dialer; last updated 2026-05-13 (newest-first dequeue, pipeline_stage tracking) |
 | `R1gTdLkbjJUPAr6u` — Callback + Tools Copy | Archived in n8n | Validation copy only; do not use in production |
+| `cd3Gv3llKB8XOUgg` — IF Test | Archived in n8n | Archived test workflow |
+| `pMMPwm2RLjuYqjZ7` — Switch Test | Archived in n8n | Archived test workflow |
+| `Qdl2a9KMJnIw745d` — Switch Branch Test | Archived in n8n | Archived test workflow |
 
 ## Acceptance Criteria
-- [ ] Outbound calls start for queue rows with `status=pending`, `dnc=false`, `attempt_count < max_attempts`
-- [ ] Vapi calls `update_lead_status` after qualifying/hanging up
-- [ ] Vapi calls `add_to_dnc` when prospect opts out
-- [ ] Vapi calls `log_call_outcome` with disposition + notes + follow-up
-- [ ] Vapi calls `notify_sales` with lead name + summary to `#leads`
-- [ ] Each completed call has a row in `voice_call_attempt`
-- [ ] GHL contact note written for every call
+- [x] Outbound calls start for queue rows with `status=pending`, `dnc=false`, `attempt_count < max_attempts` — Cron polls every 5min, fetches & locks next candidate, starts Vapi call via HTTP POST
+- [x] Vapi calls `update_lead_status` after qualifying/hanging up — tool wired in callback workflow, published
+- [x] Vapi calls `add_to_dnc` when prospect opts out — tool wired in callback workflow, published
+- [x] Vapi calls `log_call_outcome` with disposition + notes + follow-up — tool upserts `voice_call_attempt` row, published
+- [x] Vapi calls `notify_sales` with lead name + summary to `#leads` — tool wired in callback workflow, published
+- [x] Each completed call has a row in `voice_call_attempt` — via `log_call_outcome` tool
+- [x] GHL contact note written for every call — dialer writes note on call start
 - [x] Voice workflows use the shared `GHL_LOCATION_ID` where location-scoped reads are needed
-- [x] GHL tag and note paths smoke-tested against a test contact
-- [ ] Archived workflows remain inactive
+- [x] GHL tag and note paths smoke-tested against a test contact `WWuQ3TgiaxFs97lSHWSn`
+- [x] Archived workflows remain inactive — all 4 non-production workflows archived in n8n
+
+## Remaining Work (Phase 2 Hardening)
+- [ ] Move remaining secrets out of workflow `Config` nodes into n8n credentials or env-backed config
+- [ ] In Vapi dashboard, verify 4 tools and end-of-call webhook still pointed at `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`
+
+## Vapi Reporting (Phase 3)
+
+### 1. Vapi Tagging
+- Auto-tag GHL contacts based on Vapi call outcomes (e.g., `AI Call - Voicemail`, `AI Call - Connected`, `AI Call - DNC`, `AI Call - Busy`, `AI Call - No Answer`)
+- Apply tags in the callback workflow (`fx4UvKUWbqJEY3LK`) via the `update_lead_status` tool or a new dedicated tag node based on `endedReason` from Vapi end-of-call events
+- Enable segmenting contacts by call outcome for reporting and follow-up campaigns
+
+### 2. Vapi Stage in Pipeline
+- Add a Vapi-specific pipeline stage (e.g., `AI Outbound` or `Vapi Dialed`) between existing stages in the sales pipeline
+- When a Vapi call reaches specific dispositions (e.g., interested, follow-up needed), move the contact's opportunity to the Vapi stage automatically via the callback workflow
+- Enables visual tracking of Vapi-sourced leads through the pipeline
+
+### 3. Cross-Reporting for Vapi and Call Outcomes
+- New Postgres reporting table (e.g., `report_vapi_daily_summary`) aggregating Vapi call metrics by day:
+  - Total calls, calls by outcome (voicemail, connected, busy, no-answer, silence, failed)
+  - Contact-to-opportunity conversion rate for Vapi-sourced leads
+  - Average call duration by outcome
+- Cross-reference Vapi call data with `voice_call_attempt` dispositions and downstream GHL opportunity stages
+- Surface KPI panel in the Executive Report showing Vapi performance alongside other channels

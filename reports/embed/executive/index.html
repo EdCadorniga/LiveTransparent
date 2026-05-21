@@ -583,6 +583,9 @@
               </div>
               <div class="divider"></div>
               <div class="bar-list" id="call-status-list"><div class="loading">Loading call data...</div></div>
+              <div class="divider"></div>
+              <div class="sub-head">Outbound Call Outcomes</div>
+              <div class="bar-list" id="call-outcome-list"><div class="loading">Loading call outcome data...</div></div>
               <div class="footer-note">Calls are read from GHL Conversations. Status groups use the raw CRM status plus answered timestamp so the report reflects what the CRM actually stores.</div>
             </div>
           </div>
@@ -662,10 +665,11 @@
               <div class="mini-grid" id="gsc-grid">
                 <div class="mini"><strong>Clicks</strong><div id="gsc-clicks">—</div></div>
                 <div class="mini"><strong>Impressions</strong><div id="gsc-impressions">—</div></div>
+                <div class="mini"><strong>Est. Unique Visitors</strong><div id="gsc-unique-visitors">—</div></div>
                 <div class="mini"><strong>CTR</strong><div id="gsc-ctr">—</div></div>
                 <div class="mini"><strong>Avg Position</strong><div id="gsc-position">—</div></div>
               </div>
-              <div class="footer-note">Google Search Console is live. This panel shows the high-level search performance. Query and page detail stays in the dedicated GSC workflow.</div>
+              <div class="footer-note">Estimated unique visitors uses GA4 Organic Search users as a proxy. Google Search Console metrics are still rolled up from the raw GSC query table into the summary payload. Query and page detail stays in the dedicated GSC workflow.</div>
             </div>
           </div>
         </section>
@@ -911,10 +915,33 @@
           var opportunityStageBreakdown = Array.isArray(data.opportunityStageBreakdown) ? data.opportunityStageBreakdown : [];
           var appointments = Array.isArray(data.appointments) ? data.appointments : [];
           var callStatusBreakdown = Array.isArray(data.callStatusBreakdown) ? data.callStatusBreakdown : [];
+          var callOutcomeBreakdown = Array.isArray(data.callOutcomeBreakdown) ? data.callOutcomeBreakdown : [];
           var utmBreakdown = Array.isArray(data.utmBreakdown) ? data.utmBreakdown : [];
           var health = Array.isArray(data.health) ? data.health : [];
+          function normalizeDisposition(value) {
+            return String(value || "").trim().toLowerCase().replace(/_/g, "-");
+          }
+          function isAnsweredDisposition(value) {
+            var normalized = normalizeDisposition(value);
+            return normalized === "answered" || normalized === "connected" || normalized === "completed";
+          }
+          function isMissedDisposition(value) {
+            var normalized = normalizeDisposition(value);
+            return normalized === "no-answer" || normalized === "no answer" || normalized === "busy" || normalized === "failed" || normalized === "unanswered" || normalized === "missed";
+          }
+          function isVoicemailDisposition(value) {
+            return normalizeDisposition(value).indexOf("voicemail") !== -1;
+          }
+          function sumOutcomeCounts(filterFn) {
+            return callOutcomeBreakdown.reduce(function (total, item) {
+              var disposition = item && item.disposition ? item.disposition : "unknown";
+              var count = Number(item && (item.outcome_count || 0) || 0);
+              return filterFn(disposition) ? total + count : total;
+            }, 0);
+          }
           var gscClicks = Number(summary.gscClicks || 0);
           var gscImpressions = Number(summary.gscImpressions || 0);
+          var organicSearchUsers = Number(summary.organicSearchUsers || 0);
           var gscCtr = Number(summary.gscCtr || 0);
           var gscPosition = Number(summary.gscPosition || 0);
           var appointmentCounts = appointments.reduce(function (acc, item) {
@@ -938,12 +965,27 @@
           var activeOpps = Number(summary.activeOpportunityCount || 0);
           var workedOpps = Number(summary.workedOpportunityCount || 0);
           var stageMovers = Number(summary.stageMoverCount || 0);
-          var callTotal = Number(summary.callTotal || 0);
-          var callAnswered = Number(summary.callAnsweredCount || 0);
-          var callMissed = Number(summary.callMissedCount || 0);
-          var callVoicemail = Number(summary.callVoicemailCount || 0);
-          var callInbound = Number(summary.callInboundCount || 0);
-          var callOutbound = Number(summary.callOutboundCount || 0);
+          var callTotal = Number(summary.callTotal || summary.callOutcomeTotal || 0);
+          var callAnswered = Number(summary.callAnsweredCount || sumOutcomeCounts(isAnsweredDisposition) || 0);
+          var callMissed = Number(summary.callMissedCount || sumOutcomeCounts(isMissedDisposition) || 0);
+          var callVoicemail = Number(summary.callVoicemailCount || sumOutcomeCounts(isVoicemailDisposition) || 0);
+          var callInbound = Number(summary.callInboundCount || callOutcomeBreakdown.reduce(function (total, item) {
+            return total + Number(item && (item.inbound_count || 0) || 0);
+          }, 0));
+          var callOutbound = Number(summary.callOutboundCount || callOutcomeBreakdown.reduce(function (total, item) {
+            return total + Number(item && (item.outbound_count || 0) || 0);
+          }, 0));
+          var callStatusBreakdownEffective = callStatusBreakdown.length > 0 ? callStatusBreakdown : callOutcomeBreakdown.map(function (item) {
+            var disposition = item && item.disposition ? item.disposition : "unknown";
+            var outcomeCount = Number(item && (item.outcome_count || 0) || 0);
+            return {
+              status: disposition,
+              call_count: outcomeCount,
+              inbound_count: Number(item && (item.inbound_count || 0) || 0),
+              outbound_count: Number(item && (item.outbound_count || 0) || 0),
+              answered_count: isAnsweredDisposition(disposition) ? outcomeCount : 0
+            };
+          });
           var topPages = Array.isArray(data.topPages) ? data.topPages : [];
           var appointmentTotal = Number(summary.appointmentTotal || appointmentCounts.total || 0);
           var appointmentShowed = Number(summary.appointmentShowedCount || appointmentCounts.showed || 0);
@@ -983,7 +1025,7 @@
               sub: "forms:" + formatNumber(Number(p.form_submissions || 0)) + " opps:" + formatNumber(Number(p.opportunities || 0)) + " revenue:" + formatCurrency(Number(p.closed_won_revenue || 0))
             };
           }), "No page summary yet.");
-          var bestChannel = channelBreakdown.length > 0 ? (channelBreakdown[0].label || "GHL ready") : "GHL ready";
+          var bestChannel = filteredChannels.length > 0 ? (filteredChannels[0].label || "GHL ready") : "GHL ready";
           el = document.getElementById("fn-session-to-form"); if (el) el.textContent = formatPercent(userToFormRate);
           el = document.getElementById("fn-session-to-contact"); if (el) el.textContent = formatPercent(userToContactRate);
           el = document.getElementById("fn-contact-to-opp"); if (el) el.textContent = formatPercent(Number(summary.contactToOpportunityRate || 0));
@@ -1004,6 +1046,7 @@
           el = document.getElementById("cg-closed-won"); if (el) el.textContent = formatNumber(closedWon);
           el = document.getElementById("gsc-clicks"); if (el) el.textContent = formatNumber(gscClicks);
           el = document.getElementById("gsc-impressions"); if (el) el.textContent = formatNumber(gscImpressions);
+          el = document.getElementById("gsc-unique-visitors"); if (el) el.textContent = formatNumber(organicSearchUsers);
           el = document.getElementById("gsc-ctr"); if (el) el.textContent = formatPercent(gscCtr);
           el = document.getElementById("gsc-position"); if (el) el.textContent = formatNumber(gscPosition, 1);
           renderMiniGrid(document.getElementById("pipeline-grid"), pipelineDropoff.map(function (p) {
@@ -1041,9 +1084,12 @@
           el = document.getElementById("calls-voicemail"); if (el) el.textContent = formatNumber(callVoicemail);
           el = document.getElementById("calls-inbound"); if (el) el.textContent = formatNumber(callInbound);
           el = document.getElementById("calls-outbound"); if (el) el.textContent = formatNumber(callOutbound);
-          renderBars(document.getElementById("call-status-list"), callStatusBreakdown.map(function (s) {
+          renderBars(document.getElementById("call-status-list"), callStatusBreakdownEffective.map(function (s) {
             return { label: s.status || "unknown", sessions: s.call_count || 0, sub: "answered:" + formatNumber(s.answered_count || 0) + " in:" + formatNumber(s.inbound_count || 0) + " out:" + formatNumber(s.outbound_count || 0) };
           }), "No call data yet.");
+          renderBars(document.getElementById("call-outcome-list"), callOutcomeBreakdown.map(function (s) {
+            return { label: s.disposition || "unknown", sessions: s.outcome_count || 0, sub: "out:" + formatNumber(s.outbound_count || 0) + " in:" + formatNumber(s.inbound_count || 0) + " linked:" + formatNumber(s.linked_contact_count || 0) };
+          }), "No call outcome data yet.");
           el = document.getElementById("jd-opps"); if (el) el.textContent = formatNumber(activeOpps);
           el = document.getElementById("jd-worked"); if (el) el.textContent = formatNumber(workedOpps);
           el = document.getElementById("jd-stage-movers"); if (el) el.textContent = formatNumber(stageMovers);

@@ -368,10 +368,14 @@ Automation use:
 ### LinkedIn
 Best for:
 - manual owner follow-up where relationship fit is strong
+- accepted connection follow-up when the contact has explicitly connected
 
 Automation use:
 - track LinkedIn as a preferred channel
 - create task and suggested opener
+- detect accepted connections in a separate state-sync workflow
+- use Postgres as the connection-state index for matching accepted profiles back to CRM contacts
+- start the follow-up sequence only after acceptance is confirmed
 - do not automate unsupported connection requests or DMs
 
 ## Data Model Recommendations
@@ -412,6 +416,7 @@ Automation use:
 - advanced decision rules
 - message draft generation
 - event normalization across website, funnel, RB2B, and behavior signals
+- LinkedIn acceptance detection and connection-state sync
 
 ## Operational Rules
 

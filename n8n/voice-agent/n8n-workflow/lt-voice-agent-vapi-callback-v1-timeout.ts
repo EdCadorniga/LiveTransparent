@@ -39,22 +39,39 @@ const successEvaluation = !!analysis.successEvaluation;
 const summary = String(analysis.summary || artifact.summary || '').trim();
 const recordingUrl = artifact.recordingUrl || call.recordingUrl || '';
 const callId = String(call.id || body.id || raw.id || '').trim();
+const isEndEvent = body.type === 'end-of-call-report' || status.includes('ended') || status.includes('completed') || !!endedReason || !!summary || !!recordingUrl;
+if (!isEndEvent || !callId || !queueId) return [];
 const store = this.getWorkflowStaticData('global');
 store.voiceCallTimers = store.voiceCallTimers || {};
-if (callId) {
-  const state = store.voiceCallTimers[callId] || { callId };
-  state.ended = true;
-  state.endedAt = new Date().toISOString();
-  state.lastStatus = status || state.lastStatus || '';
-  store.voiceCallTimers[callId] = state;
-}
+const state = store.voiceCallTimers[callId] || { callId };
+state.ended = true;
+state.endedAt = new Date().toISOString();
+state.lastStatus = status || state.lastStatus || '';
+store.voiceCallTimers[callId] = state;
 let disposition = 'failed';
-if (status.includes('ended') || status.includes('completed')) {
-  if (endedReason.includes('customer-did-not-answer') || endedReason.includes('no-answer')) disposition = 'no_answer';
-  else if (endedReason.includes('voicemail')) disposition = 'voicemail';
-  else disposition = successEvaluation ? 'qualified_booked' : 'connected';
+const tags = [];
+if (isEndEvent) {
+  if (endedReason.includes('customer-did-not-answer') || endedReason.includes('no-answer')) {
+    disposition = 'no_answer';
+    tags.push('vapi_no_answer');
+  } else if (endedReason.includes('voicemail')) {
+    disposition = 'voicemail';
+    tags.push('vapi_voicemail', 'vapi_voicemail_left');
+  } else if (endedReason.includes('customer-busy') || endedReason.includes('busy')) {
+    disposition = 'busy';
+    tags.push('vapi_busy');
+  } else if (endedReason.includes('wrong-number')) {
+    disposition = 'wrong_number';
+    tags.push('vapi_wrong_number');
+  } else if (endedReason.includes('customer-dropped')) {
+    disposition = 'contact_disconnected';
+    tags.push('vapi_contact_disconnected');
+  } else {
+    disposition = successEvaluation ? 'qualified_booked' : 'connected';
+    tags.push(successEvaluation ? 'vapi_qualified' : 'vapi_nurture');
+  }
 }
-return [{ json: { contact_id: contactId, queue_id: queueId, call_id: callId, disposition, summary: summary || 'No summary returned by Vapi.', recording_url: recordingUrl } }];`;
+return [{ json: { contact_id: contactId, queue_id: queueId, call_id: callId, disposition, tags, summary: summary || 'No summary returned by Vapi.', recording_url: recordingUrl } }];`;
 
 const codeTimerStateJs = `const store = this.getWorkflowStaticData('global');
 store.voiceCallTimers = store.voiceCallTimers || {};
@@ -510,13 +527,13 @@ const ghlTags = node({
   config: {
     name: 'GHL - Update Tags',
     parameters: {
-      method: 'PUT',
+      method: 'POST',
       url: '=https://services.leadconnectorhq.com/contacts/{{ $(\"Code - Normalize Tool Call\").item.json.contact_id }}/tags',
       sendHeaders: true,
       headerParameters: {
         parameters: [
           { name: 'Authorization', value: '=Bearer {{ $env.GHL_API_KEY }}' },
-          { name: 'Version', value: '2021-07-28' },
+          { name: 'Version', value: '2023-02-21' },
           { name: 'Content-Type', value: 'application/json' },
           { name: 'Accept', value: 'application/json' },
         ],
@@ -551,13 +568,13 @@ const ghlDnc = node({
   config: {
     name: 'GHL - DNC Tag',
     parameters: {
-      method: 'PUT',
+      method: 'POST',
       url: '=https://services.leadconnectorhq.com/contacts/{{ $(\"Code - Normalize Tool Call\").item.json.contact_id }}/tags',
       sendHeaders: true,
       headerParameters: {
         parameters: [
           { name: 'Authorization', value: '=Bearer {{ $env.GHL_API_KEY }}' },
-          { name: 'Version', value: '2021-07-28' },
+          { name: 'Version', value: '2023-02-21' },
           { name: 'Content-Type', value: 'application/json' },
           { name: 'Accept', value: 'application/json' },
         ],
@@ -712,6 +729,8 @@ export default workflow('fx4UvKUWbqJEY3LK', 'LT - Voice Agent V1 Vapi Callback +
   .add(endCheck)
   .to(endHttp)
   .add(endNormalize)
+  .to(respondEndCall)
+  .add(respondEndCall)
   .to(insertAttempt)
   .add(insertAttempt)
   .to(ghlNote)

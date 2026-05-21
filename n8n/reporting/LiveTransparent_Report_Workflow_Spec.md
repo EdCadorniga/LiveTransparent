@@ -2,7 +2,7 @@
 
 ## Purpose
 This document turns the report plan into a concrete n8n build spec.
-Use it to implement the current GHL reporting pipeline first, with GA4 and Search Console deferred for later, in a way that is:
+Use it to document the current GHL reporting pipeline first, with GA4 live and Search Console raw ingest active, in a way that is:
 
 - source-isolated
 - idempotent
@@ -12,7 +12,7 @@ Use it to implement the current GHL reporting pipeline first, with GA4 and Searc
 ## Scope
 The report pipeline is not a GHL-native dashboard.
 The current phase is an n8n-orchestrated GHL ingestion and rollup system with Postgres as the reporting store and GHL as the CRM source of truth for leads and sales.
-GA4 and Search Console stay deferred until the reporting scope expands.
+GA4 is live in the current build. Search Console raw ingest is also live, but the Executive Report search panel still needs summary-rollup wiring before it will show populated values.
 
 ## Repo Context
 
@@ -22,8 +22,8 @@ GA4 and Search Console stay deferred until the reporting scope expands.
 - Embedded host spec: `n8n/reporting/Embedded_Report_Host_Spec.md`
 - Reporting index: `n8n/reporting/README.md`
 - Workflow shell index: `n8n/reporting/Workflow_Shell_Index.md`
-- GA4 reference: `n8n/nodes/google-analytics/REFERENCE.md` (later phase)
-- Search Console reference: `n8n/nodes/search-console/REFERENCE.md` (later phase)
+- GA4 reference: `n8n/nodes/google-analytics/REFERENCE.md` (live)
+- Search Console reference: `n8n/nodes/search-console/REFERENCE.md` (active raw ingest path)
 - GHL reference: `n8n/nodes/ghl/REFERENCE.md`
 - Postgres reference: `n8n/nodes/postgres/REFERENCE.md`
 
@@ -41,7 +41,7 @@ Current n8n conventions already in use:
 
 ## Design Rules
 
-1. Keep GHL pulls isolated from later-phase traffic/search sources.
+1. Keep GHL pulls isolated from traffic/search sources, even when those sources are live.
 2. Write raw rows before any bridge or rollup work.
 3. Use deterministic source keys so reruns do not duplicate rows.
 4. Reprocess a small sliding window every day to absorb late-arriving CRM updates.
@@ -56,7 +56,7 @@ Run on the most recent complete day by default, with a small backfill overlap:
 - GHL leads ingest: re-pull the last 3 complete days plus watermark
 - GHL sales ingest: re-pull the last 3 complete days plus watermark
 - Bridge and rollups: recompute the last 7 days
-- GA4 and Search Console later, when those sources are reintroduced
+- GA4 is live; Search Console raw ingest is active but not yet surfaced in the summary payload
 
 Suggested order:
 
@@ -67,8 +67,8 @@ Suggested order:
 5. `LT - Report Daily Rollups`
 6. `LT - Report QA and Alerts`
 7. `LT - Report Publish Refresh`
-8. `LT - GA4 Daily Ingest` (deferred)
-9. `LT - GSC Daily Ingest` (deferred)
+8. `LT - GA4 Daily Ingest` (active)
+9. `LT - GSC Daily Ingest` (active raw ingest; summary pending)
 
 ## Workflow-by-Workflow Spec
 
@@ -162,13 +162,13 @@ Failure handling:
 Windowing rule:
 - Pull a 3-day overlap every day so late GA4 events can be corrected.
 
-### 3) `LT - GSC Daily Ingest` (Deferred)
+### 3) `LT - GSC Daily Ingest` (Active raw ingest, summary pending)
 
 Purpose:
 - Pull organic visibility and search performance data from Search Console.
 
 Trigger:
-- Cron after GA4 ingest, once that phase is re-enabled
+- Cron
 
 Reads:
 - Search Console API
@@ -476,21 +476,21 @@ Ops tables:
 6. Build `LT - Report Daily Rollups`.
 7. Build `LT - Report QA and Alerts`.
 8. Build `LT - Report Publish Refresh`.
-9. Add `LT - GA4 Daily Ingest` later if traffic reporting returns.
-10. Add `LT - GSC Daily Ingest` later if search reporting returns.
+9. `LT - GA4 Daily Ingest` is already live in the current build.
+10. `LT - GSC Daily Ingest` is already live as raw ingest; add summary-rollup wiring if the search section needs to render.
 11. Connect the dashboard surface to GHL.
 
 ## Missing Inputs
 
-- GA4 property ID from Cameron, only if traffic reporting is reintroduced
-- GSC property / site coverage confirmation, only if search reporting is reintroduced
+- GA4 property ID, only if traffic reporting needs to be revalidated
+- GSC property / site coverage confirmation, only if Search Console ingest needs to be revalidated
 - final dashboard host choice
 - whether the dashboard is embedded in GHL or linked out
 
 ## Acceptance Criteria
 
 - Every dashboard metric can be traced to a raw record.
-- GHL ingest independently now; GA4 and GSC can be layered in later.
+- GHL ingest independently now; GA4 and GSC raw ingest are already live, and the remaining work is summary surfacing.
 - A failure in one source does not block the others.
 - Backfills are safe to rerun.
 - Rollups can be regenerated from raw data.

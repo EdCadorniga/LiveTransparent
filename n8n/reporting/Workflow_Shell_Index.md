@@ -3,7 +3,7 @@
 This file is the short checklist of reporting workflows that should exist in n8n.
 Use it together with the workflow spec and the Postgres bootstrap.
 
-## Current Status (2026-05-02)
+## Current Status (2026-05-13)
 All report workflows are active and published in n8n:
 - `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) — rebuilt replacement
 - `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`)
@@ -15,7 +15,8 @@ All report workflows are active and published in n8n:
 - `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`)
 - `LT - Report Postgres Bootstrap Apply` (`3XHThUiUSNa4sTb9`)
 
-Deferred: `LT - GSC Daily Ingest`, `LT - GHL Executive Report Menu Sync`.
+Deferred: `LT - GHL Executive Report Menu Sync`.
+`LT - GSC Daily Ingest` is active raw ingest; its raw rows are live, but the Executive Report search section still needs summary-rollup wiring.
 
 Known cleanup completed: `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary correction logic folded back into the main workflow.
 
@@ -40,14 +41,14 @@ Known cleanup completed: `LT - Report Daily Rollups` was restored, republished, 
 ### `LT - GSC Daily Ingest`
 - Trigger: Cron
 - First nodes: Trigger -> Set Config -> Code Normalize -> HTTP Request -> Postgres Upsert
-- Live n8n ID: `if0Siw6KzlBItEbd`
-- Status: active, live daily ingest feeding GA4 traffic rollups
+- Live n8n ID: `xHqmCC1vOeZ11gCd`
+- Status: active raw ingest, writing query/page/site rows and source health
 
 ### `LT - GA4 Daily Ingest`
 - Trigger: Cron
 - First nodes: Trigger -> Set Config -> Code Guard -> HTTP Request -> Postgres Upsert
 - Live n8n ID: `6pCSGzFmrMDFL5Yq`
-- Status: created in n8n, inactive, deferred for a later phase
+- Status: active in production
 
 ### `LT - Report Attribution Bridge`
 - Trigger: After raw ingest
@@ -102,5 +103,5 @@ Known cleanup completed: `LT - Report Daily Rollups` was restored, republished, 
 
 ## Preparation Rule
 
-- Keep GA4 and GSC staged until the reporting scope expands beyond the current GHL-only build.
+- Keep the GHL reporting path live and treat GA4/GSC as separate live sources when summary surfacing needs to be rechecked.
 - The GHL reporting path and summary API are live and can continue to evolve independently.
