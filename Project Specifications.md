@@ -1,71 +1,49 @@
 # Project Specifications: Outbound Voice Agent (Vapi + n8n + GHL)
 
 ## Objective
-Implement a production-ready outbound AI call agent that can:
-- Introduce itself as a LiveTransparent representative.
-- Answer basic approved company questions.
-- Qualify on intent + fit.
-- Capture full call outcome/transcript context.
-- Support downstream CRM routing workflows and tool calling.
+Production-ready outbound AI call agent that introduces itself as a LiveTransparent representative, answers approved company questions, qualifies on intent + fit, captures call outcome context, and supports downstream CRM routing via tool calling.
 
 ## Status
-This specification describes the current production Vapi Phase 2 implementation. The older split callback / direct-booking voice-agent artifacts are archived and should not be treated as live sources of truth.
+Describes the current Vapi Phase 2 production implementation. Older split-callback / direct-booking artifacts are archived.
 
 ## System Boundaries
-- `Vapi`: realtime call runtime (voice, ASR/TTS, model execution).
-- `n8n`: queue orchestration, call launch, callback processing, persistence, CRM sync.
-- `GHL`: contact/opportunity/task/note system of record.
-- `Postgres`: durable call-attempt event log and transcript metadata.
+- **Vapi**: realtime call runtime (voice, ASR/TTS, model execution).
+- **n8n**: queue orchestration, call launch, callback processing, persistence, CRM sync.
+- **GHL**: contact/opportunity/task/note system of record.
+- **Postgres**: durable call-attempt event log and transcript metadata.
 
-## Live Workflows (n8n)
-- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`orJrDqR6hQjgPLpg`) - production dialer.
-- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) - production merged callback/tool router.
-
-## Archived Voice Workflows
-- `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`) - archived validation copy.
-- `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`) - archived test workflow.
-- `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`) - archived test workflow.
-- `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`) - archived test workflow.
+## Live Production Workflows
+| Workflow | ID | Role |
+|----------|----|------|
+| LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Cron dialer — queue poller, timezone-aware scheduling, Vapi call dispatch |
+| LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | Merged callback/tool router — end-of-call webhook + 4 tool endpoints |
 
 ## Data Contracts
-- Queue row minimum fields:
-  - `queue_id`, `contact_id`, `phone_e164`, `campaign_id`, `status`, `attempt_count`, `max_attempts`, `next_attempt_at`, `dnc`.
-- Vapi variable injection fields:
-  - `contact_id`, `queue_id`, `campaign_id`, `lead_timezone`, optional `first_name`.
-- Callback normalized output:
-  - `call_id`, `contact_id`, `queue_id`, `disposition`, `summary`, `transcript_text`, `recording_url`.
+
+### Queue Row Minimum (`voice_call_queue`)
+`queue_id`, `contact_id`, `phone_e164`, `campaign_id`, `status`, `attempt_count`, `max_attempts`, `next_attempt_at`, `dnc`, `first_name`, `lead_timezone`
+
+### Vapi Variable Injection
+`contact_id`, `queue_id`, `campaign_id`, `lead_timezone`, `first_name`
+
+### Callback Normalized Output
+`call_id`, `contact_id`, `queue_id`, `disposition`, `summary`, `transcript_text`, `recording_url`
 
 ## GHL Configuration
-- Required auth secret:
-  - `GHL_PIT`
-- Required location context:
-  - `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV`
-- Voice workflow write actions:
-  - add tags `AI Call Attempted` and `do_not_call`
-  - create GHL contact notes for completed calls
-
-## Disposition Rules (v1)
-- `no_answer`: no pickup/no-answer provider outcome.
-- `voicemail`: voicemail endpoint reached.
-- `connected`: connected call without qualification success signal.
-- `qualified_booked`: success-evaluated booked/qualified flow.
-- `failed`: webhook/infrastructure/provider failure cases.
+- **Secrets**: `GHL_PIT` (aliased as `GHL_API_KEY` in `.env`), `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV`
+- **Voice write actions**: add `vapi_*` tags per outcome (see tag inventory in AGENTS.md), create contact notes for completed calls
 
 ## Required Environment Variables
-- Vapi:
-  - `VAPI_API_KEY`
-  - `VAPI_PHONE_NUMBER_ID`
-  - `VAPI_ASSISTANT_ID`
-  - `VAPI_BASE_URL` (optional)
-- GHL:
-  - `GHL_API_KEY`
-- Existing database credentials for Postgres node in n8n.
+- **Vapi**: `VAPI_API_KEY`, `VAPI_PHONE_NUMBER_ID`, `VAPI_ASSISTANT_ID`
+- **GHL**: `GHL_API_KEY` (alias for `GHL_PIT`)
+- **Postgres**: standard n8n credential (db host, port, user, password, database)
 
 ## Operational Guardrails
 - Do not call `dnc = true` contacts.
-- Respect `attempt_count < max_attempts`.
-- Respect `next_attempt_at` scheduling.
-- Keep workflows inactive until integration test passes.
+- Respect `attempt_count < max_attempts` and `next_attempt_at` scheduling.
+- 72h cooldown between dial attempts.
+- Business hours guard: Mon-Fri 9am-5pm CT only.
+- Fall back to GHL contact timezone if queue `lead_timezone` is empty; use CT 12-2pm safe window if neither available.
 - Keep secrets in env/credentials only; never hardcode in workflow JSON.
 
 ## Integration Test (minimum)
