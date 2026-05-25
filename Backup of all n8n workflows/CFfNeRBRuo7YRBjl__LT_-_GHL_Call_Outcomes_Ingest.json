@@ -1,0 +1,356 @@
+{
+  "updatedAt": "2026-05-11T19:41:50.331Z",
+  "createdAt": "2026-05-11T19:37:05.153Z",
+  "id": "CFfNeRBRuo7YRBjl",
+  "name": "LT - GHL Call Outcomes Ingest",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-ghl-call-outcomes-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        300
+      ],
+      "id": "webhook_intake",
+      "webhookId": "b8214873-3ff6-483c-b316-3313aedd3bcc"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const src = $json || {};\nfunction parseMaybeJson(value) {\n  if (typeof value !== 'string') return value;\n  const trimmed = value.trim();\n  if (!trimmed) return {};\n  try {\n    return JSON.parse(trimmed);\n  } catch {\n    return value;\n  }\n}\nfunction unwrapPayload(value) {\n  let current = value;\n  for (let i = 0; i < 3; i++) {\n    if (!current || typeof current !== 'object') break;\n    if (current.body && typeof current.body === 'object') {\n      current = current.body;\n      continue;\n    }\n    if (current.data && typeof current.data === 'object') {\n      current = current.data;\n      continue;\n    }\n    break;\n  }\n  return current;\n}\nconst rawBody = unwrapPayload(parseMaybeJson(src.body));\nconst body = rawBody && typeof rawBody === 'object' ? rawBody : src;\nconst call = body.call && typeof body.call === 'object' ? body.call : {};\nconst data = body.data && typeof body.data === 'object' ? body.data : {};\nconst meta = body.metadata && typeof body.metadata === 'object' ? body.metadata : {};\n\nfunction clean(v) {\n  const s = String(v ?? '').trim();\n  return s;\n}\nfunction first() {\n  for (const value of arguments) {\n    const s = clean(value);\n    if (s) return s;\n  }\n  return '';\n}\nfunction toIso(v) {\n  if (!v) return '';\n  const d = new Date(v);\n  return Number.isNaN(d.getTime()) ? '' : d.toISOString();\n}\nfunction toSeconds(v) {\n  const num = Number(v);\n  if (Number.isFinite(num) && num > 0) return Math.round(num);\n  return 0;\n}\nfunction normalizeDisposition(rawDisposition, rawStatus) {\n  const value = clean(rawDisposition || rawStatus).toLowerCase();\n  if (!value) return 'unknown';\n  if (['answered', 'connected', 'completed', 'conversation', 'contacted'].includes(value)) return 'connected';\n  if (['qualified', 'qualified_booked', 'booked', 'appointment_set', 'meeting_set'].includes(value)) return 'booked';\n  if (['disqualified', 'not_interested', 'not interested', 'no interest'].includes(value)) return 'disqualified';\n  if (['no_answer', 'no answer', 'no-answer', 'unanswered', 'missed'].includes(value)) return 'no_answer';\n  if (value.includes('voicemail')) return 'voicemail';\n  if (value === 'busy') return 'busy';\n  if (['callback', 'call_back', 'follow_up', 'follow up'].includes(value)) return 'callback';\n  if (['failed', 'error'].includes(value)) return 'failed';\n  return value;\n}\n\nconst callId = first(\n  body.callId,\n  body.call_id,\n  data.callId,\n  data.call_id,\n  call.id,\n  call.callId,\n  body.id,\n  data.id\n) || `call-${Date.now()}`;\n\nconst conversationId = first(\n  body.conversationId,\n  body.conversation_id,\n  data.conversationId,\n  data.conversation_id,\n  call.conversationId,\n  call.conversation_id,\n  body.ghl_conversation_id\n);\n\nconst contactId = first(\n  body.contactId,\n  body.contact_id,\n  data.contactId,\n  data.contact_id,\n  call.contactId,\n  call.contact_id,\n  body.ghl_contact_id\n);\n\nconst contactName = first(\n  body.contactName,\n  body.contact_name,\n  data.contactName,\n  data.contact_name,\n  call.contactName,\n  call.contact_name\n);\n\nconst userId = first(\n  body.userId,\n  body.user_id,\n  data.userId,\n  data.user_id,\n  call.userId,\n  call.user_id\n);\n\nconst userName = first(\n  body.userName,\n  body.user_name,\n  data.userName,\n  data.user_name,\n  call.userName,\n  call.user_name\n);\n\nconst direction = first(\n  body.direction,\n  body.callDirection,\n  body.call_direction,\n  data.direction,\n  data.callDirection,\n  data.call_direction,\n  call.direction,\n  call.callDirection,\n  call.call_direction,\n  'outbound'\n).toLowerCase();\n\nconst status = first(\n  body.status,\n  body.callStatus,\n  body.call_status,\n  data.status,\n  data.callStatus,\n  data.call_status,\n  call.status,\n  call.callStatus,\n  call.call_status,\n  'unknown'\n).toLowerCase();\n\nconst disposition = normalizeDisposition(\n  first(\n    body.disposition,\n    body.callDisposition,\n    body.call_disposition,\n    body.outcome,\n    body.outcomeLabel,\n    body.outcome_label,\n    data.disposition,\n    data.callDisposition,\n    data.call_disposition,\n    data.outcome,\n    data.outcomeLabel,\n    data.outcome_label,\n    call.disposition,\n    call.callDisposition,\n    call.call_disposition,\n    call.outcome,\n    call.outcomeLabel,\n    call.outcome_label\n  ),\n  status\n);\n\nconst dispositionLabel = first(\n  body.dispositionLabel,\n  body.disposition_label,\n  body.outcomeLabel,\n  body.outcome_label,\n  data.dispositionLabel,\n  data.disposition_label,\n  data.outcomeLabel,\n  data.outcome_label,\n  call.dispositionLabel,\n  call.disposition_label,\n  call.outcomeLabel,\n  call.outcome_label,\n  disposition\n);\n\nconst callDate = first(\n  body.callDate,\n  body.call_date,\n  body.startedAt,\n  body.started_at,\n  body.startAt,\n  body.start_at,\n  body.endedAt,\n  body.ended_at,\n  body.createdAt,\n  body.created_at,\n  data.callDate,\n  data.call_date,\n  data.startedAt,\n  data.started_at,\n  data.startAt,\n  data.start_at,\n  data.endedAt,\n  data.ended_at,\n  call.callDate,\n  call.call_date,\n  call.startedAt,\n  call.started_at,\n  call.startAt,\n  call.start_at,\n  call.endedAt,\n  call.ended_at,\n  meta.timestamp\n);\n\nconst callDateIso = toIso(callDate) || new Date().toISOString();\nconst reportDate = callDateIso.slice(0, 10);\nconst durationSeconds = toSeconds(\n  body.durationSeconds,\n  body.duration_seconds,\n  body.duration,\n  body.callDuration,\n  body.call_duration,\n  data.durationSeconds,\n  data.duration_seconds,\n  data.duration,\n  data.callDuration,\n  data.call_duration,\n  call.durationSeconds,\n  call.duration_seconds,\n  call.duration,\n  call.callDuration,\n  call.call_duration\n);\n\nconst fromNumber = first(\n  body.fromNumber,\n  body.from_number,\n  body.from,\n  data.fromNumber,\n  data.from_number,\n  data.from,\n  call.fromNumber,\n  call.from_number,\n  call.from\n);\n\nconst toNumber = first(\n  body.toNumber,\n  body.to_number,\n  body.to,\n  data.toNumber,\n  data.to_number,\n  data.to,\n  call.toNumber,\n  call.to_number,\n  call.to\n);\n\nconst messageId = first(\n  body.messageId,\n  body.message_id,\n  data.messageId,\n  data.message_id,\n  call.messageId,\n  call.message_id\n);\n\nconst altId = first(\n  body.altId,\n  body.alt_id,\n  data.altId,\n  data.alt_id,\n  call.altId,\n  call.alt_id\n);\n\nconst sourceKey = first(\n  body.sourceKey,\n  body.source_key,\n  data.sourceKey,\n  data.source_key,\n  callId,\n  conversationId,\n  `${contactId}:${reportDate}`\n);\n\nreturn [{ json: {\n  report_date: reportDate,\n  source_system: 'ghl',\n  source_key: sourceKey,\n  call_date: callDateIso,\n  direction,\n  duration_seconds: durationSeconds,\n  disposition,\n  disposition_label: dispositionLabel,\n  from_number: fromNumber,\n  to_number: toNumber,\n  contact_id: contactId,\n  contact_name: contactName,\n  user_id: userId,\n  user_name: userName,\n  ghl_message_id: messageId,\n  ghl_conversation_id: conversationId,\n  ghl_alt_id: altId,\n  payload_json: JSON.stringify(body || {}),\n  call_id: callId,\n  status,\n  nextStep: 'upsert_call_outcome'\n} }];"
+      },
+      "name": "Normalize Call Outcome",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        300
+      ],
+      "id": "normalize_call_outcome"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO report_raw_ghl_call_outcomes (\n  report_date, source_system, source_key, call_date, direction, duration_seconds, disposition, disposition_label,\n  from_number, to_number, contact_id, contact_name, user_id, user_name, ghl_message_id, ghl_conversation_id, ghl_alt_id,\n  payload_json, loaded_at\n) VALUES (\n  $1::date, $2, $3, $4::timestamptz, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, NOW()\n)\nON CONFLICT (source_system, report_date, source_key) DO UPDATE SET\n  call_date = EXCLUDED.call_date,\n  direction = EXCLUDED.direction,\n  duration_seconds = EXCLUDED.duration_seconds,\n  disposition = EXCLUDED.disposition,\n  disposition_label = EXCLUDED.disposition_label,\n  from_number = EXCLUDED.from_number,\n  to_number = EXCLUDED.to_number,\n  contact_id = EXCLUDED.contact_id,\n  contact_name = EXCLUDED.contact_name,\n  user_id = EXCLUDED.user_id,\n  user_name = EXCLUDED.user_name,\n  ghl_message_id = EXCLUDED.ghl_message_id,\n  ghl_conversation_id = EXCLUDED.ghl_conversation_id,\n  ghl_alt_id = EXCLUDED.ghl_alt_id,\n  payload_json = EXCLUDED.payload_json,\n  loaded_at = NOW()\nRETURNING report_date, source_key, disposition, disposition_label, direction;",
+        "options": {
+          "queryReplacement": "={{ [ $json.report_date, $json.source_system, $json.source_key, $json.call_date, $json.direction, $json.duration_seconds, $json.disposition, $json.disposition_label, $json.from_number, $json.to_number, $json.contact_id, $json.contact_name, $json.user_id, $json.user_name, $json.ghl_message_id, $json.ghl_conversation_id, $json.ghl_alt_id, $json.payload_json || '{}' ] }}",
+          "queryBatching": "independently"
+        }
+      },
+      "name": "Upsert Call Outcome",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        780,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      },
+      "id": "upsert_call_outcome"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: {\n  ok: true,\n  workflow: 'LT - GHL Call Outcomes Ingest',\n  report_date: row.report_date || null,\n  source_key: row.source_key || null,\n  call_id: row.call_id || row.source_key || null,\n  disposition: row.disposition || null,\n  disposition_label: row.disposition_label || null,\n  direction: row.direction || null\n} }];"
+      },
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        300
+      ],
+      "id": "result"
+    },
+    {
+      "parameters": {
+        "responseBody": "={{ $json }}",
+        "responseCode": 200,
+        "responseHeaders": {
+          "entries": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1280,
+        300
+      ],
+      "id": "respond_to_webhook"
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [
+        [
+          {
+            "node": "Normalize Call Outcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Call Outcome": {
+      "main": [
+        [
+          {
+            "node": "Upsert Call Outcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Call Outcome": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 1800,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {},
+  "meta": null,
+  "pinData": null,
+  "versionId": "6e064532-5884-4e33-868d-e3b77477d077",
+  "activeVersionId": "6e064532-5884-4e33-868d-e3b77477d077",
+  "versionCounter": 12,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-11T19:37:05.153Z",
+      "createdAt": "2026-05-11T19:37:05.153Z",
+      "role": "workflow:owner",
+      "workflowId": "CFfNeRBRuo7YRBjl",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-11T19:41:50.332Z",
+    "createdAt": "2026-05-11T19:41:50.332Z",
+    "versionId": "6e064532-5884-4e33-868d-e3b77477d077",
+    "workflowId": "CFfNeRBRuo7YRBjl",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lt-ghl-call-outcomes-ingest",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "name": "Webhook Intake",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          240,
+          300
+        ],
+        "id": "webhook_intake",
+        "webhookId": "b8214873-3ff6-483c-b316-3313aedd3bcc"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const src = $json || {};\nfunction parseMaybeJson(value) {\n  if (typeof value !== 'string') return value;\n  const trimmed = value.trim();\n  if (!trimmed) return {};\n  try {\n    return JSON.parse(trimmed);\n  } catch {\n    return value;\n  }\n}\nfunction unwrapPayload(value) {\n  let current = value;\n  for (let i = 0; i < 3; i++) {\n    if (!current || typeof current !== 'object') break;\n    if (current.body && typeof current.body === 'object') {\n      current = current.body;\n      continue;\n    }\n    if (current.data && typeof current.data === 'object') {\n      current = current.data;\n      continue;\n    }\n    break;\n  }\n  return current;\n}\nconst rawBody = unwrapPayload(parseMaybeJson(src.body));\nconst body = rawBody && typeof rawBody === 'object' ? rawBody : src;\nconst call = body.call && typeof body.call === 'object' ? body.call : {};\nconst data = body.data && typeof body.data === 'object' ? body.data : {};\nconst meta = body.metadata && typeof body.metadata === 'object' ? body.metadata : {};\n\nfunction clean(v) {\n  const s = String(v ?? '').trim();\n  return s;\n}\nfunction first() {\n  for (const value of arguments) {\n    const s = clean(value);\n    if (s) return s;\n  }\n  return '';\n}\nfunction toIso(v) {\n  if (!v) return '';\n  const d = new Date(v);\n  return Number.isNaN(d.getTime()) ? '' : d.toISOString();\n}\nfunction toSeconds(v) {\n  const num = Number(v);\n  if (Number.isFinite(num) && num > 0) return Math.round(num);\n  return 0;\n}\nfunction normalizeDisposition(rawDisposition, rawStatus) {\n  const value = clean(rawDisposition || rawStatus).toLowerCase();\n  if (!value) return 'unknown';\n  if (['answered', 'connected', 'completed', 'conversation', 'contacted'].includes(value)) return 'connected';\n  if (['qualified', 'qualified_booked', 'booked', 'appointment_set', 'meeting_set'].includes(value)) return 'booked';\n  if (['disqualified', 'not_interested', 'not interested', 'no interest'].includes(value)) return 'disqualified';\n  if (['no_answer', 'no answer', 'no-answer', 'unanswered', 'missed'].includes(value)) return 'no_answer';\n  if (value.includes('voicemail')) return 'voicemail';\n  if (value === 'busy') return 'busy';\n  if (['callback', 'call_back', 'follow_up', 'follow up'].includes(value)) return 'callback';\n  if (['failed', 'error'].includes(value)) return 'failed';\n  return value;\n}\n\nconst callId = first(\n  body.callId,\n  body.call_id,\n  data.callId,\n  data.call_id,\n  call.id,\n  call.callId,\n  body.id,\n  data.id\n) || `call-${Date.now()}`;\n\nconst conversationId = first(\n  body.conversationId,\n  body.conversation_id,\n  data.conversationId,\n  data.conversation_id,\n  call.conversationId,\n  call.conversation_id,\n  body.ghl_conversation_id\n);\n\nconst contactId = first(\n  body.contactId,\n  body.contact_id,\n  data.contactId,\n  data.contact_id,\n  call.contactId,\n  call.contact_id,\n  body.ghl_contact_id\n);\n\nconst contactName = first(\n  body.contactName,\n  body.contact_name,\n  data.contactName,\n  data.contact_name,\n  call.contactName,\n  call.contact_name\n);\n\nconst userId = first(\n  body.userId,\n  body.user_id,\n  data.userId,\n  data.user_id,\n  call.userId,\n  call.user_id\n);\n\nconst userName = first(\n  body.userName,\n  body.user_name,\n  data.userName,\n  data.user_name,\n  call.userName,\n  call.user_name\n);\n\nconst direction = first(\n  body.direction,\n  body.callDirection,\n  body.call_direction,\n  data.direction,\n  data.callDirection,\n  data.call_direction,\n  call.direction,\n  call.callDirection,\n  call.call_direction,\n  'outbound'\n).toLowerCase();\n\nconst status = first(\n  body.status,\n  body.callStatus,\n  body.call_status,\n  data.status,\n  data.callStatus,\n  data.call_status,\n  call.status,\n  call.callStatus,\n  call.call_status,\n  'unknown'\n).toLowerCase();\n\nconst disposition = normalizeDisposition(\n  first(\n    body.disposition,\n    body.callDisposition,\n    body.call_disposition,\n    body.outcome,\n    body.outcomeLabel,\n    body.outcome_label,\n    data.disposition,\n    data.callDisposition,\n    data.call_disposition,\n    data.outcome,\n    data.outcomeLabel,\n    data.outcome_label,\n    call.disposition,\n    call.callDisposition,\n    call.call_disposition,\n    call.outcome,\n    call.outcomeLabel,\n    call.outcome_label\n  ),\n  status\n);\n\nconst dispositionLabel = first(\n  body.dispositionLabel,\n  body.disposition_label,\n  body.outcomeLabel,\n  body.outcome_label,\n  data.dispositionLabel,\n  data.disposition_label,\n  data.outcomeLabel,\n  data.outcome_label,\n  call.dispositionLabel,\n  call.disposition_label,\n  call.outcomeLabel,\n  call.outcome_label,\n  disposition\n);\n\nconst callDate = first(\n  body.callDate,\n  body.call_date,\n  body.startedAt,\n  body.started_at,\n  body.startAt,\n  body.start_at,\n  body.endedAt,\n  body.ended_at,\n  body.createdAt,\n  body.created_at,\n  data.callDate,\n  data.call_date,\n  data.startedAt,\n  data.started_at,\n  data.startAt,\n  data.start_at,\n  data.endedAt,\n  data.ended_at,\n  call.callDate,\n  call.call_date,\n  call.startedAt,\n  call.started_at,\n  call.startAt,\n  call.start_at,\n  call.endedAt,\n  call.ended_at,\n  meta.timestamp\n);\n\nconst callDateIso = toIso(callDate) || new Date().toISOString();\nconst reportDate = callDateIso.slice(0, 10);\nconst durationSeconds = toSeconds(\n  body.durationSeconds,\n  body.duration_seconds,\n  body.duration,\n  body.callDuration,\n  body.call_duration,\n  data.durationSeconds,\n  data.duration_seconds,\n  data.duration,\n  data.callDuration,\n  data.call_duration,\n  call.durationSeconds,\n  call.duration_seconds,\n  call.duration,\n  call.callDuration,\n  call.call_duration\n);\n\nconst fromNumber = first(\n  body.fromNumber,\n  body.from_number,\n  body.from,\n  data.fromNumber,\n  data.from_number,\n  data.from,\n  call.fromNumber,\n  call.from_number,\n  call.from\n);\n\nconst toNumber = first(\n  body.toNumber,\n  body.to_number,\n  body.to,\n  data.toNumber,\n  data.to_number,\n  data.to,\n  call.toNumber,\n  call.to_number,\n  call.to\n);\n\nconst messageId = first(\n  body.messageId,\n  body.message_id,\n  data.messageId,\n  data.message_id,\n  call.messageId,\n  call.message_id\n);\n\nconst altId = first(\n  body.altId,\n  body.alt_id,\n  data.altId,\n  data.alt_id,\n  call.altId,\n  call.alt_id\n);\n\nconst sourceKey = first(\n  body.sourceKey,\n  body.source_key,\n  data.sourceKey,\n  data.source_key,\n  callId,\n  conversationId,\n  `${contactId}:${reportDate}`\n);\n\nreturn [{ json: {\n  report_date: reportDate,\n  source_system: 'ghl',\n  source_key: sourceKey,\n  call_date: callDateIso,\n  direction,\n  duration_seconds: durationSeconds,\n  disposition,\n  disposition_label: dispositionLabel,\n  from_number: fromNumber,\n  to_number: toNumber,\n  contact_id: contactId,\n  contact_name: contactName,\n  user_id: userId,\n  user_name: userName,\n  ghl_message_id: messageId,\n  ghl_conversation_id: conversationId,\n  ghl_alt_id: altId,\n  payload_json: JSON.stringify(body || {}),\n  call_id: callId,\n  status,\n  nextStep: 'upsert_call_outcome'\n} }];"
+        },
+        "name": "Normalize Call Outcome",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          520,
+          300
+        ],
+        "id": "normalize_call_outcome"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO report_raw_ghl_call_outcomes (\n  report_date, source_system, source_key, call_date, direction, duration_seconds, disposition, disposition_label,\n  from_number, to_number, contact_id, contact_name, user_id, user_name, ghl_message_id, ghl_conversation_id, ghl_alt_id,\n  payload_json, loaded_at\n) VALUES (\n  $1::date, $2, $3, $4::timestamptz, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, NOW()\n)\nON CONFLICT (source_system, report_date, source_key) DO UPDATE SET\n  call_date = EXCLUDED.call_date,\n  direction = EXCLUDED.direction,\n  duration_seconds = EXCLUDED.duration_seconds,\n  disposition = EXCLUDED.disposition,\n  disposition_label = EXCLUDED.disposition_label,\n  from_number = EXCLUDED.from_number,\n  to_number = EXCLUDED.to_number,\n  contact_id = EXCLUDED.contact_id,\n  contact_name = EXCLUDED.contact_name,\n  user_id = EXCLUDED.user_id,\n  user_name = EXCLUDED.user_name,\n  ghl_message_id = EXCLUDED.ghl_message_id,\n  ghl_conversation_id = EXCLUDED.ghl_conversation_id,\n  ghl_alt_id = EXCLUDED.ghl_alt_id,\n  payload_json = EXCLUDED.payload_json,\n  loaded_at = NOW()\nRETURNING report_date, source_key, call_id, disposition, disposition_label, direction;",
+          "options": {
+            "queryReplacement": "={{ [ $json.report_date, $json.source_system, $json.source_key, $json.call_date, $json.direction, $json.duration_seconds, $json.disposition, $json.disposition_label, $json.from_number, $json.to_number, $json.contact_id, $json.contact_name, $json.user_id, $json.user_name, $json.ghl_message_id, $json.ghl_conversation_id, $json.ghl_alt_id, $json.payload_json || '{}' ] }}",
+            "queryBatching": "independently"
+          }
+        },
+        "name": "Upsert Call Outcome",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          780,
+          300
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        },
+        "id": "upsert_call_outcome"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const row = $input.first()?.json || {};\nreturn [{ json: {\n  ok: true,\n  workflow: 'LT - GHL Call Outcomes Ingest',\n  report_date: row.report_date || null,\n  source_key: row.source_key || null,\n  call_id: row.call_id || null,\n  disposition: row.disposition || null,\n  disposition_label: row.disposition_label || null,\n  direction: row.direction || null\n} }];"
+        },
+        "name": "Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1040,
+          300
+        ],
+        "id": "result"
+      },
+      {
+        "parameters": {
+          "responseBody": "={{ $json }}",
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        },
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          1280,
+          300
+        ],
+        "id": "respond_to_webhook"
+      }
+    ],
+    "connections": {
+      "Webhook Intake": {
+        "main": [
+          [
+            {
+              "node": "Normalize Call Outcome",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Call Outcome": {
+        "main": [
+          [
+            {
+              "node": "Upsert Call Outcome",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Call Outcome": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Result": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-11T19:41:50.372Z",
+        "id": 1468,
+        "workflowId": "CFfNeRBRuo7YRBjl",
+        "versionId": "6e064532-5884-4e33-868d-e3b77477d077",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-05-11T19:41:50.385Z",
+        "id": 1469,
+        "workflowId": "CFfNeRBRuo7YRBjl",
+        "versionId": "6e064532-5884-4e33-868d-e3b77477d077",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}

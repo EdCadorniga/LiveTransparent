@@ -1,0 +1,615 @@
+{
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "connections": {
+    "Postgres - Release Lock (Timezone)": {
+      "main": [
+        [
+          {
+            "node": "End - Outside Hours",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Webhook - Dequeue Next": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Fetch Next Queue Item",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "If - Phone Missing": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "type": "main",
+            "node": "Postgres - Release Lock"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "type": "main",
+            "node": "If - Contact Hours"
+          }
+        ]
+      ]
+    },
+    "Code - Queue Guard": {
+      "main": [
+        [
+          {
+            "node": "If - Skip Empty",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "If - Contact Hours": {
+      "main": [
+        [
+          {
+            "node": "Build Vapi Body",
+            "index": 0,
+            "type": "main"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "type": "main",
+            "node": "Postgres - Release Lock (Timezone)"
+          }
+        ]
+      ]
+    },
+    "Code - Business Hours": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Fetch Next Queue Item",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Code - Check Phone": {
+      "main": [
+        [
+          {
+            "node": "If - Phone Missing",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "If - Skip Empty": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "type": "main",
+            "node": "HTTP - Get GHL Contact"
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "type": "main",
+            "node": "End - Empty Queue"
+          }
+        ]
+      ]
+    },
+    "Cron - Queue Poll": {
+      "main": [
+        [
+          {
+            "node": "Code - Business Hours",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Code - Restore Queue Context": {
+      "main": [
+        [
+          {
+            "node": "GHL - Create Call Note",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Postgres - Fetch Next Queue Item": {
+      "main": [
+        [
+          {
+            "node": "Code - Queue Guard",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Postgres - Release Lock": {
+      "main": [
+        [
+          {
+            "node": "End - No Phone",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "HTTP - Get GHL Contact": {
+      "main": [
+        [
+          {
+            "node": "Code - Check Phone",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "HTTP - Start Vapi Call": {
+      "main": [
+        [
+          {
+            "node": "Code - Restore Queue Context",
+            "index": 0,
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Build Vapi Body": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "type": "main",
+            "node": "HTTP - Start Vapi Call"
+          }
+        ]
+      ]
+    }
+  },
+  "staticData": {
+    "node:Cron - Queue Poll": {
+      "recurrenceRules": []
+    }
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "1e1343d2-39fe-4178-ae29-f7766a8fa0e9",
+      "name": "Cron - Queue Poll",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: {} }];\r\n"
+      },
+      "id": "679cb3d8-34ed-434b-a694-99643ee6a428",
+      "name": "Code - Business Hours",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH candidate AS (SELECT queue_id FROM voice_call_queue WHERE status = 'pending' AND pipeline_stage = 'queued' AND dnc = false AND attempt_count < max_attempts AND (next_attempt_at IS NULL OR next_attempt_at <= NOW()) AND (locked_at IS NULL OR locked_at < NOW() - INTERVAL '15 minutes') ORDER BY created_at DESC LIMIT 1) UPDATE voice_call_queue q SET locked_at = NOW(), lock_owner = 'n8n-dialer', updated_at = NOW() FROM candidate WHERE q.queue_id = candidate.queue_id RETURNING q.queue_id, q.contact_id, q.first_name, q.phone_e164, q.campaign_id, q.lead_timezone, q.max_attempts, q.attempt_count",
+        "options": {}
+      },
+      "id": "3b73e810-6dd9-42e3-b37b-9557b1f582d2",
+      "name": "Postgres - Fetch Next Queue Item",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        448,
+        -256
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const row = $json; if (!row || !row.queue_id) { return [{ json: { skip: true, reason: 'empty_queue' } }]; } return [{ json: { ...row, skip: false } }];"
+      },
+      "id": "454f909a-2d50-4dbd-920f-f6bf4aa93430",
+      "name": "Code - Queue Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "value2": "true",
+              "value1": "={{ String($json.skip) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b3002123-f344-43f7-9613-825645697582",
+      "name": "If - Skip Empty",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "6942700d-90ce-475d-bb41-c27b35fa9672",
+      "name": "End - Empty Queue",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        -352
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "953912a9-0017-4192-b2bc-9660336b8691",
+      "name": "HTTP - Get GHL Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1120,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const queueCtx = $('Code - Queue Guard').item.json;\nconst body = $json;\nconst ghlContact = body.contact || body;\nconst ghlPhone = ghlContact.phone || '';\nconst fallbackPhone = queueCtx.phone_e164 || '';\nconst phone = ghlPhone || fallbackPhone;\n\n// Validate phone is valid E.164 format: + followed by 7-15 digits\nconst isValidE164 = /^\\+[1-9]\\d{6,14}$/.test(phone);\n// If phone is invalid, set to empty so If - Phone Missing catches it\nconst validPhone = isValidE164 ? phone : '';\n\n// Contact timezone business hours check\nconst tz = queueCtx.lead_timezone || '';\nlet outside_hours = false;\nif (tz) {\n  try {\n    const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));\n    const day = now.getDay();\n    const hour = now.getHours();\n    outside_hours = !(day >= 1 && day <= 5 && hour >= 9 && hour < 17);\n  } catch (e) {\n    outside_hours = false;\n  }\n}\n\nreturn [{ json: { ...queueCtx, phone_e164: validPhone, phone_source: ghlPhone ? 'ghl' : 'queue', outside_hours } }];"
+      },
+      "id": "d4c5c08a-901e-4e5c-8ae9-ff92bb42a377",
+      "name": "Code - Check Phone",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "=$json.phone_e164",
+              "operator": {
+                "type": "string",
+                "operation": "isEmpty"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0f819a0e-6767-4b16-b2ec-f34ff5c1b07d",
+      "name": "If - Phone Missing",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE voice_call_queue SET locked_at = NULL, lock_owner = NULL, pipeline_stage = 'queued', attempt_count = GREATEST(attempt_count - 1, 0), updated_at = NOW() WHERE queue_id = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.queue_id }}"
+        }
+      },
+      "id": "53990982-d1d1-48ef-bf0b-4c628051f747",
+      "name": "Postgres - Release Lock",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1792,
+        -352
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "2ff9b50b-040f-4700-aee6-e31297e1aeb3",
+      "name": "End - No Phone",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2016,
+        -352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.vapi.ai/call",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer 2fa39f7d-28d8-4b43-aca9-3330461c56db"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.parse($(\"Build Vapi Body\").item.json.body) }}",
+        "options": {}
+      },
+      "id": "c0406283-ba44-4c21-bb18-77f5df4df003",
+      "name": "HTTP - Start Vapi Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2240,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Code - Queue Guard').item.json; return [{ json: { ...ctx, vapi_response: $json } }];"
+      },
+      "id": "f88bd4f8-9e0e-47bc-bd14-6f3858679c42",
+      "name": "Code - Restore Queue Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}/notes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
+            },
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {body: \"AI outbound Vapi call started. queue_id=\" + $json.queue_id + \", contact_id=\" + $json.contact_id} }}",
+        "options": {}
+      },
+      "id": "765de88a-c9a6-42bb-bed5-fb169e36677b",
+      "name": "GHL - Create Call Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2688,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "notStrict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.outside_hours }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "74726dae-a64a-43b1-b797-751eb74b33cb",
+      "name": "If - Contact Hours",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1792,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE voice_call_queue SET locked_at = NULL, lock_owner = NULL, pipeline_stage = 'queued', attempt_count = GREATEST(attempt_count - 1, 0), updated_at = NOW() WHERE queue_id = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.queue_id }}"
+        }
+      },
+      "id": "eebbd3eb-65e8-443e-9d7d-d9bdf4f4e581",
+      "name": "Postgres - Release Lock (Timezone)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2016,
+        -160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b190e81c-e1a5-47ad-bfa1-fe6d6ed78d7d",
+      "name": "End - Outside Hours",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2240,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "path": "voice-dequeue-next",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "bb483208-f873-45c7-8394-2fad36fa0d4b",
+      "name": "Webhook - Dequeue Next",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        -160
+      ],
+      "webhookId": "voice-dequeue-next"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0].json;\nreturn [{\n  json: {\n    body: JSON.stringify({\n      phoneNumberId: \"bd4ba248-a2b4-4738-b701-7c6a5ebb5bb4\",\n      customer: { number: data.phone_e164 },\n      assistantId: \"3f9bbfd2-efa6-4381-81e6-26f2452d28f1\",\n      assistantOverrides: {\n        variableValues: {\n          contact_id: data.contact_id,\n          queue_id: data.queue_id,\n          campaign_id: data.campaign_id,\n          lead_timezone: data.lead_timezone || \"\",\n          first_name: data.first_name || \"\"\n        },\n        metadata: {\n          source: \"n8n-outbound-dialer\",\n          contact_id: data.contact_id,\n          queue_id: data.queue_id,\n          campaign_id: data.campaign_id\n        }\n      }\n    })\n  }\n}];\n"
+      },
+      "id": "build-vapi-body-1778785335",
+      "name": "Build Vapi Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        32
+      ]
+    }
+  ],
+  "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)"
+}

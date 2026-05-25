@@ -130,6 +130,7 @@ Known issues:
 - `LT - SimpleTexting Inbound Reply (Webhook, Staged)` was failing with a syntax error in `Validate + Normalize Reply` and was patched on `2026-04-26`.
 - `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` is active, but no recent executions were returned in the last audit pass.
 - `LT - SimpleTexting Campaign Sequencer (Staged)` and `LT - SimpleTexting Pool Dispatcher (Staged)` are inactive by design.
+- GHL-originated outbound SMS should use the webhook bridge documented in `GHL_To_SimpleTexting_SMS_Send_Runbook.md`.
 
 ## Special Live Rules
 - The regulated ads booking path is the only booking flow that currently auto-hands off into `Sales -> Discovery Scheduled`.

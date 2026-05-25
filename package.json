@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@n8n/workflow-sdk": "^0.13.3"
+  }
+}

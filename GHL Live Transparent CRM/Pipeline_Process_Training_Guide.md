@@ -15,7 +15,7 @@ This process applies to:
 - `Sales`: deal progression from discovery to close
 
 ## 3A) Current Platform Note
-- n8n is now on `2.14.2`.
+- n8n target version is `2.19.5`.
 - No manual node-version refresh is planned right now.
 - If a workflow looks different after the upgrade, verify live behavior before editing node fields.
 
@@ -190,7 +190,7 @@ Exit criteria:
 - `mql` is not a universal warm tag.
 - `mql` should only be added on approved high-intent paths.
 - Current approved paths:
-- `Warm  LinkedIn Lead Form`
+- `Warm  LinkedIn Lead Form` for LinkedIn lead form submissions
 - `Warm  Meta Lead Form`
 - `Warm  Website` when created by the website Hero or Footer lead forms
 - `Warm  Referral`
@@ -318,6 +318,8 @@ Use this status when training users on what should currently fire automatically.
   - micro workflow trigger: `Contact Tag Added` on `Referral - Intake`
   - workflow adds `Warm  Referral`, sets source/UTM metadata, then removes `Referral - Intake` at end.
 - `Warm  Referral` is a source tag only for true referrals. It should not be used as a substitute booking tag for general appointments.
+- LinkedIn lead form submissions use the exact tag `Warm  LinkedIn Lead Form`.
+- The two-space `Warm  ...` pattern is intentional and must be preserved in docs, workflows, and searches.
 
 ## 13) Warm Automation Coverage Checklist (Last Known 2026-02-24)
 Use this list during onboarding to avoid assuming all channel triggers are already active.

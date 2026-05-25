@@ -8,6 +8,20 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
 - Header key: `x-lt-webhook-key`
 - Header value: `Lt9Qv2Xm`
 
+## GHL Send Mode
+
+Use the same webhook for outbound SMS initiated from GHL. The recommended pattern is a GHL workflow action or manual workflow trigger that posts a JSON payload to n8n, which then validates, dedupes, sends through SimpleTexting, and writes the result back to GHL.
+
+Recommended fields for a GHL-originated send:
+- `contactId`
+- `contactPhone`
+- `message` or `templateKey`
+- `campaignKey`
+- `externalId`
+- `source`
+- `dryRun`
+- `contact`
+
 ## Business Hours Enforcement (Live)
 
 - n8n now blocks sends outside business hours.
@@ -25,6 +39,30 @@ Use these in a GHL webhook action where the body is sent as JSON to the n8n Simp
   "contactId": "{{contact.id}}",
   "contactPhone": "{{contact.phone}}",
   "templateKey": "PASTE_TEMPLATE_KEY_HERE",
+  "campaignKey": "ghl_manual_sms",
+  "externalId": "{{contact.id}}:template",
+  "source": "ghl_workflow",
+  "contact": {
+    "first_name": "{{contact.first_name}}",
+    "last_name": "{{contact.last_name}}",
+    "email": "{{contact.email}}"
+  },
+  "dryRun": false
+}
+```
+
+## Freeform Send From GHL
+
+If the operator is drafting the text directly in GHL, use `message` instead of `templateKey`.
+
+```json
+{
+  "contactId": "{{contact.id}}",
+  "contactPhone": "{{contact.phone}}",
+  "message": "PUT_THE_OPERATOR_MESSAGE_HERE",
+  "campaignKey": "ghl_manual_sms",
+  "externalId": "{{contact.id}}:manual",
+  "source": "ghl_workflow",
   "contact": {
     "first_name": "{{contact.first_name}}",
     "last_name": "{{contact.last_name}}",

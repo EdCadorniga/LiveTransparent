@@ -8,6 +8,7 @@ Provide an idempotent HTTP endpoint for sending SMS so the same message is not s
 What this adds
 - Postgres table: `report_sms_sent` (created in postgres/reporting-bootstrap.sql)
 - n8n workflow shape to accept a send request, dedupe via Postgres, call SimpleTexting, and persist provider response.
+- GHL-originated sends can use the same boundary by POSTing the contact ID, phone, template key or message, and a stable `campaignKey` / `externalId`.
 
 Postgres contract (already added)
 --------------------------------
@@ -44,6 +45,12 @@ n8n workflow shape (recommended)
    - Receives JSON: {
        contact_id, phone, workflow_id, template_id, message_body
      }
+
+GHL-originated version of the same contract should also include:
+- `source: "ghl_workflow"`
+- `campaignKey`
+- `externalId`
+- `contact` object for note enrichment
 
 2) Function / Code node (compute message_hash)
    - Compute a short deterministic hash of contact_id + workflow_id + template_id + date_bucket
@@ -85,7 +92,7 @@ Notes and recommendations
 - Date-bucket the hash if you want to allow a contact to receive the same template once per day; omit the bucket for one-time dedupe.
 - Keep SIMPLETEXTING_API_KEY in n8n environment (already present in repo root .env).
 - Replace any direct SimpleTexting send nodes in GHL workflows with a call to this n8n webhook. This centralizes dedupe logic.
-- If GHL must send directly, update the GHL workflows to first call this webhook and only call provider when told to proceed (but central n8n webhook is recommended).
+- If GHL must initiate the send, have the GHL workflow POST to this webhook and let n8n call SimpleTexting. Do not try to bypass the webhook with a direct provider call from GHL.
 
 Rollback / re-sends
 -------------------

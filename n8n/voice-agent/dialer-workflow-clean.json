@@ -1,0 +1,592 @@
+{
+  "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "82a145ac-50aa-4a85-8d1d-878436eca64b",
+      "name": "Cron - Queue Poll",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const ct = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));\nconst day = ct.getDay();\nconst hour = ct.getHours();\nconst inBusinessHours = day >= 1 && day <= 5 && hour >= 9 && hour < 17;\nreturn [{ json: { business_hours_status: inBusinessHours ? 'inside' : 'outside' } }];"
+      },
+      "id": "d0c3b309-de55-49ca-9416-483f76e730d1",
+      "name": "Code - Business Hours",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const status = $json.business_hours_status;\nif (status === 'outside') {\n  return [];\n}\nreturn [{ json: $json }];"
+      },
+      "id": "35c11ce7-0570-4d3a-b40a-4df9417df6cd",
+      "name": "Code - Business Hours Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflowName",
+              "name": "workflowName",
+              "type": "string",
+              "value": "LT - Voice Agent V1 Outbound Dialer (Vapi)"
+            },
+            {
+              "id": "ghlApiBaseUrl",
+              "name": "ghlApiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "ghlApiKey",
+              "name": "ghlApiKey",
+              "type": "string",
+              "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
+            },
+            {
+              "id": "vapiApiBaseUrl",
+              "name": "vapiApiBaseUrl",
+              "type": "string",
+              "value": "https://api.vapi.ai"
+            },
+            {
+              "id": "vapiApiKey",
+              "name": "vapiApiKey",
+              "type": "string",
+              "value": "2fa39f7d-28d8-4b43-aca9-3330461c56db"
+            }
+          ]
+        }
+      },
+      "id": "config-dialer-v3-switch",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        600,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH candidate AS (SELECT queue_id FROM voice_call_queue WHERE status = 'pending' AND dnc = false AND attempt_count < max_attempts AND (next_attempt_at IS NULL OR next_attempt_at <= NOW()) AND (locked_at IS NULL OR locked_at < NOW() - INTERVAL '15 minutes') ORDER BY created_at ASC LIMIT 1) UPDATE voice_call_queue q SET locked_at = NOW(), lock_owner = 'n8n-dialer', updated_at = NOW() FROM candidate WHERE q.queue_id = candidate.queue_id RETURNING q.queue_id, q.contact_id, q.first_name, q.phone_e164, q.campaign_id, q.lead_timezone, q.max_attempts, q.attempt_count",
+        "options": {}
+      },
+      "id": "064eb1b3-024f-4305-9b73-8a14857c3388",
+      "name": "Postgres - Fetch Next Queue Item",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contact_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $(\"Config\").item.json.ghlApiKey }}"
+            },
+            {
+              "name": "Version",
+              "value": "2023-02-21"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "b5c0010a-b8ae-41bc-af42-fa61317f78b4",
+      "name": "HTTP - Get GHL Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        960,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const queueCtx = $('Postgres - Fetch Next Queue Item').item.json;\nconst body = $json;\nconst ghlContact = body.contact || body;\nconst ghlPhone = ghlContact.phone || '';\nconst fallbackPhone = queueCtx.phone_e164 || '';\nconst phone = ghlPhone || fallbackPhone;\nconst isValidE164 = /^\\+[1-9]\\d{6,14}$/.test(phone);\nconst validPhone = isValidE164 ? phone : '';\nconst ghlContactId = String(ghlContact.id || queueCtx.contact_id || '').trim();\nconst tz = queueCtx.lead_timezone || '';\nlet outside_hours = false;\nif (tz) {\n  try {\n    const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));\n    const day = now.getDay();\n    const hour = now.getHours();\n    outside_hours = !(day >= 1 && day <= 5 && hour >= 9 && hour < 17);\n  } catch (e) {\n    outside_hours = false;\n  }\n}\nreturn [{ json: { ...queueCtx, ghl_contact_id: ghlContactId, phone_e164: validPhone, phone_source: ghlPhone ? 'ghl' : 'queue', outside_hours } }];"
+      },
+      "id": "cc0d6234-b614-4ca3-82d5-4938cbbc904a",
+      "name": "Code - Check Phone",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.phone_e164 ? 1 : 0 }}",
+        "looseTypeValidation": true
+      },
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Switch - Phone Missing",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE voice_call_queue SET locked_at = NULL, lock_owner = NULL, attempt_count = GREATEST(attempt_count - 1, 0), updated_at = NOW() WHERE queue_id = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.queue_id }}"
+        }
+      },
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "Postgres - Release Lock",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1680,
+        40
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "manual"
+      },
+      "id": "2d4720a2-f904-4d9f-83b3-2143a6540417",
+      "name": "End - No Phone",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1920,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ String($json.outside_hours) === 'false' ? 1 : 0 }}",
+        "looseTypeValidation": true
+      },
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "Switch - Contact Hours",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1680,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE voice_call_queue SET locked_at = NULL, lock_owner = NULL, attempt_count = GREATEST(attempt_count - 1, 0), updated_at = NOW() WHERE queue_id = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.queue_id }}"
+        }
+      },
+      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "name": "Postgres - Release Lock (Timezone)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1920,
+        480
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "manual"
+      },
+      "id": "6477dc55-7f41-4c46-bfc8-8c20a4ac93dd",
+      "name": "End - Outside Contact Hours",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2160,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $input.all()[0].json;\nreturn [{\n  json: {\n    body: {\n      phoneNumberId: 'bd4ba248-a2b4-4738-b701-7c6a5ebb5bb4',\n      customer: { number: data.phone_e164 },\n      assistantId: '3f9bbfd2-efa6-4381-81e6-26f2452d28f1',\n      assistantOverrides: {\n        variableValues: {\n          contact_id: data.contact_id,\n          ghl_contact_id: data.ghl_contact_id || data.contact_id,\n          queue_id: data.queue_id,\n          campaign_id: data.campaign_id,\n          lead_timezone: data.lead_timezone || '',\n          first_name: data.first_name || ''\n        },\n        metadata: {\n          source: 'n8n-outbound-dialer',\n          contact_id: data.contact_id,\n          ghl_contact_id: data.ghl_contact_id || data.contact_id,\n          queue_id: data.queue_id,\n          campaign_id: data.campaign_id\n        }\n      }\n    }\n  }\n}];"
+      },
+      "id": "fc5aa443-f519-46d9-8803-9dab14d3797a",
+      "name": "Build Vapi Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vapi.ai/call",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $(\"Config\").item.json.vapiApiKey }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Build Vapi Body').item.json.body }}",
+        "options": {}
+      },
+      "id": "981c0363-247a-4643-9b6b-4c24ddfbbfd2",
+      "name": "HTTP - Start Vapi Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2160,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const ctx = $('Postgres - Fetch Next Queue Item').item.json;\nconst contact = $('Code - Check Phone').item.json || {};\nreturn [{ json: { ...ctx, ghl_contact_id: contact.ghl_contact_id || ctx.contact_id, vapi_response: $json } }];"
+      },
+      "id": "1549daa1-b289-4cad-9cb4-ef7d11558b15",
+      "name": "Code - Restore Queue Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE voice_call_queue SET locked_at = NULL, lock_owner = NULL, attempt_count = attempt_count + 1, last_attempt_at = NOW(), next_attempt_at = NOW() + INTERVAL '3 days', updated_at = NOW() WHERE queue_id = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.queue_id }}"
+        }
+      },
+      "id": "5b200d7f-259f-4f7c-af55-5569baecfefc",
+      "name": "Postgres - Mark Attempted",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2640,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ \"https://services.leadconnectorhq.com/contacts/\" + ($json.ghl_contact_id || $json.contact_id || $(\"Code - Check Phone\").item.json.ghl_contact_id || $(\"Code - Check Phone\").item.json.contact_id || $(\"Postgres - Fetch Next Queue Item\").item.json.contact_id || \"\") + \"/notes\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $(\"Config\").item.json.ghlApiKey }}"
+            },
+            {
+              "name": "Version",
+              "value": "2023-02-21"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { body: 'AI outbound Vapi call started. queue_id=' + $json.queue_id + ', contact_id=' + ($json.ghl_contact_id || $json.contact_id || $(\"Code - Check Phone\").item.json.ghl_contact_id || $(\"Code - Check Phone\").item.json.contact_id || $(\"Postgres - Fetch Next Queue Item\").item.json.contact_id || '') } }}",
+        "options": {}
+      },
+      "id": "0a428b04-5aef-4bcc-a31d-b983488b32ed",
+      "name": "GHL - Create Call Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2880,
+        240
+      ]
+    }
+  ],
+  "connections": {
+    "Cron - Queue Poll": {
+      "main": [
+        [
+          {
+            "node": "Code - Business Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Business Hours": {
+      "main": [
+        [
+          {
+            "node": "Code - Business Hours Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Business Hours Guard": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Fetch Next Queue Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Fetch Next Queue Item": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Get GHL Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Get GHL Contact": {
+      "main": [
+        [
+          {
+            "node": "Code - Check Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Check Phone": {
+      "main": [
+        [
+          {
+            "node": "Switch - Phone Missing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Phone Missing": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Release Lock",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch - Contact Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Release Lock": {
+      "main": [
+        [
+          {
+            "node": "End - No Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Contact Hours": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Release Lock (Timezone)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Vapi Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Release Lock (Timezone)": {
+      "main": [
+        [
+          {
+            "node": "End - Outside Contact Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Vapi Body": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Start Vapi Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Start Vapi Call": {
+      "main": [
+        [
+          {
+            "node": "Code - Restore Queue Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Restore Queue Context": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Mark Attempted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Mark Attempted": {
+      "main": [
+        [
+          {
+            "node": "GHL - Create Call Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
