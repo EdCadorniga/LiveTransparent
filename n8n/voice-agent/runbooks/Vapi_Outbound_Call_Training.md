@@ -252,8 +252,9 @@ When the payload is not a tool call, the workflow:
   - `busy` — customer was busy
   - `wrong_number` — wrong number reached
   - `contact_disconnected` — customer dropped during call
-  - `qualified_booked` — human answered and was interested (`analysis.successEvaluation = true`)
-  - `connected` — human answered but not interested (`analysis.successEvaluation = false`)
+  - `interested` — human answered and was interested (`analysis.successEvaluation = true`)
+  - `not_interested` — human answered but not interested (`analysis.successEvaluation = false`)
+  - `interest_unknown` — human answered but Vapi could not confidently classify the outcome
 - maps each disposition to the corresponding `vapi_*` GHL tags
 - inserts a `voice_call_attempt` row
 - applies the `vapi_*` tags to the GHL contact via `GHL - Apply Tags`
@@ -283,8 +284,10 @@ Every end-of-call event applies `vapi_call_attempted` plus one outcome-specific 
 | `vapi_busy` | `call.endedReason` contains `customer-busy` or `busy` |
 | `vapi_wrong_number` | `call.endedReason` contains `wrong-number` |
 | `vapi_contact_disconnected` | `call.endedReason` contains `customer-dropped` |
-| `vapi_qualified` | Human answered and `analysis.successEvaluation = true` (interested) |
-| `vapi_nurture` | Human answered and `analysis.successEvaluation = false` (not interested) |
+| `vapi_human_answered` | Human answered (base tag for all human-connected outcomes) |
+| `vapi_interested` | Human answered and `analysis.successEvaluation = true` |
+| `vapi_not_interested` | Human answered and `analysis.successEvaluation = false` |
+| `vapi_interest_unknown` | Human answered, but Vapi could not confidently classify the outcome |
 | `vapi_dnc` | Added by the `add_to_dnc` tool (manual DNC action) |
 
 **Important**: Calls with disposition `failed` or `null` in `voice_call_attempt` never connected to Vapi, so no end-of-call webhook fires and no `vapi_*` tags are automatically applied. Those contacts must be handled outside the voice system.

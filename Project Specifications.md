@@ -31,7 +31,7 @@ Describes the current Vapi Phase 2 production implementation. Older split-callba
 
 ## GHL Configuration
 - **Secrets**: `GHL_PIT` (aliased as `GHL_API_KEY` in `.env`), `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV`
-- **Voice write actions**: add `vapi_*` tags per outcome (see tag inventory in AGENTS.md), create contact notes for completed calls
+- **Voice write actions**: add `vapi_*` tags per outcome, using `vapi_human_answered` plus `vapi_interested` / `vapi_not_interested` / `vapi_interest_unknown` for human-answer outcomes (see tag inventory in AGENTS.md), and create contact notes for completed calls
 
 ## Required Environment Variables
 - **Vapi**: `VAPI_API_KEY`, `VAPI_PHONE_NUMBER_ID`, `VAPI_ASSISTANT_ID`

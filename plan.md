@@ -12,7 +12,7 @@ Connect n8n to Vapi with production-ready tool calling: outbound calls via queue
 
 ### 1. Auto-Tagging Pipeline
 - Tag GHL contacts by call outcome in callback workflow (`fx4UvKUWbqJEY3LK`) via `update_lead_status` or a dedicated node based on `endedReason` from Vapi end-of-call events
-- Tags: `vapi_voicemail`, `vapi_connected`, `vapi_busy`, `vapi_no_answer`, etc. (see tag inventory in AGENTS.md — partially done, refine)
+- Tags: `vapi_human_answered`, `vapi_interested`, `vapi_not_interested`, `vapi_interest_unknown`, `vapi_voicemail`, `vapi_busy`, `vapi_no_answer`, etc. (see tag inventory in AGENTS.md — partially done, refine)
 
 ### 2. Vapi Pipeline Stage
 - [ ] Add a `Vapi Dialed` pipeline stage between existing stages

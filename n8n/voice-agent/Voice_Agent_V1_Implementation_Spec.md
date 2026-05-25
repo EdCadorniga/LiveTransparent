@@ -52,7 +52,7 @@ The production Phase 2 implementation keeps the queue, call metadata, dispositio
 ### Call outcome
 - `call_id`
 - `contact_id`
-- `disposition` (`no_answer|voicemail|connected|qualified_booked|qualified_not_booked|not_qualified|handoff_required|failed`)
+- `disposition` (`no_answer|voicemail|busy|wrong_number|contact_disconnected|interested|not_interested|interest_unknown|handoff_required|failed`)
 - `qualified_intent_fit` (bool)
 - `booking_attempted` (bool)
 - `booking_result` (`success|slot_conflict|declined|error|not_attempted`)
@@ -72,8 +72,10 @@ The production Phase 2 implementation keeps the queue, call metadata, dispositio
 - Create follow-up task when not booked or when handoff required.
 - Update tags for call outcomes (historical V1 names; current production uses `vapi_*` tags — see the training runbook):
   - ~~`AI Call Attempted`~~ → `vapi_call_attempted`
-  - ~~`AI Qualified`~~ → `vapi_qualified`
-  - ~~`AI Booked`~~ → `vapi_nurture` / `vapi_qualified`
+  - ~~`AI Human Answered`~~ → `vapi_human_answered`
+  - ~~`AI Qualified`~~ → `vapi_interested`
+  - ~~`AI Not Interested`~~ → `vapi_not_interested`
+  - ~~`AI Unknown`~~ → `vapi_interest_unknown`
   - ~~`AI Human Handoff`~~ → (not used in Phase 2)
 
 ## Safety and guardrails

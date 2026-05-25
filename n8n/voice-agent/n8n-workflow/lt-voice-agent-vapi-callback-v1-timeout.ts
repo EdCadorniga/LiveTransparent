@@ -67,8 +67,17 @@ if (isEndEvent) {
     disposition = 'contact_disconnected';
     tags.push('vapi_contact_disconnected');
   } else {
-    disposition = successEvaluation ? 'qualified_booked' : 'connected';
-    tags.push(successEvaluation ? 'vapi_qualified' : 'vapi_nurture');
+    const humanTag = successEvaluation === true
+      ? 'vapi_interested'
+      : successEvaluation === false
+        ? 'vapi_not_interested'
+        : 'vapi_interest_unknown';
+    disposition = successEvaluation === true
+      ? 'interested'
+      : successEvaluation === false
+        ? 'not_interested'
+        : 'interest_unknown';
+    tags.push('vapi_human_answered', humanTag);
   }
 }
 return [{ json: { contact_id: contactId, queue_id: queueId, call_id: callId, disposition, tags, summary: summary || 'No summary returned by Vapi.', recording_url: recordingUrl } }];`;

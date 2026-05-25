@@ -60,7 +60,7 @@
 | `vapi_interested` | Human + `successEvaluation=true` |
 | `vapi_not_interested` | Human + `successEvaluation=false` |
 | `vapi_interest_unknown` | Human answered, couldn't gauge (silence/short) |
-| `vapi_no_answer` / `vapi_voicemail` / `vapi_voicemail_left` / `vapi_busy` / `vapi_wrong_number` / `vapi_contact_disconnected` | End-of-call event by outcome |
+| `vapi_voicemail` / `vapi_voicemail_left` / `vapi_no_answer` / `vapi_busy` / `vapi_wrong_number` / `vapi_contact_disconnected` | End-of-call event by outcome |
 
 ### Report Pipelines (all active unless noted)
 | Workflow | ID | Notes |
