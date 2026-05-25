@@ -586,6 +586,27 @@
               <div class="divider"></div>
               <div class="sub-head">Outbound Call Outcomes</div>
               <div class="bar-list" id="call-outcome-list"><div class="loading">Loading call outcome data...</div></div>
+              <div class="divider"></div>
+              <div class="sub-head">Vapi Queue Timezones</div>
+              <div class="mini-grid" id="vapi-timezone-grid" style="margin-bottom:12px;">
+                <div class="mini"><strong>Total Queued</strong><div id="vapi-tz-total">—</div></div>
+                <div class="mini"><strong>Explicit</strong><div id="vapi-tz-explicit">—</div></div>
+                <div class="mini"><strong>Inferred</strong><div id="vapi-tz-inferred">—</div></div>
+                <div class="mini"><strong>None</strong><div id="vapi-tz-none">—</div></div>
+              </div>
+              <div class="footer-note">These buckets are derived from the queue table plus the cached contact snapshot. Explicit means the contact already carried a timezone; inferred means the workflow resolved one from location data; none means the queue row still lacks a usable timezone.</div>
+              <div class="divider"></div>
+              <div class="sub-head">Vapi Last 7 Days</div>
+              <div class="mini-grid" id="vapi-weekly-grid" style="margin-bottom:12px;">
+                <div class="mini"><strong>Total Calls</strong><div id="vapi-weekly-total">—</div></div>
+                <div class="mini"><strong>Answered</strong><div id="vapi-weekly-answered">—</div></div>
+                <div class="mini"><strong>Missed</strong><div id="vapi-weekly-missed">—</div></div>
+                <div class="mini"><strong>Qualified</strong><div id="vapi-weekly-qualified">—</div></div>
+                <div class="mini"><strong>Voicemail</strong><div id="vapi-weekly-voicemail">—</div></div>
+                <div class="mini"><strong>Handoff</strong><div id="vapi-weekly-handoff">—</div></div>
+              </div>
+              <div class="bar-list" id="vapi-weekly-breakdown-list"><div class="loading">Loading Vapi weekly data...</div></div>
+              <div class="footer-note">This is a trailing 7-day rollup from <code>voice_call_attempt</code>. Answered counts live contacts; qualified is the strongest intent signal we currently store; handoff counts calls that requested a sales follow-up.</div>
               <div class="footer-note">Calls are read from GHL Conversations. Status groups use the raw CRM status plus answered timestamp so the report reflects what the CRM actually stores.</div>
             </div>
           </div>
@@ -916,6 +937,9 @@
           var appointments = Array.isArray(data.appointments) ? data.appointments : [];
           var callStatusBreakdown = Array.isArray(data.callStatusBreakdown) ? data.callStatusBreakdown : [];
           var callOutcomeBreakdown = Array.isArray(data.callOutcomeBreakdown) ? data.callOutcomeBreakdown : [];
+          var vapiTimezoneBuckets = (data.vapiTimezoneBuckets && Object.keys(data.vapiTimezoneBuckets).length > 0) ? data.vapiTimezoneBuckets : (summary.vapiTimezoneBuckets || {});
+          var vapiWeeklyPerformance = (data.vapiWeeklyPerformance && Object.keys(data.vapiWeeklyPerformance).length > 0) ? data.vapiWeeklyPerformance : (summary.vapiWeeklyPerformance || {});
+          var vapiWeeklyBreakdown = Array.isArray(data.vapiWeeklyBreakdown) ? data.vapiWeeklyBreakdown : (Array.isArray(summary.vapiWeeklyBreakdown) ? summary.vapiWeeklyBreakdown : []);
           var utmBreakdown = Array.isArray(data.utmBreakdown) ? data.utmBreakdown : [];
           var health = Array.isArray(data.health) ? data.health : [];
           function normalizeDisposition(value) {
@@ -1090,6 +1114,33 @@
           renderBars(document.getElementById("call-outcome-list"), callOutcomeBreakdown.map(function (s) {
             return { label: s.disposition || "unknown", sessions: s.outcome_count || 0, sub: "out:" + formatNumber(s.outbound_count || 0) + " in:" + formatNumber(s.inbound_count || 0) + " linked:" + formatNumber(s.linked_contact_count || 0) };
           }), "No call outcome data yet.");
+          var vapiTimezoneTotal = Number(vapiTimezoneBuckets.total_queued || vapiTimezoneBuckets.totalQueued || 0);
+          var vapiTimezoneExplicit = Number(vapiTimezoneBuckets.explicit_count || vapiTimezoneBuckets.explicit || 0);
+          var vapiTimezoneInferred = Number(vapiTimezoneBuckets.inferred_count || vapiTimezoneBuckets.inferred || 0);
+          var vapiTimezoneNone = Number(vapiTimezoneBuckets.none_count || vapiTimezoneBuckets.none || 0);
+          el = document.getElementById("vapi-tz-total"); if (el) el.textContent = formatNumber(vapiTimezoneTotal);
+          el = document.getElementById("vapi-tz-explicit"); if (el) el.textContent = formatNumber(vapiTimezoneExplicit);
+          el = document.getElementById("vapi-tz-inferred"); if (el) el.textContent = formatNumber(vapiTimezoneInferred);
+          el = document.getElementById("vapi-tz-none"); if (el) el.textContent = formatNumber(vapiTimezoneNone);
+          var vapiWeeklyTotal = Number(vapiWeeklyPerformance.total_calls || vapiWeeklyPerformance.totalCalls || 0);
+          var vapiWeeklyAnswered = Number(vapiWeeklyPerformance.answered_calls || vapiWeeklyPerformance.answeredCalls || 0);
+          var vapiWeeklyMissed = Number(vapiWeeklyPerformance.missed_calls || vapiWeeklyPerformance.missedCalls || 0);
+          var vapiWeeklyQualified = Number(vapiWeeklyPerformance.qualified_calls || vapiWeeklyPerformance.qualifiedCalls || 0);
+          var vapiWeeklyVoicemail = Number(vapiWeeklyPerformance.voicemail_calls || vapiWeeklyPerformance.voicemailCalls || 0);
+          var vapiWeeklyHandoff = Number(vapiWeeklyPerformance.handoff_required_calls || vapiWeeklyPerformance.handoffRequiredCalls || 0);
+          el = document.getElementById("vapi-weekly-total"); if (el) el.textContent = formatNumber(vapiWeeklyTotal);
+          el = document.getElementById("vapi-weekly-answered"); if (el) el.textContent = formatNumber(vapiWeeklyAnswered);
+          el = document.getElementById("vapi-weekly-missed"); if (el) el.textContent = formatNumber(vapiWeeklyMissed);
+          el = document.getElementById("vapi-weekly-qualified"); if (el) el.textContent = formatNumber(vapiWeeklyQualified);
+          el = document.getElementById("vapi-weekly-voicemail"); if (el) el.textContent = formatNumber(vapiWeeklyVoicemail);
+          el = document.getElementById("vapi-weekly-handoff"); if (el) el.textContent = formatNumber(vapiWeeklyHandoff);
+          renderBars(document.getElementById("vapi-weekly-breakdown-list"), vapiWeeklyBreakdown.map(function (item) {
+            return {
+              label: String(item.disposition || item.status || 'unknown'),
+              sessions: Number(item.call_count || item.count || 0),
+              sub: "qualified:" + formatNumber(Number(item.qualified_count || 0)) + " handoff:" + formatNumber(Number(item.handoff_required_count || 0))
+            };
+          }), "No Vapi weekly data yet.");
           el = document.getElementById("jd-opps"); if (el) el.textContent = formatNumber(activeOpps);
           el = document.getElementById("jd-worked"); if (el) el.textContent = formatNumber(workedOpps);
           el = document.getElementById("jd-stage-movers"); if (el) el.textContent = formatNumber(stageMovers);
