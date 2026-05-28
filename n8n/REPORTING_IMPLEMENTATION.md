@@ -249,7 +249,7 @@ For GA4 and GSC, prefer HTTP Request plus a normalization Code step.
 - Skip GA4-dependent steps when the property id is missing.
 
 ## Reference Files
-- `../LiveTransparent Report Plan.md`
+- `../Project Status and Next Steps.md`
 - `../GHL Live Transparent CRM/Report Data Contract.md`
 - `../GHL Live Transparent CRM/Operating Snapshot.md`
 - `../postgres/reporting-bootstrap.sql`

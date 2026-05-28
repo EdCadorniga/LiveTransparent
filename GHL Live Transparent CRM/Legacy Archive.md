@@ -27,4 +27,4 @@ If a note affects live routing, live reporting, or live workflow execution, the 
 - `Warm_Lead_Conflict_Safe_Implementation_Spec.md`
 - `Pipeline_Process_Training_Guide.md`
 - `Pipeline_Quick_Reference.md`
-- `LiveTransparent Report Plan.md`
+- `Project Status and Next Steps.md`

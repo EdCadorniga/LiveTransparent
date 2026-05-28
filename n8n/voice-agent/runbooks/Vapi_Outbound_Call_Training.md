@@ -118,18 +118,19 @@ If the prospect is qualified and wants to meet:
    - `attempt_count < max_attempts`
    - `next_attempt_at` is due or empty
    - `locked_at` is either empty or stale enough to be reclaimed
-3. The dialer atomically claims that row by setting `locked_at`, `lock_owner`, `last_attempt_at`, and `next_attempt_at` before starting the Vapi call.
-4. The dialer sends a `POST` request to Vapi to create the outbound call.
-5. The dialer passes `assistantOverrides` so Vapi receives:
+3. The dialer selects the lowest `attempt_count` tier first, then the oldest `created_at` row inside that tier.
+4. The dialer atomically claims that row by setting `locked_at`, `lock_owner`, `last_attempt_at`, and `next_attempt_at` before starting the Vapi call.
+5. The dialer sends a `POST` request to Vapi to create the outbound call.
+6. The dialer passes `assistantOverrides` so Vapi receives:
    - `contact_id`
    - `queue_id`
    - `campaign_id`
    - `lead_timezone`
    - `first_name`
-6. Vapi places the call using the configured assistant.
-7. During the live call, Vapi can call tools back into the merged callback webhook.
-8. When the call ends, Vapi posts the end-of-call payload to the same webhook.
-9. The callback workflow records the call result, adds GHL notes, and updates any tool-specific state.
+7. Vapi places the call using the configured assistant.
+8. During the live call, Vapi can call tools back into the merged callback webhook.
+9. When the call ends, Vapi posts the end-of-call payload to the same webhook.
+10. The callback workflow records the call result, adds GHL notes, and updates any tool-specific state.
 
 ## Dialer Workflow Walkthrough
 
@@ -255,8 +256,9 @@ When the payload is not a tool call, the workflow:
   - `interested` — human answered and was interested (`analysis.successEvaluation = true`)
   - `not_interested` — human answered but not interested (`analysis.successEvaluation = false`)
   - `interest_unknown` — human answered but Vapi could not confidently classify the outcome
-- maps each disposition to the corresponding `vapi_*` GHL tags
+- maps each disposition to the corresponding `vapi_*` GHL tags, including the interest tags below
 - inserts a `voice_call_attempt` row
+- marks voicemail queue rows completed so they do not re-enter the campaign queue
 - applies the `vapi_*` tags to the GHL contact via `GHL - Apply Tags`
 - writes a GHL contact note with the disposition, summary, and recording link
 - triggers `Code - Trigger Dequeue Next` to pull the next queue item
@@ -289,6 +291,7 @@ Every end-of-call event applies `vapi_call_attempted` plus one outcome-specific 
 | `vapi_not_interested` | Human answered and `analysis.successEvaluation = false` |
 | `vapi_interest_unknown` | Human answered, but Vapi could not confidently classify the outcome |
 | `vapi_dnc` | Added by the `add_to_dnc` tool (manual DNC action) |
+| `vapi_voicemail` / `vapi_voicemail_left` | Voicemail disposition also completes the queue row for the current campaign |
 
 **Important**: Calls with disposition `failed` or `null` in `voice_call_attempt` never connected to Vapi, so no end-of-call webhook fires and no `vapi_*` tags are automatically applied. Those contacts must be handled outside the voice system.
 

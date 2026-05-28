@@ -50,7 +50,7 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH candidate AS (SELECT queue_id FROM voice_call_queue WHERE status = 'pending' AND dnc = false AND attempt_count < max_attempts AND (next_attempt_at IS NULL OR next_attempt_at <= NOW()) AND (locked_at IS NULL OR locked_at < NOW() - INTERVAL '15 minutes') ORDER BY created_at DESC LIMIT 1) UPDATE voice_call_queue q SET locked_at = NOW(), lock_owner = 'n8n-dialer', updated_at = NOW() FROM candidate WHERE q.queue_id = candidate.queue_id RETURNING q.queue_id, q.contact_id, q.first_name, q.phone_e164, q.campaign_id, q.lead_timezone, q.max_attempts, q.attempt_count",
+        "query": "WITH eligible AS (\n  SELECT queue_id, attempt_count, created_at\n  FROM voice_call_queue\n  WHERE status = 'pending'\n    AND dnc = false\n    AND attempt_count < max_attempts\n    AND (next_attempt_at IS NULL OR next_attempt_at <= NOW())\n    AND (locked_at IS NULL OR locked_at < NOW() - INTERVAL '15 minutes')\n), min_attempt AS (\n  SELECT MIN(attempt_count) AS attempt_count\n  FROM eligible\n)\nSELECT queue_id\nFROM eligible\nWHERE attempt_count = (SELECT attempt_count FROM min_attempt)\nORDER BY created_at ASC\nLIMIT 1",
         "options": {}
       },
       "credentials": {

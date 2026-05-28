@@ -204,6 +204,22 @@
         0,
         192
       ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lt-ghl-linkedin-connect-dispatcher",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook_linkedin_dispatcher",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        384
+      ]
     }
   ],
   "connections": {
@@ -241,6 +257,17 @@
       ]
     },
     "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
       "main": [
         [
           {
@@ -496,6 +523,22 @@
           0,
           192
         ]
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lt-ghl-linkedin-connect-dispatcher",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "webhook_linkedin_dispatcher",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          384
+        ]
       }
     ],
     "connections": {
@@ -533,6 +576,17 @@
         ]
       },
       "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook Trigger": {
         "main": [
           [
             {

@@ -1,9 +1,11 @@
 # GHL To SimpleTexting SMS Send Runbook
 
 ## Purpose
-Let a user initiate an SMS send from GHL while keeping SimpleTexting as the provider and n8n as the control layer.
+Let a user initiate a freeform SMS reply from GHL while keeping SimpleTexting as the provider and n8n as the control layer.
 
 This is a workflow-action integration, not a rewrite of the GHL conversation composer.
+For the operator-facing setup, use the companion workflow spec in
+[`GHL_SimpleTexting_Access_Workflow.md`](./GHL_SimpleTexting_Access_Workflow.md).
 
 ## Locked Decision
 - Use a GHL workflow action or manual workflow trigger to POST to n8n.
@@ -13,10 +15,11 @@ This is a workflow-action integration, not a rewrite of the GHL conversation com
 
 ## Operator Flow
 1. A user opens a contact in GHL.
-2. The user chooses either a template or a freeform message.
-3. A GHL workflow posts the request to the n8n webhook.
-4. n8n resolves the contact, validates the message, checks suppression, and sends through SimpleTexting.
-5. n8n writes the result back to GHL as a note and any requested tag changes.
+2. The user types the reply they want to send.
+3. A GHL workflow posts that typed body to the n8n webhook.
+4. If n8n returns success, GHL clears `SimpleTexting SMS`.
+5. n8n resolves the contact, validates the message, checks suppression, and sends through SimpleTexting.
+6. n8n writes the result back to GHL as a note and any requested tag changes.
 
 ## Recommended GHL Workflow Shape
 Use one workflow dedicated to SMS sends, for example `WL - SimpleTexting - Send SMS`.
@@ -30,12 +33,12 @@ Guard conditions before the webhook:
 - Contact has a phone number.
 - Contact is not on `simpletext_stop`.
 - Contact is not otherwise suppressed or DND.
-- The send request has either a template key or a message body.
+- The send request has a message body.
+- Optional fallback: a template key if the operator chooses a canned reply.
 
 Webhook action:
 - Method: `POST`
 - URL: `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`
-- Header: `x-lt-webhook-key: Lt9Qv2Xm`
 - Content-Type: `application/json`
 
 ## Recommended Payload Contract
@@ -60,34 +63,17 @@ Use this when the user types the actual SMS body in GHL.
 }
 ```
 
-### Template-Based Send
-Use this when the operator selects a known template instead of writing a custom body.
-
-```json
-{
-  "contactId": "{{contact.id}}",
-  "contactPhone": "{{contact.phone}}",
-  "templateKey": "john_sms4",
-  "campaignKey": "ghl_manual_sms",
-  "externalId": "{{contact.id}}:john_sms4",
-  "source": "ghl_workflow",
-  "dryRun": false,
-  "contact": {
-    "first_name": "{{contact.first_name}}",
-    "last_name": "{{contact.last_name}}",
-    "email": "{{contact.email}}"
-  }
-}
-```
-
 ## Suggested GHL Custom Fields
-If the workflow needs the user to draft the message before sending, use dedicated custom fields:
-- `LT SMS Send Body`
-- `LT SMS Template Key`
+If the workflow needs the user to draft the message before sending, the only required custom field is:
+- `SimpleTexting SMS`
+
+Optional fields if you want more control:
 - `LT SMS Campaign Key`
 - `LT SMS Send Request ID`
+- `LT SMS Dry Run`
 
-These fields keep the payload explicit and make retries auditable.
+`SimpleTexting SMS` is the field that actually holds the message the user wants sent.
+The others are only for retry tracking, campaign labeling, or test mode.
 
 ## Expected n8n Response
 The GHL workflow should treat these outcomes as success paths:
@@ -99,8 +85,13 @@ The workflow should surface these as blocking outcomes:
 - `missing_phone`
 - `invalid_phone`
 - `contact_opted_out`
-- `simpletexting_send_failed`
+- `idempotent_webhook_error`
 - `duplicate_send`
+
+## Practical GHL Setup
+Use the `SimpleTexting SMS` custom field for the typed message body and map that field into the webhook payload as `message`. That is the cleanest way to let GHL users send their own reply text instead of picking from predefined snippets.
+Add a success-only field update step after the webhook to blank `SimpleTexting SMS`. Do not clear it on failed sends so the user can correct and resend without retyping.
+Do not add any auth header on this webhook path; the live n8n endpoint is intentionally accepting the GHL call without header auth to avoid webhook-step timeouts from header mismatch.
 
 ## Testing Order
 1. Dry run one test contact from GHL.
@@ -110,6 +101,12 @@ The workflow should surface these as blocking outcomes:
 5. Confirm SimpleTexting receives the send.
 6. Confirm GHL gets the note and any requested tags.
 7. Repeat the same payload and verify duplicate suppression.
+
+## GHL Operator Notes
+- Use a manual workflow action if the sender needs to choose between a template and freeform message.
+- Use a custom-field-backed payload if the team wants the message drafted in GHL before send.
+- Do not use the native GHL SMS action for this path. The n8n webhook is the control boundary.
+- Keep `source`, `campaignKey`, `externalId`, and `contact` in the payload so note sync and audit trails stay usable.
 
 ## Rollback
 - Disable only the GHL webhook action if something fails.

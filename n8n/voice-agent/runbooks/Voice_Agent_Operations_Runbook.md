@@ -66,4 +66,5 @@ Do not reintroduce the older split callback workflow into production.
 - Verify queue rows are locked on claim and are only eligible again after the stale lock window.
 - Verify archived workflows remain archived and are not active.
 - Verify the vapi\_\* tags are applied correctly on a sample of completed calls.
+- Verify the dialer selects the oldest contact within the lowest attempt tier before any repeat passes.
 - Spot-check that failed/null disposition calls did not receive auto tags (expected).

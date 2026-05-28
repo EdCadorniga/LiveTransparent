@@ -1,6 +1,6 @@
 # Voice Agent V1 Implementation Spec
 
-> Status: historical reference only. Production now uses the Phase 2 merged callback/tool router described in `plan.md`.
+> Status: historical reference only. Production now uses the Phase 2 merged callback/tool router described in `Project Status and Next Steps.md`.
 
 ## Objective
 Document the original V1 outbound cold-call design. The live implementation no longer uses the older split callback flow or direct-booking path.

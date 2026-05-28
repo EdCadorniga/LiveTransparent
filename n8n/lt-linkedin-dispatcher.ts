@@ -18,6 +18,22 @@ const manual = trigger({
   output: [{}],
 });
 
+const webhook = trigger({
+  type: 'n8n-nodes-base.webhook',
+  version: 2.1,
+  config: {
+    name: 'Webhook Trigger',
+    parameters: {
+      httpMethod: 'POST',
+      path: 'lt-ghl-linkedin-connect-dispatcher',
+      responseMode: 'lastNode',
+      options: {},
+    },
+    position: [240, 140],
+  },
+  output: [{}],
+});
+
 const config = node({
   type: 'n8n-nodes-base.set',
   version: 3.4,
@@ -403,5 +419,7 @@ export default workflow('lt-ghl-linkedin-dispatcher', 'LT - GHL LinkedIn Connect
   .to(config)
   .to(dispatch)
   .to(result)
+  .add(webhook)
+  .to(config)
   .add(manual)
   .to(config);

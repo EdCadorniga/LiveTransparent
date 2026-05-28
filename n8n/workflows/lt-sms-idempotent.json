@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "functionCode": "const crypto = require('crypto');\nconst contact_id = $json.contact_id?.toString() ?? '';\nconst workflow_id = $json.workflow_id?.toString() ?? '';\nconst template_id = $json.template_id?.toString() ?? '';\nconst d = new Date();\nconst yyyy = d.getFullYear().toString();\nconst mm = (d.getMonth()+1).toString().padStart(2,'0');\nconst dd = d.getDate().toString().padStart(2,'0');\nconst yyyymmdd = yyyy + mm + dd;\nconst message_hash = crypto.createHash('sha1').update(contact_id + '|' + workflow_id + '|' + template_id + '|' + yyyymmdd).digest('hex');\nreturn [{ json: { ...$json, message_hash, yyyymmdd } }];"
+        "functionCode": "const crypto = require('crypto');\nconst contact_id = $json.contact_id?.toString() ?? '';\nconst workflow_id = $json.workflow_id?.toString() ?? '';\nconst template_id = $json.template_id?.toString() ?? '';\nconst message_body = $json.message_body?.toString() ?? '';\nconst d = new Date();\nconst yyyy = d.getFullYear().toString();\nconst mm = (d.getMonth()+1).toString().padStart(2,'0');\nconst dd = d.getDate().toString().padStart(2,'0');\nconst yyyymmdd = yyyy + mm + dd;\nconst dedupeKey = template_id ? `template:${template_id}` : `body:${message_body}`;\nconst message_hash = crypto.createHash('sha1').update(contact_id + '|' + workflow_id + '|' + dedupeKey + '|' + yyyymmdd).digest('hex');\nreturn [{ json: { ...$json, message_hash, yyyymmdd } }];"
       },
       "name": "Compute Hash",
       "type": "n8n-nodes-base.function",

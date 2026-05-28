@@ -16,7 +16,7 @@ GA4 is live in the current build. Search Console raw ingest is also live, but th
 
 ## Repo Context
 
-- Report plan: `LiveTransparent Report Plan.md`
+- Canonical status doc: `Project Status and Next Steps.md`
 - Data contract: `GHL Live Transparent CRM/Report Data Contract.md`
 - Postgres bootstrap: `postgres/reporting-bootstrap.sql`
 - Embedded host spec: `n8n/reporting/Embedded_Report_Host_Spec.md`
@@ -82,7 +82,7 @@ Trigger:
 - Optional daily Cron for drift checks
 
 Reads:
-- `LiveTransparent Report Plan.md`
+- `Project Status and Next Steps.md`
 - `GHL Live Transparent CRM/Report Data Contract.md`
 
 Writes:
