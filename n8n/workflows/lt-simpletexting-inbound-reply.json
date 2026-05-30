@@ -1,16 +1,16 @@
 {
-  "updatedAt": "2026-04-27T20:23:14.394Z",
-  "createdAt": "2026-03-17T12:01:20.372Z",
-  "id": "EhAiGey2o7UJT1cv",
+  "updatedAt": "2026-05-30T09:48:01.393Z",
+  "createdAt": "2026-05-30T09:34:42.236Z",
+  "id": "i0pROHpFtN4LYR0Q",
   "name": "LT - SimpleTexting Inbound Reply (Webhook)",
-  "description": null,
+  "description": "",
   "active": true,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-      "path": "lt-simpletexting-inbound-reply-v2",
+        "path": "lt-simpletexting-inbound-reply-v2",
         "responseMode": "lastNode",
         "options": {}
       },
@@ -226,31 +226,22 @@
     }
   },
   "settings": {
-    "saveExecutionProgress": true,
-    "saveManualExecutions": true,
-    "saveDataErrorExecution": "all",
-    "saveDataSuccessExecution": "all",
-    "executionTimeout": 3600,
-    "timezone": "UTC",
-    "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": true,
-    "timeSavedMode": "fixed",
-    "executionOrder": "v0",
+    "executionOrder": "v1",
     "binaryMode": "separate"
   },
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "a4b5f68e-b285-4244-8834-8ceed4d38d57",
-  "activeVersionId": "a4b5f68e-b285-4244-8834-8ceed4d38d57",
-  "versionCounter": 177,
+  "versionId": "08dbd2c2-56c1-48e6-b242-06b391b13a30",
+  "activeVersionId": "08dbd2c2-56c1-48e6-b242-06b391b13a30",
+  "versionCounter": 6,
   "triggerCount": 1,
   "shared": [
     {
-      "updatedAt": "2026-03-17T12:01:20.372Z",
-      "createdAt": "2026-03-17T12:01:20.372Z",
+      "updatedAt": "2026-05-30T09:34:42.236Z",
+      "createdAt": "2026-05-30T09:34:42.236Z",
       "role": "workflow:owner",
-      "workflowId": "EhAiGey2o7UJT1cv",
+      "workflowId": "i0pROHpFtN4LYR0Q",
       "projectId": "4Vzf1F1ukTvP58LF",
       "project": {
         "updatedAt": "2026-02-11T17:34:16.034Z",
@@ -266,15 +257,15 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-04-27T20:23:18.282Z",
-    "createdAt": "2026-04-27T20:23:14.396Z",
-    "versionId": "a4b5f68e-b285-4244-8834-8ceed4d38d57",
-    "workflowId": "EhAiGey2o7UJT1cv",
+    "updatedAt": "2026-05-30T09:48:01.399Z",
+    "createdAt": "2026-05-30T09:48:01.399Z",
+    "versionId": "08dbd2c2-56c1-48e6-b242-06b391b13a30",
+    "workflowId": "i0pROHpFtN4LYR0Q",
     "nodes": [
       {
         "parameters": {
           "httpMethod": "POST",
-          "path": "lt-simpletexting-inbound-reply",
+          "path": "lt-simpletexting-inbound-reply-v2",
           "responseMode": "lastNode",
           "options": {}
         },
@@ -468,33 +459,37 @@
       },
       "Validate + Normalize Reply": {
         "main": [
-          {
-            "node": "Upsert SMS State",
-            "type": "main",
-            "index": 0
-          }
+          [
+            {
+              "node": "Upsert SMS State",
+              "type": "main",
+              "index": 0
+            }
+          ]
         ]
       },
       "Upsert SMS State": {
         "main": [
-          {
-            "node": "Post to Slack",
-            "type": "main",
-            "index": 0
-          }
+          [
+            {
+              "node": "Post to Slack",
+              "type": "main",
+              "index": 0
+            }
+          ]
         ]
       }
     },
     "authors": "Ed cadorniga",
-    "name": "Version a4b5f68e",
-    "description": "",
-    "autosaved": true,
+    "name": null,
+    "description": null,
+    "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-04-27T20:23:18.275Z",
-        "id": 952,
-        "workflowId": "EhAiGey2o7UJT1cv",
-        "versionId": "a4b5f68e-b285-4244-8834-8ceed4d38d57",
+        "createdAt": "2026-05-30T09:48:13.972Z",
+        "id": 1937,
+        "workflowId": "i0pROHpFtN4LYR0Q",
+        "versionId": "08dbd2c2-56c1-48e6-b242-06b391b13a30",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }

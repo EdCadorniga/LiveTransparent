@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-04-05T10:39:15.511Z",
+  "updatedAt": "2026-05-30T09:48:34.463Z",
   "createdAt": "2026-03-17T12:01:21.025Z",
   "id": "IyBKMkpYQ7pa0C8V",
   "name": "LT - SimpleTexting Unsubscribe Events (Webhook)",
-  "description": null,
+  "description": "",
   "active": true,
   "isArchived": false,
   "nodes": [
@@ -18,7 +18,7 @@
       ],
       "parameters": {
         "httpMethod": "POST",
-      "path": "lt-simpletexting-unsubscribes-v2",
+        "path": "lt-simpletexting-unsubscribes-v2",
         "responseMode": "lastNode",
         "options": {}
       },
@@ -196,9 +196,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
-  "activeVersionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
-  "versionCounter": 29,
+  "versionId": "8fe8da50-5afa-499a-ad3a-cbd9b8f4fe87",
+  "activeVersionId": "8fe8da50-5afa-499a-ad3a-cbd9b8f4fe87",
+  "versionCounter": 39,
   "triggerCount": 1,
   "shared": [
     {
@@ -221,9 +221,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-04-05T10:39:15.514Z",
-    "createdAt": "2026-04-05T10:39:15.514Z",
-    "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+    "updatedAt": "2026-05-30T09:48:34.466Z",
+    "createdAt": "2026-05-30T09:48:34.466Z",
+    "versionId": "8fe8da50-5afa-499a-ad3a-cbd9b8f4fe87",
     "workflowId": "IyBKMkpYQ7pa0C8V",
     "nodes": [
       {
@@ -237,7 +237,7 @@
         ],
         "parameters": {
           "httpMethod": "POST",
-          "path": "lt-simpletexting-unsubscribes",
+          "path": "lt-simpletexting-unsubscribes-v2",
           "responseMode": "lastNode",
           "options": {}
         },
@@ -389,11 +389,13 @@
       },
       "Validate + Normalize Unsubscribe": {
         "main": [
-          {
-            "node": "Upsert Unsubscribe State",
-            "type": "main",
-            "index": 0
-          }
+          [
+            {
+              "node": "Upsert Unsubscribe State",
+              "type": "main",
+              "index": 0
+            }
+          ]
         ]
       }
     },
@@ -403,34 +405,10 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-04-05T10:39:15.987Z",
-        "id": 601,
+        "createdAt": "2026-05-30T09:48:35.818Z",
+        "id": 1939,
         "workflowId": "IyBKMkpYQ7pa0C8V",
-        "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
-        "event": "deactivated",
-        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
-      },
-      {
-        "createdAt": "2026-04-05T10:39:16.041Z",
-        "id": 602,
-        "workflowId": "IyBKMkpYQ7pa0C8V",
-        "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
-        "event": "activated",
-        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
-      },
-      {
-        "createdAt": "2026-04-05T10:39:15.584Z",
-        "id": 599,
-        "workflowId": "IyBKMkpYQ7pa0C8V",
-        "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
-        "event": "deactivated",
-        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
-      },
-      {
-        "createdAt": "2026-04-05T10:39:15.629Z",
-        "id": 600,
-        "workflowId": "IyBKMkpYQ7pa0C8V",
-        "versionId": "2b35490e-b110-40ae-b1a2-c6fa9b21c143",
+        "versionId": "8fe8da50-5afa-499a-ad3a-cbd9b8f4fe87",
         "event": "activated",
         "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
       }
