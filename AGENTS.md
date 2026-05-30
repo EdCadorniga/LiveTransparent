@@ -106,13 +106,13 @@
 - LinkedIn DM copy is sourced from `outreach_messages.v2.docx`.
 - LinkedIn DM timing is currently 0, 3, 4, 3, 4 days between sends after the first message clock starts.
 - Active LinkedIn conversations are marked in `linkedin_connection_state` via `payload_json.dm_conversation_status = 'active'`.
-- Future SMS campaign work should use `outreach_messages.docx` as the SMS source of truth, with shared Postgres state so send history and reply state are not duplicated across workflows.
+- SimpleTexting SMS campaign work is now staged in repo workflow exports, using `outreach_messages.docx` as the SMS source of truth.
 - SMS campaign requirements:
-  - tag each SMS send in Postgres so the same person is not messaged twice
-  - separate send state from response state, but keep both in the same canonical table or a tightly controlled pair of tables
-  - confirm inbound reply handling is active before sending volume
-  - confirm opt-out handling and unsubscribe tagging are preserved
-  - keep campaign batches controlled until the response workflow is verified
+  - tag each SMS send so the same person is not messaged twice
+  - keep send state and response state in the same canonical table or a tightly controlled pair of tables
+  - make sure inbound replies stop future sends and notify `#lead`
+  - preserve opt-out handling and unsubscribe tagging
+  - keep batches controlled until the pool filter and reply path are verified in live n8n
 
 ## Key Files
 
@@ -124,6 +124,12 @@
 - `n8n/voice-agent/`
 - `n8n/workflows/lt-linkedin-dm-sequence.ts`
 - `n8n/workflows/lt-linkedin-unipile-new-messages.ts`
+- `n8n/workflows/lt-simpletexting-send-sms.json`
+- `n8n/workflows/lt-simpletexting-pool-dispatcher.json`
+- `n8n/workflows/lt-simpletexting-campaign-sequencer.json`
+- `n8n/workflows/lt-simpletexting-inbound-reply.json`
+- `n8n/workflows/lt-simpletexting-delivery-events.json`
+- `n8n/workflows/lt-simpletexting-unsubscribe-events.json`
 - `reports/embed/executive/index.html`
 - `reports/nginx.conf`
 - `Backup of all n8n workflows/`

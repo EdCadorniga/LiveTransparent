@@ -1,5 +1,5 @@
 {
-  "name": "LT - SMS Idempotent Send",
+  "name": "LT - SimpleTexting SMS Send Helper",
   "nodes": [
     {
       "parameters": {
@@ -10,7 +10,10 @@
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [200, 250]
+      "position": [
+        200,
+        250
+      ]
     },
     {
       "parameters": {
@@ -19,7 +22,10 @@
       "name": "Compute Hash",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [450, 250]
+      "position": [
+        450,
+        250
+      ]
     },
     {
       "parameters": {
@@ -29,7 +35,10 @@
       "name": "Insert SMS Row",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 1,
-      "position": [700, 250],
+      "position": [
+        700,
+        250
+      ],
       "credentials": {
         "postgres": {
           "id": "Reporting Postgres",
@@ -51,7 +60,10 @@
       "name": "Inserted?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [950, 250]
+      "position": [
+        950,
+        250
+      ]
     },
     {
       "parameters": {
@@ -71,7 +83,10 @@
       "name": "Simulated Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [1200, 150]
+      "position": [
+        1200,
+        150
+      ]
     },
     {
       "parameters": {
@@ -84,7 +99,7 @@
         "headerParameters": [
           {
             "name": "Authorization",
-            "value": "=Bearer $env.SIMPLETEXTING_API_KEY"
+            "value": "={{ \"Bearer \" + $env.SIMPLETEXTING_API_KEY }}"
           },
           {
             "name": "Content-Type",
@@ -95,18 +110,27 @@
       "name": "Send SimpleTexting",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
-      "position": [1200, 350]
+      "position": [
+        1200,
+        350
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "UPDATE report_sms_sent SET provider_response = $1 WHERE id = $2 RETURNING id, provider_response",
-        "values": ["={{ JSON.stringify($json.provider_response || $json[0]?.json || $json) }}", "={{ $('Insert SMS Row').json[0]?.id || $('Insert SMS Row').json.id }}"]
+        "values": [
+          "={{ JSON.stringify($json.provider_response || $json[0]?.json || $json) }}",
+          "={{ $('Insert SMS Row').json[0]?.id || $('Insert SMS Row').json.id }}"
+        ]
       },
       "name": "Update Provider Response",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 1,
-      "position": [1450, 250],
+      "position": [
+        1450,
+        250
+      ],
       "credentials": {
         "postgres": {
           "id": "Reporting Postgres",
@@ -132,7 +156,10 @@
       "name": "Return Sent",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [1700, 250]
+      "position": [
+        1700,
+        250
+      ]
     },
     {
       "parameters": {
@@ -142,7 +169,10 @@
       "name": "Query Existing",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 1,
-      "position": [1200, 550],
+      "position": [
+        1200,
+        550
+      ],
       "credentials": {
         "postgres": {
           "id": "Reporting Postgres",
@@ -168,7 +198,10 @@
       "name": "Return Duplicate",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [1450, 550]
+      "position": [
+        1450,
+        550
+      ]
     }
   ],
   "connections": {
@@ -209,7 +242,7 @@
       "main": [
         [
           {
-            "node": "Simulated Response",
+            "node": "Send SimpleTexting",
             "type": "main",
             "index": 0
           }

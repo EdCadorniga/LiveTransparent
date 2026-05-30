@@ -47,10 +47,12 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 ### SMS Campaign Scope
 
 - `outreach_messages.docx` is the source of truth for SMS copy.
-- SMS will be sent as a SimpleTexting campaign, not as one-off ad hoc messages.
+- SMS is implemented as a SimpleTexting campaign stack, not as one-off ad hoc messages.
+- The campaign uses a controlled pool dispatcher, a sequencer, and a shared send endpoint.
 - The SMS workflow needs per-contact send tracking so each message can be marked as sent once and never repeated.
 - The SMS workflow also needs response ingestion so replies update the same canonical state used by the send workflow.
 - The SMS workflow should preserve unsubscribe handling and should not send to opted-out contacts.
+- Replies should trigger a Slack notification in `#lead` so the team can respond without checking n8n first.
 - The preferred model is a shared Postgres state table or a tightly controlled send-state plus response-state pair, but the same contact record must be authoritative for both send and reply logic.
 
 ### SMS Missing Steps
@@ -61,6 +63,7 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 4. Wire inbound reply and delivery webhooks into the same state model.
 5. Confirm opt-out / unsubscribe propagation.
 6. Run a low-volume smoke test before batch sends.
+7. Deploy the staged SMS workflows into live n8n and verify the live webhook routes.
 
 ## Queue Contract
 
@@ -92,6 +95,7 @@ Normalized callback output:
 - Preserve n8n graph integrity when editing workflows.
 - For social outreach, never send duplicate messages. Every send workflow must check and update shared state before and after send.
 - For social outreach, reply-handling workflows must mark the contact as in conversation so follow-up sequences stop.
+- For SMS, keep the batch size controlled until reply capture, opt-out propagation, and Slack alerts have all been verified live.
 
 ## Callback Tools
 

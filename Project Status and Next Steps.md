@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-05-29
+Updated: 2026-05-30
 
 ## Source Of Truth
 
@@ -18,7 +18,8 @@ It supersedes the duplicated planning notes in:
 - Emerald email-marketing ingest workflows are active again in n8n: CSV -> GHL Import, CSV -> Postgres Ingest, and Campaign Snapshot -> Postgres Ingest.
 - Emerald intro backfill is staged in live GHL: 500 additional eligible contacts have now been tagged `seq emerald - intro backfill pending`, the live pending queue increased to 3,566, and 1,719 enrolled contacts remain eligible for controlled staging.
 - LinkedIn outreach is split cleanly: `LT - GHL LinkedIn Connect Dispatcher (Unipile)` uses the invite copy from `outreach_messages.v2.docx`, `LT - LinkedIn DM Sequence (Unipile)` uses the LinkedIn `v2` follow-up variant after acceptance, and the Unipile inbound-message webhook now marks active conversations so DM sequences stop when someone replies.
-- A future SimpleTexting SMS campaign is planned from `outreach_messages.docx`; it still needs per-message send tagging, shared response-state tracking, and full reply/opt-out validation before volume.
+- SimpleTexting SMS campaign workflow exports are now staged in repo from `outreach_messages.docx`: sender, pool dispatcher, sequencer, inbound reply, delivery events, and unsubscribe events are all represented as separate workflows.
+- The SMS stack still needs live deployment and a final GHL pool filter body for the dispatcher, but the message registry, batching shape, reply-stop handling, and Slack `#lead` notification path are now defined in the repo artifacts.
 - GSC still needs workflow verification / cleanup.
 - Meta Ads API access is validated, but spend ingest is still deferred.
 
@@ -102,9 +103,10 @@ It supersedes the duplicated planning notes in:
 ### 4. Cleanup And Adjacent Automation
 
 - Finish SimpleTexting secret hardening.
+- Deploy the staged SMS workflows and verify the live GHL pool query.
 - Build the GHL-to-LinkedIn automation.
 - Retry and enable the blocked GSC ingest workflow.
-- Build the SimpleTexting SMS campaign flow from `outreach_messages.docx` with shared send/reply state and dedupe.
+- Confirm the SimpleTexting reply handler posts into `#lead` and suppresses future sends after a reply.
 
 ## Reporting Workflows
 
@@ -148,9 +150,10 @@ It supersedes the duplicated planning notes in:
 2. Build matched funnel views by channel, campaign, and landing page.
 3. Build Meta Ads ingest for spend, clicks, impressions, and cost metrics.
 4. Finish SimpleTexting secret hardening.
-5. Build GHL-to-LinkedIn automation.
-6. Retry and enable the blocked GSC ingest workflow.
-7. Build the SimpleTexting SMS campaign flow from `outreach_messages.docx` with shared send/reply state and dedupe.
+5. Deploy the staged SMS workflows and verify the live GHL pool query.
+6. Confirm the SimpleTexting reply handler posts into `#lead` and suppresses future sends after a reply.
+7. Build GHL-to-LinkedIn automation.
+8. Retry and enable the blocked GSC ingest workflow.
 
 ### Report Dependencies
 

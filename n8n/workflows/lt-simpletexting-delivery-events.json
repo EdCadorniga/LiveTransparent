@@ -1,0 +1,415 @@
+{
+  "updatedAt": "2026-04-05T10:39:14.133Z",
+  "createdAt": "2026-03-17T12:01:20.711Z",
+  "id": "AEi1VCzkLvaYFr4U",
+  "name": "LT - SimpleTexting Delivery Events (Webhook)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "webhook_in",
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        280,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+      "path": "lt-simpletexting-delivery-events-v2",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "webhookId": "1f436b90-1117-4c84-abfe-0d0307869889"
+    },
+    {
+      "id": "config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "default_dry_run",
+              "name": "defaultDryRun",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "auth_header_name",
+              "name": "authHeaderName",
+              "type": "string",
+              "value": "x-lt-webhook-key"
+            },
+            {
+              "id": "auth_header_value",
+              "name": "authHeaderValue",
+              "type": "string",
+              "value": "={{ $env.LT_SIMPLETEXTING_WEBHOOK_SECRET || \"\" }}"
+            },
+            {
+              "id": "provider_name",
+              "name": "provider",
+              "type": "string",
+              "value": "SimpleTexting"
+            },
+            {
+              "id": "event_type",
+              "name": "eventType",
+              "type": "string",
+              "value": "delivery_event"
+            },
+            {
+              "id": "ghlLocationId",
+              "name": "ghlLocationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "ghlApiBaseUrl",
+              "name": "ghlApiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "ghlApiKey",
+              "name": "ghlApiKey",
+              "type": "string",
+              "value": "={{ $env.GHL_PIT || $env.GHL_API_KEY || \"\" }}"
+            },
+            {
+              "id": "a2dc378def1d",
+              "name": "campaignKey",
+              "type": "string",
+              "value": "simpletexting_campaign_v1"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "normalize",
+      "name": "Validate + Normalize Delivery",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const src = $json || {};\nconst body = src.body || {};\nconst headers = src.headers || {};\nconst values = (body.values && typeof body.values === 'object' && !Array.isArray(body.values)) ? body.values : {};\n\nconst cfg = {\n  defaultDryRun: !!src.defaultDryRun,\n  authHeaderName: String(src.authHeaderName || 'x-lt-webhook-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n  provider: String(src.provider || 'SimpleTexting').trim(),\n  eventType: String(src.eventType || 'delivery_event').trim(),\n  ghlLocationId: String(src.ghlLocationId || '').trim(),\n  ghlApiBaseUrl: String(src.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  ghlApiKey: String(src.ghlApiKey || '').trim(),\n};\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid webhook auth header' } }];\n}\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBoolean(v, fallback) {\n  if (v === undefined || v === null || v === '') return fallback;\n  if (typeof v === 'boolean') return v;\n  const s = String(v).trim().toLowerCase();\n  if (['true','1','yes','y'].includes(s)) return true;\n  if (['false','0','no','n'].includes(s)) return false;\n  return fallback;\n}\nfunction normalizePhone(v) {\n  const digits = clean(v).replace(/\\D/g, '');\n  if (!digits) return '';\n  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);\n  return digits;\n}\nfunction formatPhone(v) {\n  const digits = normalizePhone(v);\n  if (!digits) return '';\n  if (digits.length === 10) return `+1 ${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;\n  return `+${digits}`;\n}\nfunction getContactsArray(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  return [];\n}\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ method, url, headers, body }) {\n  const options = { method, url, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\nasync function resolveGhlContact(phone, explicitGhlContactId) {\n  if (explicitGhlContactId) return { contactId: explicitGhlContactId, resolvedVia: 'input_contactId' };\n  if (!cfg.ghlApiKey || !cfg.ghlLocationId || !phone) return { contactId: '', resolvedVia: 'unavailable' };\n  const lookup = await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.ghlApiBaseUrl}/contacts/?locationId=${encodeURIComponent(cfg.ghlLocationId)}&query=${encodeURIComponent(phone)}&limit=10`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n    },\n  });\n  if (!lookup.ok) return { contactId: '', resolvedVia: 'lookup_failed', details: lookup.data };\n  const match = getContactsArray(lookup.data).find((contact) => normalizePhone(contact?.phone) === phone);\n  if (!match?.id) return { contactId: '', resolvedVia: 'phone_lookup_no_match' };\n  return { contactId: match.id, resolvedVia: 'phone_lookup' };\n}\nasync function createGhlNote(contactId, noteBody) {\n  return await apiRequest.call(this, {\n    method: 'POST',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/notes`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: { body: noteBody },\n  });\n}\n\nconst dryRun = parseBoolean(body.dryRun, cfg.defaultDryRun);\nconst reportType = clean(body.type || body.reportType || values.type || 'DELIVERY_REPORT');\nconst rawStatus = clean(values.status || body.status || body.deliveryStatus || body.state || body.messageStatus).toLowerCase();\nconst normalizedStatus = rawStatus || (reportType === 'NON_DELIVERED_REPORT' ? 'non_delivered' : (reportType === 'DELIVERY_REPORT' ? 'delivered' : 'unknown'));\nconst providerMessageId = clean(values.messageId || body.messageId || body.message_id || body.id || body.smsid);\nconst to = normalizePhone(values.contactPhone || body.contactPhone || body.to || body.phone || body.mobile || body.destination);\nconst from = normalizePhone(values.accountPhone || body.accountPhone || body.from || body.senderPhone);\nconst eventAt = clean(values.timestamp || body.deliveredAt || body.timestamp || body.updatedAt || body.date || new Date().toISOString());\nconst carrier = clean(values.carrier || body.carrier);\nconst errorCode = clean(values.errorCode || body.errorCode || body.code || body.error_code);\nconst errorMessage = clean(values.errorMessage || body.errorMessage || body.error || body.reason);\nconst contactId = clean(values.contactId || body.contactId || body.ghlContactId || body.externalContactId);\nconst conversationKey = clean(body.conversationId || body.threadId || body.externalId || providerMessageId);\nconst campaignKey = clean(values.campaignKey || body.campaignKey || cfg.campaignKey || 'simpletexting_campaign_v1');\nconst category = clean(values.category || body.category);\nconst referenceType = clean(values.referenceType || body.referenceType);\n\nif (!providerMessageId && !to) {\n  return [{ json: { ok: false, error: 'missing_identifiers', message: 'Provide values.messageId or values.contactPhone' } }];\n}\n\nconst resolvedContact = await resolveGhlContact.call(this, to, contactId);\nconst noteBody = [\n  'SMS delivery event received via SimpleTexting',\n  `Status: ${normalizedStatus}`,\n  `Reported At: ${eventAt}`,\n  providerMessageId ? `Provider Message ID: ${providerMessageId}` : '',\n  to ? `To: ${formatPhone(to) || to}` : '',\n  from ? `From: ${formatPhone(from) || from}` : '',\n  carrier ? `Carrier: ${carrier}` : '',\n  errorCode ? `Error Code: ${errorCode}` : '',\n  errorMessage ? `Error Message: ${errorMessage}` : '',\n  category ? `Category: ${category}` : '',\n  referenceType ? `Reference Type: ${referenceType}` : '',\n  conversationKey ? `Conversation Key: ${conversationKey}` : '',\n].filter(Boolean).join('\\n');\n\nif (dryRun) {\n  return [{ json: {\n    ok: true,\n    dryRun,\n    provider: cfg.provider,\n    eventType: cfg.eventType,\n    reportType,\n    normalizedStatus,\n    providerMessageId,\n    to,\n    from,\n    eventAt,\n    carrier,\n    errorCode,\n    errorMessage,\n    contactId,\n    conversationKey,\n    category,\n    referenceType,\n    ghlNotePreview: noteBody,\n    ghlContactResolution: resolvedContact,\n    rawBody: body,\n    rawValues: values,\n    nextStep: 'draft_only_no_side_effects'\n  } }];\n}\n\nlet noteSync = { attempted: false, contactId: resolvedContact.contactId || '', resolvedVia: resolvedContact.resolvedVia || '', ok: false };\nif (cfg.ghlApiKey && cfg.ghlLocationId && resolvedContact.contactId) {\n  const noteRes = await createGhlNote.call(this, resolvedContact.contactId, noteBody);\n  noteSync.attempted = true;\n  noteSync.ok = noteRes.ok;\n  noteSync.details = noteRes.ok ? (noteRes.data?.note || noteRes.data || {}) : noteRes.data;\n}\n\nreturn [{ json: {\n  ok: true,\n  dryRun,\n  provider: cfg.provider,\n  eventType: cfg.eventType,\n  reportType,\n  normalizedStatus,\n  providerMessageId,\n  to,\n  from,\n  eventAt,\n  carrier,\n  errorCode,\n  errorMessage,\n  contactId,\n  conversationKey,\n  category,\n  referenceType,\n  ghlNoteSync: noteSync,\n  rawBody: body,\n  rawValues: values,\n  nextStep: noteSync.ok ? 'delivery_event_logged_to_ghl' : 'delivery_event_pending_manual_review'\n} }];"
+      }
+    },
+    {
+      "id": "delivery_state_upsert",
+      "name": "Upsert Delivery State",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1040,
+        300
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT ''enrolled'',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;\nWITH upsert_state AS (\n  INSERT INTO \"SimpleTexting_Campaign_State\" (\n    ghl_contact_id, campaign_key, status, current_step, last_template_key, last_sent_at,\n    provider_message_id, phone_at_send, stop_reason, reply_status,\n    last_inbound_message_at, last_delivery_at, delivery_status, opt_out_status, slack_notified_at,\n    run_id, updated_at\n  ) VALUES (\n    $1, $2, $3, 0, NULL, NULL, $4, $5, $6, NULL,\n    NULL, NOW(), $7, NULL, NULL, $8, NOW()\n  )\n  ON CONFLICT (ghl_contact_id, campaign_key)\n  DO UPDATE SET\n    status = EXCLUDED.status,\n    provider_message_id = COALESCE(EXCLUDED.provider_message_id, \"SimpleTexting_Campaign_State\".provider_message_id),\n    phone_at_send = COALESCE(EXCLUDED.phone_at_send, \"SimpleTexting_Campaign_State\".phone_at_send),\n    stop_reason = COALESCE(EXCLUDED.stop_reason, \"SimpleTexting_Campaign_State\".stop_reason),\n    last_delivery_at = EXCLUDED.last_delivery_at,\n    delivery_status = EXCLUDED.delivery_status,\n    run_id = COALESCE(EXCLUDED.run_id, \"SimpleTexting_Campaign_State\".run_id),\n    updated_at = NOW()\n  RETURNING ghl_contact_id\n),\ninsert_event AS (\n  INSERT INTO \"SimpleTexting_Campaign_Event_Log\" (ghl_contact_id, campaign_key, event_type, step_number, template_key, provider_message_id, details)\n  VALUES ($1, $2, $9, NULL, NULL, $4, $10::jsonb)\n)\nSELECT\n  TRUE AS ok,\n  $10::jsonb->>'normalizedStatus' AS normalizedStatus,\n  $10::jsonb->>'nextStep' AS nextStep,\n  $10::jsonb->>'providerMessageId' AS providerMessageId,\n  $10::jsonb->>'to' AS to,\n  $10::jsonb->>'eventAt' AS eventAt,\n  $10::jsonb->>'errorMessage' AS errorMessage;",
+        "options": {
+          "queryBatching": "independently",
+          "queryReplacement": "={{ [ $json.contactId || null, $json.campaignKey || 'simpletexting_campaign_v1', $json.normalizedStatus || 'delivered', $json.providerMessageId || null, $json.to || null, $json.errorCode || $json.errorMessage || null, $json.normalizedStatus || 'delivered', $json.conversationKey || $json.eventAt || new Date().toISOString(), 'delivery_event', JSON.stringify($json) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pgAzUqpwOiGkGXzO",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Validate + Normalize Delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate + Normalize Delivery": {
+      "main": [
+        [
+          {
+            "node": "Upsert Delivery State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "executionOrder": "v0",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "59e1c0b9-282b-483c-90b9-efa57c315836",
+  "activeVersionId": "59e1c0b9-282b-483c-90b9-efa57c315836",
+  "versionCounter": 26,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-17T12:01:20.711Z",
+      "createdAt": "2026-03-17T12:01:20.711Z",
+      "role": "workflow:owner",
+      "workflowId": "AEi1VCzkLvaYFr4U",
+      "projectId": "4Vzf1F1ukTvP58LF",
+      "project": {
+        "updatedAt": "2026-02-11T17:34:16.034Z",
+        "createdAt": "2026-02-11T08:02:27.672Z",
+        "id": "4Vzf1F1ukTvP58LF",
+        "name": "Ed cadorniga <ed@livetransparent.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-05T10:39:14.135Z",
+    "createdAt": "2026-04-05T10:39:14.135Z",
+    "versionId": "59e1c0b9-282b-483c-90b9-efa57c315836",
+    "workflowId": "AEi1VCzkLvaYFr4U",
+    "nodes": [
+      {
+        "id": "webhook_in",
+        "name": "Webhook Intake",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          280,
+          300
+        ],
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lt-simpletexting-delivery-events",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "webhookId": "1f436b90-1117-4c84-abfe-0d0307869889"
+      },
+      {
+        "id": "config",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          520,
+          300
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "default_dry_run",
+                "name": "defaultDryRun",
+                "type": "boolean",
+                "value": false
+              },
+              {
+                "id": "auth_header_name",
+                "name": "authHeaderName",
+                "type": "string",
+                "value": "x-lt-webhook-key"
+              },
+              {
+                "id": "auth_header_value",
+                "name": "authHeaderValue",
+                "type": "string",
+                "value": "={{ $env.LT_SIMPLETEXTING_WEBHOOK_SECRET || \"\" }}"
+              },
+              {
+                "id": "provider_name",
+                "name": "provider",
+                "type": "string",
+                "value": "SimpleTexting"
+              },
+              {
+                "id": "event_type",
+                "name": "eventType",
+                "type": "string",
+                "value": "delivery_event"
+              },
+              {
+                "id": "ghlLocationId",
+                "name": "ghlLocationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "ghlApiBaseUrl",
+                "name": "ghlApiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "ghlApiKey",
+                "name": "ghlApiKey",
+                "type": "string",
+                "value": "={{ $env.GHL_PIT || $env.GHL_API_KEY || \"\" }}"
+              },
+              {
+                "id": "a2dc378def1d",
+                "name": "campaignKey",
+                "type": "string",
+                "value": "simpletexting_campaign_v1"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "normalize",
+        "name": "Validate + Normalize Delivery",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          800,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const src = $json || {};\nconst body = src.body || {};\nconst headers = src.headers || {};\nconst values = (body.values && typeof body.values === 'object' && !Array.isArray(body.values)) ? body.values : {};\n\nconst cfg = {\n  defaultDryRun: !!src.defaultDryRun,\n  authHeaderName: String(src.authHeaderName || 'x-lt-webhook-key').toLowerCase(),\n  authHeaderValue: String(src.authHeaderValue || ''),\n  provider: String(src.provider || 'SimpleTexting').trim(),\n  eventType: String(src.eventType || 'delivery_event').trim(),\n  ghlLocationId: String(src.ghlLocationId || '').trim(),\n  ghlApiBaseUrl: String(src.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, ''),\n  ghlApiKey: String(src.ghlApiKey || '').trim(),\n};\n\nconst incomingAuth = headers[cfg.authHeaderName] || headers[cfg.authHeaderName.toLowerCase()] || '';\nif (cfg.authHeaderValue && incomingAuth !== cfg.authHeaderValue) {\n  return [{ json: { ok: false, error: 'unauthorized', message: 'Invalid webhook auth header' } }];\n}\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBoolean(v, fallback) {\n  if (v === undefined || v === null || v === '') return fallback;\n  if (typeof v === 'boolean') return v;\n  const s = String(v).trim().toLowerCase();\n  if (['true','1','yes','y'].includes(s)) return true;\n  if (['false','0','no','n'].includes(s)) return false;\n  return fallback;\n}\nfunction normalizePhone(v) {\n  const digits = clean(v).replace(/\\D/g, '');\n  if (!digits) return '';\n  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);\n  return digits;\n}\nfunction formatPhone(v) {\n  const digits = normalizePhone(v);\n  if (!digits) return '';\n  if (digits.length === 10) return `+1 ${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;\n  return `+${digits}`;\n}\nfunction getContactsArray(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  return [];\n}\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ method, url, headers, body }) {\n  const options = { method, url, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return {\n      ok: false,\n      status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500,\n      data: err?.response?.body || err?.message || err,\n    };\n  }\n}\nasync function resolveGhlContact(phone, explicitGhlContactId) {\n  if (explicitGhlContactId) return { contactId: explicitGhlContactId, resolvedVia: 'input_contactId' };\n  if (!cfg.ghlApiKey || !cfg.ghlLocationId || !phone) return { contactId: '', resolvedVia: 'unavailable' };\n  const lookup = await apiRequest.call(this, {\n    method: 'GET',\n    url: `${cfg.ghlApiBaseUrl}/contacts/?locationId=${encodeURIComponent(cfg.ghlLocationId)}&query=${encodeURIComponent(phone)}&limit=10`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n    },\n  });\n  if (!lookup.ok) return { contactId: '', resolvedVia: 'lookup_failed', details: lookup.data };\n  const match = getContactsArray(lookup.data).find((contact) => normalizePhone(contact?.phone) === phone);\n  if (!match?.id) return { contactId: '', resolvedVia: 'phone_lookup_no_match' };\n  return { contactId: match.id, resolvedVia: 'phone_lookup' };\n}\nasync function createGhlNote(contactId, noteBody) {\n  return await apiRequest.call(this, {\n    method: 'POST',\n    url: `${cfg.ghlApiBaseUrl}/contacts/${encodeURIComponent(contactId)}/notes`,\n    headers: {\n      Authorization: `Bearer ${cfg.ghlApiKey}`,\n      Version: '2021-07-28',\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: { body: noteBody },\n  });\n}\n\nconst dryRun = parseBoolean(body.dryRun, cfg.defaultDryRun);\nconst reportType = clean(body.type || body.reportType || values.type || 'DELIVERY_REPORT');\nconst rawStatus = clean(values.status || body.status || body.deliveryStatus || body.state || body.messageStatus).toLowerCase();\nconst normalizedStatus = rawStatus || (reportType === 'NON_DELIVERED_REPORT' ? 'non_delivered' : (reportType === 'DELIVERY_REPORT' ? 'delivered' : 'unknown'));\nconst providerMessageId = clean(values.messageId || body.messageId || body.message_id || body.id || body.smsid);\nconst to = normalizePhone(values.contactPhone || body.contactPhone || body.to || body.phone || body.mobile || body.destination);\nconst from = normalizePhone(values.accountPhone || body.accountPhone || body.from || body.senderPhone);\nconst eventAt = clean(values.timestamp || body.deliveredAt || body.timestamp || body.updatedAt || body.date || new Date().toISOString());\nconst carrier = clean(values.carrier || body.carrier);\nconst errorCode = clean(values.errorCode || body.errorCode || body.code || body.error_code);\nconst errorMessage = clean(values.errorMessage || body.errorMessage || body.error || body.reason);\nconst contactId = clean(values.contactId || body.contactId || body.ghlContactId || body.externalContactId);\nconst conversationKey = clean(body.conversationId || body.threadId || body.externalId || providerMessageId);\nconst campaignKey = clean(values.campaignKey || body.campaignKey || cfg.campaignKey || 'simpletexting_campaign_v1');\nconst category = clean(values.category || body.category);\nconst referenceType = clean(values.referenceType || body.referenceType);\n\nif (!providerMessageId && !to) {\n  return [{ json: { ok: false, error: 'missing_identifiers', message: 'Provide values.messageId or values.contactPhone' } }];\n}\n\nconst resolvedContact = await resolveGhlContact.call(this, to, contactId);\nconst noteBody = [\n  'SMS delivery event received via SimpleTexting',\n  `Status: ${normalizedStatus}`,\n  `Reported At: ${eventAt}`,\n  providerMessageId ? `Provider Message ID: ${providerMessageId}` : '',\n  to ? `To: ${formatPhone(to) || to}` : '',\n  from ? `From: ${formatPhone(from) || from}` : '',\n  carrier ? `Carrier: ${carrier}` : '',\n  errorCode ? `Error Code: ${errorCode}` : '',\n  errorMessage ? `Error Message: ${errorMessage}` : '',\n  category ? `Category: ${category}` : '',\n  referenceType ? `Reference Type: ${referenceType}` : '',\n  conversationKey ? `Conversation Key: ${conversationKey}` : '',\n].filter(Boolean).join('\\n');\n\nif (dryRun) {\n  return [{ json: {\n    ok: true,\n    dryRun,\n    provider: cfg.provider,\n    eventType: cfg.eventType,\n    reportType,\n    normalizedStatus,\n    providerMessageId,\n    to,\n    from,\n    eventAt,\n    carrier,\n    errorCode,\n    errorMessage,\n    contactId,\n    conversationKey,\n    category,\n    referenceType,\n    ghlNotePreview: noteBody,\n    ghlContactResolution: resolvedContact,\n    rawBody: body,\n    rawValues: values,\n    nextStep: 'draft_only_no_side_effects'\n  } }];\n}\n\nlet noteSync = { attempted: false, contactId: resolvedContact.contactId || '', resolvedVia: resolvedContact.resolvedVia || '', ok: false };\nif (cfg.ghlApiKey && cfg.ghlLocationId && resolvedContact.contactId) {\n  const noteRes = await createGhlNote.call(this, resolvedContact.contactId, noteBody);\n  noteSync.attempted = true;\n  noteSync.ok = noteRes.ok;\n  noteSync.details = noteRes.ok ? (noteRes.data?.note || noteRes.data || {}) : noteRes.data;\n}\n\nreturn [{ json: {\n  ok: true,\n  dryRun,\n  provider: cfg.provider,\n  eventType: cfg.eventType,\n  reportType,\n  normalizedStatus,\n  providerMessageId,\n  to,\n  from,\n  eventAt,\n  carrier,\n  errorCode,\n  errorMessage,\n  contactId,\n  conversationKey,\n  category,\n  referenceType,\n  ghlNoteSync: noteSync,\n  rawBody: body,\n  rawValues: values,\n  nextStep: noteSync.ok ? 'delivery_event_logged_to_ghl' : 'delivery_event_pending_manual_review'\n} }];"
+        }
+      },
+      {
+        "id": "delivery_state_upsert",
+        "name": "Upsert Delivery State",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1040,
+          300
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT ''enrolled'',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;\nWITH upsert_state AS (\n  INSERT INTO \"SimpleTexting_Campaign_State\" (\n    ghl_contact_id, campaign_key, status, current_step, last_template_key, last_sent_at,\n    provider_message_id, phone_at_send, stop_reason, reply_status,\n    last_inbound_message_at, last_delivery_at, delivery_status, opt_out_status, slack_notified_at,\n    run_id, updated_at\n  ) VALUES (\n    $1, $2, $3, 0, NULL, NULL, $4, $5, $6, NULL,\n    NULL, NOW(), $7, NULL, NULL, $8, NOW()\n  )\n  ON CONFLICT (ghl_contact_id, campaign_key)\n  DO UPDATE SET\n    status = EXCLUDED.status,\n    provider_message_id = COALESCE(EXCLUDED.provider_message_id, \"SimpleTexting_Campaign_State\".provider_message_id),\n    phone_at_send = COALESCE(EXCLUDED.phone_at_send, \"SimpleTexting_Campaign_State\".phone_at_send),\n    stop_reason = COALESCE(EXCLUDED.stop_reason, \"SimpleTexting_Campaign_State\".stop_reason),\n    last_delivery_at = EXCLUDED.last_delivery_at,\n    delivery_status = EXCLUDED.delivery_status,\n    run_id = COALESCE(EXCLUDED.run_id, \"SimpleTexting_Campaign_State\".run_id),\n    updated_at = NOW()\n  RETURNING ghl_contact_id\n),\ninsert_event AS (\n  INSERT INTO \"SimpleTexting_Campaign_Event_Log\" (ghl_contact_id, campaign_key, event_type, step_number, template_key, provider_message_id, details)\n  VALUES ($1, $2, $9, NULL, NULL, $4, $10::jsonb)\n)\nSELECT\n  TRUE AS ok,\n  $10::jsonb->>'normalizedStatus' AS normalizedStatus,\n  $10::jsonb->>'nextStep' AS nextStep,\n  $10::jsonb->>'providerMessageId' AS providerMessageId,\n  $10::jsonb->>'to' AS to,\n  $10::jsonb->>'eventAt' AS eventAt,\n  $10::jsonb->>'errorMessage' AS errorMessage;",
+          "options": {
+            "queryBatching": "independently",
+            "queryReplacement": "={{ [ $json.contactId || null, $json.campaignKey || 'simpletexting_campaign_v1', $json.normalizedStatus || 'delivered', $json.providerMessageId || null, $json.to || null, $json.errorCode || $json.errorMessage || null, $json.normalizedStatus || 'delivered', $json.conversationKey || $json.eventAt || new Date().toISOString(), 'delivery_event', JSON.stringify($json) ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook Intake": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Validate + Normalize Delivery",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate + Normalize Delivery": {
+        "main": [
+          {
+            "node": "Upsert Delivery State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-05T10:39:14.215Z",
+        "id": 595,
+        "workflowId": "AEi1VCzkLvaYFr4U",
+        "versionId": "59e1c0b9-282b-483c-90b9-efa57c315836",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-05T10:39:14.251Z",
+        "id": 596,
+        "workflowId": "AEi1VCzkLvaYFr4U",
+        "versionId": "59e1c0b9-282b-483c-90b9-efa57c315836",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-05T10:39:14.579Z",
+        "id": 597,
+        "workflowId": "AEi1VCzkLvaYFr4U",
+        "versionId": "59e1c0b9-282b-483c-90b9-efa57c315836",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-04-05T10:39:14.613Z",
+        "id": 598,
+        "workflowId": "AEi1VCzkLvaYFr4U",
+        "versionId": "59e1c0b9-282b-483c-90b9-efa57c315836",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
+}
