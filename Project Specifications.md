@@ -1,4 +1,4 @@
-# Project Specifications: Outbound Voice Agent
+# Project Specifications: Outbound Voice Agent and Social Outreach
 
 ## Purpose
 
@@ -21,6 +21,46 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 |----------|----|------|
 | LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Queue poller, timezone guard, call dispatch |
 | LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | End-of-call webhook plus 4 tool endpoints |
+
+## Social Outreach Scope
+
+### Current Live LinkedIn State
+
+- `LT - GHL LinkedIn Connect Dispatcher (Unipile)` is active and uses the invite copy from `outreach_messages.v2.docx`.
+- `LT - LinkedIn DM Sequence (Unipile)` is active and uses the LinkedIn DM copy from `outreach_messages.v2.docx`.
+- `LT - LinkedIn Unipile New Messages` is active and marks active conversations when inbound replies arrive.
+- LinkedIn DM sends are blocked when `payload_json.dm_conversation_status = 'active'`.
+
+### LinkedIn Timing
+
+- The current LinkedIn DM cadence is `0, 3, 4, 3, 4` days between sends.
+- The first message starts the clock by setting `dm_sequence_started_at`.
+- Sequence state is stored in `linkedin_connection_state`.
+
+### LinkedIn State Requirements
+
+- Use one canonical state row per contact.
+- Persist `sequence_step`, `dm_sequence_started_at`, and `payload_json`.
+- Preserve reply state when a contact enters active conversation.
+- Never send duplicate LinkedIn DMs once a reply is detected.
+
+### SMS Campaign Scope
+
+- `outreach_messages.docx` is the source of truth for SMS copy.
+- SMS will be sent as a SimpleTexting campaign, not as one-off ad hoc messages.
+- The SMS workflow needs per-contact send tracking so each message can be marked as sent once and never repeated.
+- The SMS workflow also needs response ingestion so replies update the same canonical state used by the send workflow.
+- The SMS workflow should preserve unsubscribe handling and should not send to opted-out contacts.
+- The preferred model is a shared Postgres state table or a tightly controlled send-state plus response-state pair, but the same contact record must be authoritative for both send and reply logic.
+
+### SMS Missing Steps
+
+1. Normalize SMS copy from `outreach_messages.docx` into a template registry.
+2. Define the SMS state schema and idempotency keys.
+3. Build the SimpleTexting send workflow with batching controls.
+4. Wire inbound reply and delivery webhooks into the same state model.
+5. Confirm opt-out / unsubscribe propagation.
+6. Run a low-volume smoke test before batch sends.
 
 ## Queue Contract
 
@@ -50,6 +90,8 @@ Normalized callback output:
 - Fall back to GHL contact timezone when queue timezone is missing; use CT 12-2pm safe window if neither is available.
 - Keep secrets in env/credentials; do not hardcode them in workflow JSON.
 - Preserve n8n graph integrity when editing workflows.
+- For social outreach, never send duplicate messages. Every send workflow must check and update shared state before and after send.
+- For social outreach, reply-handling workflows must mark the contact as in conversation so follow-up sequences stop.
 
 ## Callback Tools
 
@@ -82,3 +124,12 @@ Normalized callback output:
 5. Confirm Postgres insert plus GHL note creation.
 6. Replay the callback and confirm no duplicate record.
 
+## Social Outreach Smoke Test
+
+1. Verify LinkedIn invite and DM copy are still sourced from `outreach_messages.v2.docx`.
+2. Send one LinkedIn test DM and confirm `linkedin_connection_state` advances exactly one step.
+3. Simulate an inbound LinkedIn reply and confirm `dm_conversation_status` becomes `active`.
+4. Confirm the active conversation is excluded from both LinkedIn DM send paths.
+5. Prepare a single SMS test contact and confirm one SMS send is tagged in state.
+6. Simulate an inbound SMS reply and confirm the response workflow updates the same canonical state.
+7. Confirm unsubscribe handling blocks any future SMS sends for opted-out contacts.

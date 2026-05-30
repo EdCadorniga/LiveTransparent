@@ -97,8 +97,22 @@
 ## Other Live Systems
 
 - SimpleTexting: Send, delivery, inbound reply, and unsubscribe webhooks are active.
-- Unipile/LinkedIn: `LT - GHL LinkedIn Connect Dispatcher` is active.
+- Unipile/LinkedIn: `LT - GHL LinkedIn Connect Dispatcher (Unipile)` is active, `LT - LinkedIn DM Sequence (Unipile)` is active, and `LT - LinkedIn Unipile New Messages` is active to stop sequences when people reply.
 - GHL warm intake/routing, Apollo enrichment, and Emerald/Cold outreach are active.
+
+## Outreach Notes
+
+- LinkedIn invite copy is sourced from `outreach_messages.v2.docx`.
+- LinkedIn DM copy is sourced from `outreach_messages.v2.docx`.
+- LinkedIn DM timing is currently 0, 3, 4, 3, 4 days between sends after the first message clock starts.
+- Active LinkedIn conversations are marked in `linkedin_connection_state` via `payload_json.dm_conversation_status = 'active'`.
+- Future SMS campaign work should use `outreach_messages.docx` as the SMS source of truth, with shared Postgres state so send history and reply state are not duplicated across workflows.
+- SMS campaign requirements:
+  - tag each SMS send in Postgres so the same person is not messaged twice
+  - separate send state from response state, but keep both in the same canonical table or a tightly controlled pair of tables
+  - confirm inbound reply handling is active before sending volume
+  - confirm opt-out handling and unsubscribe tagging are preserved
+  - keep campaign batches controlled until the response workflow is verified
 
 ## Key Files
 
@@ -108,8 +122,9 @@
 - `postgres/reporting-bootstrap.sql`
 - `n8n/docker-compose.yml`
 - `n8n/voice-agent/`
+- `n8n/workflows/lt-linkedin-dm-sequence.ts`
+- `n8n/workflows/lt-linkedin-unipile-new-messages.ts`
 - `reports/embed/executive/index.html`
 - `reports/nginx.conf`
 - `Backup of all n8n workflows/`
 - `Project Specifications.md`
-

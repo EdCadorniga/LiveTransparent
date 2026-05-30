@@ -165,8 +165,8 @@ ON CONFLICT (ghl_contact_id) DO UPDATE SET
   request_message = COALESCE(NULLIF(linkedin_connection_state.request_message, ''), NULLIF(EXCLUDED.request_message, '')),
   request_message_hash = COALESCE(NULLIF(linkedin_connection_state.request_message_hash, ''), NULLIF(EXCLUDED.request_message_hash, '')),
   sequence_step = GREATEST(linkedin_connection_state.sequence_step, EXCLUDED.sequence_step),
-  payload_json = EXCLUDED.payload_json,
-  metadata_json = EXCLUDED.metadata_json,
+  payload_json = COALESCE(linkedin_connection_state.payload_json, '{}'::jsonb) || COALESCE(EXCLUDED.payload_json, '{}'::jsonb),
+  metadata_json = COALESCE(linkedin_connection_state.metadata_json, '{}'::jsonb) || COALESCE(EXCLUDED.metadata_json, '{}'::jsonb),
   updated_at = NOW()
 RETURNING ghl_contact_id, connection_status, linkedin_provider_id, linkedin_public_identifier, request_sent_at, connected_at, sequence_step;`,
       options: {

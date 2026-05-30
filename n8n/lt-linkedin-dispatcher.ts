@@ -1,4 +1,5 @@
 import { workflow, node, trigger } from '@n8n/workflow-sdk';
+import { SOCIAL_OUTREACH_TEMPLATES } from './workflows/social_outreach_templates';
 
 const schedule = trigger({
   type: 'n8n-nodes-base.scheduleTrigger',
@@ -43,7 +44,7 @@ const config = node({
       mode: 'manual',
       assignments: {
         assignments: [
-          { id: 'wfn', name: 'workflowName', type: 'string', value: 'LT - GHL LinkedIn Connect Dispatcher' },
+          { id: 'wfn', name: 'workflowName', type: 'string', value: 'LT - GHL LinkedIn Connect Dispatcher (Unipile)' },
           { id: 'loc', name: 'locationId', type: 'string', value: 'Zwz4relUXVPxx8uohnjV' },
           { id: 'gBase', name: 'ghlApiBaseUrl', type: 'string', value: 'https://services.leadconnectorhq.com' },
           { id: 'gKey', name: 'ghlApiKey', type: 'string', value: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86' },
@@ -56,7 +57,7 @@ const config = node({
           { id: 'maxB', name: 'batchSize', type: 'number', value: 10 },
           { id: 'stateUrl', name: 'connectionStateUpsertUrl', type: 'string', value: 'https://automations.livetransparent.com/webhook/lt-linkedin-connection-state-upsert' },
           { id: 'dRun', name: 'defaultDryRun', type: 'boolean', value: false },
-          { id: 'msg', name: 'defaultMessage', type: 'string', value: 'Hi {first_name},\nMost cannabis brands still can\'t run Meta the way mainstream brands can. We help operators get compliant Meta access that\'s built to stay live and scale.\nThought it made sense to connect given your role in the industry.\n— Cameron' },
+          { id: 'msg', name: 'defaultMessage', type: 'string', value: SOCIAL_OUTREACH_TEMPLATES.linkedin.invite },
         ],
       },
     },
@@ -66,7 +67,7 @@ const config = node({
 });
 
 const jsCode = `const CFG = {
-  workflowName: String(\$json.workflowName || "LT - GHL LinkedIn Connect Dispatcher").trim(),
+  workflowName: String(\$json.workflowName || "LT - GHL LinkedIn Connect Dispatcher (Unipile)").trim(),
   ghlApiBaseUrl: String(\$json.ghlApiBaseUrl || "https://services.leadconnectorhq.com").replace(/[/]+\$/, ""),
   ghlApiKey: String(\$json.ghlApiKey || "").trim(),
   locationId: String(\$json.locationId || "").trim(),
@@ -414,7 +415,7 @@ const result = node({
   output: [{ json: { queue_found: 50, batch_size: 10, sent: 0, dry_runs: 10, failed: 0, sent_today: 0, note: 'LIVE MODE - ready to send' } }],
 });
 
-export default workflow('lt-ghl-linkedin-dispatcher', 'LT - GHL LinkedIn Connect Dispatcher')
+export default workflow('lt-ghl-linkedin-dispatcher', 'LT - GHL LinkedIn Connect Dispatcher (Unipile)')
   .add(schedule)
   .to(config)
   .to(dispatch)

@@ -1,0 +1,257 @@
+{
+  "id": "lt-linkedin-dm-sequence",
+  "name": "LT - LinkedIn DM Sequence (Unipile)",
+  "nodes": [
+    {
+      "id": "a8d6d521-8486-44d5-a89f-01605638a562",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 12-22 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c3ca7bad-6962-4086-97b8-ca2286fd456c",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        380
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "unipileApiBaseUrl",
+              "type": "string",
+              "value": "https://api42.unipile.com:17256/api/v1"
+            },
+            {
+              "id": "2",
+              "name": "unipileApiKey",
+              "type": "string",
+              "value": "Mb1oWs6Z.YZWq+uQp/V4DPMLf2UN6i9bbS2IqGX/MDJ4y3DExshc="
+            },
+            {
+              "id": "3",
+              "name": "unipileAccountId",
+              "type": "string",
+              "value": "V9eiHiDpRmCtan0YNdzsQw"
+            },
+            {
+              "id": "4",
+              "name": "ghlApiKey",
+              "type": "string",
+              "value": "pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86"
+            },
+            {
+              "id": "5",
+              "name": "ghlApiBaseUrl",
+              "type": "string",
+              "value": "https://services.leadconnectorhq.com"
+            },
+            {
+              "id": "6",
+              "name": "locationId",
+              "type": "string",
+              "value": "Zwz4relUXVPxx8uohnjV"
+            },
+            {
+              "id": "7",
+              "name": "stateUpsertUrl",
+              "type": "string",
+              "value": "https://automations.livetransparent.com/webhook/lt-linkedin-connection-state-upsert"
+            },
+            {
+              "id": "8",
+              "name": "templateVariant",
+              "type": "string",
+              "value": "v2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "1d81165f-219a-41f8-ad42-11e9b9375610",
+      "name": "Ensure Table Exists",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        740,
+        380
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS linkedin_connection_state (\n  ghl_contact_id            TEXT PRIMARY KEY,\n  location_id               TEXT NOT NULL,\n  unipile_account_id        TEXT NOT NULL DEFAULT '',\n  linkedin_profile_url      TEXT NOT NULL DEFAULT '',\n  linkedin_public_identifier TEXT NOT NULL DEFAULT '',\n  linkedin_provider_id      TEXT NOT NULL DEFAULT '',\n  connection_request_tag    TEXT NOT NULL DEFAULT 'linkedin_connection_requested',\n  connection_status         TEXT NOT NULL DEFAULT 'requested',\n  request_sent_at           TIMESTAMPTZ,\n  connected_at              TIMESTAMPTZ,\n  dm_sequence_started_at    TIMESTAMPTZ,\n  last_checked_at           TIMESTAMPTZ,\n  request_message           TEXT,\n  request_message_hash      TEXT,\n  sequence_step             INTEGER NOT NULL DEFAULT 0,\n  payload_json              JSONB NOT NULL DEFAULT '{}'::jsonb,\n  metadata_json             JSONB NOT NULL DEFAULT '{}'::jsonb,\n  created_at                TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at                TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);"
+      },
+      "credentials": {}
+    },
+    {
+      "id": "16aede83-4da2-4d91-8677-6b5abc226fdb",
+      "name": "Find Contacts Ready for DM",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        980,
+        380
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  ghl_contact_id,\n  linkedin_provider_id,\n  linkedin_public_identifier,\n  connection_status,\n  connected_at,\n  dm_sequence_started_at,\n  sequence_step,\n  payload_json\nFROM linkedin_connection_state\nWHERE connection_status = 'connected'\n  AND (\n    (sequence_step = 0 AND dm_sequence_started_at IS NULL)\n    OR (sequence_step = 1 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '3 days')\n    OR (sequence_step = 2 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '6 days')\n    OR (sequence_step = 3 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '11 days')\n  )\nORDER BY sequence_step ASC, dm_sequence_started_at ASC NULLS FIRST\nLIMIT 20;"
+      },
+      "credentials": {},
+      "alwaysOutputData": true
+    },
+    {
+      "id": "15ee01a1-2475-4ffb-bbd8-b47a479756f2",
+      "name": "Send DM Sequence Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        380
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const TEMPLATE_REGISTRY = {\"linkedin\":{\"invite\":\"Hi {first_name},\\n\\nMost cannabis brands still can’t run Meta/Google ads the way mainstream brands can.\\n\\nFor a lot of teams, the issue isn’t performance — it’s access. Accounts getting restricted or shut down before anything can scale.\\n\\nWe help operators get live on Meta through compliant ad accounts, then build a setup designed to stay live and grow more reliably across brands.\\n\\nIf Meta or Google is a channel you’re looking to open up, I’d love to connect — happy to share how other operators are making it work. 👇\\n\\nWorth a quick chat?\",\"v1\":[null,\"Most cannabis brands still can't run Meta/Google ads the way mainstream brands can.\\n\\nFor a lot of teams, the issue isn't performance — it's access. Accounts getting restricted or shut down before anything can scale.\\n\\nWe help operators get live on Meta through compliant ad accounts, then build a setup designed to stay live and grow more reliably across brands.\\n\\nIf Meta or Google is a channel you're looking to open up, I'd love to connect — happy to share how other operators are making it work. 👇\\n\\nWorth a quick chat?\",\"One of the most common constraints we see with cannabis teams is not being able to fully activate paid social and search.\\n\\nIt's rarely a strategy problem. It's infrastructure — not having a setup that lets you launch and keep things running without constant interruptions.\\n\\nWe work with teams to open up these channels properly, then build a structure that supports ongoing execution without the resets.\\n\\nIf this sounds familiar, I'd love to show you how other operators are handling it. 👇\\n\\nWorth a 15-minute call?\",\"Most cannabis operators still can't use paid social and search the way mainstream brands can.\\n\\nThat usually means there's a revenue channel sitting unused — not because demand isn't there, but because teams can't get it live or keep it running.\\n\\nWe help operators unlock these channels through compliant infrastructure, then keep them running so revenue stays more consistent over time.\\n\\nIf this is something you're looking into, I'd love to share how other operators are doing it. 👇\\n\\nWorth a 15-minute call?\",\"Most cannabis brands still can't run Meta ads in a way they can rely on.\\n\\nWhen ads get restricted or taken down, traffic slows and sales follow — which makes it hard to keep things consistent across locations.\\n\\nWe help operators get live on Meta through compliant ad accounts, then keep things running so traffic and sales stop getting disrupted.\\n\\nIf you want Meta working consistently, I'd love to show you how other multi-location brands are doing it. 👇\\n\\nWorth a 15-minute call?\"],\"v2\":[null,\"Most cannabis brands still can't run Meta/Google ads the way mainstream brands can.\\n\\nFor a lot of teams, the issue isn't performance — it's access. Accounts getting restricted or shut down before anything can scale.\\n\\nWe help operators get live on Meta through compliant ad accounts, then build a setup designed to stay live and grow more reliably across brands.\\n\\nIf Meta or Google is a channel you're looking to open up, I'd love to connect — happy to share how other operators are making it work. 👇\\n\\nWorth a quick chat?\",\"One of the most common constraints we see with cannabis teams is not being able to fully activate paid social and search.\\n\\nIt's rarely a strategy problem. It's infrastructure — not having a setup that lets you launch and keep things running without constant interruptions.\\n\\nWe work with teams to open up these channels properly, then build a structure that supports ongoing execution without the resets.\\n\\nIf this sounds familiar, I'd love to show you how other operators are handling it. 👇\\n\\nWorth a 15-minute call?\",\"Most cannabis operators still can't use paid social and search the way mainstream brands can.\\n\\nThat usually means there's a revenue channel sitting unused — not because demand isn't there, but because teams can't get it live or keep it running.\\n\\nWe help operators unlock these channels through compliant infrastructure, then keep them running so revenue stays more consistent over time.\\n\\nIf this is something you're looking into, I'd love to share how other operators are doing it. 👇\\n\\nWorth a 15-minute call?\",\"Most cannabis brands still can't run Meta ads in a way they can rely on.\\n\\nWhen ads get restricted or taken down, traffic slows and sales follow — which makes it hard to keep things consistent across locations.\\n\\nWe help operators get live on Meta through compliant ad accounts, then keep things running so traffic and sales stop getting disrupted.\\n\\nIf you want Meta working consistently, I'd love to show you how other multi-location brands are doing it. 👇\\n\\nWorth a 15-minute call?\"]},\"instagram\":{\"v1\":[null,\"Hey {first_name} - most cannabis brands can’t run Meta ads reliably. Usually it’s a setup and platform access issue. We help operators get live through compliant accounts + keep them running. Worth a quick chat?\",\"Hey {first_name} - a lot of cannabis teams can’t fully activate paid social and search. Usually it’s a setup issue, not strategy. We open up these channels and keep them running. Curious if this is relevant?\",\"Hey {first_name} - most cannabis operators have a revenue channel sitting unused in paid social and search. Not a demand problem - a setup one. Happy to share how others are opening it up. Would this be useful to explore?\",\"Hey {first_name} - when Meta ads get restricted, traffic and sales drop. Hard to stay consistent across locations that way. We help cannabis brands stay live on Meta through compliant accounts. Open to a quick conversation?\"]},\"sms\":{\"v1\":[null,\"Hey {first_name} - most cannabis brands can’t run Meta ads reliably. Usually it’s a setup and platform access issue. We help operators get live through compliant accounts + keep them running. Worth a quick chat?\",\"Hey {first_name} - a lot of cannabis teams can’t fully activate paid social and search. Usually it’s a setup issue, not strategy. We open up these channels and keep them running. Curious if this is relevant?\",\"Hey {first_name} - most cannabis operators have a revenue channel sitting unused in paid social and search. Not a demand problem - a setup one. Happy to share how others are opening it up. Would this be useful to explore?\",\"Hey {first_name} - when Meta ads get restricted, traffic and sales drop. Hard to stay consistent across locations that way. We help cannabis brands stay live on Meta through compliant accounts. Open to a quick conversation?\"]}};\n        var CFG = (function() {\n          var c = $node['Config'].json || {};\n          return {\n            unipileApiBaseUrl: String(c.unipileApiBaseUrl || 'https://api42.unipile.com:17256/api/v1').replace(/\\/+$/, ''),\n            unipileApiKey: String(c.unipileApiKey || '').trim(),\n            unipileAccountId: String(c.unipileAccountId || '').trim(),\n            ghlApiBaseUrl: String(c.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/+$/, ''),\n            ghlApiKey: String(c.ghlApiKey || '').trim(),\n            locationId: String(c.locationId || '').trim(),\n            stateUpsertUrl: String(c.stateUpsertUrl || '').trim(),\n            templateVariant: String(c.templateVariant || 'v1').trim().toLowerCase(),\n          };\n        })();\n\n        var MESSAGES = (TEMPLATE_REGISTRY.linkedin[CFG.templateVariant] || TEMPLATE_REGISTRY.linkedin.v1);\n\n        function clean(v) {\n          if (v == null) return '';\n          if (typeof v === 'string') return v.trim();\n          if (typeof v === 'number' || typeof v === 'boolean') return String(v);\n          return '';\n        }\n\n        function describeError(err) {\n          if (err instanceof Error) return err.stack || err.message || err.name || 'Unknown error';\n          if (typeof err === 'string') return err;\n          if (err && typeof err === 'object') {\n            var parts = [];\n            if ('message' in err && err.message) parts.push(String(err.message));\n            if ('statusCode' in err) parts.push('statusCode=' + String(err.statusCode));\n            var body = (err && err.response && err.response.body) || err.body || err.data;\n            if (body) {\n              if (typeof body === 'string') parts.push('body=' + body);\n              else { try { parts.push('body=' + JSON.stringify(body)); } catch(e) { parts.push('body=' + String(body)); } }\n            }\n            if (parts.length) return parts.join(' | ');\n            try { return JSON.stringify(err); } catch(e) { return String(err); }\n          }\n          return String(err);\n        }\n\n        function unipileReq(method, url, body, extraH) {\n          if (extraH === undefined) extraH = {};\n          var opts = { method: method, url: url, headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, json: true };\n          for (var k in extraH) {\n            if (extraH.hasOwnProperty(k)) opts.headers[k] = extraH[k];\n          }\n          if (body !== undefined) opts.body = body;\n          return this.helpers.httpRequest(opts).then(function(d) {\n            return { ok: true, data: d };\n          }).catch(function(err) {\n            var sc = (err && err.statusCode) || null;\n            var data = (err && err.response && err.response.body) || (err && err.message) || err;\n            return { ok: false, sc: sc, data: data };\n          });\n        }\n\n        function getGhlContact(contactId) {\n          if (!contactId) return Promise.resolve({ firstName: 'there' });\n          return this.helpers.httpRequest({\n            method: 'GET',\n            url: CFG.ghlApiBaseUrl + '/contacts/' + encodeURIComponent(contactId),\n            headers: { Authorization: 'Bearer ' + CFG.ghlApiKey, Version: '2021-07-28', Accept: 'application/json' },\n            json: true,\n          }).then(function(resp) {\n            var name = String((resp && resp.contact && resp.contact.firstName) || (resp && resp.firstName) || 'there').trim();\n            return { firstName: name || 'there' };\n          }).catch(function() {\n            return { firstName: 'there' };\n          });\n        }\n\n        var inputItems = [];\n        if (typeof $input === 'object' && $input !== null) {\n          if (typeof $input.all === 'function') {\n            inputItems = $input.all();\n          } else if ($json) {\n            inputItems = [{ json: $json }];\n          }\n        }\n\n        var results = [];\n\n        function processNext(index) {\n          if (index >= inputItems.length) {\n            var sent = results.filter(function(r) { return r.status === 'sent'; }).length;\n            var skipped = results.filter(function(r) { return r.status === 'skipped'; }).length;\n            var failed = results.filter(function(r) { return r.status === 'dm_failed' || r.status === 'state_upsert_failed'; }).length;\n            return [{ json: {\n              total: results.length,\n              sent: sent,\n              skipped: skipped,\n              failed: failed,\n              results: results,\n            } }];\n          }\n\n          var d = inputItems[index].json || {};\n          var contactId = clean(d.ghl_contact_id);\n          var providerId = clean(d.linkedin_provider_id);\n          var step = Number(d.sequence_step || 0);\n          var newStep = step + 1;\n          var self = this;\n\n          if (!contactId || !providerId) {\n            results.push({ contactId: contactId, providerId: providerId, step: step, status: 'skipped', reason: 'missing_contact_or_provider' });\n            return processNext.call(self, index + 1);\n          }\n\n          if (newStep < 1 || newStep >= MESSAGES.length || !MESSAGES[newStep]) {\n            results.push({ contactId: contactId, step: step, status: 'skipped', reason: 'no_message_for_step_' + step });\n            return processNext.call(self, index + 1);\n          }\n\n          var msgTemplate = MESSAGES[newStep];\n\n          return getGhlContact.call(self, contactId).then(function(contact) {\n            var firstName = clean(contact.firstName || 'there');\n            var message = msgTemplate.replace(/\\{first_name\\}/gi, firstName);\n\n            return unipileReq.call(self, 'POST', CFG.unipileApiBaseUrl + '/chats', {\n              account_id: CFG.unipileAccountId,\n              attendees_ids: [providerId],\n              text: message,\n            }, { 'X-API-KEY': CFG.unipileApiKey });\n          }).then(function(chatResp) {\n            if (!chatResp.ok) {\n              results.push({ contactId: contactId, step: step, newStep: newStep, status: 'dm_failed', error: describeError(chatResp.data) });\n              return processNext.call(self, index + 1);\n            }\n\n            var chatId = clean((chatResp.data && chatResp.data.chat_id) || (chatResp.data && chatResp.data.id) || '');\n\n            var upsertBody = {\n              ghl_contact_id: contactId,\n              location_id: CFG.locationId,\n              connection_status: 'connected',\n              sequence_step: newStep,\n              source_workflow_name: 'LT - LinkedIn DM Sequence (Unipile)',\n              source_key: 'contact:' + contactId + ':step_' + newStep,\n              payload_json: { last_chat_id: chatId, last_message_step: newStep, sent_at: new Date().toISOString() },\n              metadata_json: { source: 'dm_sequence', step: newStep },\n            };\n            if (step === 0) {\n              upsertBody.dm_sequence_started_at = new Date().toISOString();\n            }\n\n            return self.helpers.httpRequest({\n              method: 'POST',\n              url: CFG.stateUpsertUrl,\n              headers: { Accept: 'application/json', 'Content-Type': 'application/json' },\n              body: upsertBody,\n              json: true,\n            }).then(function() {\n              results.push({ contactId: contactId, step: step, newStep: newStep, status: 'sent', chatId: chatId });\n              return processNext.call(self, index + 1);\n            }).catch(function(stateErr) {\n              results.push({ contactId: contactId, step: step, newStep: newStep, status: 'state_upsert_failed', chatId: chatId, error: describeError(stateErr) });\n              return processNext.call(self, index + 1);\n            });\n          }).catch(function(err) {\n            results.push({ contactId: contactId, step: step, status: 'error', error: describeError(err) });\n            return processNext.call(self, index + 1);\n          });\n        }\n\n        return processNext.call(this, 0);"
+      }
+    },
+    {
+      "id": "da1d1caa-7b03-40fb-af68-ab938499d0fe",
+      "name": "Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1220,
+        380
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t",
+              "name": "total",
+              "type": "number",
+              "value": "={{ $json.total }}"
+            },
+            {
+              "id": "s",
+              "name": "sent",
+              "type": "number",
+              "value": "={{ $json.sent }}"
+            },
+            {
+              "id": "sk",
+              "name": "skipped",
+              "type": "number",
+              "value": "={{ $json.skipped }}"
+            },
+            {
+              "id": "f",
+              "name": "failed",
+              "type": "number",
+              "value": "={{ $json.failed }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "884af0ea-faff-4ddc-8a9d-97469e0ce3e2",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        480
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Ensure Table Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Table Exists": {
+      "main": [
+        [
+          {
+            "node": "Find Contacts Ready for DM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Contacts Ready for DM": {
+      "main": [
+        [
+          {
+            "node": "Send DM Sequence Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send DM Sequence Messages": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

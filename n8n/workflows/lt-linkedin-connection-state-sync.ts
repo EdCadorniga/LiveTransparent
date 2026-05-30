@@ -27,7 +27,7 @@ const config = node({
       mode: 'manual',
       assignments: {
         assignments: [
-          { id: 'workflowName', name: 'workflowName', type: 'string', value: 'LT - LinkedIn Connection State Sync' },
+          { id: 'workflowName', name: 'workflowName', type: 'string', value: 'LT - LinkedIn Connection State Sync (Unipile)' },
           { id: 'locationId', name: 'locationId', type: 'string', value: 'Zwz4relUXVPxx8uohnjV' },
           { id: 'ghlApiBaseUrl', name: 'ghlApiBaseUrl', type: 'string', value: 'https://services.leadconnectorhq.com' },
           { id: 'ghlApiKey', name: 'ghlApiKey', type: 'string', value: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86' },
@@ -58,7 +58,7 @@ const sync = node({
       mode: 'runOnceForAllItems',
       language: 'javaScript',
       jsCode: `const cfg = $node['Config'].json || {};
-const workflowName = String(cfg.workflowName || 'LT - LinkedIn Connection State Sync').trim();
+const workflowName = String(cfg.workflowName || 'LT - LinkedIn Connection State Sync (Unipile)').trim();
 const locationId = String(cfg.locationId || '').trim();
 const ghlApiBaseUrl = String(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');
 const ghlApiKey = String(cfg.ghlApiKey || '').trim();
@@ -269,7 +269,7 @@ const result = node({
   output: [{ json: { ok: true, scanned: 0, matched: 0, upserted: 0 } }],
 });
 
-export default workflow('lt-linkedin-connection-state-sync', 'LT - LinkedIn Connection State Sync')
+export default workflow('lt-linkedin-connection-state-sync', 'LT - LinkedIn Connection State Sync (Unipile)')
   .add(scheduleTrigger)
   .to(config)
   .to(sync)

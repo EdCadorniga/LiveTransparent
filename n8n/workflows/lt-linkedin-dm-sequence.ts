@@ -1,4 +1,5 @@
 import { workflow, node, trigger, newCredential } from '@n8n/workflow-sdk';
+import { SOCIAL_OUTREACH_TEMPLATES } from './social_outreach_templates';
 
 const schedule = trigger({
   type: 'n8n-nodes-base.scheduleTrigger',
@@ -34,6 +35,7 @@ const config = node({
           { id: '5', name: 'ghlApiBaseUrl', type: 'string', value: 'https://services.leadconnectorhq.com' },
           { id: '6', name: 'locationId', type: 'string', value: 'Zwz4relUXVPxx8uohnjV' },
           { id: '7', name: 'stateUpsertUrl', type: 'string', value: 'https://automations.livetransparent.com/webhook/lt-linkedin-connection-state-upsert' },
+          { id: '8', name: 'templateVariant', type: 'string', value: 'v2' },
         ],
       },
     },
@@ -95,12 +97,13 @@ const query = node({
   payload_json
 FROM linkedin_connection_state
 WHERE connection_status = 'connected'
+  AND COALESCE(payload_json->>'dm_conversation_status', 'idle') <> 'active'
   AND (
     (sequence_step = 0 AND dm_sequence_started_at IS NULL)
     OR (sequence_step = 1 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '3 days')
-    OR (sequence_step = 2 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '6 days')
-    OR (sequence_step = 3 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '11 days')
-    OR (sequence_step = 4 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '16 days')
+    OR (sequence_step = 2 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '7 days')
+    OR (sequence_step = 3 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '10 days')
+    OR (sequence_step = 4 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '14 days')
   )
 ORDER BY sequence_step ASC, dm_sequence_started_at ASC NULLS FIRST
 LIMIT 20;`,
@@ -120,7 +123,7 @@ const processNode = node({
     parameters: {
       mode: 'runOnceForAllItems',
       language: 'javaScript',
-      jsCode: `
+      jsCode: `const TEMPLATE_REGISTRY = ${JSON.stringify(SOCIAL_OUTREACH_TEMPLATES)};
         var CFG = (function() {
           var c = $node['Config'].json || {};
           return {
@@ -131,17 +134,11 @@ const processNode = node({
             ghlApiKey: String(c.ghlApiKey || '').trim(),
             locationId: String(c.locationId || '').trim(),
             stateUpsertUrl: String(c.stateUpsertUrl || '').trim(),
+            templateVariant: String(c.templateVariant || 'v1').trim().toLowerCase(),
           };
         })();
 
-        var MESSAGES = [
-          null,
-          'Hi {first_name},\\n\\nAppreciate the connection. A lot of brands we speak with are not struggling with performance as much as platform limitations/restrictions. That is where we come in.\\n\\nWe have supported brands like Cookies, Mood, G-Pen, and CBD Kratom with compliant Meta advertising infrastructure + paid social strategy.\\n\\nCurious - are you currently active on Meta at scale?\\n\\n- Cameron',
-          'Hi {first_name},\\n\\nOne thing we consistently see: cannabis brands forced into hemp-style marketing usually underperform compared to brands able to actually advertise with cannabis language/products.\\n\\nWe have seen meaningful lifts after switching brands from using their own ad account and structure; to using ours.\\n\\nHappy to share examples if helpful.\\n\\n- Cameron',
-          'Hi {first_name},\\n\\nSomething we are spending a lot of time on right now is helping dispensaries and brands connect Meta ads to actual in-store purchases.\\n\\nWe are also seeing strong results with compliant catalog ads pulling directly from menus/products - something many operators still do not realize is possible.\\n\\nFeels like the industry is finally starting to market more like mainstream retail.\\n\\n- Cameron',
-          'Hi {first_name},\\n\\nNot sure if this is relevant on your end, but if Meta access/stability has been a challenge internally, I would be happy to show you how we are structuring accounts/campaigns for other operators.\\n\\nEven if it is just useful for benchmarking.\\n\\n- Cameron',
-          'Hi {first_name},\\n\\nLast note from me - if paid social becomes a bigger focus this year, feel free to reach out.\\n\\nWe built Transparent specifically around helping regulated brands advertise more like normal eCommerce companies without constantly dealing with shutdowns/restrictions.\\n\\nEither way, wishing you guys a strong year.\\n\\n- Cameron',
-        ];
+        var MESSAGES = (TEMPLATE_REGISTRY.linkedin[CFG.templateVariant] || TEMPLATE_REGISTRY.linkedin.v1);
 
         function clean(v) {
           if (v == null) return '';
@@ -265,7 +262,7 @@ const processNode = node({
               location_id: CFG.locationId,
               connection_status: 'connected',
               sequence_step: newStep,
-              source_workflow_name: 'LT - LinkedIn DM Sequence',
+              source_workflow_name: 'LT - LinkedIn DM Sequence (Unipile)',
               source_key: 'contact:' + contactId + ':step_' + newStep,
               payload_json: { last_chat_id: chatId, last_message_step: newStep, sent_at: new Date().toISOString() },
               metadata_json: { source: 'dm_sequence', step: newStep },
@@ -322,7 +319,7 @@ const result = node({
   output: [{ json: { total: 0, sent: 0, skipped: 0, failed: 0 } }],
 });
 
-export default workflow('lt-linkedin-dm-sequence', 'LT - LinkedIn DM Sequence')
+export default workflow('lt-linkedin-dm-sequence', 'LT - LinkedIn DM Sequence (Unipile)')
   .add(schedule)
   .to(config)
   .to(ensureTable)

@@ -295,8 +295,8 @@ ON CONFLICT (ghl_contact_id) DO UPDATE SET
   request_message = COALESCE(EXCLUDED.request_message, linkedin_connection_state.request_message),
   request_message_hash = COALESCE(EXCLUDED.request_message_hash, linkedin_connection_state.request_message_hash),
   sequence_step = GREATEST(linkedin_connection_state.sequence_step, EXCLUDED.sequence_step),
-  payload_json = EXCLUDED.payload_json,
-  metadata_json = EXCLUDED.metadata_json,
+  payload_json = COALESCE(linkedin_connection_state.payload_json, '{}'::jsonb) || COALESCE(EXCLUDED.payload_json, '{}'::jsonb),
+  metadata_json = COALESCE(linkedin_connection_state.metadata_json, '{}'::jsonb) || COALESCE(EXCLUDED.metadata_json, '{}'::jsonb),
   updated_at = NOW()
 RETURNING ghl_contact_id, connection_status, connected_at, linkedin_provider_id, linkedin_public_identifier;`,
       options: {
@@ -351,7 +351,7 @@ const result = node({
   },
 });
 
-export default workflow('lt-linkedin-connection-acceptance-checker', 'LT - LinkedIn Connection Acceptance Checker')
+export default workflow('lt-linkedin-connection-acceptance-checker', 'LT - LinkedIn Connection Acceptance Checker (Unipile)')
   .add(webhook)
   .to(normalize)
   .to(queryMatch)

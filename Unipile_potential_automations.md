@@ -175,3 +175,9 @@ These are potential automations we want to do using Unipile for our regulated-in
 4. **Priority 4:** Create Analytics Dashboard for ROI tracking
 
 Each automation can be implemented incrementally, starting with the webhook infrastructure already in place.
+
+## Implementation Order
+
+1. Ship the Instagram DM workflow first so the team has a dedicated Unipile-backed sequence for mutual followers and follow-backs.
+2. Reuse the same message registry concept for LinkedIn, but keep LinkedIn as a separate variant layer so step timing and audience rules stay isolated by channel.
+3. After the Instagram flow is stable, extract the shared copy registry so LinkedIn and Instagram can read from the same template source without sharing state.
