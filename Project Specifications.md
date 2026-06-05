@@ -1,5 +1,7 @@
 # Project Specifications: Outbound Voice Agent and Social Outreach
 
+> **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This file defines boundaries, guardrails, and contracts; it does not repeat the architecture.
+
 ## Purpose
 
 Production outbound calling flow for Vapi + n8n + GHL. The agent introduces LiveTransparent, qualifies intent and fit, records call context, and routes outcomes through tool calls.

@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-05-30
+Updated: 2026-06-03
 
 ## Source Of Truth
 
@@ -17,7 +17,15 @@ It supersedes the duplicated planning notes in:
 - Report rollups, attribution bridge, QA/alerts, and the executive summary API are already running.
 - Emerald email-marketing ingest workflows are active again in n8n: CSV -> GHL Import, CSV -> Postgres Ingest, and Campaign Snapshot -> Postgres Ingest.
 - Emerald intro backfill is staged in live GHL: 500 additional eligible contacts have now been tagged `seq emerald - intro backfill pending`, the live pending queue increased to 3,566, and 1,719 enrolled contacts remain eligible for controlled staging.
-- LinkedIn outreach is split cleanly: `LT - GHL LinkedIn Connect Dispatcher (Unipile)` uses the invite copy from `outreach_messages.v2.docx`, `LT - LinkedIn DM Sequence (Unipile)` uses the LinkedIn `v2` follow-up variant after acceptance, and the Unipile inbound-message webhook now marks active conversations so DM sequences stop when someone replies.
+- LinkedIn outreach pipeline is fully operational and verified (2026-06-03):
+  - `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) seeds `linkedin_connection_state` from GHL contacts with LinkedIn URLs, resolved through Unipile profile lookups. Verified: `scanned: 101, matched: 100, upserted: 100`, schedule `15 */6 * * *`.
+  - `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`, replaces archived `S32vc8pjJIBZZHLK`) reads the Postgres queue, sends LinkedIn connection requests via Unipile `POST /users/invite`. Verified: `sent: 10`, schedule `0 15-21 * * 1-5`.
+  - `LT - LinkedIn DM Sequence (Unipile)` (`d0tEtijajisIsYcs`) polls connected contacts, includes automatic connection detection from Unipile chats, enforces a daily DM limit of 200 with carry-forward, and sends up to 40 DMs per progression step. Verified: `sent: 2`, schedule `0 12-22 * * 1-5`.
+  - `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) is the webhook receiver for state table upserts (ON CONFLICT with smart merging).
+  - `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) marks active conversations to stop DM sequences on reply.
+  - Working GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28`. The alternate `pit-2d2ed8c3-...` is broken (401).
+  - Code node regex safety: always use `[/]` character class instead of `\/` in regex literals to avoid SDK JSON serialization corruption.
+  - State table `linkedin_connection_state`: 171 contacts with `status='ready'`, 34 with `status='connected'`, 10 invites sent, 2 DMs delivered.
 - SimpleTexting SMS campaign workflow exports are now staged in repo from `outreach_messages.docx`: sender, pool dispatcher, sequencer, inbound reply, delivery events, and unsubscribe events are all represented as separate workflows.
 - The SMS stack still needs live deployment and a final GHL pool filter body for the dispatcher, but the message registry, batching shape, reply-stop handling, and Slack `#lead` notification path are now defined in the repo artifacts.
 - GSC still needs workflow verification / cleanup.
@@ -104,7 +112,8 @@ It supersedes the duplicated planning notes in:
 
 - Finish SimpleTexting secret hardening.
 - Deploy the staged SMS workflows and verify the live GHL pool query.
-- Build the GHL-to-LinkedIn automation.
+- Fix the GHL-to-LinkedIn supply path so `linkedin_connection_state` is seeded from a working GHL contacts list and the dispatcher can send invites from that queue. [DONE 2026-06-03]
+- Verify LinkedIn connection requests and DM sends from execution history. [DONE 2026-06-03]
 - Retry and enable the blocked GSC ingest workflow.
 - Confirm the SimpleTexting reply handler posts into `#lead` and suppresses future sends after a reply.
 
@@ -152,7 +161,7 @@ It supersedes the duplicated planning notes in:
 4. Finish SimpleTexting secret hardening.
 5. Deploy the staged SMS workflows and verify the live GHL pool query.
 6. Confirm the SimpleTexting reply handler posts into `#lead` and suppresses future sends after a reply.
-7. Build GHL-to-LinkedIn automation.
+7. Fix the GHL-to-LinkedIn supply path so queue rows are created from the working GHL contacts list, then verify connection requests and DM sends from execution history.
 8. Retry and enable the blocked GSC ingest workflow.
 
 ### Report Dependencies
@@ -168,6 +177,8 @@ It supersedes the duplicated planning notes in:
 - Preserve graph integrity when editing n8n workflows: keep existing node IDs and keep the connections map aligned.
 - For voice automations, prefer `Switch` over `IF`, and use raw JSON import for dialer patches.
 - Report end-to-end validation should still span leads ingest, attribution bridge, daily rollups, and executive summary output.
+- If LinkedIn troubleshooting is resumed in a fresh session, start by reading this file, `AGENTS.md`, `repomix-output.md`, and the latest executions for `LT - LinkedIn Connection State Sync (Unipile)`, `LT - GHL LinkedIn Connect Dispatcher (Unipile)`, and `LT - LinkedIn DM Sequence (Unipile)`.
+- Do not declare LinkedIn fixed until execution history shows nonzero `matched`, `upserted`, and `sent` values on the relevant workflows.
 
 ## Working Order
 

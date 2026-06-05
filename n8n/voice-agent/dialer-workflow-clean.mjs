@@ -146,7 +146,7 @@ const checkPhone = node({
     parameters: {
       mode: 'runOnceForAllItems',
       language: 'javaScript',
-      jsCode: `${timezoneHelpers}\nconst queueCtx = $('Postgres - Fetch Next Queue Item').item.json;\nconst body = $json;\nconst ghlContact = body.contact || body;\nconst ghlPhone = ghlContact.phone || '';\nconst fallbackPhone = queueCtx.phone_e164 || '';\nconst phone = ghlPhone || fallbackPhone;\nconst isValidE164 = /^\\+[1-9]\\d{6,14}$/.test(phone);\nconst validPhone = isValidE164 ? phone : '';\nconst ghlContactId = String(ghlContact.id || queueCtx.contact_id || '').trim();\nconst tz = queueCtx.lead_timezone || ghlContact.timezone || '';\nconst now = new Date();\nlet outside_hours = false;\nif (tz) {\n  try {\n    outside_hours = !isBusinessHoursInZone(tz, now, 9, 17);\n  } catch (e) {\n    outside_hours = !isBusinessHoursInZone('America/Chicago', now, 12, 14);\n  }\n} else {\n  outside_hours = !isBusinessHoursInZone('America/Chicago', now, 12, 14);\n}\nreturn [{ json: { ...queueCtx, ghl_contact_id: ghlContactId, phone_e164: validPhone, phone_source: ghlPhone ? 'ghl' : 'queue', outside_hours } }];`
+      jsCode: `${timezoneHelpers}\nconst queueCtx = $('Postgres - Fetch Next Queue Item').item.json;\nconst body = $json;\nconst ghlContact = body.contact || body;\nconst ghlPhone = ghlContact.phone || '';\nconst fallbackPhone = queueCtx.phone_e164 || '';\nconst phone = ghlPhone || fallbackPhone;\nconst isValidE164 = /^\\+[1-9]\\d{6,14}$/.test(phone);\nconst validPhone = isValidE164 ? phone : '';\nconst ghlContactId = String(ghlContact.id || queueCtx.contact_id || '').trim();\nconst tags = Array.isArray(ghlContact.tags) ? ghlContact.tags : [];\nconst hasQueueRemovalTag = tags.some(tag => {\n  if (typeof tag === 'string') return ['vapi_voicemail', 'vapi_qualified'].includes(tag.toLowerCase());\n  if (tag && typeof tag === 'object') {\n    const value = tag.name || tag.label || tag.tag || tag.id || '';\n    return ['vapi_voicemail', 'vapi_qualified'].includes(String(value).toLowerCase());\n  }\n  return false;\n});\nconst tz = queueCtx.lead_timezone || ghlContact.timezone || '';\nconst now = new Date();\nlet outside_hours = false;\nif (tz) {\n  try {\n    outside_hours = !isBusinessHoursInZone(tz, now, 9, 17);\n  } catch (e) {\n    outside_hours = !isBusinessHoursInZone('America/Chicago', now, 12, 14);\n  }\n} else {\n  outside_hours = !isBusinessHoursInZone('America/Chicago', now, 12, 14);\n}\nreturn [{ json: { ...queueCtx, ghl_contact_id: ghlContactId, phone_e164: hasQueueRemovalTag ? '' : validPhone, phone_source: ghlPhone ? 'ghl' : 'queue', outside_hours, skip_reason: hasQueueRemovalTag ? 'queue_removal_tag_present' : '' } }];`
     }
   },
   output: [{ phone_e164: '', phone_source: '', outside_hours: false }]
@@ -195,8 +195,8 @@ const releaseLock = node({
     position: [1680, 40],
     parameters: {
       operation: 'executeQuery',
-      query: "UPDATE voice_call_queue SET locked_at = NULL, lock_owner = NULL, attempt_count = GREATEST(attempt_count - 1, 0), updated_at = NOW() WHERE queue_id = $1;",
-      options: { queryReplacement: expr('{{ $json.queue_id }}') }
+      query: "UPDATE voice_call_queue SET locked_at = NULL, lock_owner = NULL, attempt_count = GREATEST(attempt_count - 1, 0), status = CASE WHEN COALESCE(NULLIF($2, ''), '') = 'queue_removal_tag_present' THEN 'completed' ELSE status END, updated_at = NOW() WHERE queue_id = $1;",
+      options: { queryReplacement: expr('{{ [$json.queue_id, $json.skip_reason || ""] }}') }
     },
     credentials: { postgres: newCredential('Postgres account') }
   },

@@ -1,5 +1,18 @@
 # LiveTransparent Agent Notes
 
+## IMPORTANT — Read This First
+
+Analyze the attached `repomix-output.md` file. It contains the core system architecture, code blueprints, and operational roadmaps for my LiveTransparent automation environment. Review my `AGENTS.md` and custom script setups (like `fix_intake_poller.js`) to understand how my infrastructure is organized. When I ask you to write code modifications, database queries, or new workflow nodes, ensure your suggestions strictly match this architecture and stay within my token budget.
+
+**LLM context-loading order:**
+1. `repomix-output.md` — start here for architecture, blueprints, and roadmaps
+2. `AGENTS.md` (this file) — short operating guide
+3. `Project Status and Next Steps.md` — current priorities and live-state
+4. `Project Specifications.md` — system boundaries, guardrails, contracts
+5. `plan.md` + sub-plans (`emerald-email-campaign/plan.md`, etc.) — active work plan
+6. Custom scripts (`fix_intake_poller.js`, etc.) — infrastructure specifics
+7. All other repo files — only when a task requires fine detail
+
 ## Canonical Status
 
 - Use [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md) for current priorities and live-state details.
@@ -97,7 +110,10 @@
 ## Other Live Systems
 
 - SimpleTexting: Send, delivery, inbound reply, and unsubscribe webhooks are active.
-- Unipile/LinkedIn: `LT - GHL LinkedIn Connect Dispatcher (Unipile)` is active, `LT - LinkedIn DM Sequence (Unipile)` is active, and `LT - LinkedIn Unipile New Messages` is active to stop sequences when people reply.
+- Unipile/LinkedIn: All pipeline workflows are active and verified live.
+- LinkedIn pipeline status (verified 2026-06-03): Sync seeds state table, Dispatcher sends connection requests, DM Sequence sends follow-ups with auto-connected-sync, daily limit enforcement, and reply detection.
+- LinkedIn GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (from root `.env`). The alternate token `pit-2d2ed8c3-...` is broken (401), do not use.
+- LinkedIn Code node regex pattern: always use `[/]` (character class) instead of `\/` in regex literals to avoid SDK JSON serialization corruption.
 - GHL warm intake/routing, Apollo enrichment, and Emerald/Cold outreach are active.
 
 ## Outreach Notes
@@ -106,6 +122,8 @@
 - LinkedIn DM copy is sourced from `outreach_messages.v2.docx`.
 - LinkedIn DM timing is currently 0, 3, 4, 3, 4 days between sends after the first message clock starts.
 - Active LinkedIn conversations are marked in `linkedin_connection_state` via `payload_json.dm_conversation_status = 'active'`.
+- For LinkedIn supply, prefer seeding `linkedin_connection_state` from the working GHL contacts list and keep `linkedin_connected` rows out of the queue entirely.
+- If you restart the session, re-check the live n8n executions for the sync, dispatcher, and DM workflows before saying the pipeline is healthy.
 - SimpleTexting SMS campaign work is now staged in repo workflow exports, using `outreach_messages.docx` as the SMS source of truth.
 - SMS campaign requirements:
   - tag each SMS send so the same person is not messaged twice
@@ -116,6 +134,7 @@
 
 ## Key Files
 
+- `repomix-output.md`
 - `.env`
 - `Project Status and Next Steps.md`
 - `GHL Live Transparent CRM/`
@@ -123,7 +142,10 @@
 - `n8n/docker-compose.yml`
 - `n8n/voice-agent/`
 - `n8n/workflows/lt-linkedin-dm-sequence.ts`
+- `n8n/workflows/lt-linkedin-connection-state-sync.ts`
+- `n8n/workflows/lt-linkedin-connection-state-upsert.ts`
 - `n8n/workflows/lt-linkedin-unipile-new-messages.ts`
+- `n8n/workflows/lt-linkedin-connection-acceptance-checker.ts`
 - `n8n/workflows/lt-simpletexting-send-sms.json`
 - `n8n/workflows/lt-simpletexting-pool-dispatcher.json`
 - `n8n/workflows/lt-simpletexting-campaign-sequencer.json`
@@ -134,3 +156,12 @@
 - `reports/nginx.conf`
 - `Backup of all n8n workflows/`
 - `Project Specifications.md`
+
+## repomix-output.md Refresh
+
+After any significant work session (workflow fixes, new automations, config changes), regenerate `repomix-output.md` so next-session context is up to date:
+
+1. `. $PROFILE`  
+2. `packlive`
+
+This stages key files into `C:\TempRepomixStaging`, runs `npx repomix --style markdown --compress --remove-comments --remove-empty-lines`, and copies the result back to the project root.

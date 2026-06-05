@@ -81,6 +81,24 @@ function normalizeText(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function getContactTags(contact) {
+  const rawTags = Array.isArray(contact.tags) ? contact.tags : [];
+  return rawTags
+    .map(tag => {
+      if (typeof tag === 'string') return tag;
+      if (tag && typeof tag === 'object') return tag.name || tag.label || tag.tag || tag.id || '';
+      return '';
+    })
+    .map(normalizeText)
+    .filter(Boolean);
+}
+
+function hasContactTag(contact, tagName) {
+  const target = normalizeText(tagName);
+  if (!target) return false;
+  return getContactTags(contact).includes(target);
+}
+
 function resolveTimezone(contact) {
   const explicit = String(contact.timezone || contact.timeZone || contact.time_zone || '').trim();
   if (explicit) return explicit;
@@ -249,6 +267,13 @@ for (const contact of contacts) {
   const phone = contact.phone || '';
   const firstName = contact.firstName || contact.name || '';
   const timezone = resolveTimezone(contact);
+  const removeFromQueue = hasContactTag(contact, 'vapi_voicemail') || hasContactTag(contact, 'vapi_qualified');
+
+  if (removeFromQueue) {
+    await removeTag(contactId);
+    results.push({ contactId, firstName, action: 'skipped', reason: 'queue_removal_tag_present' });
+    continue;
+  }
 
   const cfMap = {};
   if (contact.customFields) { for (const cf of contact.customFields) { cfMap[cf.id] = cf.value; } }

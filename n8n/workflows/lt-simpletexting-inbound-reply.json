@@ -44,7 +44,7 @@
               "id": "auth_header_value",
               "name": "authHeaderValue",
               "type": "string",
-              "value": "={{ $env.LT_SIMPLETEXTING_WEBHOOK_SECRET || \"\" }}"
+              "value": ""
             },
             {
               "id": "provider_name",
@@ -74,7 +74,7 @@
               "id": "ghl_api_key",
               "name": "ghlApiKey",
               "type": "string",
-              "value": "={{ $env.GHL_PIT || $env.GHL_API_KEY || \"\" }}"
+              "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
             },
             {
               "id": "simpletext_ongoing_tag",
@@ -138,7 +138,7 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT ''enrolled'',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nCREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_Event_Log\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  step_number INT,\n  template_key TEXT,\n  provider_message_id TEXT,\n  details JSONB,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;\nWITH upsert_state AS (\n  INSERT INTO \"SimpleTexting_Campaign_State\" (\n    ghl_contact_id, campaign_key, status, current_step, last_template_key, last_sent_at,\n    provider_message_id, phone_at_send, stop_reason, reply_status,\n    last_inbound_message_at, last_delivery_at, delivery_status, opt_out_status, slack_notified_at,\n    run_id, updated_at\n  ) VALUES (\n    $1, $2, $3, 0, NULL, NULL, NULL, NULL, $4, $5,\n    NOW(), NULL, NULL, $6, NOW(), $7, NOW()\n  )\n  ON CONFLICT (ghl_contact_id, campaign_key)\n  DO UPDATE SET\n    status = EXCLUDED.status,\n    reply_status = EXCLUDED.reply_status,\n    last_inbound_message_at = EXCLUDED.last_inbound_message_at,\n    opt_out_status = EXCLUDED.opt_out_status,\n    slack_notified_at = EXCLUDED.slack_notified_at,\n    stop_reason = COALESCE(EXCLUDED.stop_reason, \"SimpleTexting_Campaign_State\".stop_reason),\n    run_id = COALESCE(EXCLUDED.run_id, \"SimpleTexting_Campaign_State\".run_id),\n    updated_at = NOW()\n  RETURNING ghl_contact_id\n),\ninsert_event AS (\n  INSERT INTO \"SimpleTexting_Campaign_Event_Log\" (ghl_contact_id, campaign_key, event_type, step_number, template_key, provider_message_id, details)\n  VALUES ($1, $2, $8, NULL, NULL, NULL, $9::jsonb)\n)\nSELECT\n  TRUE AS ok,\n  $9::jsonb->>'slackMessage' AS slackMessage,\n  $9::jsonb->>'nextStep' AS nextStep,\n  $9::jsonb->>'contactName' AS contactName,\n  $9::jsonb->>'contactId' AS contactId,\n  $9::jsonb->>'fromPretty' AS fromPretty,\n  $9::jsonb->>'receivedAt' AS receivedAt,\n  $9::jsonb->>'message' AS message,\n  $9::jsonb->>'unsubscribeKeyword' AS unsubscribeKeyword;",
+        "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'enrolled',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nCREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_Event_Log\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  step_number INT,\n  template_key TEXT,\n  provider_message_id TEXT,\n  details JSONB,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;\nWITH upsert_state AS (\n  INSERT INTO \"SimpleTexting_Campaign_State\" (\n    ghl_contact_id, campaign_key, status, current_step, last_template_key, last_sent_at,\n    provider_message_id, phone_at_send, stop_reason, reply_status,\n    last_inbound_message_at, last_delivery_at, delivery_status, opt_out_status, slack_notified_at,\n    run_id, updated_at\n  ) VALUES (\n    $1, $2, $3, 0, NULL, NULL, NULL, NULL, $4, $5,\n    NOW(), NULL, NULL, $6, NOW(), $7, NOW()\n  )\n  ON CONFLICT (ghl_contact_id, campaign_key)\n  DO UPDATE SET\n    status = EXCLUDED.status,\n    reply_status = EXCLUDED.reply_status,\n    last_inbound_message_at = EXCLUDED.last_inbound_message_at,\n    opt_out_status = EXCLUDED.opt_out_status,\n    slack_notified_at = EXCLUDED.slack_notified_at,\n    stop_reason = COALESCE(EXCLUDED.stop_reason, \"SimpleTexting_Campaign_State\".stop_reason),\n    run_id = COALESCE(EXCLUDED.run_id, \"SimpleTexting_Campaign_State\".run_id),\n    updated_at = NOW()\n  RETURNING ghl_contact_id\n),\ninsert_event AS (\n  INSERT INTO \"SimpleTexting_Campaign_Event_Log\" (ghl_contact_id, campaign_key, event_type, step_number, template_key, provider_message_id, details)\n  VALUES ($1, $2, $8, NULL, NULL, NULL, $9::jsonb)\n)\nSELECT\n  TRUE AS ok,\n  $9::jsonb->>'slackMessage' AS slackMessage,\n  $9::jsonb->>'nextStep' AS nextStep,\n  $9::jsonb->>'contactName' AS contactName,\n  $9::jsonb->>'contactId' AS contactId,\n  $9::jsonb->>'fromPretty' AS fromPretty,\n  $9::jsonb->>'receivedAt' AS receivedAt,\n  $9::jsonb->>'message' AS message,\n  $9::jsonb->>'unsubscribeKeyword' AS unsubscribeKeyword;",
         "options": {
           "queryBatching": "independently",
           "queryReplacement": "={{ [ $json.contactId || null, $json.campaignKey || 'simpletexting_campaign_v1', $json.unsubscribeKeyword ? 'stopped' : 'replied', $json.unsubscribeKeyword ? 'simpletext_stop' : 'simpletext_replied', $json.unsubscribeKeyword ? 'stopped' : 'active', $json.unsubscribeKeyword ? 'unsubscribed' : null, $json.receivedAt || new Date().toISOString(), $json.unsubscribeKeyword ? 'inbound_stop' : 'inbound_reply', JSON.stringify($json) ] }}"
@@ -154,7 +154,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{$env.SLACK_LEAD_WEBHOOK_URL || $env.SLACK_WEBHOOK_URL}}",
+        "url": "={{ $env.SLACK_WEBHOOK_URL || \"\" }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -166,7 +166,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { \"text\": $json.slackMessage } }}",
+            "jsonBody": "={{ { \"text\": $json.slackmessage || $json.slackMessage } }}",
         "options": {}
       },
       "id": "108eb638-cec9-4460-967c-585c826f2fa3",
@@ -299,7 +299,7 @@
                 "id": "auth_header_value",
                 "name": "authHeaderValue",
                 "type": "string",
-                "value": "={{ $env.LT_SIMPLETEXTING_WEBHOOK_SECRET || \"\" }}"
+                "value": ""
               },
               {
                 "id": "provider_name",
@@ -329,7 +329,7 @@
                 "id": "ghl_api_key",
                 "name": "ghlApiKey",
                 "type": "string",
-                "value": "={{ $env.GHL_PIT || $env.GHL_API_KEY || \"\" }}"
+                "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
               },
               {
                 "id": "simpletext_ongoing_tag",
@@ -393,7 +393,7 @@
         ],
         "parameters": {
           "operation": "executeQuery",
-          "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT ''enrolled'',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nCREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_Event_Log\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  step_number INT,\n  template_key TEXT,\n  provider_message_id TEXT,\n  details JSONB,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;\nWITH upsert_state AS (\n  INSERT INTO \"SimpleTexting_Campaign_State\" (\n    ghl_contact_id, campaign_key, status, current_step, last_template_key, last_sent_at,\n    provider_message_id, phone_at_send, stop_reason, reply_status,\n    last_inbound_message_at, last_delivery_at, delivery_status, opt_out_status, slack_notified_at,\n    run_id, updated_at\n  ) VALUES (\n    $1, $2, $3, 0, NULL, NULL, NULL, NULL, $4, $5,\n    NOW(), NULL, NULL, $6, NOW(), $7, NOW()\n  )\n  ON CONFLICT (ghl_contact_id, campaign_key)\n  DO UPDATE SET\n    status = EXCLUDED.status,\n    reply_status = EXCLUDED.reply_status,\n    last_inbound_message_at = EXCLUDED.last_inbound_message_at,\n    opt_out_status = EXCLUDED.opt_out_status,\n    slack_notified_at = EXCLUDED.slack_notified_at,\n    stop_reason = COALESCE(EXCLUDED.stop_reason, \"SimpleTexting_Campaign_State\".stop_reason),\n    run_id = COALESCE(EXCLUDED.run_id, \"SimpleTexting_Campaign_State\".run_id),\n    updated_at = NOW()\n  RETURNING ghl_contact_id\n),\ninsert_event AS (\n  INSERT INTO \"SimpleTexting_Campaign_Event_Log\" (ghl_contact_id, campaign_key, event_type, step_number, template_key, provider_message_id, details)\n  VALUES ($1, $2, $8, NULL, NULL, NULL, $9::jsonb)\n)\nSELECT\n  TRUE AS ok,\n  $9::jsonb->>'slackMessage' AS slackMessage,\n  $9::jsonb->>'nextStep' AS nextStep,\n  $9::jsonb->>'contactName' AS contactName,\n  $9::jsonb->>'contactId' AS contactId,\n  $9::jsonb->>'fromPretty' AS fromPretty,\n  $9::jsonb->>'receivedAt' AS receivedAt,\n  $9::jsonb->>'message' AS message,\n  $9::jsonb->>'unsubscribeKeyword' AS unsubscribeKeyword;",
+          "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'enrolled',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nCREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_Event_Log\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  step_number INT,\n  template_key TEXT,\n  provider_message_id TEXT,\n  details JSONB,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;\nWITH upsert_state AS (\n  INSERT INTO \"SimpleTexting_Campaign_State\" (\n    ghl_contact_id, campaign_key, status, current_step, last_template_key, last_sent_at,\n    provider_message_id, phone_at_send, stop_reason, reply_status,\n    last_inbound_message_at, last_delivery_at, delivery_status, opt_out_status, slack_notified_at,\n    run_id, updated_at\n  ) VALUES (\n    $1, $2, $3, 0, NULL, NULL, NULL, NULL, $4, $5,\n    NOW(), NULL, NULL, $6, NOW(), $7, NOW()\n  )\n  ON CONFLICT (ghl_contact_id, campaign_key)\n  DO UPDATE SET\n    status = EXCLUDED.status,\n    reply_status = EXCLUDED.reply_status,\n    last_inbound_message_at = EXCLUDED.last_inbound_message_at,\n    opt_out_status = EXCLUDED.opt_out_status,\n    slack_notified_at = EXCLUDED.slack_notified_at,\n    stop_reason = COALESCE(EXCLUDED.stop_reason, \"SimpleTexting_Campaign_State\".stop_reason),\n    run_id = COALESCE(EXCLUDED.run_id, \"SimpleTexting_Campaign_State\".run_id),\n    updated_at = NOW()\n  RETURNING ghl_contact_id\n),\ninsert_event AS (\n  INSERT INTO \"SimpleTexting_Campaign_Event_Log\" (ghl_contact_id, campaign_key, event_type, step_number, template_key, provider_message_id, details)\n  VALUES ($1, $2, $8, NULL, NULL, NULL, $9::jsonb)\n)\nSELECT\n  TRUE AS ok,\n  $9::jsonb->>'slackMessage' AS slackMessage,\n  $9::jsonb->>'nextStep' AS nextStep,\n  $9::jsonb->>'contactName' AS contactName,\n  $9::jsonb->>'contactId' AS contactId,\n  $9::jsonb->>'fromPretty' AS fromPretty,\n  $9::jsonb->>'receivedAt' AS receivedAt,\n  $9::jsonb->>'message' AS message,\n  $9::jsonb->>'unsubscribeKeyword' AS unsubscribeKeyword;",
           "options": {
             "queryBatching": "independently",
             "queryReplacement": "={{ [ $json.contactId || null, $json.campaignKey || 'simpletexting_campaign_v1', $json.unsubscribeKeyword ? 'stopped' : 'replied', $json.unsubscribeKeyword ? 'simpletext_stop' : 'simpletext_replied', $json.unsubscribeKeyword ? 'stopped' : 'active', $json.unsubscribeKeyword ? 'unsubscribed' : null, $json.receivedAt || new Date().toISOString(), $json.unsubscribeKeyword ? 'inbound_stop' : 'inbound_reply', JSON.stringify($json) ] }}"
@@ -409,7 +409,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "={{$env.SLACK_LEAD_WEBHOOK_URL || $env.SLACK_WEBHOOK_URL}}",
+          "url": "={{ $env.SLACK_WEBHOOK_URL || \"\" }}",
           "sendHeaders": true,
           "headerParameters": {
             "parameters": [
@@ -496,3 +496,5 @@
     ]
   }
 }
+
+

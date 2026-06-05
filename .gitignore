@@ -39,4 +39,7 @@ Thumbs.db
 # Untracked n8n workflow backups
 Backup of n8n workflows UNTRACKED/
 
+# Browser MCP debug artifacts
+.playwright-mcp/
+
 config.toml.bk

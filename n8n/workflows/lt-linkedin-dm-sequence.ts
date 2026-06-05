@@ -97,6 +97,8 @@ const query = node({
   payload_json
 FROM linkedin_connection_state
 WHERE connection_status = 'connected'
+  AND connected_at IS NOT NULL
+  AND COALESCE(linkedin_provider_id, '') <> ''
   AND COALESCE(payload_json->>'dm_conversation_status', 'idle') <> 'active'
   AND (
     (sequence_step = 0 AND dm_sequence_started_at IS NULL)
@@ -205,9 +207,18 @@ const processNode = node({
           }
         }
 
+        var hasRealWork = inputItems.some(function(item) {
+          var d = item && item.json ? item.json : {};
+          var payload = d.payload_json && typeof d.payload_json === 'object' ? d.payload_json : {};
+          return !!clean(d.ghl_contact_id) || !!clean(d.linkedin_provider_id) || !!clean(d.linkedin_public_identifier) || !!clean(payload.providerId || payload.provider_id || payload.identifier || '');
+        });
+        if (!hasRealWork) {
+          return [{ json: { total: 0, sent: 0, skipped: 0, failed: 0, results: [] } }];
+        }
+
         var results = [];
 
-        function processNext(index) {
+        async function processNext(index) {
           if (index >= inputItems.length) {
             var sent = results.filter(function(r) { return r.status === 'sent'; }).length;
             var skipped = results.filter(function(r) { return r.status === 'skipped'; }).length;
@@ -222,14 +233,30 @@ const processNode = node({
           }
 
           var d = inputItems[index].json || {};
+          var payload = d.payload_json && typeof d.payload_json === 'object' ? d.payload_json : {};
           var contactId = clean(d.ghl_contact_id);
-          var providerId = clean(d.linkedin_provider_id);
+          var publicIdentifier = clean(d.linkedin_public_identifier || payload.identifier || payload.linkedin_public_identifier || '');
+          var providerId = clean(d.linkedin_provider_id || payload.providerId || payload.provider_id || '');
           var step = Number(d.sequence_step || 0);
           var newStep = step + 1;
           var self = this;
 
-          if (!contactId || !providerId) {
+          if (!contactId) {
             results.push({ contactId: contactId, providerId: providerId, step: step, status: 'skipped', reason: 'missing_contact_or_provider' });
+            return processNext.call(self, index + 1);
+          }
+
+          if (!providerId && publicIdentifier) {
+            const profileResp = await unipileReq.call(self, 'GET', CFG.unipileApiBaseUrl + '/users/' + encodeURIComponent(publicIdentifier) + '?account_id=' + encodeURIComponent(CFG.unipileAccountId), undefined, { 'X-API-KEY': CFG.unipileApiKey });
+            providerId = clean(profileResp.data && (profileResp.data.provider_id || profileResp.data.providerId || profileResp.data.id) || '');
+            if (!profileResp.ok || !providerId) {
+              results.push({ contactId: contactId, providerId: providerId, publicIdentifier: publicIdentifier, step: step, status: 'skipped', reason: 'missing_contact_or_provider', profileOk: profileResp.ok });
+              return processNext.call(self, index + 1);
+            }
+          }
+
+          if (!providerId) {
+            results.push({ contactId: contactId, providerId: providerId, publicIdentifier: publicIdentifier, step: step, status: 'skipped', reason: 'missing_contact_or_provider' });
             return processNext.call(self, index + 1);
           }
 
@@ -240,54 +267,61 @@ const processNode = node({
 
           var msgTemplate = MESSAGES[newStep];
 
-          return getGhlContact.call(self, contactId).then(function(contact) {
-            var firstName = clean(contact.firstName || 'there');
-            var message = msgTemplate.replace(/\\{first_name\\}/gi, firstName);
+          function continueWithProvider(profileResp) {
+            return getGhlContact.call(self, contactId).then(function(contact) {
+              var firstName = clean(contact.firstName || 'there');
+              if ((!firstName || firstName === 'there') && profileResp && profileResp.ok && profileResp.data) {
+                firstName = clean(profileResp.data.first_name || profileResp.data.firstName || 'there');
+              }
+              var message = msgTemplate.replace(/\\{first_name\\}/gi, firstName);
 
-            return unipileReq.call(self, 'POST', CFG.unipileApiBaseUrl + '/chats', {
-              account_id: CFG.unipileAccountId,
-              attendees_ids: [providerId],
-              text: message,
-            }, { 'X-API-KEY': CFG.unipileApiKey });
-          }).then(function(chatResp) {
-            if (!chatResp.ok) {
-              results.push({ contactId: contactId, step: step, newStep: newStep, status: 'dm_failed', error: describeError(chatResp.data) });
-              return processNext.call(self, index + 1);
-            }
+              return unipileReq.call(self, 'POST', CFG.unipileApiBaseUrl + '/chats', {
+                account_id: CFG.unipileAccountId,
+                attendees_ids: [providerId],
+                text: message,
+              }, { 'X-API-KEY': CFG.unipileApiKey });
+            }).then(function(chatResp) {
+              if (!chatResp.ok) {
+                results.push({ contactId: contactId, step: step, newStep: newStep, status: 'dm_failed', error: describeError(chatResp.data) });
+                return processNext.call(self, index + 1);
+              }
 
-            var chatId = clean((chatResp.data && chatResp.data.chat_id) || (chatResp.data && chatResp.data.id) || '');
+              var chatId = clean((chatResp.data && chatResp.data.chat_id) || (chatResp.data && chatResp.data.id) || '');
 
-            var upsertBody = {
-              ghl_contact_id: contactId,
-              location_id: CFG.locationId,
-              connection_status: 'connected',
-              sequence_step: newStep,
-              source_workflow_name: 'LT - LinkedIn DM Sequence (Unipile)',
-              source_key: 'contact:' + contactId + ':step_' + newStep,
-              payload_json: { last_chat_id: chatId, last_message_step: newStep, sent_at: new Date().toISOString() },
-              metadata_json: { source: 'dm_sequence', step: newStep },
-            };
-            if (step === 0) {
-              upsertBody.dm_sequence_started_at = new Date().toISOString();
-            }
+              var upsertBody = {
+                ghl_contact_id: contactId,
+                location_id: CFG.locationId,
+                connection_status: 'connected',
+                sequence_step: newStep,
+                source_workflow_name: 'LT - LinkedIn DM Sequence (Unipile)',
+                source_key: 'contact:' + contactId + ':step_' + newStep,
+                payload_json: { last_chat_id: chatId, last_message_step: newStep, sent_at: new Date().toISOString() },
+                metadata_json: { source: 'dm_sequence', step: newStep },
+              };
+              if (step === 0) {
+                upsertBody.dm_sequence_started_at = new Date().toISOString();
+              }
 
-            return self.helpers.httpRequest({
-              method: 'POST',
-              url: CFG.stateUpsertUrl,
-              headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-              body: upsertBody,
-              json: true,
-            }).then(function() {
-              results.push({ contactId: contactId, step: step, newStep: newStep, status: 'sent', chatId: chatId });
-              return processNext.call(self, index + 1);
-            }).catch(function(stateErr) {
-              results.push({ contactId: contactId, step: step, newStep: newStep, status: 'state_upsert_failed', chatId: chatId, error: describeError(stateErr) });
+              return self.helpers.httpRequest({
+                method: 'POST',
+                url: CFG.stateUpsertUrl,
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                body: upsertBody,
+                json: true,
+              }).then(function() {
+                results.push({ contactId: contactId, step: step, newStep: newStep, status: 'sent', chatId: chatId });
+                return processNext.call(self, index + 1);
+              }).catch(function(stateErr) {
+                results.push({ contactId: contactId, step: step, newStep: newStep, status: 'state_upsert_failed', chatId: chatId, error: describeError(stateErr) });
+                return processNext.call(self, index + 1);
+              });
+            }).catch(function(err) {
+              results.push({ contactId: contactId, step: step, status: 'error', error: describeError(err) });
               return processNext.call(self, index + 1);
             });
-          }).catch(function(err) {
-            results.push({ contactId: contactId, step: step, status: 'error', error: describeError(err) });
-            return processNext.call(self, index + 1);
-          });
+          }
+
+          return continueWithProvider.call(self, null);
         }
 
         return processNext.call(this, 0);

@@ -156,6 +156,8 @@ ON CONFLICT (ghl_contact_id) DO UPDATE SET
   connection_status = CASE
     WHEN linkedin_connection_state.connection_status = 'connected' AND EXCLUDED.connection_status <> 'connected'
       THEN linkedin_connection_state.connection_status
+    WHEN linkedin_connection_state.connection_status = 'requested' AND EXCLUDED.connection_status = 'ready'
+      THEN linkedin_connection_state.connection_status
     ELSE EXCLUDED.connection_status
   END,
   request_sent_at = COALESCE(linkedin_connection_state.request_sent_at, EXCLUDED.request_sent_at),

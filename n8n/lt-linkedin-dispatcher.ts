@@ -54,7 +54,8 @@ const config = node({
           { id: 'tag', name: 'ghlSuccessTag', type: 'string', value: 'linkedin_connection_requested' },
           { id: 'cfName', name: 'linkedinCustomFieldName', type: 'string', value: 'Apollo Person Linkedin URL' },
           { id: 'maxQ', name: 'maxQueueSize', type: 'number', value: 50 },
-          { id: 'maxB', name: 'batchSize', type: 'number', value: 10 },
+          { id: 'maxB', name: 'batchSize', type: 'number', value: 15 },
+          { id: 'dailyLimit', name: 'dailyLimit', type: 'number', value: 60 },
           { id: 'stateUrl', name: 'connectionStateUpsertUrl', type: 'string', value: 'https://automations.livetransparent.com/webhook/lt-linkedin-connection-state-upsert' },
           { id: 'dRun', name: 'defaultDryRun', type: 'boolean', value: false },
           { id: 'msg', name: 'defaultMessage', type: 'string', value: SOCIAL_OUTREACH_TEMPLATES.linkedin.invite },
@@ -79,7 +80,8 @@ const jsCode = `const CFG = {
   defaultMessage: String(\$json.defaultMessage || "").trim(),
   defaultDryRun: !!\$json.defaultDryRun,
   maxQueueSize: Math.max(1, Math.min(200, Number(\$json.maxQueueSize || 50))),
-  batchSize: Math.max(1, Number(\$json.batchSize || 10)),
+  batchSize: Math.max(1, Number(\$json.batchSize || 15)),
+  dailyLimit: Math.max(1, Number(\$json.dailyLimit || 60)),
   connectionStateUpsertUrl: String(\$json.connectionStateUpsertUrl || "https://automations.livetransparent.com/webhook/lt-linkedin-connection-state-upsert").trim(),
 };
 
@@ -111,14 +113,14 @@ function describeError(err) {
   return String(err);
 }
 
-async function ghlSearchContacts(pageLimit, page) {
+async function ghlSearchContacts(pageLimit, page, fieldName) {
   const body = {
     locationId: CFG.locationId,
     pageLimit: pageLimit,
     page: page,
     filters: [
       {
-        field: "customFields.apollo_person_linkedin_url",
+        field: fieldName,
         operator: "exists",
       },
     ],
@@ -138,20 +140,26 @@ function extractUrls(raw) {
   return Array.from(new Set((value.match(/https?:\\/\\/[^\\s,]+/gi) || []).map((u) => clean(u).replace(/[).,;]+\$/, ""))));
 }
 
+function normalizeLinkedInFieldName(input) {
+  return clean(input).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
 function getLinkedInUrl(contact) {
   const fields = Array.isArray(contact?.customFields) ? contact.customFields : [];
-  const preferredName = clean(CFG.linkedinCustomFieldName || "").toLowerCase();
-  if (preferredName) {
-    const preferred = fields.find((f) => clean(f?.name || f?.label || f?.key || "").toLowerCase() === preferredName);
-    if (preferred) {
-      const urls = extractUrls(preferred.value).filter((u) => /linkedin\\.com/i.test(u));
-      if (urls.length > 0) return urls[0];
-      throw new Error("Contact " + clean(contact?.id || "unknown") + " has LinkedIn field '" + preferredName + "' but no LinkedIn URL: " + clean(preferred.value || ""));
-    }
+  const preferredName = normalizeLinkedInFieldName(CFG.linkedinCustomFieldName || "");
+  const fieldAliases = new Set([
+    "apollo_person_linkedin_url",
+    "em_contact_linkedin_urls",
+  ]);
+  if (preferredName) fieldAliases.add(preferredName);
+  for (const f of fields) {
+    const name = normalizeLinkedInFieldName(f?.name || f?.label || f?.key || "");
+    if (!fieldAliases.has(name)) continue;
+    const urls = extractUrls(f.value).filter((u) => /linkedin\\.com/i.test(u));
+    if (urls.length > 0) return urls[0];
   }
   for (const f of fields) {
-    const v = String(f.value || "").trim();
-    const urls = extractUrls(v).filter((u) => /linkedin\\.com/i.test(u));
+    const urls = extractUrls(f.value).filter((u) => /linkedin\\.com/i.test(u));
     if (urls.length > 0) return urls[0];
   }
   return "";
@@ -250,27 +258,68 @@ async function sendFailureAlert(error, context = {}) {
 const eligible = [];
 let scanned = 0;
 try {
-  for (let page = 1; page <= 5; page++) {
-    const resp = await ghlSearchContacts(50, page);
-    const contacts = (resp && Array.isArray(resp.contacts)) ? resp.contacts : [];
-    if (contacts.length === 0) break;
-    for (const c of contacts) {
-      scanned++;
-      if (eligible.length >= CFG.maxQueueSize) break;
-      if (hasTag(c, CFG.successTag)) continue;
-      const liUrl = getLinkedInUrl(c);
-      if (!liUrl) {
-        const rawValue = Array.isArray(c?.customFields) ? c.customFields.map((f) => clean(f?.name || f?.label || f?.key || "") + "=" + clean(f?.value || "")).join(" | ") : "";
-        throw new Error("Contact " + clean(c?.id || "unknown") + " matched the queue but no LinkedIn URL was found in custom fields. Raw fields: " + rawValue);
+  const searchFields = [
+    "customFields.apollo_person_linkedin_url",
+    "customFields.em_contact_linkedin_urls",
+  ];
+  const seenContactIds = new Set();
+  for (const searchField of searchFields) {
+    for (let page = 1; page <= 5; page++) {
+      let resp;
+      try {
+        resp = await ghlSearchContacts(50, page, searchField);
+      } catch (searchErr) {
+        const statusCode = searchErr?.statusCode || searchErr?.response?.statusCode || searchErr?.response?.status || null;
+        const message = clean(searchErr?.message || searchErr?.response?.body?.message || searchErr?.response?.body?.detail || "");
+        if (statusCode === 422) {
+          console.warn("Skipping invalid GHL search field " + searchField + ": " + message);
+          break;
+        }
+        throw searchErr;
       }
-      eligible.push({ id: c.id, firstName: String(c.firstName || "").trim(), lastName: String(c.lastName || "").trim(), liUrl });
+      const contacts = (resp && Array.isArray(resp.contacts)) ? resp.contacts : [];
+      if (contacts.length === 0) break;
+      for (const c of contacts) {
+        scanned++;
+        if (eligible.length >= CFG.maxQueueSize) break;
+        const contactId = clean(c?.id || "");
+        if (!contactId || seenContactIds.has(contactId)) continue;
+        if (hasTag(c, CFG.successTag)) continue;
+        if (hasTag(c, "linkedin_connected")) continue;
+        const liUrl = getLinkedInUrl(c);
+        if (!liUrl) continue;
+        seenContactIds.add(contactId);
+        eligible.push({ id: c.id, firstName: String(c.firstName || "").trim(), lastName: String(c.lastName || "").trim(), liUrl });
+      }
+      if (eligible.length >= CFG.maxQueueSize || contacts.length < 50) break;
     }
-    if (eligible.length >= CFG.maxQueueSize || contacts.length < 50) break;
   }
 
-  const batch = eligible.slice(0, CFG.batchSize);
   const results = [];
-  for (const contact of batch) {
+  let sentCount = 0;
+  let dailySentCount = 0;
+  if (typeof this.getWorkflowStaticData === "function") {
+    const prev = this.getWorkflowStaticData("global");
+    const today = new Date().toISOString().slice(0, 10);
+    dailySentCount = prev.date === today ? Number(prev.sentToday || 0) : 0;
+    if (dailySentCount >= CFG.dailyLimit) {
+      return [{ json: {
+        queue_found: eligible.length,
+        batch_size: 0,
+        sent: 0,
+        dry_runs: 0,
+        failed: 0,
+        sent_today: dailySentCount,
+        results: [],
+        scanned,
+        note: "DAILY LIMIT REACHED - no invites sent",
+      } }];
+    }
+  }
+  for (const contact of eligible) {
+    if (sentCount >= CFG.batchSize) break;
+    if (dailySentCount >= CFG.dailyLimit) break;
+
     const id = linkedinId(contact.liUrl);
     if (!id) { results.push({ contactId: contact.id, status: "skipped", reason: "invalid_url" }); continue; }
 
@@ -279,8 +328,30 @@ try {
     const firstName = contact.firstName || clean(profile.data?.first_name || "there");
     const requestSentAt = new Date().toISOString();
 
+    if (hasTag(contact, 'linkedin_connected')) {
+      results.push({
+        contactId: contact.id,
+        firstName,
+        liUrl: contact.liUrl,
+        identifier: id,
+        providerId,
+        status: 'skipped',
+        reason: 'already_connected',
+      });
+      continue;
+    }
+
     if (CFG.defaultDryRun || !profile.ok || !providerId) {
-      results.push({ contactId: contact.id, firstName, liUrl: contact.liUrl, identifier: id, providerId, status: CFG.defaultDryRun ? "dry_run" : "profile_failed", profileOk: profile.ok });
+      results.push({
+        contactId: contact.id,
+        firstName,
+        liUrl: contact.liUrl,
+        identifier: id,
+        providerId,
+        status: CFG.defaultDryRun ? "dry_run" : "profile_failed",
+        profileOk: profile.ok,
+        profileError: clean(profile.data?.detail || profile.data?.title || profile.data?.message || ""),
+      });
       continue;
     }
 
@@ -335,6 +406,9 @@ try {
       }
     }
 
+    if (inv.ok) sentCount += 1;
+    if (inv.ok) dailySentCount += 1;
+
     results.push({ contactId: contact.id, firstName, liUrl: contact.liUrl, identifier: id, providerId, status: inv.ok ? "sent" : "invite_failed", inviteOk: inv.ok, stateSyncOk, stateSyncError, requestSentAt });
   }
 
@@ -353,7 +427,7 @@ try {
 
   return [{ json: {
     queue_found: eligible.length,
-    batch_size: batch.length,
+    batch_size: sent,
     sent,
     dry_runs: dryRuns,
     failed,

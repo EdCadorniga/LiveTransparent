@@ -1,39 +1,46 @@
 {
-  "updatedAt": "2026-04-05T11:33:47.481Z",
+  "updatedAt": "2026-05-30T13:57:17.927Z",
   "createdAt": "2026-04-05T11:33:47.481Z",
   "id": "usxYXSuc4ahw40V3",
-  "name": "LT - SimpleTexting Pool Dispatcher",
+  "name": "LT - SimpleTexting Pool Dispatcher (Staged)",
   "description": null,
-  "active": false,
+  "active": true,
   "isArchived": false,
   "nodes": [
     {
-      "id": "schedule_trigger",
+      "id": "38e4fca4-61d8-4ed4-abc2-f7aedd66956e",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        220,
-        300
+        0,
+        0
       ],
       "parameters": {
         "rule": {
           "interval": [
             {
-              "field": "hours"
+              "field": "cronExpression",
+              "expression": "0 9 * * *",
+              "tz": "America/New_York"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 15 * * *",
+              "tz": "America/New_York"
             }
           ]
         }
       }
     },
     {
-      "id": "config",
+      "id": "aeced839-203a-4b69-94ac-5e9a67a0d316",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        460,
-        300
+        224,
+        0
       ],
       "parameters": {
         "assignments": {
@@ -54,7 +61,7 @@
               "id": "key",
               "name": "ghlApiKey",
               "type": "string",
-              "value": "={{ $env.GHL_PIT || $env.GHL_API_KEY || \"\" }}"
+              "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
             },
             {
               "id": "dry",
@@ -66,13 +73,13 @@
               "id": "candidate",
               "name": "candidateLimit",
               "type": "number",
-              "value": 30
+              "value": 200
             },
             {
               "id": "search",
               "name": "simpletextingPoolSearchBodyJson",
               "type": "string",
-              "value": "{}"
+              "value": "{\"filters\":[{\"field\":\"tags\",\"operator\":\"contains\",\"value\":\"vapi_nurture\"}]}"
             },
             {
               "id": "seq",
@@ -111,7 +118,7 @@
               "value": "simpletext_stop"
             },
             {
-              "id": "49c99b406813",
+              "id": "tagreplied",
               "name": "tagReplied",
               "type": "string",
               "value": "simpletext_replied"
@@ -123,18 +130,17 @@
       }
     },
     {
-      "id": "ensure_campaign_tables",
+      "id": "96db14c3-7dda-487b-9021-3d74fcf40946",
       "name": "Ensure Campaign Tables",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        700,
-        300
+        448,
+        0
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'enrolled',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nCREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_Event_Log\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  step_number INT,\n  template_key TEXT,\n  provider_message_id TEXT,\n  details JSONB,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;",
-        "options": {}
+        "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'enrolled',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nCREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_Event_Log\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  step_number INT,\n  template_key TEXT,\n  provider_message_id TEXT,\n  details JSONB,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;"
       },
       "credentials": {
         "postgres": {
@@ -144,18 +150,17 @@
       }
     },
     {
-      "id": "fetch_campaign_enrollment_state",
+      "id": "3bad0c2d-72a8-460a-bc17-753956be82ea",
       "name": "Fetch Campaign Enrollment State",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        940,
-        300
+        672,
+        0
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "\nSELECT ARRAY_REMOVE(ARRAY_AGG(DISTINCT ghl_contact_id), NULL) AS enrolled_contact_ids\nFROM \"SimpleTexting_Campaign_State\"\nWHERE campaign_key = 'simpletexting_campaign_v1' AND status IN ('enrolled','sent_step_1','sent_step_2','sent_step_3','sent_step_4','sent_step_5','finished','delivery_failed','awaiting_phone_refresh','stopped','replied','active');\n",
-        "options": {}
+        "query": "\nSELECT ARRAY_REMOVE(ARRAY_AGG(DISTINCT ghl_contact_id), NULL) AS enrolled_contact_ids\nFROM \"SimpleTexting_Campaign_State\"\nWHERE campaign_key = 'simpletexting_campaign_v1' AND status IN ('enrolled','sent_step_1','sent_step_2','sent_step_3','sent_step_4','sent_step_5','finished','delivery_failed','awaiting_phone_refresh','stopped','replied','active');\n"
       },
       "credentials": {
         "postgres": {
@@ -165,33 +170,33 @@
       }
     },
     {
-      "id": "fetch_eligible_contacts",
+      "id": "463d9bf6-4240-423b-a7d9-687287be603d",
       "name": "Fetch Eligible Contacts",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1180,
-        300
+        896,
+        0
       ],
       "parameters": {
-        "jsCode": "\nconst cfg = $item(0).$node['Config'].json || {};\nconst state = $item(0).$node['Fetch Campaign Enrollment State'].json || {};\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBoolean(v, fallback) {\n  if (v === undefined || v === null || v === '') return fallback;\n  if (typeof v === 'boolean') return v;\n  const s = String(v).trim().toLowerCase();\n  if (['true','1','yes','y'].includes(s)) return true;\n  if (['false','0','no','n'].includes(s)) return false;\n  return fallback;\n}\nfunction normalizePhone(v) {\n  const digits = clean(v).replace(/\\D/g, '');\n  if (!digits) return '';\n  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);\n  return digits;\n}\nfunction normalizeTagList(value) {\n  if (Array.isArray(value)) return value.map((item) => clean(typeof item === 'string' ? item : item?.name || item?.value)).filter(Boolean).map((v) => v.toLowerCase());\n  if (typeof value === 'string') return value.split(',').map((item) => clean(item).toLowerCase()).filter(Boolean);\n  return [];\n}\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ method, url, headers, body }) {\n  const options = { method, url, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return { ok: false, status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500, data: err?.response?.body || err?.message || err };\n  }\n}\nfunction getContactsArray(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  if (Array.isArray(data?.data)) return data.data;\n  return [];\n}\n\nconst locationId = clean(cfg.locationId);\nconst apiBaseUrl = clean(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = clean(cfg.ghlApiKey);\nconst dryRun = !!cfg.defaultDryRun;\nconst candidateLimit = Math.max(1, Math.trunc(Number(cfg.candidateLimit || 200)));\nconst enrolled = new Set(Array.isArray(state.enrolled_contact_ids) ? state.enrolled_contact_ids.map((v) => clean(v)).filter(Boolean) : []);\nconst searchBodyRaw = clean(cfg.simpletextingPoolSearchBodyJson);\nif (!searchBodyRaw) return [];\nlet searchBody = {};\ntry { searchBody = JSON.parse(searchBodyRaw); } catch { throw new Error('Config.simpletextingPoolSearchBodyJson is not valid JSON'); }\nsearchBody.locationId = locationId;\nif (searchBody.page == null) searchBody.page = 1;\nif (searchBody.pageLimit == null) searchBody.pageLimit = candidateLimit;\nconst res = await apiRequest.call(this, { method:'POST', url:`${apiBaseUrl}/contacts/search`, headers: { Authorization:`Bearer ${apiKey}`, Version:'2021-07-28', Accept:'application/json', 'Content-Type':'application/json' }, body: searchBody });\nif (!res.ok) throw new Error(`SimpleTexting pool search failed: ${JSON.stringify(res.data)}`);\nconst contacts = getContactsArray(res.data);\nconst out = [];\nfor (const contact of contacts) {\n  const contactId = clean(contact.id);\n  const phone = normalizePhone(contact.phone);\n  const tags = normalizeTagList(contact.tags || []);\n  if (!contactId || !phone || enrolled.has(contactId)) continue;\n  if (tags.includes(String(cfg.tagOngoing || '').toLowerCase()) || tags.includes(String(cfg.tagFinished || '').toLowerCase()) || tags.includes(String(cfg.tagReplied || '').toLowerCase()) || tags.includes(String(cfg.tagStop || '').toLowerCase())) continue;\n  out.push({ json: {\n    contactId,\n    contactPhone: phone,\n    email: clean(contact.email),\n    firstName: clean(contact.firstName),\n    lastName: clean(contact.lastName),\n    campaignKey: clean(cfg.campaignKey || 'simpletexting_campaign_v1'),\n    dryRun,\n    status: 'enrolled',\n    currentStep: 0,\n    runId: `${new Date().toISOString()}__simpletexting_pool_dispatch`,\n  } });\n}\nreturn out;\n"
+        "jsCode": "\nconst cfg = $item(0).$node['Config'].json || {};\nconst state = $item(0).$node['Fetch Campaign Enrollment State'].json || {};\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBoolean(v, fallback) {\n  if (v === undefined || v === null || v === '') return fallback;\n  if (typeof v === 'boolean') return v;\n  const s = String(v).trim().toLowerCase();\n  if (['true','1','yes','y'].includes(s)) return true;\n  if (['false','0','no','n'].includes(s)) return false;\n  return fallback;\n}\nfunction normalizePhone(v) {\n  const digits = clean(v).replace(/\\D/g, '');\n  if (!digits) return '';\n  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);\n  return digits;\n}\nfunction normalizeTagList(value) {\n  if (Array.isArray(value)) return value.map((item) => clean(typeof item === 'string' ? item : item?.name || item?.value)).filter(Boolean).map((v) => v.toLowerCase());\n  if (typeof value === 'string') return value.split(',').map((item) => clean(item).toLowerCase()).filter(Boolean);\n  return [];\n}\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ method, url, headers, body }) {\n  const options = { method, url, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return { ok: false, status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500, data: err?.response?.body || err?.message || err };\n  }\n}\nfunction getContactsArray(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  if (Array.isArray(data?.data)) return data.data;\n  return [];\n}\n\nconst locationId = clean(cfg.locationId);\nconst apiBaseUrl = clean(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = clean(cfg.ghlApiKey);\nconst dryRun = !!cfg.defaultDryRun;\nconst candidateLimit = Math.max(1, Math.trunc(Number(cfg.candidateLimit || 200)));\nconst enrolled = new Set(Array.isArray(state.enrolled_contact_ids) ? state.enrolled_contact_ids.map((v) => clean(v)).filter(Boolean) : []);\nconst searchBodyRaw = clean(cfg.simpletextingPoolSearchBodyJson);\nif (!searchBodyRaw) return [];\nlet searchBody = {};\ntry { searchBody = JSON.parse(searchBodyRaw); } catch { throw new Error('Config.simpletextingPoolSearchBodyJson is not valid JSON'); }\nsearchBody.locationId = locationId;\nif (searchBody.page == null) searchBody.page = 1;\nif (searchBody.pageLimit == null) searchBody.pageLimit = candidateLimit;\n\nconst out = [];\nlet page = Math.max(1, Number(searchBody.page) || 1);\nconst maxPages = Math.max(1, Math.ceil(candidateLimit / Math.max(1, Number(searchBody.pageLimit) || candidateLimit)) + 2);\nfor (let pageIndex = 0; pageIndex < maxPages && out.length < candidateLimit; pageIndex += 1) {\n  const pageBody = { ...searchBody, page };\n  const res = await apiRequest.call(this, {\n    method: 'POST',\n    url: `${apiBaseUrl}/contacts/search`,\n    headers: { Authorization:`Bearer ${apiKey}`, Version:'2021-07-28', Accept:'application/json', 'Content-Type':'application/json' },\n    body: pageBody,\n  });\n  if (!res.ok) throw new Error(`SimpleTexting pool search failed on page ${page}: ${JSON.stringify(res.data)}`);\n  const contacts = getContactsArray(res.data);\n  if (!contacts.length) break;\n  for (const contact of contacts) {\n    if (out.length >= candidateLimit) break;\n    const contactId = clean(contact.id);\n    const phone = normalizePhone(contact.phone);\n    const tags = normalizeTagList(contact.tags || []);\n    if (!contactId || !phone || enrolled.has(contactId)) continue;\n    if (tags.includes(String(cfg.tagOngoing || '').toLowerCase()) || tags.includes(String(cfg.tagFinished || '').toLowerCase()) || tags.includes(String(cfg.tagReplied || '').toLowerCase()) || tags.includes(String(cfg.tagStop || '').toLowerCase())) continue;\n    out.push({ json: {\n      contactId,\n      contactPhone: phone,\n      email: clean(contact.email),\n      firstName: clean(contact.firstName),\n      lastName: clean(contact.lastName),\n      campaignKey: clean(cfg.campaignKey || 'simpletexting_campaign_v1'),\n      dryRun,\n      status: 'enrolled',\n      currentStep: 0,\n      runId: `${new Date().toISOString()}__simpletexting_pool_dispatch`,\n    } });\n  }\n  page += 1;\n}\nreturn out;\n"
       }
     },
     {
-      "id": "insert_enrollment_rows",
+      "id": "0c1f415f-d308-4048-9240-d027d57341d8",
       "name": "Insert Enrollment Rows",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1420,
-        300
+        1120,
+        0
       ],
       "parameters": {
         "operation": "executeQuery",
         "query": "\nINSERT INTO \"SimpleTexting_Campaign_State\" (ghl_contact_id, campaign_key, status, current_step, run_id, updated_at)\nVALUES ($1,$2,'enrolled',0,$3,NOW())\nON CONFLICT (ghl_contact_id, campaign_key) DO NOTHING;\nINSERT INTO \"SimpleTexting_Campaign_Event_Log\" (ghl_contact_id, campaign_key, event_type, step_number, template_key, provider_message_id, details)\nVALUES ($1,$2,'enrolled',0,NULL,NULL,$4::jsonb);\n",
         "options": {
           "queryBatching": "independently",
-          "queryReplacement": "={{ [ $json.contactId || null, $json.campaignKey || null, $json.runId || null, JSON.stringify({ source: \"dispatcher\", dryRun: $json.dryRun || false }) ] }}"
+          "queryReplacement": "={{ [ $json.contactId || null, $json.campaignKey || null, $json.runId || null, JSON.stringify({ source: 'dispatcher', dryRun: $json.dryRun || false }) ] }}"
         }
       },
       "credentials": {
@@ -202,17 +207,22 @@
       }
     },
     {
-      "id": "execute_sequencer",
+      "id": "c6fe7480-dd64-4d29-a9bb-ccc9fc297ff0",
       "name": "Execute Sequencer",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1660,
-        300
+        1344,
+        0
       ],
       "parameters": {
         "source": "database",
-        "workflowId": "7mSiivR3NhtLIcNz",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "7mSiivR3NhtLIcNz",
+          "cachedResultName": "LT - SimpleTexting Campaign Sequencer"
+        },
         "mode": "each",
         "options": {
           "waitForSubWorkflow": false
@@ -290,15 +300,22 @@
   },
   "settings": {
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": true
   },
-  "staticData": null,
-  "meta": null,
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
+  },
   "pinData": null,
-  "versionId": "0e717c9f-e493-495c-bd82-2f644639993e",
-  "activeVersionId": null,
-  "versionCounter": 1,
-  "triggerCount": 0,
+  "versionId": "26e538c0-ee4b-42df-8b90-f1e2708c7030",
+  "activeVersionId": "26e538c0-ee4b-42df-8b90-f1e2708c7030",
+  "versionCounter": 15,
+  "triggerCount": 1,
   "shared": [
     {
       "updatedAt": "2026-04-05T11:33:47.481Z",
@@ -319,5 +336,324 @@
     }
   ],
   "tags": [],
-  "activeVersion": null
+  "activeVersion": {
+    "updatedAt": "2026-05-30T13:57:17.931Z",
+    "createdAt": "2026-05-30T13:57:17.931Z",
+    "versionId": "26e538c0-ee4b-42df-8b90-f1e2708c7030",
+    "workflowId": "usxYXSuc4ahw40V3",
+    "nodes": [
+      {
+        "id": "38e4fca4-61d8-4ed4-abc2-f7aedd66956e",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *",
+              "tz": "America/New_York"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 15 * * *",
+              "tz": "America/New_York"
+            }
+          ]
+        }
+        }
+      },
+      {
+        "id": "aeced839-203a-4b69-94ac-5e9a67a0d316",
+        "name": "Config",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          224,
+          0
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "loc",
+                "name": "locationId",
+                "type": "string",
+                "value": "Zwz4relUXVPxx8uohnjV"
+              },
+              {
+                "id": "base",
+                "name": "ghlApiBaseUrl",
+                "type": "string",
+                "value": "https://services.leadconnectorhq.com"
+              },
+              {
+                "id": "key",
+                "name": "ghlApiKey",
+                "type": "string",
+                "value": "pit-b278b3ad-96bd-41fb-ba03-9f927039eb28"
+              },
+              {
+                "id": "dry",
+                "name": "defaultDryRun",
+                "type": "boolean",
+                "value": false
+              },
+              {
+                "id": "candidate",
+                "name": "candidateLimit",
+                "type": "number",
+                "value": 200
+              },
+              {
+                "id": "search",
+                "name": "simpletextingPoolSearchBodyJson",
+                "type": "string",
+                "value": "{\"filters\":[{\"field\":\"tags\",\"operator\":\"contains\",\"value\":\"vapi_nurture\"}]}"
+              },
+              {
+                "id": "seq",
+                "name": "sequencerWorkflowId",
+                "type": "string",
+                "value": "7mSiivR3NhtLIcNz"
+              },
+              {
+                "id": "campaign",
+                "name": "campaignKey",
+                "type": "string",
+                "value": "simpletexting_campaign_v1"
+              },
+              {
+                "id": "tagstart",
+                "name": "tagStart",
+                "type": "string",
+                "value": "simpletext_start"
+              },
+              {
+                "id": "tagongoing",
+                "name": "tagOngoing",
+                "type": "string",
+                "value": "simpletext_ongoing"
+              },
+              {
+                "id": "tagfinished",
+                "name": "tagFinished",
+                "type": "string",
+                "value": "simpletext_finished"
+              },
+              {
+                "id": "tagstop",
+                "name": "tagStop",
+                "type": "string",
+                "value": "simpletext_stop"
+              },
+              {
+                "id": "tagreplied",
+                "name": "tagReplied",
+                "type": "string",
+                "value": "simpletext_replied"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        }
+      },
+      {
+        "id": "96db14c3-7dda-487b-9021-3d74fcf40946",
+        "name": "Ensure Campaign Tables",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          448,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "CREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_State\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'enrolled',\n  current_step INT NOT NULL DEFAULT 0,\n  last_template_key TEXT,\n  last_sent_at TIMESTAMPTZ,\n  provider_message_id TEXT,\n  phone_at_send TEXT,\n  stop_reason TEXT,\n  reply_status TEXT,\n  last_inbound_message_at TIMESTAMPTZ,\n  last_delivery_at TIMESTAMPTZ,\n  delivery_status TEXT,\n  opt_out_status TEXT,\n  slack_notified_at TIMESTAMPTZ,\n  run_id TEXT,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  UNIQUE (ghl_contact_id, campaign_key)\n);\nCREATE TABLE IF NOT EXISTS \"SimpleTexting_Campaign_Event_Log\" (\n  id BIGSERIAL PRIMARY KEY,\n  ghl_contact_id TEXT NOT NULL,\n  campaign_key TEXT NOT NULL,\n  event_type TEXT NOT NULL,\n  step_number INT,\n  template_key TEXT,\n  provider_message_id TEXT,\n  details JSONB,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS reply_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_inbound_message_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS last_delivery_at TIMESTAMPTZ;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS delivery_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS opt_out_status TEXT;\nALTER TABLE \"SimpleTexting_Campaign_State\" ADD COLUMN IF NOT EXISTS slack_notified_at TIMESTAMPTZ;"
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "3bad0c2d-72a8-460a-bc17-753956be82ea",
+        "name": "Fetch Campaign Enrollment State",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          672,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "\nSELECT ARRAY_REMOVE(ARRAY_AGG(DISTINCT ghl_contact_id), NULL) AS enrolled_contact_ids\nFROM \"SimpleTexting_Campaign_State\"\nWHERE campaign_key = 'simpletexting_campaign_v1' AND status IN ('enrolled','sent_step_1','sent_step_2','sent_step_3','sent_step_4','sent_step_5','finished','delivery_failed','awaiting_phone_refresh','stopped','replied','active');\n"
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "463d9bf6-4240-423b-a7d9-687287be603d",
+        "name": "Fetch Eligible Contacts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          0
+        ],
+        "parameters": {
+          "jsCode": "\nconst cfg = $item(0).$node['Config'].json || {};\nconst state = $item(0).$node['Fetch Campaign Enrollment State'].json || {};\n\nfunction clean(v) { return String(v ?? '').trim(); }\nfunction parseBoolean(v, fallback) {\n  if (v === undefined || v === null || v === '') return fallback;\n  if (typeof v === 'boolean') return v;\n  const s = String(v).trim().toLowerCase();\n  if (['true','1','yes','y'].includes(s)) return true;\n  if (['false','0','no','n'].includes(s)) return false;\n  return fallback;\n}\nfunction normalizePhone(v) {\n  const digits = clean(v).replace(/\\D/g, '');\n  if (!digits) return '';\n  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);\n  return digits;\n}\nfunction normalizeTagList(value) {\n  if (Array.isArray(value)) return value.map((item) => clean(typeof item === 'string' ? item : item?.name || item?.value)).filter(Boolean).map((v) => v.toLowerCase());\n  if (typeof value === 'string') return value.split(',').map((item) => clean(item).toLowerCase()).filter(Boolean);\n  return [];\n}\nasync function doHttpRequest(options) {\n  if (typeof $httpRequest === 'function') return await $httpRequest(options);\n  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);\n  throw new Error('HTTP helper not available');\n}\nasync function apiRequest({ method, url, headers, body }) {\n  const options = { method, url, headers, json: true };\n  if (body !== undefined) options.body = body;\n  try {\n    const data = await doHttpRequest.call(this, options);\n    return { ok: true, data };\n  } catch (err) {\n    return { ok: false, status: err?.statusCode || err?.httpCode || err?.cause?.statusCode || 500, data: err?.response?.body || err?.message || err };\n  }\n}\nfunction getContactsArray(data) {\n  if (Array.isArray(data?.contacts)) return data.contacts;\n  if (Array.isArray(data?.data?.contacts)) return data.data.contacts;\n  if (Array.isArray(data?.data)) return data.data;\n  return [];\n}\n\nconst locationId = clean(cfg.locationId);\nconst apiBaseUrl = clean(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');\nconst apiKey = clean(cfg.ghlApiKey);\nconst dryRun = !!cfg.defaultDryRun;\nconst candidateLimit = Math.max(1, Math.trunc(Number(cfg.candidateLimit || 200)));\nconst enrolled = new Set(Array.isArray(state.enrolled_contact_ids) ? state.enrolled_contact_ids.map((v) => clean(v)).filter(Boolean) : []);\nconst searchBodyRaw = clean(cfg.simpletextingPoolSearchBodyJson);\nif (!searchBodyRaw) return [];\nlet searchBody = {};\ntry { searchBody = JSON.parse(searchBodyRaw); } catch { throw new Error('Config.simpletextingPoolSearchBodyJson is not valid JSON'); }\nsearchBody.locationId = locationId;\nif (searchBody.page == null) searchBody.page = 1;\nif (searchBody.pageLimit == null) searchBody.pageLimit = candidateLimit;\nconst res = await apiRequest.call(this, { method:'POST', url:`${apiBaseUrl}/contacts/search`, headers: { Authorization:`Bearer ${apiKey}`, Version:'2021-07-28', Accept:'application/json', 'Content-Type':'application/json' }, body: searchBody });\nif (!res.ok) throw new Error(`SimpleTexting pool search failed: ${JSON.stringify(res.data)}`);\nconst contacts = getContactsArray(res.data);\nconst out = [];\nfor (const contact of contacts) {\n  const contactId = clean(contact.id);\n  const phone = normalizePhone(contact.phone);\n  const tags = normalizeTagList(contact.tags || []);\n  if (!contactId || !phone || enrolled.has(contactId)) continue;\n  if (tags.includes(String(cfg.tagOngoing || '').toLowerCase()) || tags.includes(String(cfg.tagFinished || '').toLowerCase()) || tags.includes(String(cfg.tagReplied || '').toLowerCase()) || tags.includes(String(cfg.tagStop || '').toLowerCase())) continue;\n  out.push({ json: {\n    contactId,\n    contactPhone: phone,\n    email: clean(contact.email),\n    firstName: clean(contact.firstName),\n    lastName: clean(contact.lastName),\n    campaignKey: clean(cfg.campaignKey || 'simpletexting_campaign_v1'),\n    dryRun,\n    status: 'enrolled',\n    currentStep: 0,\n    runId: `${new Date().toISOString()}__simpletexting_pool_dispatch`,\n  } });\n}\nreturn out;\n"
+        }
+      },
+      {
+        "id": "0c1f415f-d308-4048-9240-d027d57341d8",
+        "name": "Insert Enrollment Rows",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1120,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "\nINSERT INTO \"SimpleTexting_Campaign_State\" (ghl_contact_id, campaign_key, status, current_step, run_id, updated_at)\nVALUES ($1,$2,'enrolled',0,$3,NOW())\nON CONFLICT (ghl_contact_id, campaign_key) DO NOTHING;\nINSERT INTO \"SimpleTexting_Campaign_Event_Log\" (ghl_contact_id, campaign_key, event_type, step_number, template_key, provider_message_id, details)\nVALUES ($1,$2,'enrolled',0,NULL,NULL,$4::jsonb);\n",
+          "options": {
+            "queryBatching": "independently",
+            "queryReplacement": "={{ [ $json.contactId || null, $json.campaignKey || null, $json.runId || null, JSON.stringify({ source: 'dispatcher', dryRun: $json.dryRun || false }) ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "pgAzUqpwOiGkGXzO",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "c6fe7480-dd64-4d29-a9bb-ccc9fc297ff0",
+        "name": "Execute Sequencer",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1344,
+          0
+        ],
+        "parameters": {
+          "source": "database",
+          "workflowId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "7mSiivR3NhtLIcNz",
+            "cachedResultName": "LT - SimpleTexting Campaign Sequencer"
+          },
+          "mode": "each",
+          "options": {
+            "waitForSubWorkflow": false
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Config": {
+        "main": [
+          [
+            {
+              "node": "Ensure Campaign Tables",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure Campaign Tables": {
+        "main": [
+          [
+            {
+              "node": "Fetch Campaign Enrollment State",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Campaign Enrollment State": {
+        "main": [
+          [
+            {
+              "node": "Fetch Eligible Contacts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Eligible Contacts": {
+        "main": [
+          [
+            {
+              "node": "Insert Enrollment Rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Enrollment Rows": {
+        "main": [
+          [
+            {
+              "node": "Execute Sequencer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ed cadorniga",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-30T13:57:18.065Z",
+        "id": 1976,
+        "workflowId": "usxYXSuc4ahw40V3",
+        "versionId": "b4958059-2fe0-422c-a1ef-1e345849098a",
+        "event": "deactivated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      },
+      {
+        "createdAt": "2026-05-30T13:57:18.109Z",
+        "id": 1977,
+        "workflowId": "usxYXSuc4ahw40V3",
+        "versionId": "b4958059-2fe0-422c-a1ef-1e345849098a",
+        "event": "activated",
+        "userId": "861fb655-b176-4d63-a4ed-3cc66e279642"
+      }
+    ]
+  }
 }

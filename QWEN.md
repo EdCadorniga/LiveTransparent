@@ -158,6 +158,7 @@ curl -X PUT -H "X-N8N-API-KEY: <key>" -H "Content-Type: application/json" \
 - **Tag hygiene** - Tags are appended non-destructively; removal requires explicit action
 - **Pipeline stages** - Reference by ID, not name (see `AGENTS.md` for locked pipeline map)
 - **Direct API fallback** - If MCP fails with scope errors, test endpoint directly against `https://services.leadconnectorhq.com`
+- **LinkedIn supply path** - For the LinkedIn connection-request queue, use the working GHL `contacts/` list endpoint and filter locally by LinkedIn URL custom fields and tags. Treat `contacts/search` failures against private-integration tokens as a live blocker, not a harmless empty result.
 
 ### Data Processing
 
@@ -214,3 +215,4 @@ See `AGENTS.md` for the authoritative, up-to-date workflow inventory. Key produc
 - **`GHL Live Transparent CRM/Pipeline_Quick_Reference.md`** - Pipeline stage definitions and movement rules
 - **`emerald-email-campaign/plan.md`** - Emerald campaign architecture and locked decisions
 - **`bookstack/README.md`** - BookStack deployment instructions
+- **`Project Status and Next Steps.md`** - Canonical live state plus the current LinkedIn troubleshooting handoff

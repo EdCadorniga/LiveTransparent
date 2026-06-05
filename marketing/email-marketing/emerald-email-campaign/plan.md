@@ -1,5 +1,7 @@
 # Emerald Email Campaign
 
+> **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This sub-plan tracks the Emerald campaign rollout; it does not repeat the architecture.
+
 Last updated: `2026-03-27`
 
 ## Summary

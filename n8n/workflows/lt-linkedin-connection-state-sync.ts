@@ -30,7 +30,7 @@ const config = node({
           { id: 'workflowName', name: 'workflowName', type: 'string', value: 'LT - LinkedIn Connection State Sync (Unipile)' },
           { id: 'locationId', name: 'locationId', type: 'string', value: 'Zwz4relUXVPxx8uohnjV' },
           { id: 'ghlApiBaseUrl', name: 'ghlApiBaseUrl', type: 'string', value: 'https://services.leadconnectorhq.com' },
-          { id: 'ghlApiKey', name: 'ghlApiKey', type: 'string', value: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86' },
+           { id: 'ghlApiKey', name: 'ghlApiKey', type: 'string', value: 'pit-b278b3ad-96bd-41fb-ba03-9f927039eb28' },
           { id: 'unipileApiBaseUrl', name: 'unipileApiBaseUrl', type: 'string', value: 'https://api42.unipile.com:17256/api/v1' },
           { id: 'unipileApiKey', name: 'unipileApiKey', type: 'string', value: 'Mb1oWs6Z.YZWq+uQp/V4DPMLf2UN6i9bbS2IqGX/MDJ4y3DExshc=' },
           { id: 'unipileAccountId', name: 'unipileAccountId', type: 'string', value: 'V9eiHiDpRmCtan0YNdzsQw' },
@@ -96,12 +96,12 @@ function getLinkedInUrl(contact) {
   if (linkedinCustomFieldName) {
     const preferred = fields.find((f) => clean(f?.name || f?.label || f?.key || '').toLowerCase() === linkedinCustomFieldName);
     if (preferred) {
-      const urls = extractUrls(preferred.value).filter((u) => /linkedin\\.com/i.test(u));
+      const urls = extractUrls(preferred.value).filter((u) => /linkedin\\.com/i.test(u) && /\\/in\\//i.test(u));
       if (urls.length > 0) return urls[0];
     }
   }
   for (const f of fields) {
-    const urls = extractUrls(f?.value).filter((u) => /linkedin\\.com/i.test(u));
+    const urls = extractUrls(f?.value).filter((u) => /linkedin\\.com/i.test(u) && /\\/in\\//i.test(u));
     if (urls.length > 0) return urls[0];
   }
   return '';
@@ -148,12 +148,12 @@ async function apiRequest(method, url, body, extraHeaders = {}) {
     return { ok: false, data: err?.response?.body || err?.message || err };
   }
 }
-async function ghlSearch(page) {
+async function ghlSearch(page, fieldName) {
   return await apiRequest.call(this, 'POST', ghlApiBaseUrl + '/contacts/search', {
     locationId,
     pageLimit: pageSize,
     page,
-    filters: [{ field: 'customFields.apollo_person_linkedin_url', operator: 'exists' }],
+    filters: [{ field: fieldName, operator: 'exists' }],
   }, {
     Authorization: 'Bearer ' + ghlApiKey,
     Version: '2021-07-28',
@@ -164,67 +164,76 @@ const matched = [];
 const errors = [];
 let scanned = 0;
 let upserted = 0;
+const seenContactIds = new Set();
 
-for (let page = 1; page <= maxPages; page += 1) {
-  const resp = await ghlSearch.call(this, page);
-  const contacts = Array.isArray(resp?.data?.contacts) ? resp.data.contacts : Array.isArray(resp?.data?.data) ? resp.data.data : Array.isArray(resp?.data) ? resp.data : [];
-  if (!contacts.length) break;
+for (const fieldName of ['customFields.apollo_person_linkedin_url', 'customFields.em_contact_linkedin_urls']) {
+  for (let page = 1; page <= maxPages; page += 1) {
+    const resp = await ghlSearch.call(this, page, fieldName);
+    const contacts = Array.isArray(resp?.data?.contacts) ? resp.data.contacts : Array.isArray(resp?.data?.data) ? resp.data.data : Array.isArray(resp?.data) ? resp.data : [];
+    if (!contacts.length) break;
 
-  for (const contact of contacts) {
-    scanned += 1;
-    if (matched.length >= maxContacts) break;
-    if (!hasTag(contact, requestTag)) continue;
-    const liUrl = getLinkedInUrl(contact);
-    const identifier = linkedinIdentifier(liUrl);
-    if (!liUrl || !identifier) continue;
+    for (const contact of contacts) {
+      scanned += 1;
+      if (matched.length >= maxContacts) break;
+      const contactId = clean(contact?.id || '');
+      if (!contactId || seenContactIds.has(contactId)) continue;
+      if (hasTag(contact, requestTag)) continue;
+      if (hasTag(contact, 'linkedin_connected')) continue;
+      const liUrl = getLinkedInUrl(contact);
+      const identifier = linkedinIdentifier(liUrl);
+      if (!liUrl || !identifier) continue;
 
-    const profile = await apiRequest.call(this, 'GET', unipileApiBaseUrl + '/users/' + encodeURIComponent(identifier) + '?account_id=' + encodeURIComponent(unipileAccountId), undefined, { 'X-API-KEY': unipileApiKey });
-    const providerId = clean(profile.data?.provider_id || profile.data?.providerId || profile.data?.id || '');
-    const firstName = clean(contact?.firstName || profile.data?.first_name || profile.data?.firstName || 'there');
+      const profile = await apiRequest.call(this, 'GET', unipileApiBaseUrl + '/users/' + encodeURIComponent(identifier) + '?account_id=' + encodeURIComponent(unipileAccountId), undefined, { 'X-API-KEY': unipileApiKey });
+      const providerId = clean(profile.data?.provider_id || profile.data?.providerId || profile.data?.id || '');
+      const firstName = clean(contact?.firstName || profile.data?.first_name || profile.data?.firstName || 'there');
 
-    if (!profile.ok || !providerId) {
-      errors.push({ contact_id: clean(contact?.id || ''), identifier, reason: 'profile_lookup_failed' });
-      continue;
+      if (!profile.ok || !providerId) {
+        errors.push({ contact_id: contactId, identifier, reason: 'profile_lookup_failed' });
+        continue;
+      }
+
+      const payload = {
+        ghl_contact_id: contactId,
+        location_id: locationId,
+        unipile_account_id: unipileAccountId,
+        linkedin_profile_url: liUrl,
+        linkedin_public_identifier: identifier,
+        linkedin_provider_id: providerId,
+        connection_request_tag: requestTag,
+        connection_status: 'ready',
+        request_sent_at: null,
+        connected_at: null,
+        request_message: '',
+        sequence_step: 0,
+        source_workflow_name: workflowName,
+        source_key: 'contact:' + contactId,
+        payload_json: {
+          contactId,
+          firstName,
+          liUrl,
+          identifier,
+          providerId,
+          status: 'ready',
+          source: 'state_sync',
+        },
+        metadata_json: {
+          source: 'backfill_sync',
+          workflow: workflowName,
+        },
+      };
+
+      if (!dryRun) {
+        const upsert = await apiRequest.call(this, 'POST', stateUpsertUrl, payload);
+        if (upsert.ok) upserted += 1;
+        else errors.push({ contact_id: payload.ghl_contact_id, identifier, reason: 'state_upsert_failed' });
+      }
+
+      seenContactIds.add(contactId);
+      matched.push({ contact_id: payload.ghl_contact_id, identifier, provider_id: providerId, li_url: liUrl });
     }
 
-    const payload = {
-      ghl_contact_id: clean(contact.id || ''),
-      location_id: locationId,
-      unipile_account_id: unipileAccountId,
-      linkedin_profile_url: liUrl,
-      linkedin_public_identifier: identifier,
-      linkedin_provider_id: providerId,
-      connection_request_tag: requestTag,
-      connection_status: 'requested',
-      request_sent_at: clean(contact?.createdAt || contact?.updatedAt || new Date().toISOString()),
-      request_message: '',
-      sequence_step: 0,
-      source_workflow_name: workflowName,
-      source_key: 'contact:' + clean(contact.id || ''),
-      payload_json: {
-        contactId: clean(contact.id || ''),
-        firstName,
-        liUrl,
-        identifier,
-        providerId,
-        source: 'state_sync',
-      },
-      metadata_json: {
-        source: 'backfill_sync',
-        workflow: workflowName,
-      },
-    };
-
-    if (!dryRun) {
-      const upsert = await apiRequest.call(this, 'POST', stateUpsertUrl, payload);
-      if (upsert.ok) upserted += 1;
-      else errors.push({ contact_id: payload.ghl_contact_id, identifier, reason: 'state_upsert_failed' });
-    }
-
-    matched.push({ contact_id: payload.ghl_contact_id, identifier, provider_id: providerId, li_url: liUrl });
+    if (matched.length >= maxContacts || contacts.length < pageSize) break;
   }
-
-  if (matched.length >= maxContacts || contacts.length < pageSize) break;
 }
 
 return [{
