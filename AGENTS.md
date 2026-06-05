@@ -23,7 +23,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Deployed via Coolify on a VPS.
 - Public hosts: `automations.livetransparent.com` for n8n and `reports.livetransparent.com` for the report host.
 - Prefer Coolify internal service-to-service calls when possible.
-- n8n target version: `2.19.5`.
+- n8n target version: `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue).
 - Canonical MCP: `n8n-lt`.
 - Root `.env` is the reference copy; Coolify env vars are the deployed source of truth.
 
