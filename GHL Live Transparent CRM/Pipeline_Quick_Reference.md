@@ -4,9 +4,8 @@
 `Warm` -> `Sales Outreach` -> `Sales`
 
 ## Current Platform Note
-- n8n is now on `2.14.2`
-- no manual node-version refresh is planned right now
-- escalate if a workflow editor view looks different after the upgrade
+- n8n is on `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
+- previously at `2.14.2` — see AGENTS.md for upgrade history
 
 ## Warm
 1. `New`: New warm signal captured, not reviewed yet.

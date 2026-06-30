@@ -43,6 +43,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Prefer `n8n-lt` MCP or direct API calls before browser workflows.
 - GHL MCP: primary `ghl_official`, secondary `ghl_katwill_*`.
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
+- **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. **Use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) and verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
 
 ## Live Voice System
 
@@ -57,12 +58,13 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 
 | Workflow | ID | Status |
 |----------|----|--------|
-| LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | Active |
-| LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Active |
-| LT - Voice Queue Vapi Intake Poller | `bYk1Ai6MJLyhTsDZ` | Active |
-| LT - Voice Queue Enqueue | `XzcpOBi9YcIhJPck` | Active |
-| LT - Voice Dequeue Next | `KsBMFcz1YpBGrjDW` | Active |
-| LT - Call Outcome Ingest | `PUCfTZBANSPcgS0c` | Active |
+| LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | Paused 2026-06-05 |
+| LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Paused 2026-06-05 |
+| LT - Voice Queue Vapi Intake Poller | `bYk1Ai6MJLyhTsDZ` | Paused 2026-06-05 |
+| LT - Voice Queue Enqueue | `XzcpOBi9YcIhJPck` | Paused 2026-06-05 |
+| LT - Voice Dequeue Next | `KsBMFcz1YpBGrjDW` | Paused 2026-06-05 |
+| LT - Call Outcome Ingest | `PUCfTZBANSPcgS0c` | Paused 2026-06-05 |
+| LT - Apollo Queued Timeout Reaper | `RL5ZyUoshSPbmVA1` | Active (hourly) |
 
 ### Voice Tags
 
@@ -79,13 +81,27 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - `vapi_wrong_number`
 - `vapi_contact_disconnected`
 
+### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
+
+- `enriched` — terminal (good)
+- `no_match` — terminal (no Apollo hit)
+- `error` — terminal (API error)
+- `queued` — transient (intake sent request to Apollo, awaiting callback)
+- `callback_timeout` — terminal (set by `LT - Apollo Queued Timeout Reaper` when `queued` is older than 24h or queued_at is missing). Backstop for the V4 callback URL not delivering; root cause still needs Apollo-side investigation.
+
+### Custom field IDs (GHL)
+
+- `Apollo Phone Enrichment Status` = `rgYJ7UqoznGoe3WeUAtH` (SINGLE_OPTIONS)
+- `Apollo Phone Enrichment Queued At` = `NgC3xGTh0laQ9ArTnude` (DATE)
+- `Enrich Phone via Apollo` = `gdJDuZelIxEBE6n9i5Q6` (SINGLE_OPTIONS: Yes/No)
+
 ## Reporting System
 
 | Workflow | ID | Status |
 |----------|----|--------|
 | GHL Daily Leads Ingest | `osIJOgBmWITF5Yuv` | Active |
 | GHL Daily Sales Ingest | `aYT5oHcgmBALzHy5` | Active |
-| GHL Daily Calls Ingest | `SqNQ0BYaTdcqyt1l` | Inactive, GHL 404 |
+| GHL Daily Calls Ingest | `SqNQ0BYaTdcqyt1l` | Active (4hr schedule) |
 | GHL Daily Appointments Ingest | `yWZVSqEcjTbMT3kG` | Active |
 | GHL Daily Social Ingest | `QZoqCaTwDhbym80O` | Active |
 | GA4 Daily Ingest | `6pCSGzFmrMDFL5Yq` | Active |
@@ -102,9 +118,10 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 
 ### Reporting Notes
 
-- GA4 and GHL ingestion are live.
-- GSC still needs workflow verification / cleanup.
-- Meta Ads API access is validated against `act_2186975138800404`.
+- GA4, GHL, and GSC ingestion are all live and active.
+- GSC ingest and rollup bridge are active daily (verified from execution data).
+- Report Pipeline Velocity (`iFfwh0jpYUZoDhDR`) is active.
+- Meta Ads API access is validated against `act_2186975138800404` but spend ingest is still deferred.
 - Keep report validation end-to-end: ingest -> attribution bridge -> daily rollups -> executive summary.
 
 ## Other Live Systems
@@ -146,6 +163,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - `n8n/workflows/lt-linkedin-connection-state-upsert.ts`
 - `n8n/workflows/lt-linkedin-unipile-new-messages.ts`
 - `n8n/workflows/lt-linkedin-connection-acceptance-checker.ts`
+- `n8n/workflows/lt-apollo-queued-timeout-reaper.ts` — flips GHL contacts stuck in `Apollo Phone Enrichment Status = queued` past 24h to `callback_timeout` so the Vapi poller unblocks them (workflow ID `RL5ZyUoshSPbmVA1`, hourly)
 - `n8n/workflows/lt-simpletexting-send-sms.json`
 - `n8n/workflows/lt-simpletexting-pool-dispatcher.json`
 - `n8n/workflows/lt-simpletexting-campaign-sequencer.json`

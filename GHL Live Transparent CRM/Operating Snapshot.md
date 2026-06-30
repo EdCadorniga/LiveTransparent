@@ -1,5 +1,7 @@
 # Live Transparent CRM Operating Snapshot
 
+Updated: 2026-06-30
+
 ## Purpose
 This is the live-state summary for the Live Transparent GHL sub-account.
 Use it for current decisions. Use the deeper runbooks for implementation detail.
@@ -9,17 +11,18 @@ Use it for current decisions. Use the deeper runbooks for implementation detail.
 - Location ID: `Zwz4relUXVPxx8uohnjV`
 - Timezone: `America/Los_Angeles`
 - Public n8n host: `https://automations.livetransparent.com`
+- n8n version: `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
 
 ## Live Assumptions
 - Treat pipeline/stage logic as ID-driven even when docs show human-readable names.
 - Prefer internal service-to-service calls over public hops when possible.
 - Use `n8n-lt` to verify live workflow state before runtime changes.
 - Use `ghl_official` first for supported GHL reads and writes.
-- Treat `ghl_workflows` as secondary.
+- Treat `ghl_katwill_*` as secondary.
 - Current PIT/auth state:
   - `GHL_PIT` in root `.env` was updated and validated against location-scoped GHL contact/opportunity queries.
   - `GHL_API_KEY` is aliased to `GHL_PIT` in root `.env` for workflow compatibility.
-  - Local Codex `ghl_official` MCP config was updated to use the new PIT, but the session must be restarted before the wrapper will definitely pick up the change.
+  - Both tokens `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (LinkedIn) and the main PIT are valid.
 - If an MCP wrapper fails on a valid endpoint, verify through direct GHL API before assuming the PIT is invalid.
 - GA4/GSC traffic is not available natively in GHL and must be pulled into the report layer separately.
 
@@ -62,75 +65,99 @@ Keep these aligned with routing and report logic:
   - `LT Routing Priority`
   - `LT Last Event Fingerprint`
   - `LT Last Event At`
+- Apollo enrichment:
+  - `Apollo Phone Enrichment Status` (`rgYJ7UqoznGoe3WeUAtH`)
+  - `Apollo Phone Enrichment Queued At` (`NgC3xGTh0laQ9ArTnude`)
+  - `Enrich Phone via Apollo` (`gdJDuZelIxEBE6n9i5Q6`)
 - Exact field IDs live in `Warm_Lead_Conflict_Safe_Implementation_Spec.md`.
 
 ## Active Workflow Families
-- Warm intake and routing:
-  - `GHL Warm Intake - Add Intake Tag (Webhook)`
-  - `GHL Warm Intake - Email Inbound Tag (Webhook)`
-  - `GHL Warm Intake - SMS Tag (Webhook)`
-  - `GHL Warm Intake - Referral Tag (Webhook)`
-  - `GHL Warm Intake - Email Outbound Tag (Webhook)`
-  - `GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)`
-  - `WF - Master Warm Intake and Routing`
-  - `WF - Warm Channel Micro Entry`
-- Apollo enrichment:
-  - `GHL Apollo Enrichment - Webhook Intake (Sheet First)`
-  - `GHL Apollo Enrichment - Phone Webhook Intake (Staged)`
-  - `GHL Apollo Phone Enrichment - Callback Handler`
-  - `GHL Apollo Phone Enrichment - Callback Handler V4`
-- SimpleTexting:
-  - `LT - SimpleTexting SMS Send (Webhook, Staged)`
-  - `LT - SimpleTexting Inbound Reply (Webhook, Staged)`
-  - `LT - SimpleTexting Delivery Events (Webhook, Staged)`
-  - `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)`
-  - `LT - SimpleTexting Campaign Sequencer (Staged)`
-  - Archived: `LT - SimpleTexting Warmup Dispatcher (Staged)`
-  - `LT - SimpleTexting Pool Dispatcher (Staged)`
-- Cold outreach:
-  - `LT - Cold Outreach CSV -> Postgres Ingest (Staged)`
-  - `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)`
-  - `LT - Cold Outreach Sender Release Dispatcher (Staged)`
-- Emerald:
-  - `LT - Emerald CSV -> Postgres Ingest (Staged)`
-  - `LT - Emerald CSV -> GHL Import (DryRun, Staged)`
-  - `LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)`
-  - `LT - Emerald Campaign Sender Release Dispatcher (Staged)`
-  - `LT - Emerald Executive SSO -> Company Sync (Staged)`
-  - `LT - Emerald Intro Sent -> P2 Queue Dispatcher (Staged)`
-  - `LT - Emerald Intro Backfill Tagger (Staged)`
-- Slack / booking handoff:
-  - `WL - Webhook to Slack Channel Update`
-  - `WL - Webhook to Slack Channel - Website Visitor`
-  - `WL - Webhook to Slack Channel - Form Submission`
-## Reporting Workflow Status (updated 2026-04-30)
-All report workflows are now active and published in n8n:
-- `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) — rebuilt replacement for archived `OtqWjqGXZC3OcrXP`
-- `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`)
-- `LT - Report Attribution Bridge` (`Y0TU7Il71JswxOBp`)
-- `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`)
-- `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`)
-- `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`)
-- `LT - Report Config Sync` (`aomO3Z4AXJIgEvvN`)
-- `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`)
-- `LT - Report Postgres Bootstrap Apply` (`3XHThUiUSNa4sTb9`)
+
+### Warm Intake and Routing
+- `GHL Warm Intake - Add Intake Tag (Webhook)` — active
+- `GHL Warm Intake - Email Inbound Tag (Webhook)` — inactive (paused)
+- `GHL Warm Intake - SMS Tag (Webhook)` — active
+- `GHL Warm Intake - Referral Tag (Webhook)` — active
+- `GHL Warm Intake - Email Outbound Tag (Webhook)` — inactive (paused)
+- `GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)` — active
+- `WF - Master Warm Intake and Routing` — active (GHL-side)
+- `WF - Warm Channel Micro Entry` — active (GHL-side)
+
+### Apollo Enrichment
+- `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) — active
+- `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) — active (API key rotated 2026-06-05)
+- `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) — active
+- `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) — active (zero deliveries since 2026-05-13, root cause unknown)
+- `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly backstop for stuck `queued` contacts
+
+### Voice System (All Paused 2026-06-05)
+- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — paused
+- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — paused
+- `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — paused
+- `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) — paused
+- `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — paused
+- `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — paused
+
+### SimpleTexting
+- `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) — active
+- `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`) — active
+- `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`) — active (triggerCount=0)
+- `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) — active
+- `LT - SimpleTexting Delivery Events (Webhook)` (`AEi1VCzkLvaYFr4U`) — active
+- `LT - SimpleTexting Unsubscribe Events (Webhook)` (`IyBKMkpYQ7pa0C8V`) — active
+
+### LinkedIn/Unipile Pipeline
+- `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) — active, `15 */6 * * *`
+- `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`) — active, `0 15-21 * * 1-5`
+- `LT - LinkedIn DM Sequence (Unipile)` (`d0tEtijajisIsYcs`) — active, `0 12-22 * * 1-5`
+- `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) — active (webhook receiver)
+- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) — active (reply detection)
+- `LT - LinkedIn Connection Request (Unipile) (Internal Test)` (`Zt8p2aYtIuY0HK18`) — active (test)
+- Verified 2026-06-03: sync scans 101/matches 100, dispatcher sent 10, DM sent 2
+
+### Emerald (Staged — Marketing Email Paused 2026-06-05)
+- All 7 Emerald workflows are inactive (staged by design since pause):
+  - `LT - Emerald CSV -> Postgres Ingest (Staged)` — inactive
+  - `LT - Emerald CSV -> GHL Import (DryRun, Staged)` — inactive
+  - `LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)` — inactive
+  - `LT - Emerald Campaign Sender Release Dispatcher (Staged)` — inactive
+  - `LT - Emerald Intro Sent -> P2 Queue Dispatcher (Staged)` — inactive
+  - `LT - Emerald Executive SSO -> Company Sync (Staged)` — inactive
+  - `LT - Emerald Intro Backfill Tagger (Staged)` — inactive
+- Backfill tagger staged 3,566 pending contacts in `seq emerald - intro backfill pending`
+
+### Cold Outreach (Staged)
+- All 3 workflows inactive by design:
+  - `LT - Cold Outreach CSV -> Postgres Ingest (Staged)` — inactive
+  - `LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)` — inactive
+  - `LT - Cold Outreach Sender Release Dispatcher (Staged)` — inactive
+
+### Reporting Workflows (All Active)
+- `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) — active
+- `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) — active
+- `LT - GHL Daily Calls Ingest` (`SqNQ0BYaTdcqyt1l`) — active (4hr schedule)
+- `LT - GHL Daily Appointments Ingest` (`yWZVSqEcjTbMT3kG`) — active
+- `LT - GHL Daily Social Ingest` (`QZoqCaTwDhbym80O`) — active
+- `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`) — active
+- `LT - GA4 Traffic Rollup Bridge` (`0P2AZcQYWYZjXbRi`) — active
+- `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) — active
+- `LT - GSC Rollup Bridge` (`fOVBHwti9rC3qrLV`) — active
+- `LT - Report Attribution Bridge` (`Y0TU7Il71JswxOBp`) — active
+- `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`) — active
+- `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`) — active
+- `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`) — active
+- `LT - Report Config Sync` (`aomO3Z4AXJIgEvvN`) — active
+- `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`) — active
+- `LT - Report Postgres Bootstrap Apply` (`3XHThUiUSNa4sTb9`) — active
+- `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`) — active
 
 Deferred by design:
-- `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`)
-- `LT - GSC Daily Ingest` (`if0Siw6KzlBItEbd`)
-- `LT - GHL Executive Report Menu Sync` (`8YtaPmPnTXUkBDAd`) — one-time provision, inactive
+- `LT - GHL Executive Report Menu Sync` (`8YtaPmPnTXUkBDAd`) — inactive (one-time provision)
 
 Known issues:
-- `opportunitiesCreated` inflation (`30d leads=99` vs `30d opps=2163`) — suspect rollup/SQL counting bug
+- `opportunitiesCreated` inflation — suspect rollup/SQL counting bug
 - `closed_won = 0` — needs verification whether genuine or mapping gap
-
-## SimpleTexting Runtime Status
-- `LT - SimpleTexting SMS Send (Webhook, Staged)` is active and had recent successful webhook executions in the last audit pass.
-- `LT - SimpleTexting Delivery Events (Webhook, Staged)` is active and had recent successful webhook executions in the last audit pass.
-- `LT - SimpleTexting Inbound Reply (Webhook, Staged)` was failing with a syntax error in `Validate + Normalize Reply` and was patched on `2026-04-26`.
-- `LT - SimpleTexting Unsubscribe Events (Webhook, Staged)` is active, but no recent executions were returned in the last audit pass.
-- `LT - SimpleTexting Campaign Sequencer (Staged)` and `LT - SimpleTexting Pool Dispatcher (Staged)` are inactive by design.
-- GHL-originated outbound SMS should use the webhook bridge documented in `GHL_To_SimpleTexting_SMS_Send_Runbook.md`.
+- GHL Executive Report Menu Sync is inactive — menu already configured
 
 ## Special Live Rules
 - The regulated ads booking path is the only booking flow that currently auto-hands off into `Sales -> Discovery Scheduled`.
@@ -145,6 +172,7 @@ Known issues:
 
 ## Reference Docs
 - `../Project Status and Next Steps.md`
+- `../AGENTS.md`
 - `Report Data Contract.md`
 - `GHL_Snapshot_Build_Spec_LinkedIn_Micro_Workflows.md`
 - `GHL_SimpleTexting_Access_Workflow.md`

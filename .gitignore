@@ -43,3 +43,6 @@ Backup of n8n workflows UNTRACKED/
 .playwright-mcp/
 
 config.toml.bk
+
+# n8n workflow source files (may contain webhook URLs / secrets)
+n8n/workflows/

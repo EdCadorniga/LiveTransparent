@@ -1,16 +1,17 @@
 # Intake Webhook Wiring TODO
 
-Last updated: 2026-02-24
+Last updated: 2026-06-30
 Owner location: `Live Transparent`
 Canonical n8n host: `https://automations.livetransparent.com`
 
-## Completion Update (2026-02-24)
-- Core sender automations are now working end-to-end:
-- `WL - Micro - Email Inbound` -> `lt-warm-intake-email-inbound`
-- `WL - Micro - Email Outbound` -> `lt-warm-intake-email-outbound`
-- `WL - Micro - SMS` -> `lt-warm-intake-sms`
-- `WL - Micro - Referral` -> `lt-warm-intake-referral`
-- Live validation outcome: inbound, outbound, sms, and referral events are being received by n8n.
+## Completion Update (2026-06-30)
+- Core sender automations wired and validated end-to-end on 2026-02-24.
+- Current live status (verified 2026-06-30):
+  - `GHL Warm Intake - Email Inbound` (`SmMf8QIfysuxQJbG`) — inactive (no recent inbound email traffic)
+  - `GHL Warm Intake - Email Outbound` (`J4B0n0QeSeOeqAci`) — inactive (no recent outbound email traffic)
+  - `GHL Warm Intake - SMS Tag (Webhook)` (`5nYzp9DgQUopzWhR`) — active
+  - `GHL Warm Intake - Referral Tag (Webhook)` (`6lp8sIS3YMB1t9Ri`) — active
+- `WL - Master Warm Intake and Routing` (GHL-side) remains active for tag-based routing.
 
 ## 0) Preconditions
 - [ ] Confirm n8n access is healthy via `n8n-lt` MCP.

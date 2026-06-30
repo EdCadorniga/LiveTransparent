@@ -26,9 +26,9 @@ Automations help us:
 
 ## Current System Note
 
-- n8n is now on `2.14.2`
-- no manual node-version refresh is planned during the upgrade follow-up
-- if an automation looks different in the editor after the upgrade, stop and escalate before changing node fields
+- n8n is on `2.25.3` (upgraded June 2026 from `2.19.5`)
+- do not manually refresh/update node versions unless an admin runbook says to
+- if an automation looks different in the editor after an upgrade, stop and escalate before changing node fields
 
 ## Main Automations You Will See
 

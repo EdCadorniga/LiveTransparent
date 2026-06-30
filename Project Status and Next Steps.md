@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-06-03
+Updated: 2026-06-30 (reference docs refresh)
 
 ## Source Of Truth
 
@@ -15,7 +15,7 @@ It supersedes the duplicated planning notes in:
 - The outbound voice stack is live: queue-driven outbound calls, the merged callback webhook, and all 4 tools are active.
 - The reporting stack is live: GA4 and GHL ingestion are in production, data is flowing into Postgres, and the Executive Report is live in GHL.
 - Report rollups, attribution bridge, QA/alerts, and the executive summary API are already running.
-- Emerald email-marketing ingest workflows are active again in n8n: CSV -> GHL Import, CSV -> Postgres Ingest, and Campaign Snapshot -> Postgres Ingest.
+- Emerald email-marketing ingest workflows are **PAUSED 2026-06-05** (9 workflows unpublished). See [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md) for the full list and resumption playbook. **GHL email sequences still need to be paused manually in the GHL UI** for already-enrolled contacts.
 - Emerald intro backfill is staged in live GHL: 500 additional eligible contacts have now been tagged `seq emerald - intro backfill pending`, the live pending queue increased to 3,566, and 1,719 enrolled contacts remain eligible for controlled staging.
 - LinkedIn outreach pipeline is fully operational and verified (2026-06-03):
   - `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) seeds `linkedin_connection_state` from GHL contacts with LinkedIn URLs, resolved through Unipile profile lookups. Verified: `scanned: 101, matched: 100, upserted: 100`, schedule `15 */6 * * *`.
@@ -38,17 +38,19 @@ It supersedes the duplicated planning notes in:
 - Phone: `+1 (562) 534 1977`
 - Vapi Assistant ID: `3f9bbfd2-efa6-4381-81e6-26f2452d28f1`
 - Canonical webhook: `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`
-- Target n8n version: `2.19.5`
+- Target n8n version: `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
 - Canonical MCP: `n8n-lt`
 
 ### Active Workflows
 
-- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — active, merged callback plus 4 tools
-- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — active, queue dialer, contact-TZ-aware, 72h cooldown
-- `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — active, polls `vapi_queue`, E.164 bypass
-- `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) — active, webhook enqueue, allows NULL phone
-- `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — active, webhook dequeue then Vapi call
-- `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — active, GHL call webhooks to Postgres and Slack
+- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — **PAUSED 2026-06-05**, was active, merged callback plus 4 tools
+- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — **PAUSED 2026-06-05**, was active, queue dialer, contact-TZ-aware, 72h cooldown
+- `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — **PAUSED 2026-06-05**, was active, polls `vapi_queue`, E.164 bypass
+- `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) — **PAUSED 2026-06-05**, was active, webhook enqueue, allows NULL phone
+- `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — **PAUSED 2026-06-05**, was active, webhook dequeue then Vapi call
+- `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — **PAUSED 2026-06-05**, was active, GHL call webhooks to Postgres and Slack
+- **All 6 VAPI workflows are paused.** GHL-side infrastructure (reaper, Apollo V3/V4 callbacks, intake) remains active. Resumption playbook and queued goals documented in [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md).
+- `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly, flips GHL contacts stuck with `Apollo Phone Enrichment Status = queued` AND `Apollo Phone Enrichment Queued At < NOW - 24h` (or missing queued_at) to `callback_timeout` so the Vapi poller unblocks them. Verified first run (execution `75153`): scanned 500, stuck 500, updated 499, 1 contact (Joey Evans `nayDFnGCCcrVO9oTg4ls`) hit a transient 400 in the reaper log but the status field was actually written to `callback_timeout` (GHL dateUpdated confirms) and the Vapi poller will pick him up on a later batch. Source: `n8n/workflows/lt-apollo-queued-timeout-reaper.ts`.
 
 ### Dialer Pipeline
 
@@ -90,6 +92,20 @@ It supersedes the duplicated planning notes in:
 
 - Move remaining secrets out of workflow `Config` nodes into credentials or env-backed config.
 - Verify the dashboard still points all tools and the end-of-call webhook to the canonical callback URL.
+- Diagnose why the Apollo phone-enrichment callback URL (`/webhook/ghl-apollo-phone-enrichment-callback-v4`) has had zero deliveries since 2026-05-13 even though the intake workflow still flips contacts to `queued` (synthetic POST to that webhook should be tested, and the Apollo dashboard webhook delivery log should be inspected). Reaper exists as a backstop but the root cause needs fixing.
+- ~~The reaper's first run identified contact `nayDFnGCCcrVO9oTg4ls` (Joey Evans) as a 400 on the GHL update; investigate why the standard `PUT /v1/contacts/{id}` payload failed for that one contact and decide whether the reaper needs a defensive retry path.~~ **Resolved 2026-06-05**: GHL dateUpdated confirms the reaper did write `callback_timeout` despite the 400 in the log (transient blip on the 500th sequential PUT). Vapi poller will pick him up on a later batch since his dateAdded is older than the first 40 already processed.
+
+### Apollo API Key Rotation (Done 2026-06-05)
+
+- Old key `W7j2vbChZDN8bfoS-wVJ2Q` replaced in all live n8n workflows with new key `CIgACIqwFAXuvYUQKHZcLA` from `.env` line 39.
+- Live workflows touched: `WuxgTa0EEL1mb2SA` (Apollo Phone Enrichment intake V3) and `WmKAhG7mIaXonNsh` (Sheet First).
+- Smoke test on V3 webhook `https://automations.livetransparent.com/webhook/ghl-apollo-phone-enrichment-intake-v3` (execution `75289`) confirmed the new apolloApiKey loads at runtime; downstream code errored on test payload (unrelated to key).
+- **Critical**: MCP `n8n-lt` `updateNodeParameters` silently corrupts Set v3.4 Config nodes (wraps `assignments.assignments` in `{item: [...]}`, stringifies booleans and `options`). Recovery was via direct n8n REST `PUT /api/v1/workflows/{id}` using the reaper's known-good Config as a reference. Documented in `AGENTS.md` Tooling section.
+
+### Marketing Email Pause (Done 2026-06-05)
+
+- 9 marketing email workflows unpublished in n8n. See [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md) for the full list, resumption playbook, and a list of channels (LinkedIn, Instagram, SimpleTexting SMS) that are still active.
+- **Required owner action (outside n8n)**: open GHL location `Zwz4relUXVPxx8uohnjV` and manually pause any active marketing email sequences. Pausing the n8n workflows stops CSV imports and intake routing, but the GHL sequences themselves keep running for already-enrolled contacts.
 
 ## Next Steps
 
