@@ -45,6 +45,16 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
 - **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. Use `setNodeParameter` for single-path edits on Set v3.4 nodes instead of `updateNodeParameters`. If `setNodeParameter` also fails, **use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) but note that PUT auto-publishes and validates all node credentials, which may fail if credential IDs aren't embedded in node JSON. For Code nodes, `updateNodeParameters` and `setNodeParameter` are both safe. Verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
 
+## Code Node HTTP Requests
+
+When making HTTP calls inside n8n Code nodes:
+- **Use `this.helpers.httpRequest({...})` directly** — do NOT wrap in an async helper function and call with `.call(this, ...)`. The wrapper pattern (`doHttpRequest.call(this, opts)`) frequently causes HTTP 400 errors because the task runner's `this` context changes in loops.
+- **`$httpRequest`** works for simple single calls but may fail in pagination loops.
+- **`json: true`** works but must be paired with explicit `'Content-Type': 'application/json'` header.
+- For paginated GHL search API calls, use `page` (1-indexed integer) + `pageLimit` (max 100). Do NOT use `startAfter`/`startAfterId`.
+- Do NOT include empty `filters: []` array in GHL search body — omit entirely.
+- Add `await new Promise(r => setTimeout(r, delayMs))` between pages to avoid rate limiting (GHL PIT token returns 401 after ~5400 requests).
+
 ## n8n REST API Note
 
 When using direct n8n REST `PUT /api/v1/workflows/{id}`:
@@ -157,24 +167,31 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - **Vapi tools cleanup**: 2 deprecated tools deleted, 1 dangling ref removed, 14 remain
 - **John → Jason migration**: Transfer tool renamed, all assistant prompts updated, n8n switch + Set node updated
 - **Inbound assistant**: Added missing `ok_transfer_to_jason` tool
-- **Callback trackedAssistants**: Both new assistant IDs added for timer enforcement
+- **Callback trackedAssistants**: Both new campaign assistant IDs added for timer enforcement
 - **GHL tags created**: `vapi_campaign_brand`, `vapi_campaign_dispensary`, `vapi_already_called`
+
+### Phase 3 Infrastructure Changes (DONE 2026-07-01)
+1. **Dialer campaign mapping**: `Build Vapi Body` Code node now has `CAMPAIGN_ASSISTANTS` map — `'default'`→V1, `'brand'`→Alex, `'dispensary'`→Jordan
+2. **Intake poller campaign tags**: `Prepare Search` searches by `vapi_campaign_brand`/`vapi_campaign_dispensary` (OR via separate API calls), `Classify Contacts` maps tag→`campaign_id`
+3. **Enqueue dedup gate**: Postgres `WHERE NOT EXISTS` guard prevents duplicate `pending`/`in_progress` rows per `contact_id`
+4. **Dequeue pipeline_stage bug**: Removed `AND pipeline_stage = 'queued'` filter (column doesn't exist), added `includeOtherFields: true` to Config, campaign routing via ternary in HTTP node
 
 ### Prep Completed (2026-07-01)
 - **Queue cleanup**: 1,005 stale V1 `pending` rows → `failed`
 - **Pool audit**: 23,726 GHL contacts; 1,045 unique already called; ~16k Emerald pool
-- **Classifier workflow**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) created — queries voice_call_attempt + GHL contacts, classifies by Emerald tags
+- **Classifier workflow**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) created — queries voice_call_attempt + GHL contacts, classifies by Emerald tags (see Phase 2 blocker in section above)
+- **Heuristic verified**: Emerald contacts carry tags like `sso_marketing`, `cannabis-retail-sso-marketing-1`, `seq emerald - marketing sso`. No standalone `mso`/`sso` tags. Classifier uses keyword substring matching: `marketing`/`sso`/`brand`/`growth` → Brand campaign; `dispensary`/`retail`/`owner`/`manager`/`executive` → Dispensary campaign.
 - **Call history**: 1,711 total attempts across 1,045 contacts (voicemail=782, qualified/booked=305, connected=288, no_answer=212, busy=106, failed=18)
 
-### Bugs Discovered During Audit
-1. **Dequeue pipeline_stage bug**: `voice_call_queue` schema has no `pipeline_stage` column, but dequeue query filters `AND pipeline_stage = 'queued'`. Dequeue has NEVER returned rows from intake poller. V1 worked through dialer cron. Fix: remove the filter.
-2. **Callback trackedAssistants hardcoded**: Was a static array `['43f379ff...', '3f9bbfd2...']`. Now includes both campaign assistants. Ideally move to Config node.
-
-### Critical Infrastructure Changes Needed (Phase 3)
-1. Dialer must map `campaign_id → assistantId` (currently hardcoded to V1 assistant)
-2. Intake poller must seed from campaign-specific tags (currently only `vapi_queue`)
-3. Enqueue must dedup against existing queue rows by `contact_id`
-4. Fix dequeue `pipeline_stage` bug
+### Phase 2 — Classifier Status (BLOCKED 2026-07-01)
+- **Workflow**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`)
+- **Structure**: Manual Start → Called Contacts (Postgres) → Classify (Code node with full pagination)
+- **Heuristic**: Emerald contacts with `marketing`/`sso`/`brand`/`growth` tags → `vapi_campaign_brand`; with `dispensary`/`retail`/`owner`/`manager`/`executive` → `vapi_campaign_dispensary`
+- **GHL search API pagination**: Uses `page` + `pageLimit` (NOT `startAfter`/`startAfterId`)
+- **Code node HTTP approach**: `this.helpers.httpRequest({method, url, headers, json:true, body})` works directly. **Do NOT wrap in a helper function** — the `doHttpRequest.call(this, ...)` pattern causes HTTP 400. Use `this.helpers.httpRequest` inline.
+- **Rate limit**: GHL PIT token returns 401 after ~5400 contact searches (54 pages at 100/page). Add 300ms+ delay between pages, or use a more resilient token. 23,726 total contacts = 238 pages.
+- **Workflow timeout**: Default 300s is too short for tag API calls. Set `executionTimeout: 3600` via REST PUT if needed.
+- **Pending**: The full run (238 pages + tag application) hasn't completed yet. Previous session failed due to Code node `this` context issue with wrapper functions.
 
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 

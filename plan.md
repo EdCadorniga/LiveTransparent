@@ -84,57 +84,47 @@ All server/function tools already point to the n8n callback webhook — no new t
 1.5 **Inbound assistant**: `ok_transfer_to_jason` tool attached (was missing).
 1.6 **Quality gate (pending)**: 1 manual test call per assistant. Verify persona, tools fire, end-of-call report delivers, dispositions correct.
 
-### Phase 2 — Contact Classification (independent of Phase 1)
+### Phase 2 — Contact Classification (attempted 2026-07-01, BLOCKED)
 
-2.1 Rewrite `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`):
-  - Manual Trigger -> Postgres (`SELECT DISTINCT contact_id FROM voice_call_attempt`) -> GHL Search Contacts API (paginated loop via Code node, 100/page) -> heuristic Code node -> GHL tag application
-  - Pagination: single Code node with async loop using `startAfter`/`startAfterId`
-  - Heuristic: Emerald tags + role tags -> Brand or Dispensary campaign tag
-  - Already called -> `vapi_already_called` tag
-  - No phone / missing enrichment -> skip (Apollo pipeline handles later)
-2.2 Batch tag application via GHL `POST /contacts/{id}/tags`
-2.3 **One-time manual run** (~16k contacts, ~160 pages). Re-run only when new contacts added.
-2.4 Dry-run first page first, verify counts, then full batch.
+2.1 **Rewrite done**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) restructured:
+  - Manual Trigger -> Postgres (`SELECT DISTINCT contact_id FROM voice_call_attempt`, 1,045 IDs found) -> Classify (single Code node with full pagination loop)
+  - GHL POST `/contacts/search` uses `page` + `pageLimit` (100/page) — NOT `startAfter`/`startAfterId`
+  - Valid body shape: `{ locationId, pageLimit, page }` — do NOT include `filters: []` (causes 422)
+  - Heuristic: `emerald` tag + keyword match → `vapi_campaign_brand` or `vapi_campaign_dispensary`
+  - Collects arrays of contact IDs per campaign (no per-contact tag API calls to avoid slow loop)
+2.2 **Pagination learned**: `page` (1-indexed, integer) + `pageLimit` (max 100). 23,726 total = 238 pages.
+2.3 **Code node HTTP approach learned**: Use `this.helpers.httpRequest({...})` directly. **Do NOT wrap** in an async helper function — `doHttpRequest.call(this, ...)` breaks HTTP context and causes 400 errors.
+2.4 **Rate limit discovered**: GHL PIT token returns 401 after ~54 pages (~5400 contacts). Add `await new Promise(r=>setTimeout(r, 300))` between pages. Even with delay, the `for` loop inside a Code node with `this.helpers.httpRequest` is still fragile.
+2.5 **Pending**: Classify-only pass (no tag API calls) runs in ~27s for partial scan. Full 238-page run hasn't completed due to `this` context issues in loops or rate limiting. Potential fix: batch via external script or use `$httpRequest` global directly outside loop context. See `AGENTS.md` Phase 2 section.
 
 ### Phase 3 — Infrastructure Modifications
 
-#### Bug Fixes Found During Audit (fix before or alongside Phase 3)
+#### Bug Fixes Found During Audit (DONE 2026-07-01)
 
-3.0.1 **BUG: Dequeue references non-existent `pipeline_stage` column** — `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) filters `pipeline_stage = 'queued'`, but schema has no such column. Dequeue has NEVER picked up poller-inserted rows. V1 worked through dialer cron instead.
-  - **Fix**: Remove `AND pipeline_stage = 'queued'` from dequeue query.
-  - **Method**: `setNodeParameter` on Postgres node (safe)
+3.0.1 ~~**BUG: Dequeue references non-existent `pipeline_stage` column**~~ — **DONE** via `setNodeParameter` on Postgres node. Removed `AND pipeline_stage = 'queued'` from WHERE clause and `pipeline_stage = 'dialing'` from UPDATE SET.
 
-3.0.2 **BUG: Callback has hardcoded `trackedAssistants` array** — `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) `Code - Detect Tool vs Callback` has `trackedAssistants = ['43f379ff-bb7e-4cd4-96f1-7299832dbc4b', '3f9bbfd2-efa6-4381-81e6-26f2452d28f1']`. New assistants won't be tracked for timer enforcement.
-  - **Fix**: Replace hardcoded array with dynamic lookup from Config node.
-  - **Method**: Config node via REST PUT + Code node via `setNodeParameter`
+3.0.2 ~~**BUG: Callback has hardcoded `trackedAssistants` array**~~ — **WORKAROUND DONE**: Both new campaign assistant IDs added to the hardcoded array. Ideally move to Config node in future.
 
-#### Infrastructure Changes (all items independent)
+#### Infrastructure Changes (ALL DONE 2026-07-01)
 
 3.1 **Modify dialer** (`LT - Voice Agent V1 Outbound Dialer`, `r7UjWLndmc6EqEUW`):
-  - `Build Vapi Body` Code node hardcodes `assistantId`. Add campaign lookup map.
-  - Already passes `campaign_id` in variableValues/metadata — good.
-  - **Method**: Code node via `setNodeParameter` (safe)
+  - **DONE**: `Build Vapi Body` now has `CAMPAIGN_ASSISTANTS` map: `{ default: V1-ID, brand: Alex-ID, dispensary: Jordan-ID }`. Resolves from `$json.campaign_id`.
 
 3.2 **Update callback + tools** (`LT - Voice Agent V1 Vapi Callback + Tools`, `fx4UvKUWbqJEY3LK`):
-  - Fix 3.0.2 (trackedAssistants)
-  - End-of-call disposition logic is campaign-agnostic — no change needed
-  - **Method**: Code node via `setNodeParameter`
+  - **DONE**: trackedAssistants array updated with `1d7c5d42` (Alex) and `056f2e50` (Jordan).
 
 3.3 **Update intake poller** (`LT - Voice Queue Vapi Intake Poller`, `bYk1Ai6MJLyhTsDZ`):
-  - Change `Prepare Search` tag filter from `vapi_queue` to campaign tags (`vapi_campaign_brand`, `vapi_campaign_dispensary`)
-  - Map matched tag -> correct `campaign_id` in `Classify Contacts` (currently hardcoded to `'default'`)
-  - Keep campaign tags on contacts after enqueue (permanent tracking, unlike `vapi_queue` removal)
-  - **Method**: Code nodes via `setNodeParameter` (safe)
+  - **DONE**: `Prepare Search` passes `campaignTags: ['vapi_campaign_brand', 'vapi_campaign_dispensary']`.
+  - **DONE**: `Search GHL Contacts` loops through each tag, makes separate API calls, dedupes results (GHL /contacts/search does NOT support OR filterType).
+  - **DONE**: `Classify Contacts` maps matched tag → `campaignId` via `CAMPAIGN_TAG_MAP`.
 
 3.4 **Add dedup gate to enqueue** (`LT - Voice Queue Enqueue`, `XzcpOBi9YcIhJPck`):
-  - Add SQL guard before insert: check existing `contact_id` with `status IN ('pending','in_progress')`
-  - **Method**: `setNodeParameter` on Postgres node (safe)
+  - **DONE**: INSERT now uses `WHERE NOT EXISTS (SELECT 1 FROM voice_call_queue WHERE contact_id = $1 AND status IN ('pending', 'in_progress'))`.
 
 3.5 **Fix dequeue + campaign routing** (`LT - Voice Dequeue Next`, `KsBMFcz1YpBGrjDW`):
-  - 3.5.1 Fix `pipeline_stage` bug (3.0.1)
-  - 3.5.2 Config node hardcodes `vapiAssistantId` — add campaign lookup map (same as dialer)
-  - 3.5.3 `HTTP - Start Vapi Call` reads Config node — change to use campaign mapping
-  - **Method**: Config via REST PUT; Code node via `setNodeParameter`
+  - **DONE**: 3.5.1 pipeline_stage bug fixed.
+  - **DONE**: 3.5.2+3 Config node now has `includeOtherFields: true` (passes queue data through).
+  - **DONE**: HTTP node uses ternary: `$json.campaign_id === 'brand' ? Alex-ID : ($json.campaign_id === 'dispensary' ? Jordan-ID : V1-ID)`.
 
 ### Phase 4 — Activation & Testing
 

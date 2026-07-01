@@ -125,14 +125,18 @@ It supersedes the duplicated planning notes in:
 
 ## Next Steps
 
-### 1. Vapi Campaign Rollout (Phase 1 done — 2026-07-01)
+### 1. Vapi Campaign Rollout (Phases 1+3 DONE, Phase 2 BLOCKED — 2026-07-01)
 
-See `plan.md` for full step-by-step. Progress:
-- **Phase 1**: **DONE** — 2 assistants created (Alex `1d7c5d42`, Jordan `056f2e50`), tools cleaned up, John→Jason migrated, GHL tags created
-- **Quality gate (pending)**: Manual test call per assistant before moving to Phase 2
-- **Phase 2**: Fix classifier workflow to paginate all contacts, apply campaign GHL tags, exclude already-called
-- **Phase 3**: Modify dialer, callback, intake poller, add dedup gate, fix pipeline_stage bug
-- **Phase 4**: Smoke test each campaign, scale rollout
+See `plan.md` for full details. Progress:
+- **Phase 1**: **DONE** — 2 assistants created, tools cleanup, John→Jason migration, GHL tags created
+- **Quality gate (PENDING)**: Manual test call per assistant (Alex + Jordan) via Vapi dashboard
+- **Phase 2**: **BLOCKED** — Classifier workflow rewritten with pagination, heuristic verified (Emerald + `marketing`/`sso`→Brand, `dispensary`/`retail`/`owner`→Dispensary). Full 238-page run fails due to:
+  - GHL API returns 401 after ~54 pages (rate limit on PIT token)
+  - n8n Code node `this` context breaks when wrapping `this.helpers.httpRequest` in helper functions; must use directly inline
+  - Workaround needed: run in batches, use external script, or use Postgres-based `report_raw_ghl_contacts` table instead
+  - See `AGENTS.md` → Phase 2 Section for full debugging history
+- **Phase 3**: **DONE** — All 6 infra changes deployed (dialer mapping, intake poller campaign tags, enqueue dedup, dequeue bugfix + routing, callback trackedAssistants, Config includeOtherFields)
+- **Phase 4**: **BLOCKED** — Needs quality gate + classifier completion first
 
 ### 2. Voice Hardening
 
