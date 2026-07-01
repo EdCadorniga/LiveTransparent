@@ -43,14 +43,65 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Prefer `n8n-lt` MCP or direct API calls before browser workflows.
 - GHL MCP: primary `ghl_official`, secondary `ghl_katwill_*`.
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
-- **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. **Use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) and verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
+- **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. Use `setNodeParameter` for single-path edits on Set v3.4 nodes instead of `updateNodeParameters`. If `setNodeParameter` also fails, **use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) but note that PUT auto-publishes and validates all node credentials, which may fail if credential IDs aren't embedded in node JSON. For Code nodes, `updateNodeParameters` and `setNodeParameter` are both safe. Verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
+
+## n8n REST API Note
+
+When using direct n8n REST `PUT /api/v1/workflows/{id}`:
+- Required fields: `name`, `nodes`, `connections`, `settings`
+- Settings must NOT include `availableInMCP` (remove before PUT)
+- `versionId` and `tags` are read-only — exclude from body
+- `Content-Type: application/json` header is required
+- If settings get rejected as "additional properties", strip down to: `executionOrder`, `timezone`, `saveDataErrorExecution`, `saveDataSuccessExecution`, `saveManualExecutions`, `saveExecutionProgress`, `executionTimeout`, `callerPolicy`
+- Use `curl.exe` with JSON file for large payloads (PowerShell `ConvertTo-Json` can corrupt deep nested objects with `#` chars in API keys)
+
+## Known Issues & Fixes (2026-07-01)
+
+### LT - LinkedIn Connection State Sync (`ceaKnz6E3onQrZpt`)
+- **Issue**: Code node timed out at 300s scanning GHL contacts for LinkedIn profiles. Caused by a config field bug (`cfg.maxPages` used instead of `cfg.maxContacts`) and no HTTP timeout on Unipile API calls.
+- **Fix**: Published 2026-07-01. Changed `cfg.maxPages → cfg.maxContacts`, capped `maxPages` at 10, `maxContacts` at 50, added `timeout: 15000` to `apiRequest` HTTP calls.
+- **Code node note**: The `maxPages` and `maxContacts` are capped in the Code node itself (not just Config), so adjusting Config values beyond caps has no effect.
+
+### GHL Apollo Phone Enrichment Intake V3 (`WuxgTa0EEL1mb2SA`)
+- **Issue**: 3 webhook errors on 2026-06-30 with "Missing contactId in webhook payload". Root cause: the Set v3.4 Config node sometimes drops the webhook payload when `includeOtherFields` is not set, starving the Code node of `contactId`.
+- **Fix**: Code node now falls back to reading directly from `$item(0).$node['Webhook']?.json` if the primary input lacks contactId. Fix was already live in the active version as of 2026-07-01 audit.
+
+### LT - GA4 Daily Ingest (`6pCSGzFmrMDFL5Yq`)
+- **Issue**: Google Analytics OAuth2 credential expired (`EAUTH`). Caused hourly failures for 24+ hours.
+- **Fix**: Re-authorized OAuth2 credential on 2026-07-01. Verified with manual execution (success, ~11s).
+
+### LT - Voice Dequeue Next (`KsBMFcz1YpBGrjDW`) — pipeline_stage Bug
+- **Issue**: Dequeue query filters `AND pipeline_stage = 'queued'`, but `voice_call_queue` schema has **no `pipeline_stage` column** (confirmed in bootstrap SQL). This means the dequeue webhook has NEVER returned rows from the intake poller. V1 pipeline worked through the dialer cron path instead.
+- **Fix**: Remove `AND pipeline_stage = 'queued'` from dequeue query.
+- **Method**: `setNodeParameter` on Postgres node (safe).
+
+### LT - Voice Agent V1 Vapi Callback + Tools (`fx4UvKUWbqJEY3LK`) — trackedAssistants
+- **Issue**: `trackedAssistants` array in `Code - Detect Tool vs Callback` was hardcoded with only V1 Outbound + Inbound IDs. Campaign assistants would not be tracked for timer enforcement.
+- **Fix**: Added both campaign assistant IDs (`1d7c5d42...`, `056f2e50...`) to the array. Ideally move to Config node.
+
+### Vapi Campaign Rollout Phase 1 (2026-07-01)
+- **Phase 1 complete**: 2 new Vapi assistants created (Brand/Alex + Dispensary/Jordan) via Vapi API, 9 tools each, full system prompts from campaign docx files.
+- **Vapi tools cleanup**: 2 deprecated (`old_ok_ghl_calendar_*`) deleted, 1 dangling ref removed from Inbound assistant.
+- **John→Jason migration**: Transfer tool renamed (`ok_transfer_to_john` → `ok_transfer_to_jason`), all assistant prompts updated, n8n callback Switch + Set node updated. Keep phone same (+15622474600).
+- **Quality gate (pending)**: Manual test call per assistant before Phase 2.
+
+### Vapi Workflow Audit & Fixes (2026-07-01)
+- **Scope**: All 6 Vapi voice workflows reviewed and patched.
+- **LT - Voice Queue Vapi Intake Poller** (`bYk1Ai6MJLyhTsDZ`): Fixed critical bug — `Classify Contacts` Code node called undefined `removeTag()`, would crash on contacts with `vapi_voicemail`/`vapi_qualified` tags. Added real `removeTag()` function that calls GHL `DELETE /contacts/{id}/tags`.
+- **LT - Voice Agent V1 Vapi Callback + Tools** (`fx4UvKUWbqJEY3LK`):
+  - Converted 4 Postgres nodes from string-interpolated SQL (`'{{ $json.field }}'`) to parameterized queries (`$1`, `$2` with `queryReplacement`).
+  - Added Config node (Set v3.4) with all secrets (GHL API key, Vapi API key, Slack webhook, tool secret, dequeue URL). Wired into flow between Webhook and Code - Detect Tool vs Callback.
+  - Updated 8 nodes (GHL HTTP calls, Vapi background warning, Slack notification, GHL tool executor, dequeue trigger) to reference `$("Config").item.json.*` instead of hardcoded values.
+- **LT - Voice Queue Enqueue** (`XzcpOBi9YcIhJPck`): Converted SQL-building Code node + string-interpolated Postgres node to parameterized query pattern.
+- **LT - Voice Dequeue Next** (`KsBMFcz1YpBGrjDW`): Fixed SQL with doubled single quotes (`''pending''`). Added phone validation to Switch so empty/invalid phones don't reach Vapi.
+- **LT - Voice Agent V1 Outbound Dialer (Vapi)** (`r7UjWLndmc6EqEUW`): Extended cron from `*/2 14-21` to `*/2 14-22` UTC so CST winter time (UTC-6) doesn't miss the 9am CT hour.
+- **Config node warning note**: The `SET_CREDENTIAL_FIELD` warnings on Config nodes are advisory only — n8n lint flags the pattern but does not block execution. Formal n8n credentials are not required.
 
 ## Live Voice System
 
 | Item | Value |
 |------|-------|
 | Phone | `+1 (562) 534 1977` (`bd4ba248-a2b4-4738-b701-7c6a5ebb5bb4`) |
-| Assistant | `3f9bbfd2-efa6-4381-81e6-26f2452d28f1` |
 | Callback webhook | `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback` |
 | Key env | `VAPI_PHONE_NUMBER_ID`, `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV`, `GHL_API_KEY` / `GHL_PIT` |
 
@@ -58,6 +109,9 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 
 | Workflow | ID | Status |
 |----------|----|--------|
+| LT - Voice Campaign Brand (Alex) | `1d7c5d42-f0a4-4b58-9494-dbda3be3c657` | Created 2026-07-01 (not active) |
+| LT - Voice Campaign Dispensary (Jordan) | `056f2e50-8bdf-4257-ac45-4d575600c39d` | Created 2026-07-01 (not active) |
+| LT - Campaign Contact Classifier | `IduCoT5YOs0g2faT` | Manual (created 2026-07-01) |
 | LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | Paused 2026-06-05 |
 | LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Paused 2026-06-05 |
 | LT - Voice Queue Vapi Intake Poller | `bYk1Ai6MJLyhTsDZ` | Paused 2026-06-05 |
@@ -80,6 +134,47 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - `vapi_busy`
 - `vapi_wrong_number`
 - `vapi_contact_disconnected`
+
+### Vapi Campaign Tags (created 2026-07-01)
+
+- `vapi_campaign_brand` (`exfU7DXbFF1c314Z1QXQ`)
+- `vapi_campaign_dispensary` (`FiYEwJdMSIyKZa059wRY`)
+- `vapi_already_called` (`HhkfhzocuEdOFOxeeHu2`)
+
+## Vapi Campaign Rollout Plan (2026-07-01)
+
+Two new voice campaigns deploying alongside the existing V1 paused infrastructure. See `plan.md` for full step-by-step.
+
+### Campaign Definitions
+
+| Campaign | Persona | Target | Goal | Vapi Assistant ID | Campaign Tag |
+|----------|---------|--------|------|-------------------|--------------|
+| Brand Outreach | Alex | Brand marketing/growth leads | Book strategy call for Dispensary Attribution Network | `1d7c5d42-f0a4-4b58-9494-dbda3be3c657` | `vapi_campaign_brand` |
+| Dispensary Recruitment | Jordan | Dispensary owners/managers | Book call or email partner agreement | `056f2e50-8bdf-4257-ac45-4d575600c39d` | `vapi_campaign_dispensary` |
+
+### Phase 1 Complete (2026-07-01)
+- **Assistants created**: Brand/Alex + Dispensary/Jordan via Vapi API, 9 tools each, campaign doc prompts
+- **Vapi tools cleanup**: 2 deprecated tools deleted, 1 dangling ref removed, 14 remain
+- **John → Jason migration**: Transfer tool renamed, all assistant prompts updated, n8n switch + Set node updated
+- **Inbound assistant**: Added missing `ok_transfer_to_jason` tool
+- **Callback trackedAssistants**: Both new assistant IDs added for timer enforcement
+- **GHL tags created**: `vapi_campaign_brand`, `vapi_campaign_dispensary`, `vapi_already_called`
+
+### Prep Completed (2026-07-01)
+- **Queue cleanup**: 1,005 stale V1 `pending` rows → `failed`
+- **Pool audit**: 23,726 GHL contacts; 1,045 unique already called; ~16k Emerald pool
+- **Classifier workflow**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) created — queries voice_call_attempt + GHL contacts, classifies by Emerald tags
+- **Call history**: 1,711 total attempts across 1,045 contacts (voicemail=782, qualified/booked=305, connected=288, no_answer=212, busy=106, failed=18)
+
+### Bugs Discovered During Audit
+1. **Dequeue pipeline_stage bug**: `voice_call_queue` schema has no `pipeline_stage` column, but dequeue query filters `AND pipeline_stage = 'queued'`. Dequeue has NEVER returned rows from intake poller. V1 worked through dialer cron. Fix: remove the filter.
+2. **Callback trackedAssistants hardcoded**: Was a static array `['43f379ff...', '3f9bbfd2...']`. Now includes both campaign assistants. Ideally move to Config node.
+
+### Critical Infrastructure Changes Needed (Phase 3)
+1. Dialer must map `campaign_id → assistantId` (currently hardcoded to V1 assistant)
+2. Intake poller must seed from campaign-specific tags (currently only `vapi_queue`)
+3. Enqueue must dedup against existing queue rows by `contact_id`
+4. Fix dequeue `pipeline_stage` bug
 
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 
@@ -128,7 +223,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 
 - SimpleTexting: Send, delivery, inbound reply, and unsubscribe webhooks are active.
 - Unipile/LinkedIn: All pipeline workflows are active and verified live.
-- LinkedIn pipeline status (verified 2026-06-03): Sync seeds state table, Dispatcher sends connection requests, DM Sequence sends follow-ups with auto-connected-sync, daily limit enforcement, and reply detection.
+- LinkedIn pipeline status (verified 2026-07-01): Sync seeds state table, Dispatcher sends connection requests, DM Sequence sends follow-ups with auto-connected-sync, daily limit enforcement, and reply detection. LinkedIn Connection State Sync timeout fix published 2026-07-01.
 - LinkedIn GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (from root `.env`). The alternate token `pit-2d2ed8c3-...` is broken (401), do not use.
 - LinkedIn Code node regex pattern: always use `[/]` (character class) instead of `\/` in regex literals to avoid SDK JSON serialization corruption.
 - GHL warm intake/routing, Apollo enrichment, and Emerald/Cold outreach are active.
@@ -174,6 +269,9 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - `reports/nginx.conf`
 - `Backup of all n8n workflows/`
 - `Project Specifications.md`
+- `Vapi_Brand_Campaign.docx` — Brand campaign (Alex persona, brand marketing leads)
+- `Vapi_Dispensary_Campaign.docx` — Dispensary campaign (Jordan persona, dispensary owners)
+- `plan.md` — Vapi Campaign Rollout implementation plan (4 phases)
 
 ## repomix-output.md Refresh
 

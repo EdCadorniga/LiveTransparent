@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-06-30 (reference docs refresh)
+Updated: 2026-07-01 (Vapi Campaign Rollout Phase 1 Complete + John→Jason Migration)
 
 ## Source Of Truth
 
@@ -12,7 +12,9 @@ It supersedes the duplicated planning notes in:
 
 ## Current State
 
-- The outbound voice stack is live: queue-driven outbound calls, the merged callback webhook, and all 4 tools are active.
+- The outbound voice stack is **paused** (since 2026-06-05). Queue cleanup completed 2026-07-01: 1,005 stale `pending` rows marked `failed`. Pool audit complete: 23,726 GHL contacts, 1,045 unique already called via V1, ~16k Emerald pool as primary target for new campaigns.
+- **Vapi Campaign Rollout Phase 1 complete (2026-07-01)**: Two Vapi assistants created (Brand/Alex `1d7c5d42`, Dispensary/Jordan `056f2e50`) with full system prompts from campaign docx files, 9 tools each. GHL campaign tags created. Vapi org tools cleaned up (2 deprecated deleted, 1 dangling ref removed). `ok_transfer_to_john` → `ok_transfer_to_jason` migration across all assistants, prompts, and n8n callback. See `plan.md` for next phases.
+- **Bug discoveries during audit**: `voice_call_queue` has no `pipeline_stage` column — dequeue query filter `AND pipeline_stage = 'queued'` means dequeue webhook has NEVER picked up poller-inserted rows (V1 worked through dialer cron). Callback had hardcoded `trackedAssistants` array — now includes both new campaign assistants.
 - The reporting stack is live: GA4 and GHL ingestion are in production, data is flowing into Postgres, and the Executive Report is live in GHL.
 - Report rollups, attribution bridge, QA/alerts, and the executive summary API are already running.
 - Emerald email-marketing ingest workflows are **PAUSED 2026-06-05** (9 workflows unpublished). See [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md) for the full list and resumption playbook. **GHL email sequences still need to be paused manually in the GHL UI** for already-enrolled contacts.
@@ -36,13 +38,14 @@ It supersedes the duplicated planning notes in:
 ### Live Voice System
 
 - Phone: `+1 (562) 534 1977`
-- Vapi Assistant ID: `3f9bbfd2-efa6-4381-81e6-26f2452d28f1`
+- Vapi Assistant IDs: V1 Outbound `3f9bbfd2...`, V1 Inbound `43f379ff...`, Brand (Alex) `1d7c5d42...`, Dispensary (Jordan) `056f2e50...`
 - Canonical webhook: `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`
 - Target n8n version: `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
 - Canonical MCP: `n8n-lt`
 
 ### Active Workflows
 
+- `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) — **Manual, created 2026-07-01**, classifies GHL contacts by Brand/Dispensary using Emerald tags, cross-references voice_call_attempt to exclude called contacts
 - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — **PAUSED 2026-06-05**, was active, merged callback plus 4 tools
 - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — **PAUSED 2026-06-05**, was active, queue dialer, contact-TZ-aware, 72h cooldown
 - `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — **PAUSED 2026-06-05**, was active, polls `vapi_queue`, E.164 bypass
@@ -50,6 +53,7 @@ It supersedes the duplicated planning notes in:
 - `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — **PAUSED 2026-06-05**, was active, webhook dequeue then Vapi call
 - `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — **PAUSED 2026-06-05**, was active, GHL call webhooks to Postgres and Slack
 - **All 6 VAPI workflows are paused.** GHL-side infrastructure (reaper, Apollo V3/V4 callbacks, intake) remains active. Resumption playbook and queued goals documented in [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md).
+- **Voice queue cleanup (2026-07-01)**: 1,005 stale `pending` queue rows from the V1 pause marked `failed`. Post-cleanup queue: 86 completed, 1,005 failed, 0 pending. The 86 completed represent calls with callback dispositions; the remaining V1 contacts with `attempt_count > 0` but no completion are safe to re-enqueue into new campaigns.
 - `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly, flips GHL contacts stuck with `Apollo Phone Enrichment Status = queued` AND `Apollo Phone Enrichment Queued At < NOW - 24h` (or missing queued_at) to `callback_timeout` so the Vapi poller unblocks them. Verified first run (execution `75153`): scanned 500, stuck 500, updated 499, 1 contact (Joey Evans `nayDFnGCCcrVO9oTg4ls`) hit a transient 400 in the reaper log but the status field was actually written to `callback_timeout` (GHL dateUpdated confirms) and the Vapi poller will pick him up on a later batch. Source: `n8n/workflows/lt-apollo-queued-timeout-reaper.ts`.
 
 ### Dialer Pipeline
@@ -88,6 +92,18 @@ It supersedes the duplicated planning notes in:
 - `vapi_wrong_number`
 - `vapi_contact_disconnected`
 
+### Vapi Campaign Tags (created 2026-07-01)
+
+- `vapi_campaign_brand` (`exfU7DXbFF1c314Z1QXQ`)
+- `vapi_campaign_dispensary` (`FiYEwJdMSIyKZa059wRY`)
+- `vapi_already_called` (`HhkfhzocuEdOFOxeeHu2`)
+
+### Call History Summary (voice_call_attempt)
+
+- **1,711** total attempts across **1,045** unique contacts
+- Dispositions: voicemail=782, qualified/booked=305, connected=288, no_answer=212, busy=106, failed=18
+- All V1 calls were against the Emerald MSO/SSO contact pool
+
 ### Voice Hardening Remaining
 
 - Move remaining secrets out of workflow `Config` nodes into credentials or env-backed config.
@@ -109,22 +125,31 @@ It supersedes the duplicated planning notes in:
 
 ## Next Steps
 
-### 1. Voice Hardening
+### 1. Vapi Campaign Rollout (Phase 1 done — 2026-07-01)
+
+See `plan.md` for full step-by-step. Progress:
+- **Phase 1**: **DONE** — 2 assistants created (Alex `1d7c5d42`, Jordan `056f2e50`), tools cleaned up, John→Jason migrated, GHL tags created
+- **Quality gate (pending)**: Manual test call per assistant before moving to Phase 2
+- **Phase 2**: Fix classifier workflow to paginate all contacts, apply campaign GHL tags, exclude already-called
+- **Phase 3**: Modify dialer, callback, intake poller, add dedup gate, fix pipeline_stage bug
+- **Phase 4**: Smoke test each campaign, scale rollout
+
+### 2. Voice Hardening
 
 - Move remaining secrets out of workflow `Config` nodes into n8n credentials or env-backed config.
 - Verify the Vapi dashboard still points all tools and the end-of-call webhook at the current callback URL.
 
-### 2. Reporting Depth
+### 3. Reporting Depth
 
 - Expand the contact-capture panel by channel and landing page.
 - Build matched funnel views by channel, campaign, and landing page.
 
-### 3. Attribution Expansion
+### 4. Attribution Expansion
 
 - Build Meta Ads ingest for spend, clicks, impressions, and cost metrics.
 - Keep the user-facing emphasis on attribution first, then cost reporting.
 
-### 4. Cleanup And Adjacent Automation
+### 5. Cleanup And Adjacent Automation
 
 - Finish SimpleTexting secret hardening.
 - Deploy the staged SMS workflows and verify the live GHL pool query.
@@ -198,7 +223,8 @@ It supersedes the duplicated planning notes in:
 
 ## Working Order
 
-1. Voice hardening.
-2. Reporting depth.
-3. Meta attribution.
-4. Cleanup and adjacent automation.
+1. Vapi Campaign Rollout (new campaigns, 4 phases — see `plan.md`).
+2. Voice hardening.
+3. Reporting depth.
+4. Meta attribution.
+5. Cleanup and adjacent automation.

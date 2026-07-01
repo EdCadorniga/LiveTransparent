@@ -1,10 +1,10 @@
-This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
 The content has been processed where comments have been removed, empty lines have been removed, content has been compressed (code blocks are separated by ⋮---- delimiter).
 
 # File Summary
 
 ## Purpose
-This file contains a packed representation of the entire repository's contents.
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
 It is designed to be easily consumable by AI systems for analysis, code review,
 or other automated processes.
 
@@ -29,6 +29,7 @@ The content is organized as follows:
 ## Notes
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: AGENTS.md, plan.md, Project Status and Next Steps.md, Project Specifications.md, Vapi_Brand_Campaign.docx, Vapi_Dispensary_Campaign.docx
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Code comments have been removed from supported file types
@@ -39,21 +40,17 @@ The content is organized as follows:
 # Directory Structure
 ```
 AGENTS.md
-Dockerfile
-LiveTransparent Report Plan.md
-package.json
 plan.md
 Project Specifications.md
 Project Status and Next Steps.md
-QWEN.md
-Sales and Marketing Roadmap.md
-Unipile_potential_automations.md
+Vapi_Brand_Campaign.docx
+Vapi_Dispensary_Campaign.docx
 ```
 
 # Files
 
 ## File: AGENTS.md
-````markdown
+```markdown
 # LiveTransparent Agent Notes
 
 ## IMPORTANT — Read This First
@@ -99,7 +96,34 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Prefer `n8n-lt` MCP or direct API calls before browser workflows.
 - GHL MCP: primary `ghl_official`, secondary `ghl_katwill_*`.
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
-- **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. **Use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) and verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
+- **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. Use `setNodeParameter` for single-path edits on Set v3.4 nodes instead of `updateNodeParameters`. If `setNodeParameter` also fails, **use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) but note that PUT auto-publishes and validates all node credentials, which may fail if credential IDs aren't embedded in node JSON. For Code nodes, `updateNodeParameters` and `setNodeParameter` are both safe. Verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
+
+## Known Issues & Fixes (2026-07-01)
+
+### LT - LinkedIn Connection State Sync (`ceaKnz6E3onQrZpt`)
+- **Issue**: Code node timed out at 300s scanning GHL contacts for LinkedIn profiles. Caused by a config field bug (`cfg.maxPages` used instead of `cfg.maxContacts`) and no HTTP timeout on Unipile API calls.
+- **Fix**: Published 2026-07-01. Changed `cfg.maxPages → cfg.maxContacts`, capped `maxPages` at 10, `maxContacts` at 50, added `timeout: 15000` to `apiRequest` HTTP calls.
+- **Code node note**: The `maxPages` and `maxContacts` are capped in the Code node itself (not just Config), so adjusting Config values beyond caps has no effect.
+
+### GHL Apollo Phone Enrichment Intake V3 (`WuxgTa0EEL1mb2SA`)
+- **Issue**: 3 webhook errors on 2026-06-30 with "Missing contactId in webhook payload". Root cause: the Set v3.4 Config node sometimes drops the webhook payload when `includeOtherFields` is not set, starving the Code node of `contactId`.
+- **Fix**: Code node now falls back to reading directly from `$item(0).$node['Webhook']?.json` if the primary input lacks contactId. Fix was already live in the active version as of 2026-07-01 audit.
+
+### LT - GA4 Daily Ingest (`6pCSGzFmrMDFL5Yq`)
+- **Issue**: Google Analytics OAuth2 credential expired (`EAUTH`). Caused hourly failures for 24+ hours.
+- **Fix**: Re-authorized OAuth2 credential on 2026-07-01. Verified with manual execution (success, ~11s).
+
+### Vapi Workflow Audit & Fixes (2026-07-01)
+- **Scope**: All 6 Vapi voice workflows reviewed and patched.
+- **LT - Voice Queue Vapi Intake Poller** (`bYk1Ai6MJLyhTsDZ`): Fixed critical bug — `Classify Contacts` Code node called undefined `removeTag()`, would crash on contacts with `vapi_voicemail`/`vapi_qualified` tags. Added real `removeTag()` function that calls GHL `DELETE /contacts/{id}/tags`.
+- **LT - Voice Agent V1 Vapi Callback + Tools** (`fx4UvKUWbqJEY3LK`):
+  - Converted 4 Postgres nodes from string-interpolated SQL (`'{{ $json.field }}'`) to parameterized queries (`$1`, `$2` with `queryReplacement`).
+  - Added Config node (Set v3.4) with all secrets (GHL API key, Vapi API key, Slack webhook, tool secret, dequeue URL). Wired into flow between Webhook and Code - Detect Tool vs Callback.
+  - Updated 8 nodes (GHL HTTP calls, Vapi background warning, Slack notification, GHL tool executor, dequeue trigger) to reference `$("Config").item.json.*` instead of hardcoded values.
+- **LT - Voice Queue Enqueue** (`XzcpOBi9YcIhJPck`): Converted SQL-building Code node + string-interpolated Postgres node to parameterized query pattern.
+- **LT - Voice Dequeue Next** (`KsBMFcz1YpBGrjDW`): Fixed SQL with doubled single quotes (`''pending''`). Added phone validation to Switch so empty/invalid phones don't reach Vapi.
+- **LT - Voice Agent V1 Outbound Dialer (Vapi)** (`r7UjWLndmc6EqEUW`): Extended cron from `*/2 14-21` to `*/2 14-22` UTC so CST winter time (UTC-6) doesn't miss the 9am CT hour.
+- **Config node warning note**: The `SET_CREDENTIAL_FIELD` warnings on Config nodes are advisory only — n8n lint flags the pattern but does not block execution. Formal n8n credentials are not required.
 
 ## Live Voice System
 
@@ -114,6 +138,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 
 | Workflow | ID | Status |
 |----------|----|--------|
+| LT - Campaign Contact Classifier | `IduCoT5YOs0g2faT` | Manual (created 2026-07-01) |
 | LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | Paused 2026-06-05 |
 | LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Paused 2026-06-05 |
 | LT - Voice Queue Vapi Intake Poller | `bYk1Ai6MJLyhTsDZ` | Paused 2026-06-05 |
@@ -136,6 +161,40 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - `vapi_busy`
 - `vapi_wrong_number`
 - `vapi_contact_disconnected`
+
+### Vapi Campaign Tags (to create)
+
+- `vapi_campaign_brand`
+- `vapi_campaign_dispensary`
+- `vapi_already_called`
+
+## Vapi Campaign Rollout Plan (2026-07-01)
+
+Two new voice campaigns deploying alongside the existing V1 paused infrastructure. See `plan.md` for full step-by-step.
+
+### Campaign Definitions
+
+| Campaign | Persona | Target | Goal | Vapi Assistant ID | Campaign Tag |
+|----------|---------|--------|------|-------------------|--------------|
+| Brand Outreach | Alex | Brand marketing/growth leads | Book strategy call for Dispensary Attribution Network | TBD (create) | `vapi_campaign_brand` |
+| Dispensary Recruitment | Jordan | Dispensary owners/managers | Book call or email partner agreement | TBD (create) | `vapi_campaign_dispensary` |
+
+### Prep Completed (2026-07-01)
+- **Queue cleanup**: 1,005 stale V1 `pending` rows → `failed`
+- **Pool audit**: 23,726 GHL contacts; 1,045 unique already called; ~16k Emerald pool
+- **Classifier workflow**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) created — queries voice_call_attempt + GHL contacts, classifies by Emerald tags
+- **Call history**: 1,711 total attempts across 1,045 contacts (voicemail=782, qualified/booked=305, connected=288, no_answer=212, busy=106, failed=18)
+
+### Campaign Tags (to create)
+- `vapi_campaign_brand`
+- `vapi_campaign_dispensary`
+- `vapi_already_called`
+
+### Critical Infrastructure Changes Needed
+1. Dialer must map `campaign_id → assistantId` (currently hardcoded to V1 assistant)
+2. Intake poller must seed from campaign-specific tags (currently only `vapi_queue`)
+3. Enqueue must dedup against existing queue rows by `contact_id`
+4. Callback + Tools must handle per-campaign structured output schemas
 
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 
@@ -184,7 +243,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 
 - SimpleTexting: Send, delivery, inbound reply, and unsubscribe webhooks are active.
 - Unipile/LinkedIn: All pipeline workflows are active and verified live.
-- LinkedIn pipeline status (verified 2026-06-03): Sync seeds state table, Dispatcher sends connection requests, DM Sequence sends follow-ups with auto-connected-sync, daily limit enforcement, and reply detection.
+- LinkedIn pipeline status (verified 2026-07-01): Sync seeds state table, Dispatcher sends connection requests, DM Sequence sends follow-ups with auto-connected-sync, daily limit enforcement, and reply detection. LinkedIn Connection State Sync timeout fix published 2026-07-01.
 - LinkedIn GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (from root `.env`). The alternate token `pit-2d2ed8c3-...` is broken (401), do not use.
 - LinkedIn Code node regex pattern: always use `[/]` (character class) instead of `\/` in regex literals to avoid SDK JSON serialization corruption.
 - GHL warm intake/routing, Apollo enrichment, and Emerald/Cold outreach are active.
@@ -230,6 +289,9 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - `reports/nginx.conf`
 - `Backup of all n8n workflows/`
 - `Project Specifications.md`
+- `Vapi_Brand_Campaign.docx` — Brand campaign (Alex persona, brand marketing leads)
+- `Vapi_Dispensary_Campaign.docx` — Dispensary campaign (Jordan persona, dispensary owners)
+- `plan.md` — Vapi Campaign Rollout implementation plan (4 phases)
 
 ## repomix-output.md Refresh
 
@@ -239,38 +301,10 @@ After any significant work session (workflow fixes, new automations, config chan
 2. `packlive`
 
 This stages key files into `C:\TempRepomixStaging`, runs `npx repomix --style markdown --compress --remove-comments --remove-empty-lines`, and copies the result back to the project root.
-````
-
-## File: Dockerfile
-````dockerfile
-FROM nginx:1.27-alpine
-
-COPY reports/nginx.conf /etc/nginx/conf.d/default.conf
-COPY reports /usr/share/nginx/html
-````
-
-## File: LiveTransparent Report Plan.md
-````markdown
-# LiveTransparent Report Plan
-
-This note is now a pointer to the canonical project status document:
-
-- [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
-
-Use that file for the current state and priority order so reporting work stays aligned with the voice plan.
-````
-
-## File: package.json
-````json
-{
-  "dependencies": {
-    "@n8n/workflow-sdk": "^0.13.3"
-  }
-}
-````
+```
 
 ## File: plan.md
-````markdown
+```markdown
 # Plan Pointer
 
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
@@ -280,10 +314,47 @@ Use that file for the current state and priority order so reporting work stays a
 - For LinkedIn, keep invite copy and DM copy aligned to `outreach_messages.v2.docx`, and keep reply-stop behavior active.
 - For SMS, use `outreach_messages.docx` as the campaign source, with batch dispatch, per-send tagging, shared reply-state tracking, and `#lead` notifications on response.
 - Keep this file short; the detailed operating status belongs in `Project Status and Next Steps.md`.
-````
+
+## Vapi Campaign Rollout — Implementation Plan (2026-07-01)
+
+### Overview
+Two new Vapi voice campaigns targeting the Dispensary Attribution Network:
+- **Brand Campaign (Alex)** — sell network participation to cannabis brand marketing leads
+- **Dispensary Campaign (Jordan)** — recruit dispensaries as network partner locations
+
+### Completed Prep Work
+1. **Queue cleanup**: 1,005 stale V1 pending rows marked `failed`
+2. **Contact pool audit**: 23,726 GHL contacts; 1,045 already called via V1; ~16k Emerald contacts are primary pool
+3. **Classification signals mapped**: Apollo enrichment fields, Emerald MSO/SSO tags, role tags
+4. **`LT - Campaign Contact Classifier`** (`IduCoT5YOs0g2faT`) created with cross-ref + heuristic logic
+
+### Phase 1 — Vapi Assistants
+1. Create Brand assistant (Alex persona) with brand-specific system prompt, tools, structured output
+2. Create Dispensary assistant (Jordan persona) with dispensary-specific system prompt, tools, structured output
+3. Add campaign tags `vapi_campaign_brand` and `vapi_campaign_dispensary` to GHL tag registry
+4. Decide: same phone number or second number for separate caller IDs
+
+### Phase 2 — Contact Classification
+5. Fix classifier workflow to paginate through all GHL contacts (237 pages at 100/page)
+6. Cross-reference each against `voice_call_attempt` (1,045 excluded)
+7. Apply `vapi_campaign_brand` or `vapi_campaign_dispensary` GHL tag per classification
+8. Tag already-called contacts with `vapi_already_called` for exclusion
+
+### Phase 3 — Infrastructure Modifications
+9. Modify outbound dialer: add `campaign_id -> assistantId` mapping in Vapi HTTP body builder
+10. Update callback + tools workflow: handle per-campaign structured output schemas
+11. Update intake poller: seed from campaign-specific tags instead of single `vapi_queue`
+12. Add dedup gate to enqueue: `SELECT contact_id FROM voice_call_queue WHERE contact_id = $1 AND status IN ('pending','in_progress')`
+
+### Phase 4 — Reactivation & Testing
+13. Seed test queue: 5 Brand + 5 Dispensary contacts manually
+14. Reactivate dialer, callback, outcome ingest workflows
+15. Run smoke test batch, verify dispositions logged correctly
+16. Scale: activate intake poller for campaign tags, roll out in controlled batches
+```
 
 ## File: Project Specifications.md
-````markdown
+```markdown
 # Project Specifications: Outbound Voice Agent and Social Outreach
 
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This file defines boundaries, guardrails, and contracts; it does not repeat the architecture.
@@ -425,13 +496,13 @@ Normalized callback output:
 5. Prepare a single SMS test contact and confirm one SMS send is tagged in state.
 6. Simulate an inbound SMS reply and confirm the response workflow updates the same canonical state.
 7. Confirm unsubscribe handling blocks any future SMS sends for opted-out contacts.
-````
+```
 
 ## File: Project Status and Next Steps.md
-````markdown
+```markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-06-30 (reference docs refresh)
+Updated: 2026-07-01 (Vapi Campaign Rollout Prep + Queue Cleanup)
 
 ## Source Of Truth
 
@@ -443,7 +514,8 @@ It supersedes the duplicated planning notes in:
 
 ## Current State
 
-- The outbound voice stack is live: queue-driven outbound calls, the merged callback webhook, and all 4 tools are active.
+- The outbound voice stack is **paused** (since 2026-06-05). Queue cleanup completed 2026-07-01: 1,005 stale `pending` rows marked `failed`. Pool audit complete: 23,726 GHL contacts, 1,045 unique already called via V1, ~16k Emerald pool as primary target for new campaigns.
+- **Vapi Campaign Rollout prep completed 2026-07-01**: Two new campaigns documented (Brand/Alex + Dispensary/Jordan), `LT - Campaign Contact Classifier` workflow created (`IduCoT5YOs0g2faT`), classification signals mapped, dedup and cross-reference logic designed. See `plan.md` for full implementation plan.
 - The reporting stack is live: GA4 and GHL ingestion are in production, data is flowing into Postgres, and the Executive Report is live in GHL.
 - Report rollups, attribution bridge, QA/alerts, and the executive summary API are already running.
 - Emerald email-marketing ingest workflows are **PAUSED 2026-06-05** (9 workflows unpublished). See [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md) for the full list and resumption playbook. **GHL email sequences still need to be paused manually in the GHL UI** for already-enrolled contacts.
@@ -474,6 +546,7 @@ It supersedes the duplicated planning notes in:
 
 ### Active Workflows
 
+- `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) — **Manual, created 2026-07-01**, classifies GHL contacts by Brand/Dispensary using Emerald tags, cross-references voice_call_attempt to exclude called contacts
 - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — **PAUSED 2026-06-05**, was active, merged callback plus 4 tools
 - `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — **PAUSED 2026-06-05**, was active, queue dialer, contact-TZ-aware, 72h cooldown
 - `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — **PAUSED 2026-06-05**, was active, polls `vapi_queue`, E.164 bypass
@@ -481,6 +554,7 @@ It supersedes the duplicated planning notes in:
 - `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — **PAUSED 2026-06-05**, was active, webhook dequeue then Vapi call
 - `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — **PAUSED 2026-06-05**, was active, GHL call webhooks to Postgres and Slack
 - **All 6 VAPI workflows are paused.** GHL-side infrastructure (reaper, Apollo V3/V4 callbacks, intake) remains active. Resumption playbook and queued goals documented in [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md).
+- **Voice queue cleanup (2026-07-01)**: 1,005 stale `pending` queue rows from the V1 pause marked `failed`. Post-cleanup queue: 86 completed, 1,005 failed, 0 pending. The 86 completed represent calls with callback dispositions; the remaining V1 contacts with `attempt_count > 0` but no completion are safe to re-enqueue into new campaigns.
 - `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly, flips GHL contacts stuck with `Apollo Phone Enrichment Status = queued` AND `Apollo Phone Enrichment Queued At < NOW - 24h` (or missing queued_at) to `callback_timeout` so the Vapi poller unblocks them. Verified first run (execution `75153`): scanned 500, stuck 500, updated 499, 1 contact (Joey Evans `nayDFnGCCcrVO9oTg4ls`) hit a transient 400 in the reaper log but the status field was actually written to `callback_timeout` (GHL dateUpdated confirms) and the Vapi poller will pick him up on a later batch. Source: `n8n/workflows/lt-apollo-queued-timeout-reaper.ts`.
 
 ### Dialer Pipeline
@@ -519,6 +593,18 @@ It supersedes the duplicated planning notes in:
 - `vapi_wrong_number`
 - `vapi_contact_disconnected`
 
+### Vapi Campaign Tags (to create)
+
+- `vapi_campaign_brand`
+- `vapi_campaign_dispensary`
+- `vapi_already_called`
+
+### Call History Summary (voice_call_attempt)
+
+- **1,711** total attempts across **1,045** unique contacts
+- Dispositions: voicemail=782, qualified/booked=305, connected=288, no_answer=212, busy=106, failed=18
+- All V1 calls were against the Emerald MSO/SSO contact pool
+
 ### Voice Hardening Remaining
 
 - Move remaining secrets out of workflow `Config` nodes into credentials or env-backed config.
@@ -540,22 +626,30 @@ It supersedes the duplicated planning notes in:
 
 ## Next Steps
 
-### 1. Voice Hardening
+### 1. Vapi Campaign Rollout (NEW — 2026-07-01)
+
+See `plan.md` for full step-by-step. High-level phases:
+- **Phase 1**: Create 2 new Vapi assistants (Alex/Brand, Jordan/Dispensary) with prompts, tools, structured output
+- **Phase 2**: Fix classifier workflow to paginate all contacts, apply campaign GHL tags, exclude already-called
+- **Phase 3**: Modify dialer (`campaign_id -> assistantId`), callback (per-campaign structured output), intake poller (campaign tags), add dedup gate
+- **Phase 4**: Smoke test each campaign, scale rollout
+
+### 2. Voice Hardening
 
 - Move remaining secrets out of workflow `Config` nodes into n8n credentials or env-backed config.
 - Verify the Vapi dashboard still points all tools and the end-of-call webhook at the current callback URL.
 
-### 2. Reporting Depth
+### 3. Reporting Depth
 
 - Expand the contact-capture panel by channel and landing page.
 - Build matched funnel views by channel, campaign, and landing page.
 
-### 3. Attribution Expansion
+### 4. Attribution Expansion
 
 - Build Meta Ads ingest for spend, clicks, impressions, and cost metrics.
 - Keep the user-facing emphasis on attribution first, then cost reporting.
 
-### 4. Cleanup And Adjacent Automation
+### 5. Cleanup And Adjacent Automation
 
 - Finish SimpleTexting secret hardening.
 - Deploy the staged SMS workflows and verify the live GHL pool query.
@@ -629,613 +723,9 @@ It supersedes the duplicated planning notes in:
 
 ## Working Order
 
-1. Voice hardening.
-2. Reporting depth.
-3. Meta attribution.
-4. Cleanup and adjacent automation.
-````
-
-## File: QWEN.md
-````markdown
-# LiveTransparent Project
-
-## Project Overview
-
-LiveTransparent is a marketing automation and CRM operations platform for a B2B compliance advertising agency focused on regulated cannabis marketing. The project orchestrates lead intake, warm lead routing, cold outreach, and email sequence campaigns using a combination of:
-
-- **n8n** - Workflow automation engine (public URL: `https://automations.livetransparent.com`)
-- **GoHighLevel (GHL)** - CRM and sequence delivery platform
-- **PostgreSQL** - Contact storage, release logs, and company research cache
-- **BookStack** - Internal knowledgebase (prepared, not yet deployed)
-
-The system is deployed on a VPS using **Coolify** with Docker Compose services connected over a shared internal network (`coolify-shared`).
-
-### Core Capabilities
-
-1. **Warm Lead Intake** - Multi-channel webhook intake (LinkedIn, Meta, Email, SMS, Referral, Website forms) with automatic tagging and routing into CRM pipelines
-2. **Cold Outreach** - Apollo-enriched contact ingestion with sender-capped dispatch and timezone-aware delivery
-3. **Email Sequence Campaigns** - A/B tested sequences (e.g., Cannabis Ads, Emerald campaign) with GHL workflow delivery
-4. **Company Research** - AI-powered company enrichment cached in Postgres for personalized email content
-5. **RB2B Integration** - Website visitor identification with GHL reconciliation and follow-up task creation
-
-## Directory Structure
-
+1. Vapi Campaign Rollout (new campaigns, 4 phases — see `plan.md`).
+2. Voice hardening.
+3. Reporting depth.
+4. Meta attribution.
+5. Cleanup and adjacent automation.
 ```
-LiveTransparent/
-├── n8n/                              # n8n service Docker Compose and config
-│   ├── docker-compose.yml
-│   └── nodes/                        # Service reference docs (Apollo, GHL, Twilio)
-├── postgres/                         # PostgreSQL service definition
-│   └── docker-compose.yml
-├── bookstack/                        # Internal knowledgebase (staged for deployment)
-│   ├── docker-compose.yml
-│   ├── .env.example
-│   └── README.md
-├── scripts/                          # Operational scripts and helpers
-│   ├── rerun_bad_emerald_sso_companies.py
-│   └── patch_simpletexting_callbacks.py
-├── emerald-email-campaign/           # Emerald campaign workspace
-│   ├── plan.md
-│   ├── dispatcher-plan.md
-│   ├── workflow-mapping.md
-│   └── Exported Emerald Contacts.csv
-├── Emerald Contacts/                 # Emerald source CSV merger and import generator
-│   ├── build_ghl_import.py
-│   └── README.md
-├── cold-outreach-prep/               # Cold outreach workbook processing
-│   ├── prepare_cold_outreach.ps1
-│   ├── ghl/                          # GHL import CSVs
-│   ├── postgres/                     # Postgres ingest CSVs
-│   └── reports/                      # Validation and duplicate reports
-├── GHL Live Transparent CRM/         # GHL process docs and runbooks
-│   ├── Pipeline_Quick_Reference.md
-│   ├── Cannabis_Ads_Sender_Routing_Runbook.md
-│   └── RB2B_Website_Visitor_Intake_Workflow.md
-├── Marketing Docs/                   # Brand voice, ICP, and segment strategy
-│   ├── Transparent_eCom_Brand_Voice_And_Foundation.docx
-│   ├── Transparent_eCom_Core_Customer_ICP.docx
-│   └── Transparent_eCom_Strategic_Priority_Segments.docx
-├── EMAIL templates/                  # Email sequence HTML templates
-├── ghl create sequence plan/         # Sequence build specs and A/B rollout artifacts
-├── Backup of all n8n workflows/      # Full n8n workflow JSON backups
-├── AGENTS.md                         # Agent rules and operational notes (source of truth)
-└── QWEN.md                           # This file
-```
-
-## Building and Running
-
-### Docker Services (Coolify Deployment)
-
-All services are deployed via Coolify using Docker Compose. Local development is not the primary workflow; changes are pushed to the repo and deployed through Coolify.
-
-**n8n Service** (`n8n/docker-compose.yml`):
-```bash
-# Deployed via Coolify with:
-# - Image: n8nio/n8n:2.9.4
-# - Public host: automations.livetransparent.com
-# - Internal network: coolify-shared
-# - Postgres backend
-```
-
-**PostgreSQL Service** (`postgres/docker-compose.yml`):
-```bash
-# Deployed via Coolify with:
-# - Image: postgres:17.7
-# - Internal network: coolify-shared
-# - Persistent volume: postgres_data
-```
-
-**BookStack Service** (`bookstack/docker-compose.yml`):
-```bash
-# Staged for deployment (not yet live)
-# - Internal knowledgebase restricted to team access
-# - MariaDB backend
-# - Traefik routing via Coolify
-```
-
-### Operational Scripts
-
-**PowerShell - Cold Outreach Prep**:
-```powershell
-# Process Cold-outreach contacts.xlsx into GHL/Postgres import CSVs
-.\cold-outreach-prep\prepare_cold_outreach.ps1
-```
-
-**Python - Emerald Cache Reset**:
-```powershell
-# Create temporary reset workflow for bad cache rows
-python scripts/rerun_bad_emerald_sso_companies.py create [company_keys...]
-
-# Delete temporary workflow after execution
-python scripts/rerun_bad_emerald_sso_companies.py delete <workflow_id>
-```
-
-### n8n Workflow Management
-
-**Direct REST API** (verified working from Windows):
-```bash
-# Get workflow
-curl -H "X-N8N-API-KEY: <key>" "https://automations.livetransparent.com/api/v1/workflows/<id>"
-
-# Update workflow (minimal payload)
-curl -X PUT -H "X-N8N-API-KEY: <key>" -H "Content-Type: application/json" \
-  -d '{"name":"...","nodes":[...],"connections":{...},"settings":{}}' \
-  "https://automations.livetransparent.com/api/v1/workflows/<id>"
-```
-
-**MCP Tools** (via Codex):
-- Use `n8n-lt` MCP for workflow discovery, activation checks, and execution
-- Use `ghl_official` MCP for GHL data reads
-- Use `ghl_workflows` MCP with caution (some endpoints may fail with scope errors)
-
-## Key Configuration Files
-
-### Environment Variables
-
-- **Root `.env`** - Shared credentials (not tracked in git)
-- **`n8n/.env`** - n8n-specific secrets (encryption key, DB password)
-- **`bookstack/.env.example`** - BookStack environment template
-
-### Service References
-
-- **`n8n/nodes/apollo/REFERENCE.md`** - Apollo API endpoint mapping
-- **`n8n/nodes/ghl/REFERENCE.md`** - GHL API endpoint mapping
-- **`n8n/nodes/twilio/REFERENCE.md`** - Twilio API endpoint mapping
-
-## Development Conventions
-
-### Workflow Update Pattern
-
-1. **Verify first** - Use `n8n-lt` MCP to read current workflow state
-2. **Build locally** - Construct full `nodes` and `connections` arrays locally
-3. **Direct REST for large changes** - Use `PUT /workflows/{id}` with minimal payload (`name`, `nodes`, `connections`, `settings`)
-4. **Verify after** - Re-read workflow and confirm `active`, `defaultDryRun`, and changed parameters
-
-### GHL Integration Rules
-
-- **Field naming** - Use exact GHL custom field names (e.g., `marketing_sender_email`, `Apollo Phone Enrichment Status`)
-- **Tag hygiene** - Tags are appended non-destructively; removal requires explicit action
-- **Pipeline stages** - Reference by ID, not name (see `AGENTS.md` for locked pipeline map)
-- **Direct API fallback** - If MCP fails with scope errors, test endpoint directly against `https://services.leadconnectorhq.com`
-- **LinkedIn supply path** - For the LinkedIn connection-request queue, use the working GHL `contacts/` list endpoint and filter locally by LinkedIn URL custom fields and tags. Treat `contacts/search` failures against private-integration tokens as a live blocker, not a harmless empty result.
-
-### Data Processing
-
-- **CSV imports** - Dedupe by email first, then name/company, then phone
-- **Snake case conversion** - Postgres columns use snake_case (handled by `prepare_cold_outreach.ps1`)
-- **Timezone handling** - Contact-local dispatch with explicit timezone resolution order
-- **Dry-run discipline** - Keep `defaultDryRun=true` for staged workflows until ready for production
-
-### Marketing Copy Alignment
-
-Before drafting or revising contact-facing copy, reference:
-- **Brand voice** - `Marketing Docs/Transparent_eCom_Brand_Voice_And_Foundation.docx`
-- **ICP** - `Marketing Docs/Transparent_eCom_Core_Customer_ICP.docx`
-- **Segments** - `Marketing Docs/Transparent_eCom_Strategic_Priority_Segments.docx`
-
-Flag conflicts with these docs before proceeding.
-
-## Active Workflows (Snapshot)
-
-See `AGENTS.md` for the authoritative, up-to-date workflow inventory. Key production workflows include:
-
-| Workflow | ID | Status |
-|----------|-----|--------|
-| Website Lead Intake (Hero) | `RTV5jUiTt05lad07` | Active |
-| Website Lead Intake (Footer) | `RSfLF7LU0rDC4jAI` | Active |
-| GHL Apollo Phone Enrichment - Callback Handler V4 | `U7c6byTLXAMgcS75` | Active |
-| LT - Cold Outreach Sender Release Dispatcher | `NTpQnMrpjzusPXHX` | Active |
-| LT - Emerald Campaign Sender Release Dispatcher | `8UXlpoMJnQ229AuG` | Active |
-| rb2b leads | `3kjsIUeoEQFx26cC` | Active |
-| WL - Webhook to Slack Channel Update | `lQTW0QPwBcf3o7j8` | Active |
-
-## GHL Pipelines (Locked Map)
-
-### Warm Pipeline
-`New` → `Qualified (MQL)` → `Routed to Outreach` → `Nurture Active` → `Disqualified`
-
-### Sales Outreach Pipeline
-`New` → `Attempting Contact` → `Engaged` → `Meeting Requested` → `Booked` → `Unresponsive`
-
-### Sales Pipeline
-`Discovery Scheduled` → `Discovery Completed` → `Proposal Sent` → `Negotiation` → `Closed Won` → `Closed Lost`
-
-## Important Operational Notes
-
-1. **Status freshness** - Treat all "Current" / "Active" status items in `AGENTS.md` as "last known state" and re-verify in-system before acting
-2. **TLS/schannel on Windows** - Direct `curl.exe` to HTTPS endpoints may fail; use Python `requests` or Node `fetch` for API verification
-3. **MCP mutation limits** - If `n8n-lt` mutation helpers fail or ignore `active`, switch to direct REST API
-4. **Emerald campaign** - Use Postgres table `Emerald_Campaign_Contacts` as dispatch source, not live GHL smart lists
-5. **Sender caps** - Week 1: 300/day, Week 2: 400/day, Week 3+: 500/day (total outbound per sender, including in-flight sequence sends)
-
-## Related Documentation
-
-- **`AGENTS.md`** - Comprehensive agent rules, workflow status, and operational notes (source of truth)
-- **`GHL Live Transparent CRM/Pipeline_Quick_Reference.md`** - Pipeline stage definitions and movement rules
-- **`emerald-email-campaign/plan.md`** - Emerald campaign architecture and locked decisions
-- **`bookstack/README.md`** - BookStack deployment instructions
-- **`Project Status and Next Steps.md`** - Canonical live state plus the current LinkedIn troubleshooting handoff
-````
-
-## File: Sales and Marketing Roadmap.md
-````markdown
-# Sales and Marketing Roadmap
-
-## KPI Framework
-
-### Lead Generation
-- Qualified outbound leads per week
-- Open / response rates in sequences
-- Appointment show rate
-
-### Next Week Report Plan
-- Add sequence-event ingest so we can show real sequence performance instead of only enrollments.
-- Tighten landing-page and form tracking so we can trust the matched funnel by landing page.
-- [x] Show a short summary of the most visited pages on the website using the landing-page rollup we already have.
-
-### Conversion
-- Lead → MQL → SQL conversion rate
-- SQL → Proposal → Close rate
-- Pipeline velocity (days between stages)
-- Stage-by-stage opportunity movement (moved-in / moved-out per stage)
-- Opportunity cycle length (days from first stage to close)
-
-### Operational Efficiency
-- % of outbound automated vs manual
-- Lead scoring accuracy (hit rate among top scores)
-- Sales cycle length changes
-
-### Revenue Impact
-- Pipeline contribution per month
-- ROI of tools + sequences
-
----
-
-## Current State
-
-| System | Status |
-|--------|--------|
-| GoHighLevel (GHL) | Production — CRM, pipeline, routing, reporting |
-| Apollo.io | Production — enrichment, outbound sequences |
-| Meta Ads API | Validated — attribution-first reporting live |
-| GA4 | Live — sessions, channels, engagement |
-| GSC | Live — Search Console clicks, impressions, CTR, position |
-| Clay | Planned — Phase 2 |
-| n8n Orchestration | Production — all report workflows active |
-
----
-
-## Executive Report Data Sources
-
-The executive report (`reports/embed/executive/index.html`) surfaces data from:
-
-| Source | Workflow | Data |
-|--------|----------|------|
-| GHL Contacts | `LT - GHL Daily Leads Ingest` | Contacts, UTM fields, warm source, routing metadata |
-| GHL Opportunities | `LT - GHL Daily Sales Ingest` | Pipeline stages, closed-won revenue |
-| GHL Calls | `LT - GHL Daily Calls Ingest` | Voice call logs: status, direction, duration |
-| GHL Appointments | `LT - GHL Daily Appointments Ingest` | Calendar events: booked, showed, no-show |
-| GA4 Sessions | `LT - GA4 Daily Ingest` | Sessions, users, engagement by channel/landing page |
-| GSC Search | `LT - GSC Daily Ingest` | Clicks, impressions, CTR, average position, queries, pages |
-| Attribution Bridge | `LT - Report Attribution Bridge` | Traffic → contact matching |
-| Daily Rollups | `LT - Report Daily Rollups` | Aggregated summary, channel, UTM, landing page tables |
-| Executive API | `LT - Report Executive Summary API` | JSON served to embed via n8n webhook |
-
-### GHL Custom Fields Captured for Reporting
-- `UTM Source First/Last`, `UTM Medium First/Last`, `UTM Campaign First/Last`, `UTM Content First/Last`, `UTM Term First/Last`, `UTM Landing Page First/Last`
-- `Warm Source`, `Warm Trigger Type`, `Lead Temperature`
-- `LT Last Routing Channel`, `LT Last Routing Reason`, `LT Last Routed At`
-- `LT Route Lock Until`, `LT Routing Priority`, `LT Last Event Fingerprint`, `LT Last Event At`
-
----
-
-## Active Pipelines
-
-| Pipeline | Stages |
-|----------|--------|
-| Warm | New → Qualified (MQL) → Routed to Outreach → Nurture Active → Disqualified |
-| Sales Outreach | New → Attempting Contact → 2nd attempt → 3rd attempt → Engaged → Meeting Requested → Booked → Unresponsive |
-| Sales | Discovery Scheduled → Discovery Completed → Proposal Sent → Negotiation → Closed Won / Closed Lost |
-
----
-
-## Phase 1 — Live (Now → +90 days)
-
-### Stack
-- **GHL** — CRM, pipeline, routing, warm lead management
-- **Apollo.io** — Enrichment, outbound sequences, SDR motion
-- **Meta Ads** — Attribution-first reporting via GA4 UTM + GHL bridge
-- **n8n** — All ingestion, bridge, rollup, and alerting orchestration
-
-### Why GHL + Apollo
-- Faster hiring (reps can operate in one tool)
-- Faster pipeline (built-in routing eliminates manual handoffs)
-- Lower cognitive load (scoring + routing automated)
-- Gets reps + ops aligned quickly
-
-### What to Test
-- Messaging variants per vertical
-- Offer framing by company size / industry
-- Channel routing (which warm sources convert best)
-
-### Key Constraints
-- Enforce quality filters: titles, industries, revenue bands
-- Don't let Apollo become spammy — enforce cadence limits
-- Use GHL scoring + routing immediately — don't manual-tag
-
----
-
-## Phase 2 — Planned (Once outbound proves ROI)
-
-### Add Clay — precision layer on top of Apollo
-
-Clay handles:
-- Enterprise / strategic accounts
-- Founder-led brands
-- Platforms, MSOs, aggregators
-- High-intent, high-context outreach
-
-Apollo continues doing:
-- Broad outbound
-- SDR motion
-- Volume coverage
-
-### Clay Use Cases
-- "Top 500 cannabis brands" — targeted account list
-- "Brands spending on Meta but blocked" — retargeting pool
-- "Recently funded alternative wellness brands" — funded signal
-
----
-
-## Deferred / Blocked
-
-| Item | Status | Notes |
-|------|--------|-------|
-| GSC Daily Ingest | Active | Search Console access granted; workflow healthy |
-| Meta Ads raw spend ingest | Deferred | Attribution-first path live; spend reporting deferred |
-| Clay integration | Planned Phase 2 | Not started |
-| Matched funnel by landing page | Planned | Needs tighter landing-page and form tracking first |
-| Sequence event performance | Planned next week | Need open, reply, click, bounce, and unsubscribe events from Apollo sequences |
-| GHL → LinkedIn automation | Planned | LinkedIn connect dispatcher active; full workflow deferred |
-| GHL Calls & Appointments Ingest | Active | Appointments ingest live (`yWZVSqEcjTbMT3kG`, calendar `SrtXcFVyea7pFl3nTiIK`); Calls ingest live from GHL Conversations |
-| Pipeline stage velocity (days per stage) | Active | `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`) calculates this by combining pipeline history events with the previous stage record for each opportunity |
-
----
-
-## Report Data Contract
-
-Minimum v1 output from the executive report:
-- [x] GA4 sessions by channel
-- [x] GA4 landing pages
-- [x] GHL contacts created
-- [x] GHL opportunities created
-- [x] GHL closed-won revenue
-- [x] Funnel efficiency rates (session→contact, contact→opp, opp→meeting, meeting→won)
-- [x] Attribution coverage rates (source fields, bridge match, sale match)
-- [x] Meta attribution panel (GA4 UTM + GHL bridge)
-- [x] Pipeline stage velocity (avg days per stage, per-opp timeline)
-- [x] Sales Detail panel (win rate, deals by stage, pipeline value)
-- [x] GSC clicks and impressions
-- [ ] Meta raw spend/clicks/impressions (deferred)
-- [ ] Matched funnel by landing page (after tracking is tightened)
-- [ ] Sequence event performance (opens, replies, clicks, bounces, unsubscribes)
-
-### Pipeline Movement Tracking
-
-| Metric | Status | Notes |
-|--------|--------|-------|
-| Stage counts by day | Working | `report_stage_daily_summary.stage_count` |
-| Moved-in count | Working | Computed via LAG window comparing previous day's stage count |
-| Moved-out count | Working | Computed via LAG window comparing previous day's stage count |
-| Won/lost counts | Working | From opportunity status mapping |
-| Pipeline history raw events | Captured | `report_raw_ghl_pipeline_history` table populated by GHL Daily Sales Ingest |
-| Stage-by-stage velocity | Live | Computed by `LT - Report Pipeline Velocity` using pipeline history events plus the previous stage for each opportunity; writes to `report_stage_velocity_summary` and `report_opp_stage_timeline` |
-| Opportunity cycle length | Live | Now computed from actual event timestamps via `report_opp_stage_timeline.days_in_stage` |
-| True stage transition timestamps | Live | `report_opp_stage_timeline` has `entered_at` / `exited_at` per opportunity per stage |
-
-**Resolved**: Pipeline velocity (avg days between stages) is now computed from actual pipeline history event timestamps by `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`). The workflow uses a query that compares each stage event to the previous stage event for the same opportunity, then writes to `report_stage_velocity_summary` (14 stages across 3 pipelines) and `report_opp_stage_timeline` (50,522 rows). Runs daily at 24h interval.
-
-Additional reporting requests that would be sub sections under the main section and can be covered in calls more in depth by team leads
-Sales (john)
-- Total calls by status → Available via `report_raw_ghl_calls` and the Calls & Conversations panel in the Executive Report
-- Total meetings and if they showed → Available via `report_raw_ghl_appointments` (ingested by `LT - GHL Daily Appointments Ingest`, calendar `SrtXcFVyea7pFl3nTiIK`)
-- Contract closed and pending → Available via Sales Detail panel and Deal Stage Pipeline in executive report
-- Win rate (closed won / closed total) → Available in Sales Quality panel
-
-Social and site (chella)
-- Social engagement: comments, reactions etc. → Needs Meta/Facebook Graph API (not in GHL)
-- Website visits and traffic source → Already available via GA4 + channel breakdown
-- Interactions on website: page visited, form fills etc. → Already available via GA4 landing pages + GHL forms
-
-Next-week follow-up
-- Sequence reporting → add event-level ingest for opens, replies, clicks, bounces, and unsubscribes so the report shows sequence performance, not just enrollments.
-- Landing pages → preserve page URL and UTM fields consistently on every link and form so a matched funnel by landing page becomes reliable.
-- Website pages → show the most visited pages as a short summary using the landing-page rollup while the deeper funnel tracking is being tightened.
-````
-
-## File: Unipile_potential_automations.md
-````markdown
-# Unipile Potential Automations
-
-These are potential automations we want to do using Unipile for our regulated-industry advertising business.
-
----
-
-## 1. InMail Campaigns
-
-**Purpose:** Send sponsored LinkedIn messages directly to prospects who aren't connected.
-
-**Use Case:** Great for reaching decision-makers who don't accept connection requests.
-
-**Implementation:**
-- Build a GHL automation that triggers when a new lead enters the system
-- Send an InMail campaign with a personalized message
-- Track responses and tag leads based on engagement
-
----
-
-## 2. List Building & Enrichment
-
-**Purpose:** Search LinkedIn for ideal prospects and enrich them with contact info.
-
-**Use Case:** Find marketing directors at cannabis brands, CBD companies, or other regulated industries.
-
-**Implementation:**
-- Create a scheduled workflow that searches for targets by title/industry
-- Enrich profiles with email, phone, company size
-- Auto-create/update GHL contacts with enriched data
-- Tag by campaign stage and priority score
-
----
-
-## 3. Competitor Audience Targeting
-
-**Purpose:** Find people who follow or engage with competitor pages.
-
-**Use Case:** Target prospects who are already interested in regulated-industry advertising solutions.
-
-**Implementation:**
-- Monitor competitor LinkedIn pages for followers
-- Build targeted outreach lists from engaged users
-- Send personalized messages highlighting our unique capabilities
-- Track conversion rates vs. cold outreach
-
----
-
-## 4. Event-Based Outreach
-
-**Purpose:** Trigger outreach when prospects post about challenges or attend events.
-
-**Use Case:** Reach out when someone posts about "getting banned from Meta ads" or industry events.
-
-**Implementation:**
-- Monitor LinkedIn for keywords like "restricted", "banned", "compliance"
-- Trigger automated outreach within 24 hours
-- Personalize message based on their specific pain point
-- Schedule follow-up tasks in GHL
-
----
-
-## 5. Multi-Step Sequences
-
-**Purpose:** Automate a 3-5 step sequence with timed follow-ups.
-
-**Use Case:** Connection → follow-up message → InMail → break-up message.
-
-**Implementation:**
-- Day 0: Send connection request
-- Day 3: If accepted, send follow-up message
-- Day 7: If no response, send InMail
-- Day 14: If still no response, send break-up message
-- Track acceptance/response rates at each stage
-
----
-
-## 6. Lead Scoring & Prioritization
-
-**Purpose:** Score prospects based on profile signals.
-
-**Use Case:** Prioritize hot leads for manual follow-up.
-
-**Implementation:**
-- Score based on job seniority (executive = high score)
-- Score based on company size (larger = higher score)
-- Score based on engagement rate (active poster = higher score)
-- Auto-route high-score leads to sales team in GHL
-- Low-score leads go into nurture sequence
-
----
-
-## 7. CRM Sync & Tagging
-
-**Purpose:** Auto-create/update GHL contacts and track engagement history.
-
-**Use Case:** Keep GHL in sync with LinkedIn outreach activities.
-
-**Implementation:**
-- Webhook listener for Unipile events (connection accepted, message replied)
-- Auto-create GHL contact if not exists
-- Tag by campaign stage (connected, replied, scheduled, etc.)
-- Log all outreach history in GHL notes
-- Trigger GHL automations based on engagement
-
----
-
-## 8. A/B Testing Message Variations
-
-**Purpose:** Test different hooks and automatically route better performers.
-
-**Use Case:** Test "Mood case study" vs. "compliance guarantee" messaging.
-
-**Implementation:**
-- Create multiple message variants in template registry
-- Split outreach 50/50 to test groups
-- Track acceptance/response rates per variant
-- Auto-switch to winner after statistical significance
-- Log results in GHL for future reference
-
----
-
-## 9. Analytics & Attribution Dashboard
-
-**Purpose:** Track connection acceptance rates, response rates, and downstream conversions.
-
-**Use Case:** Measure ROI of LinkedIn outreach campaigns.
-
-**Implementation:**
-- Export Unipile metrics to Postgres or BigQuery
-- Build dashboard showing:
-  - Connections sent / accepted rate
-  - Response rate by message variant
-  - Meetings booked from LinkedIn
-  - Leads created from LinkedIn
-  - Revenue attributed to LinkedIn
-- Sync metrics to GHL reports
-
----
-
-## 10. Team Account Management
-
-**Purpose:** Manage multiple LinkedIn accounts with centralized reporting.
-
-**Use Case:** One account for John, one for Cameron, one for sales team.
-
-**Implementation:**
-- Use Unipile's team features for multiple accounts
-- Centralized reporting dashboard
-- Permission-based access (sales vs. marketing)
-- Auto-rotate accounts to avoid rate limits
-- Track performance per account/rep
-
----
-
-## Bonus: GHL Automation Integration
-
-**Purpose:** Trigger GHL automations based on Unipile events.
-
-**Use Case:** Automatically move leads through sales pipeline.
-
-**Implementation:**
-- Webhook endpoint in GHL for Unipile events
-- On connection accepted: Add to "Hot Lead" campaign
-- On message replied: Schedule follow-up call task
-- On meeting booked: Create calendar event + send prep email
-- On no response after X days: Add to nurture sequence
-
----
-
-## Next Steps
-
-1. **Priority 1:** Implement CRM Sync & Tagging (already partially done via webhook)
-2. **Priority 2:** Build Multi-Step Sequences for John's outreach
-3. **Priority 3:** Set up Lead Scoring & Prioritization
-4. **Priority 4:** Create Analytics Dashboard for ROI tracking
-
-Each automation can be implemented incrementally, starting with the webhook infrastructure already in place.
-
-## Implementation Order
-
-1. Ship the Instagram DM workflow first so the team has a dedicated Unipile-backed sequence for mutual followers and follow-backs.
-2. Reuse the same message registry concept for LinkedIn, but keep LinkedIn as a separate variant layer so step timing and audience rules stay isolated by channel.
-3. After the Instagram flow is stable, extract the shared copy registry so LinkedIn and Instagram can read from the same template source without sharing state.
-````
