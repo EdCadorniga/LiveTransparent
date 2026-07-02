@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-01 (Vapi Campaign Rollout Phase 1 Complete + John→Jason Migration)
+Updated: 2026-07-02 (Emerging pool imported to Postgres; Apollo re-enrichment on bad numbers added to callback)
 
 ## Source Of Truth
 
@@ -14,7 +14,13 @@ It supersedes the duplicated planning notes in:
 
 - The outbound voice stack is **paused** (since 2026-06-05). Queue cleanup completed 2026-07-01: 1,005 stale `pending` rows marked `failed`. Pool audit complete: 23,726 GHL contacts, 1,045 unique already called via V1, ~16k Emerald pool as primary target for new campaigns.
 - **Vapi Campaign Rollout Phase 1 complete (2026-07-01)**: Two Vapi assistants created (Brand/Alex `1d7c5d42`, Dispensary/Jordan `056f2e50`) with full system prompts from campaign docx files, 9 tools each. GHL campaign tags created. Vapi org tools cleaned up (2 deprecated deleted, 1 dangling ref removed). `ok_transfer_to_john` → `ok_transfer_to_jason` migration across all assistants, prompts, and n8n callback. See `plan.md` for next phases.
+- **Vapi classifier path fixed (2026-07-02)**: `LT - Campaign Contact Classifier` now runs from Postgres `Emerald_Contacts` plus `voice_call_attempt` exclusion instead of live GHL pagination. The old PIT rate-limit / Code-node-loop failure path is gone.
+- **Current rollout blocker (2026-07-02)**: the synced Emerald supply with both GHL IDs and phones is executive-only. We currently have 5 not-called rows available, all from executive source files, and zero reachable marketing / dispensary / retail-sales rows for the two new campaigns.
+- **Mis-tag rollback completed (2026-07-02)**: a 5-contact smoke test proved the old `sso` substring heuristic incorrectly routes executive rows into Brand. Those accidental `vapi_campaign_brand` tags were removed immediately.
+- **Queue feeder workflow added (2026-07-02)**: `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`) now exists to gradually feed already-approved campaign-tagged contacts into `voice_call_queue`. Latest manual test found 3 candidates and queued 0 new rows; follow-up audit confirmed those same 3 contacts were already in `voice_call_queue` as `pending`, so the duplicate guard is working correctly.
+- **Activation-readiness audit (2026-07-02)**: the 3 currently staged campaign rows are still `pending` with `attempt_count = 0` and no `voice_call_attempt` rows yet, so they are safe to keep as the seed cohort. The paused Vapi workflows still show the expected campaign-routing updates and no fresh executions since the pause, so the next real gate is controlled reactivation plus manual assistant test calls.
 - **Bug discoveries during audit**: `voice_call_queue` has no `pipeline_stage` column — dequeue query filter `AND pipeline_stage = 'queued'` means dequeue webhook has NEVER picked up poller-inserted rows (V1 worked through dialer cron). Callback had hardcoded `trackedAssistants` array — now includes both new campaign assistants.
+- **Emerging Pool import (2026-07-02)**: Two brand/dispensary Emerald CSV files imported into Postgres `emerging_pool_contacts` (13,868 total). GHL-ready CSVs prepared with correct column mapping. Two n8n workflows created. Apollo re-enrichment on bad numbers added to callback workflow.
 - The reporting stack is live: GA4 and GHL ingestion are in production, data is flowing into Postgres, and the Executive Report is live in GHL.
 - Report rollups, attribution bridge, QA/alerts, and the executive summary API are already running.
 - Emerald email-marketing ingest workflows are **PAUSED 2026-06-05** (9 workflows unpublished). See [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md) for the full list and resumption playbook. **GHL email sequences still need to be paused manually in the GHL UI** for already-enrolled contacts.
@@ -45,14 +51,15 @@ It supersedes the duplicated planning notes in:
 
 ### Active Workflows
 
-- `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) — **Manual, created 2026-07-01**, classifies GHL contacts by Brand/Dispensary using Emerald tags, cross-references voice_call_attempt to exclude called contacts
-- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — **PAUSED 2026-06-05**, was active, merged callback plus 4 tools
-- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — **PAUSED 2026-06-05**, was active, queue dialer, contact-TZ-aware, 72h cooldown
-- `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — **PAUSED 2026-06-05**, was active, polls `vapi_queue`, E.164 bypass
-- `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) — **PAUSED 2026-06-05**, was active, webhook enqueue, allows NULL phone
-- `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — **PAUSED 2026-06-05**, was active, webhook dequeue then Vapi call
-- `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — **PAUSED 2026-06-05**, was active, GHL call webhooks to Postgres and Slack
-- **All 6 VAPI workflows are paused.** GHL-side infrastructure (reaper, Apollo V3/V4 callbacks, intake) remains active. Resumption playbook and queued goals documented in [Plan - VAPI Pause & Queued Goals.md](./Plan%20-%20VAPI%20Pause%20%26%20Queued%20Goals.md).
+- `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) — **Manual**, now reads from `Emerald_Contacts` + `voice_call_attempt`; code path is working, but current campaign-relevant source supply is empty
+- `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`) — **Inactive helper**, runs every 30 minutes when enabled and stages approved `vapi_campaign_*` contacts into the queue with pacing + duplicate guards
+- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — **ACTIVE 2026-07-02**, merged callback plus 4 tools, all 4 campaign assistants tracked
+- `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — **ACTIVE 2026-07-02**, receives GHL call webhooks, upserts Postgres, Slack alerts for missed inbound
+- `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — **ACTIVE 2026-07-02**, webhook-triggered dequeue, campaign-aware assistant routing
+- `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) — **ACTIVE 2026-07-02**, webhook enqueue with dedup guard
+- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — **PAUSED** (intentionally held for quality gate), queue dialer, contact-TZ-aware, campaign routing
+- `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — **PAUSED** (intentionally held for quality gate), polls campaign tags, Apollo enrichment
+- **4 of 6 VAPI workflows are now active.** Dialer and intake poller remain paused pending quality gate test calls. GHL-side infrastructure (reaper, Apollo callbacks) remains independent.
 - **Voice queue cleanup (2026-07-01)**: 1,005 stale `pending` queue rows from the V1 pause marked `failed`. Post-cleanup queue: 86 completed, 1,005 failed, 0 pending. The 86 completed represent calls with callback dispositions; the remaining V1 contacts with `attempt_count > 0` but no completion are safe to re-enqueue into new campaigns.
 - `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly, flips GHL contacts stuck with `Apollo Phone Enrichment Status = queued` AND `Apollo Phone Enrichment Queued At < NOW - 24h` (or missing queued_at) to `callback_timeout` so the Vapi poller unblocks them. Verified first run (execution `75153`): scanned 500, stuck 500, updated 499, 1 contact (Joey Evans `nayDFnGCCcrVO9oTg4ls`) hit a transient 400 in the reaper log but the status field was actually written to `callback_timeout` (GHL dateUpdated confirms) and the Vapi poller will pick him up on a later batch. Source: `n8n/workflows/lt-apollo-queued-timeout-reaper.ts`.
 
@@ -70,12 +77,22 @@ It supersedes the duplicated planning notes in:
 - Valid E.164 numbers are enqueued.
 - Invalid or missing phone numbers are skipped when enrichment is not sufficient.
 
+### Callback Changes (2026-07-02)
+- Added `Should Re-enrich Phone` IF node + `HTTP - Set Apollo Enrichment` to the end-of-call flow
+- When Vapi returns `wrong_number` or `contact_disconnected` disposition, the callback sets `Enrich Phone via Apollo = Yes` so Apollo can find a new number
+- Only those 2 dispositions trigger re-enrichment — all others skip this step
+- Uses existing `LT - Apollo Phone Enrichment Intake V3` for the actual lookup
+
 ### Callback Tools
 
 - `update_lead_status` updates the GHL tag and the Postgres disposition.
 - `add_to_dnc` sets `voice_call_queue.dnc=true` and adds the GHL DNC tag.
 - `log_call_outcome` upserts `voice_call_attempt` with disposition, notes, and follow-up time.
 - `notify_sales` posts lead name and summary into `#leads`.
+
+### Pool Tags (created 2026-07-02)
+- `brands_pool` — contacts from Brands.csv
+- `dispensaries_pool` — contacts from Dispensaries.csv
 
 ### Voice Tags
 
@@ -125,18 +142,27 @@ It supersedes the duplicated planning notes in:
 
 ## Next Steps
 
-### 1. Vapi Campaign Rollout (Phases 1+3 DONE, Phase 2 BLOCKED — 2026-07-01)
+### 0. Emerging Pool Import (DONE 2026-07-02)
+- **13,868 Emerald contacts** imported into Postgres `emerging_pool_contacts` (3,668 brands + 10,200 dispensaries)
+- **GHL-ready CSVs** created at `C:\Users\edmon\OneDrive\Documents\Projects\LiveTransparent\GHL_Ready_{Brands,Dispensaries}.csv` with columns matching existing GHL `Em_*` custom fields
+- Tags: `brands_pool,emerald` / `dispensaries_pool,emerald`
+- Two n8n workflows created: `LT - Brands Pool to Postgres + Sheets` (`fg06Ip8wT3EapfdD`) and `LT - Dispensaries Pool to Postgres + Sheets` (`q7qbjjm6185WeukV`)
+- **Next**: Import CSVs into GHL via UI (Contacts → Import), then backfill `ghl_contact_id` in Postgres
+
+### 1. Vapi Campaign Rollout (Phases 1+3 DONE, Phase 2 DATA-BLOCKED — 2026-07-02)
 
 See `plan.md` for full details. Progress:
 - **Phase 1**: **DONE** — 2 assistants created, tools cleanup, John→Jason migration, GHL tags created
 - **Quality gate (PENDING)**: Manual test call per assistant (Alex + Jordan) via Vapi dashboard
-- **Phase 2**: **BLOCKED** — Classifier workflow rewritten with pagination, heuristic verified (Emerald + `marketing`/`sso`→Brand, `dispensary`/`retail`/`owner`→Dispensary). Full 238-page run fails due to:
-  - GHL API returns 401 after ~54 pages (rate limit on PIT token)
-  - n8n Code node `this` context breaks when wrapping `this.helpers.httpRequest` in helper functions; must use directly inline
-  - Workaround needed: run in batches, use external script, or use Postgres-based `report_raw_ghl_contacts` table instead
-  - See `AGENTS.md` → Phase 2 Section for full debugging history
+- **Phase 2**: **DATA-BLOCKED** — The classifier workflow is fixed, but the current data supply is not.
+  - `Cannabis-Retail-SSO-Executive-2`: 464 rows, 6 with GHL+phone, 4 not previously called
+  - `Cannabis-Retail-SSO-Executive-1`: 84 rows, 1 with GHL+phone, 1 not previously called
+  - No current marketing / dispensary / retail-sales source rows have the required combination of `ghl_contact_id`, usable phone, and not-called status
+  - Old `sso` matching is no longer safe because it routes executives into Brand
+  - To unblock: sync refreshed marketing / dispensary rows into `Emerald_Contacts`, manually approve a GHL test cohort, or define executive routing intentionally
 - **Phase 3**: **DONE** — All 6 infra changes deployed (dialer mapping, intake poller campaign tags, enqueue dedup, dequeue bugfix + routing, callback trackedAssistants, Config includeOtherFields)
-- **Phase 4**: **BLOCKED** — Needs quality gate + classifier completion first
+- **Phase 4**: **BLOCKED** — Needs quality gate plus an approved Brand/Dispensary cohort first
+- **Supporting helper**: Queue feeder workflow exists and its no-op behavior has been verified as expected when candidates are already pending in `voice_call_queue`
 
 ### 2. Voice Hardening
 

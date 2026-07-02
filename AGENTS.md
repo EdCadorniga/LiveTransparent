@@ -122,12 +122,13 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 | LT - Voice Campaign Brand (Alex) | `1d7c5d42-f0a4-4b58-9494-dbda3be3c657` | Created 2026-07-01 (not active) |
 | LT - Voice Campaign Dispensary (Jordan) | `056f2e50-8bdf-4257-ac45-4d575600c39d` | Created 2026-07-01 (not active) |
 | LT - Campaign Contact Classifier | `IduCoT5YOs0g2faT` | Manual (created 2026-07-01) |
-| LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | Paused 2026-06-05 |
-| LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Paused 2026-06-05 |
-| LT - Voice Queue Vapi Intake Poller | `bYk1Ai6MJLyhTsDZ` | Paused 2026-06-05 |
-| LT - Voice Queue Enqueue | `XzcpOBi9YcIhJPck` | Paused 2026-06-05 |
-| LT - Voice Dequeue Next | `KsBMFcz1YpBGrjDW` | Paused 2026-06-05 |
-| LT - Call Outcome Ingest | `PUCfTZBANSPcgS0c` | Paused 2026-06-05 |
+| LT - Vapi Campaign Queue Feeder | `RFIZ9Bcfl3Yvms2b` | Manual/scheduled helper (created 2026-07-02, inactive) |
+| LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | Active 2026-07-02 |
+| LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Paused (held for quality gate) |
+| LT - Voice Queue Vapi Intake Poller | `bYk1Ai6MJLyhTsDZ` | Paused (held for quality gate) |
+| LT - Voice Queue Enqueue | `XzcpOBi9YcIhJPck` | Active 2026-07-02 |
+| LT - Voice Dequeue Next | `KsBMFcz1YpBGrjDW` | Active 2026-07-02 |
+| LT - Call Outcome Ingest | `PUCfTZBANSPcgS0c` | Active 2026-07-02 |
 | LT - Apollo Queued Timeout Reaper | `RL5ZyUoshSPbmVA1` | Active (hourly) |
 
 ### Voice Tags
@@ -183,15 +184,28 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - **Heuristic verified**: Emerald contacts carry tags like `sso_marketing`, `cannabis-retail-sso-marketing-1`, `seq emerald - marketing sso`. No standalone `mso`/`sso` tags. Classifier uses keyword substring matching: `marketing`/`sso`/`brand`/`growth` → Brand campaign; `dispensary`/`retail`/`owner`/`manager`/`executive` → Dispensary campaign.
 - **Call history**: 1,711 total attempts across 1,045 contacts (voicemail=782, qualified/booked=305, connected=288, no_answer=212, busy=106, failed=18)
 
-### Phase 2 — Classifier Status (BLOCKED 2026-07-01)
+### Phase 2 — Classifier Status (workflow fixed 2026-07-02, data still blocked)
 - **Workflow**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`)
-- **Structure**: Manual Start → Called Contacts (Postgres) → Classify (Code node with full pagination)
-- **Heuristic**: Emerald contacts with `marketing`/`sso`/`brand`/`growth` tags → `vapi_campaign_brand`; with `dispensary`/`retail`/`owner`/`manager`/`executive` → `vapi_campaign_dispensary`
-- **GHL search API pagination**: Uses `page` + `pageLimit` (NOT `startAfter`/`startAfterId`)
-- **Code node HTTP approach**: `this.helpers.httpRequest({method, url, headers, json:true, body})` works directly. **Do NOT wrap in a helper function** — the `doHttpRequest.call(this, ...)` pattern causes HTTP 400. Use `this.helpers.httpRequest` inline.
-- **Rate limit**: GHL PIT token returns 401 after ~5400 contact searches (54 pages at 100/page). Add 300ms+ delay between pages, or use a more resilient token. 23,726 total contacts = 238 pages.
-- **Workflow timeout**: Default 300s is too short for tag API calls. Set `executionTimeout: 3600` via REST PUT if needed.
-- **Pending**: The full run (238 pages + tag application) hasn't completed yet. Previous session failed due to Code node `this` context issue with wrapper functions.
+- **Current structure**: Manual Start → Postgres (`Emerald_Contacts` joined against `voice_call_attempt`) → Code classifier → GHL tag apply → summary
+- **Why changed**: The old live-GHL pagination path was removed because it hit PIT rate limits and was fragile inside Code-node loops.
+- **Current data reality**: `Emerald_Contacts` currently exposes only executive source buckets with both `ghl_contact_id` and `primary_phone`.
+  - `Cannabis-Retail-SSO-Executive-2`: 464 rows, 6 with GHL+phone, 4 not previously called
+  - `Cannabis-Retail-SSO-Executive-1`: 84 rows, 1 with GHL+phone, 1 not previously called
+  - No marketing / brand / dispensary / retail-sales source buckets currently have reachable rows with GHL ID + phone + not-called status
+- **Heuristic warning**: Do **not** use raw `sso` substring matching anymore. It incorrectly routes executive rows into Brand. A 5-contact mis-tag test was rolled back immediately on 2026-07-02.
+- **Pending**: Phase 2 is now blocked by source data, not code. We need either:
+  - refreshed Emerald marketing / dispensary rows synced into `Emerald_Contacts` with GHL IDs and phones, or
+  - a manually approved test cohort tagged directly in GHL, or
+  - an explicit executive-routing decision if executives are intentionally part of campaign supply
+
+### Queue Feeder Status (created 2026-07-02)
+- **Workflow**: `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`)
+- **Purpose**: Slowly stage already-approved `vapi_campaign_brand` / `vapi_campaign_dispensary` contacts into `voice_call_queue`
+- **Current structure**: Schedule Trigger (30 min) → build per-campaign config → filter enabled campaigns → GHL search by campaign tag → eligible contact filter → guarded Postgres insert → normalized summary
+- **Controls**: per-campaign `enabled` flag + `per_run_limit` in the first Code node
+- **Verification**: latest manual run succeeded and found 3 candidates (2 brand, 1 dispensary) but returned `total_queued: 0` and no `queue_id`s, so it is safe and non-destructive but not currently inserting rows
+- **Insert-path verification**: audited the 3 candidate IDs from the feeder run and confirmed all 3 already exist in `voice_call_queue` with `status = 'pending'`, so the feeder's duplicate guard is behaving as designed
+- **Seed cohort status**: those 3 queued campaign contacts are still `pending`, `attempt_count = 0`, and have no `voice_call_attempt` rows yet, so they are safe to keep as the initial controlled batch when voice is resumed
 
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 
@@ -276,6 +290,9 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - `n8n/workflows/lt-linkedin-unipile-new-messages.ts`
 - `n8n/workflows/lt-linkedin-connection-acceptance-checker.ts`
 - `n8n/workflows/lt-apollo-queued-timeout-reaper.ts` — flips GHL contacts stuck in `Apollo Phone Enrichment Status = queued` past 24h to `callback_timeout` so the Vapi poller unblocks them (workflow ID `RL5ZyUoshSPbmVA1`, hourly)
+- `n8n/workflows/lt-emerging-pool-import.ts` — SDK workflow for Brands/Dispensaries Postgres import
+- `fix_intake_poller.js` — intake poller fix script
+- `fix_sheets_node.py`, `fix_brands_code.py`, `fix_parse_csv.py` — temporary fix scripts (can be cleaned up)
 - `n8n/workflows/lt-simpletexting-send-sms.json`
 - `n8n/workflows/lt-simpletexting-pool-dispatcher.json`
 - `n8n/workflows/lt-simpletexting-campaign-sequencer.json`
@@ -289,6 +306,30 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - `Vapi_Brand_Campaign.docx` — Brand campaign (Alex persona, brand marketing leads)
 - `Vapi_Dispensary_Campaign.docx` — Dispensary campaign (Jordan persona, dispensary owners)
 - `plan.md` — Vapi Campaign Rollout implementation plan (4 phases)
+
+## VPS SSH Access
+
+- Host: `89.117.21.29` (hostname `vmi3077218`), user `root`
+- SSH key: `C:\Users\edmon\.ssh\local-upload` (Ed25519, no passphrase, generated via Coolify Keys & Tokens)
+- Permission fix on Windows: paramiko works directly (bypasses Win32 OpenSSH permission checks).
+  To use `ssh.exe`: run `icacls $keyPath /reset /inheritance:r /grant "$env:USERNAME:(R)"`
+  Or use Python paramiko: `paramiko.Ed25519Key.from_private_key(io.StringIO(key_data))`
+- SCP via paramiko (sftp):
+  ```python
+  ssh = paramiko.SSHClient()
+  ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+  ssh.connect('89.117.21.29', username='root', pkey=key, timeout=10)
+  sftp = ssh.open_sftp()
+  sftp.put(local_path, remote_path)
+  ```
+- Reference keys on server: `vps_caddy_key`, `vps_upload`, `id_ed25519_vps_whitefriar` — all passphrase-encrypted, unknown passwords.
+- GHL-ready CSV files live on the n8n server at `/home/node/.n8n-files/GHL_Ready_Brands.csv` and `/home/node/.n8n-files/GHL_Ready_Dispensaries.csv`.
+- Local copies (with GHL-mapped column headers, pool tags + `emerald`) at `C:\Users\edmon\OneDrive\Documents\Projects\LiveTransparent\GHL_Ready_Brands.csv` and `GHL_Ready_Dispensaries.csv`.
+- n8n workflows:
+  - `LT - Brands Pool to Postgres + Sheets` (`fg06Ip8wT3EapfdD`) — reads Brands CSV, inserts into `emerging_pool_contacts` with `source_list='brands'`
+  - `LT - Dispensaries Pool to Postgres + Sheets` (`q7qbjjm6185WeukV`) — reads Dispensaries CSV, inserts with `source_list='dispensaries'`
+- Postgres table `emerging_pool_contacts` stores 13,868 contacts (3,668 brands + 10,200 dispensaries) with fields: `emerald_contact_id`, `source_list`, `first_name`, `last_name`, `primary_email`, `primary_phone`, `company_name`, `tags`, `ghl_contact_id`, `ghl_opportunity_id`, `ghl_import_status`, `raw_json` (JSONB with full GHL-mapped row). UNIQUE on (emerald_contact_id, source_list).
+- **Apollo re-enrichment on bad numbers** (added 2026-07-02): In callback workflow `fx4UvKUWbqJEY3LK`, after `GHL - Apply Tags`, a new `Should Re-enrich Phone` IF node checks disposition. If `wrong_number` or `contact_disconnected`, it fires `HTTP - Set Apollo Enrichment` which sets `Enrich Phone via Apollo = Yes` (custom field `gdJDuZelIxEBE6n9i5Q6`). The existing `LT - Apollo Phone Enrichment Intake V3` then looks up a new number.
 
 ## repomix-output.md Refresh
 

@@ -84,18 +84,26 @@ All server/function tools already point to the n8n callback webhook — no new t
 1.5 **Inbound assistant**: `ok_transfer_to_jason` tool attached (was missing).
 1.6 **Quality gate (pending)**: 1 manual test call per assistant. Verify persona, tools fire, end-of-call report delivers, dispositions correct.
 
-### Phase 2 — Contact Classification (attempted 2026-07-01, BLOCKED)
+### Phase 2 — Contact Classification (code path fixed 2026-07-02, supply BLOCKED)
 
-2.1 **Rewrite done**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) restructured:
-  - Manual Trigger -> Postgres (`SELECT DISTINCT contact_id FROM voice_call_attempt`, 1,045 IDs found) -> Classify (single Code node with full pagination loop)
-  - GHL POST `/contacts/search` uses `page` + `pageLimit` (100/page) — NOT `startAfter`/`startAfterId`
-  - Valid body shape: `{ locationId, pageLimit, page }` — do NOT include `filters: []` (causes 422)
-  - Heuristic: `emerald` tag + keyword match → `vapi_campaign_brand` or `vapi_campaign_dispensary`
-  - Collects arrays of contact IDs per campaign (no per-contact tag API calls to avoid slow loop)
-2.2 **Pagination learned**: `page` (1-indexed, integer) + `pageLimit` (max 100). 23,726 total = 238 pages.
-2.3 **Code node HTTP approach learned**: Use `this.helpers.httpRequest({...})` directly. **Do NOT wrap** in an async helper function — `doHttpRequest.call(this, ...)` breaks HTTP context and causes 400 errors.
-2.4 **Rate limit discovered**: GHL PIT token returns 401 after ~54 pages (~5400 contacts). Add `await new Promise(r=>setTimeout(r, 300))` between pages. Even with delay, the `for` loop inside a Code node with `this.helpers.httpRequest` is still fragile.
-2.5 **Pending**: Classify-only pass (no tag API calls) runs in ~27s for partial scan. Full 238-page run hasn't completed due to `this` context issues in loops or rate limiting. Potential fix: batch via external script or use `$httpRequest` global directly outside loop context. See `AGENTS.md` Phase 2 section.
+2.1 **Rewrite done**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) no longer depends on live GHL pagination.
+  - Manual Trigger -> Postgres (`Emerald_Contacts` joined against `voice_call_attempt`) -> Code classifier -> GHL tag apply
+  - Source rows now come from Postgres `Emerald_Contacts`, using `ghl_contact_id`, `primary_phone`, `source_file`, and `tags`
+  - This removes the old `/contacts/search` 238-page scan, the PIT rate-limit failure, and the fragile Code-node HTTP loop
+2.2 **Live supply verified**: the remaining Emerald rows with both `ghl_contact_id` and `primary_phone` are executive buckets only.
+  - `Cannabis-Retail-SSO-Executive-2`: 464 rows, 6 with GHL+phone, 4 not previously called
+  - `Cannabis-Retail-SSO-Executive-1`: 84 rows, 1 with GHL+phone, 1 not previously called
+  - Total currently reachable Emerald rows in Postgres: 548 executive rows, 7 with GHL+phone, 5 not previously called
+2.3 **Critical finding**: the old `sso`/`marketing` substring heuristic would have mis-tagged executive rows as Brand. That was tested on 5 contacts, then immediately rolled back by removing the accidental `vapi_campaign_brand` tag from those contacts.
+2.4 **Current blocker**: no live Emerald rows currently meet all of these conditions at once:
+  - campaign-relevant source (`marketing`, `brand`, `dispensary`, or `retail_sales`)
+  - mapped `ghl_contact_id`
+  - usable `primary_phone`
+  - not already called
+2.5 **Pending**: Phase 2 is now blocked by data availability, not workflow code. To complete rollout, we need one of:
+  - sync/import the missing Emerald marketing and dispensary buckets into `Emerald_Contacts` with GHL contact IDs and phones
+  - manually seed a small approved test cohort with `vapi_campaign_brand` / `vapi_campaign_dispensary`
+  - define a new, explicit executive-to-campaign routing rule if executive supply is intentionally in scope
 
 ### Phase 3 — Infrastructure Modifications
 
@@ -141,3 +149,49 @@ All server/function tools already point to the n8n callback webhook — no new t
 4.5 **Scale**: Activate intake poller for campaign tags. Brand only for 24h, then Dispensary.
 4.6 Monitor first 50 calls. Rollback any underperforming campaign by removing its tag from intake filter.
 4.7 Update `AGENTS.md` and `Project Status and Next Steps.md` with new assistantIds and campaign status
+
+### Phase 4 status (2026-07-02)
+
+- Not started. Activation remains blocked until a valid Brand/Dispensary test cohort exists.
+
+## Emerging Pool Import (2026-07-02)
+
+### Source Data
+- Two Emerald-sourced CSVs (identical schema, column 1 = `Emerald Contact ID`):
+  - `Brands.csv`: 3,668 rows (45% with email, 50% with phone, 29% both)
+  - `Dispensaries.csv`: 10,200 rows (37% with email, 72% with phone, 30% both)
+- Transformed into GHL-ready CSVs with column headers matching existing GHL custom fields (`Em_*` fields)
+- Tags column includes pool tag (`brands_pool` / `dispensaries_pool`) + `emerald`
+
+### Postgres Table
+- Created `emerging_pool_contacts` with fields: `emerald_contact_id`, `source_list`, `first_name`, `last_name`, `primary_email`, `primary_phone`, `company_name`, `tags`, `ghl_contact_id`, `ghl_opportunity_id`, `ghl_import_status`, `raw_json` (JSONB), timestamps
+- UNIQUE constraint on (emerald_contact_id, source_list)
+- 13,868 total contacts inserted (3,668 brands, 10,200 dispensaries)
+
+### Workflows Created
+- `LT - Brands Pool to Postgres + Sheets` (`fg06Ip8wT3EapfdD`): reads `/home/node/.n8n-files/GHL_Ready_Brands.csv` → parses → inserts into `emerging_pool_contacts` with `source_list='brands'`
+- `LT - Dispensaries Pool to Postgres + Sheets` (`q7qbjjm6185WeukV`): reads `/home/node/.n8n-files/GHL_Ready_Dispensaries.csv` → parses → inserts with `source_list='dispensaries'`
+
+### Apollo Re-enrichment on Bad Numbers (callback workflow change)
+- Added `Should Re-enrich Phone` IF node + `HTTP - Set Apollo Enrichment` to `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
+- Flow: `GHL - Apply Tags` → IF (disposition == `wrong_number` OR `contact_disconnected`) → HTTP PUT to set `Enrich Phone via Apollo = Yes` → continue to dequeue
+- Existing `LT - Apollo Phone Enrichment Intake V3` workflow handles the actual lookup
+
+### Key Files on VPS (inside n8n container at `/home/node/.n8n-files/`)
+- `GHL_Ready_Brands.csv` (1.4 MB, 3,668 rows)
+- `GHL_Ready_Dispensaries.csv` (3.6 MB, 10,200 rows)
+
+### Supporting workflow added (2026-07-02)
+
+- `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`) created to drip-feed already-tagged campaign contacts into `voice_call_queue`.
+- Current behavior:
+  - runs every 30 minutes
+  - searches GHL separately for `vapi_campaign_brand` and `vapi_campaign_dispensary`
+  - supports per-campaign `enabled` flags and per-run caps in the config Code node
+  - filters out DNC / already-called / already-queued / invalid-phone contacts before queue insert
+  - attempts Postgres insert with duplicate guards against `voice_call_queue` and `voice_call_attempt`
+- Current verification note:
+  - workflow executes successfully end-to-end
+  - latest manual verification showed `total_candidates: 3`, `total_queued: 0`, and `skipped_contact_ids` for all 3 candidates
+  - Postgres audit confirmed those same 3 contacts already exist in `voice_call_queue` with `status = 'pending'`, so the no-op behavior is currently expected and the duplicate guard is working
+  - those 3 queue rows remain `pending` with `attempt_count = 0` and no `voice_call_attempt` history, so they are valid to keep as the seed test batch for controlled activation
