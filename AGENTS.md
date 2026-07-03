@@ -44,6 +44,15 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - GHL MCP: primary `ghl_official`, secondary `ghl_katwill_*`.
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
 - **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. Use `setNodeParameter` for single-path edits on Set v3.4 nodes instead of `updateNodeParameters`. If `setNodeParameter` also fails, **use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) but note that PUT auto-publishes and validates all node credentials, which may fail if credential IDs aren't embedded in node JSON. For Code nodes, `updateNodeParameters` and `setNodeParameter` are both safe. Verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
+- **n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` return fields (`tags`, `scopes`, `canExecute`, `availableInMCP`) that violate the MCP tool's `additionalProperties: false` output schema. **Workaround:** Use direct REST API calls for workflow listing and details:
+  ```bash
+  # List workflows
+  curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows?active=true&limit=100"
+  
+  # Get single workflow
+  curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows/{workflowId}"
+  ```
+  The MCP tools for **workflow execution, editing, and node operations** are unaffected. Only discovery/listing tools are broken. This will be fixed in a future n8n release.
 
 ## Code Node HTTP Requests
 
