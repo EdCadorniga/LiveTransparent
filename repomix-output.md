@@ -79,7 +79,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Deployed via Coolify on a VPS.
 - Public hosts: `automations.livetransparent.com` for n8n and `reports.livetransparent.com` for the report host.
 - Prefer Coolify internal service-to-service calls when possible.
-- n8n target version: `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue).
+- n8n target version: `2.28.6` (upgraded from `2.25.3` on 2026-07-03; originally upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue).
 - Canonical MCP: `n8n-lt`.
 - Root `.env` is the reference copy; Coolify env vars are the deployed source of truth.
 
@@ -178,7 +178,8 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 | LT - Voice Campaign Brand (Alex) | `1d7c5d42-f0a4-4b58-9494-dbda3be3c657` | Created 2026-07-01 (not active) |
 | LT - Voice Campaign Dispensary (Jordan) | `056f2e50-8bdf-4257-ac45-4d575600c39d` | Created 2026-07-01 (not active) |
 | LT - Campaign Contact Classifier | `IduCoT5YOs0g2faT` | Manual (created 2026-07-01) |
-| LT - Vapi Campaign Queue Feeder | `RFIZ9Bcfl3Yvms2b` | Manual/scheduled helper (created 2026-07-02, inactive) |
+| LT - Vapi Campaign Queue Feeder | `RFIZ9Bcfl3Yvms2b` | Manual/scheduled helper (created 2026-07-02, inactive). Patched 2026-07-03 to require both campaign tag + matching imported-pool tag. |
+| LT - Emerging Pool Go Live Helper | `OGnADUQKd5z5f905` | Manual helper (created 2026-07-03). Runs imported-pool readiness, backfill, audit, and isolate queries through the live `Postgres account` credential. |
 | LT - Voice Agent V1 Vapi Callback + Tools | `fx4UvKUWbqJEY3LK` | Active 2026-07-02 |
 | LT - Voice Agent V1 Outbound Dialer (Vapi) | `r7UjWLndmc6EqEUW` | Paused (held for quality gate) |
 | LT - Voice Queue Vapi Intake Poller | `bYk1Ai6MJLyhTsDZ` | Paused (held for quality gate) |
@@ -240,30 +241,31 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - **Heuristic verified**: Emerald contacts carry tags like `sso_marketing`, `cannabis-retail-sso-marketing-1`, `seq emerald - marketing sso`. No standalone `mso`/`sso` tags. Classifier uses keyword substring matching: `marketing`/`sso`/`brand`/`growth` → Brand campaign; `dispensary`/`retail`/`owner`/`manager`/`executive` → Dispensary campaign.
 - **Call history**: 1,711 total attempts across 1,045 contacts (voicemail=782, qualified/booked=305, connected=288, no_answer=212, busy=106, failed=18)
 
-### Phase 2 — Classifier Status (workflow fixed 2026-07-02, data still blocked)
+### Phase 2 — Classifier Status (imported-pool path live 2026-07-03)
 - **Workflow**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`)
-- **Current structure**: Manual Start → Postgres (`Emerald_Contacts` joined against `voice_call_attempt`) → Code classifier → GHL tag apply → summary
-- **Why changed**: The old live-GHL pagination path was removed because it hit PIT rate limits and was fragile inside Code-node loops.
-- **Current data reality**: `Emerald_Contacts` currently exposes only executive source buckets with both `ghl_contact_id` and `primary_phone`.
-  - `Cannabis-Retail-SSO-Executive-2`: 464 rows, 6 with GHL+phone, 4 not previously called
-  - `Cannabis-Retail-SSO-Executive-1`: 84 rows, 1 with GHL+phone, 1 not previously called
-  - No marketing / brand / dispensary / retail-sales source buckets currently have reachable rows with GHL ID + phone + not-called status
-- **Heuristic warning**: Do **not** use raw `sso` substring matching anymore. It incorrectly routes executive rows into Brand. A 5-contact mis-tag test was rolled back immediately on 2026-07-02.
-- **Pending**: Phase 2 is now blocked by source data, not code. We need either:
-  - refreshed Emerald marketing / dispensary rows synced into `Emerald_Contacts` with GHL IDs and phones, or
-  - a manually approved test cohort tagged directly in GHL, or
-  - an explicit executive-routing decision if executives are intentionally part of campaign supply
-- **2026-07-03 live-state correction**: the imported Brand/Dispensary pool now supersedes the older `Emerald_Contacts` classifier path for this rollout. The live `IduCoT5YOs0g2faT` workflow is currently stale and hardcoded to 3 specific `voice_call_queue.contact_id` values, so do not trust it as a general classifier until it is patched.
-- **2026-07-03 prep complete**: all repo-side go-live assets are prepared. The only blocker is external: wait for GHL import processing to finish and for imported contacts to land in `report_raw_ghl_contacts`.
+- **Current structure**: Manual Start → Postgres (`emerging_pool_contacts` joined against `report_raw_ghl_contacts` for `Em_Emerald_Contact_ID` / `Em_Source_File`, then deduped against `voice_call_attempt` and `voice_call_queue` pending/in_progress) → Code classifier (`5` Brand + `5` Dispensary cap) → GHL tag apply → summary
+- **Why changed again**: the older `Emerald_Contacts` executive path was not the desired campaign supply. The imported `emerging_pool_contacts` pool is the canonical source for this rollout. The classifier now uses imported pool segmentation directly rather than a keyword heuristic.
+- **Current data reality (2026-07-03)**: the GHL Brand + Dispensary import has finished. `report_raw_ghl_contacts` has 30 Brand + 20 Dispensary rows with `Em_Emerald_Contact_ID` and `Em_Source_File` populated. `emerging_pool_contacts.ghl_contact_id` is backfilled for those 50 rows. The remaining 13,818 imported rows are still unmatched to GHL until more reporting ingest lands.
+- **Initial tagged seed (10 contacts)**: 5 Brand + 5 Dispensary, all from `emerging_pool_contacts` source list. Tags applied via GHL API in classifier execution `105490` on 2026-07-03.
+  - Brand: `KdA7vRKGuVUym1acE0D0`, `3uRbaI3yZOjUCrDZfjiE`, `3vMUseClXnxqZuYSTved`, `FA2Cd923b7YzmJBdfByX`, `2AthxJS3uMoGWxnVU9v7`
+  - Dispensary: `DkDogBpdJhH1gX8pauNP`, `bAqpQ2GtnhsoDPcuHGGT`, `wKzcvnuSXMCZdRLJuteo`, `Oxa0BTBbPi6JkPXGQIeT`, `plwkRBIvXuThB54iujAJ`
+- **2026-07-03 key bug found and fixed**: SQL readiness + backfill assumed custom fields carry a `name` key. Live GHL contact objects only return `id` + `value` for the imported fields, so the lookup missed everything until we also matched by stable field id `R0wbDRyzZz34PMlQSRWN` (`Em_Emerald_Contact_ID`) and `ILurFacMbAaHz2DdGjPa` (`Em_Source_File`).
 
-### Queue Feeder Status (created 2026-07-02)
+### Queue Feeder Status (imported-pool isolation 2026-07-03)
 - **Workflow**: `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`)
 - **Purpose**: Slowly stage already-approved `vapi_campaign_brand` / `vapi_campaign_dispensary` contacts into `voice_call_queue`
 - **Current structure**: Schedule Trigger (30 min) → build per-campaign config → filter enabled campaigns → GHL search by campaign tag → eligible contact filter → guarded Postgres insert → normalized summary
 - **Controls**: per-campaign `enabled` flag + `per_run_limit` in the first Code node
-- **Verification**: latest manual run succeeded and found 3 candidates (2 brand, 1 dispensary) but returned `total_queued: 0` and no `queue_id`s, so it is safe and non-destructive but not currently inserting rows
-- **Insert-path verification**: audited the 3 candidate IDs from the feeder run and confirmed all 3 already exist in `voice_call_queue` with `status = 'pending'`, so the feeder's duplicate guard is behaving as designed
-- **Seed cohort status**: those 3 queued campaign contacts are still `pending`, `attempt_count = 0`, and have no `voice_call_attempt` rows yet, so they are safe to keep as the initial controlled batch when voice is resumed
+- **2026-07-03 patch**: `Filter Eligible Contacts` now also requires the matching imported-pool tag (`brands_pool` or `dispensaries_pool`) so the feed cannot mix legacy campaign-tagged contacts into the imported-pool test cohort.
+- **Latest manual run (execution 105492)**: surfaced 4 eligible pool contacts (2 brand, 2 dispensary). 3 were inserted; 1 was skipped because a duplicate queue row already existed from the previous feeder run. No legacy cohort contacts were returned.
+- **Insert-path verification**: those 3 candidate IDs from the earlier feeder run were confirmed already-existing `pending` rows in `voice_call_queue`; the duplicate guard is working as designed.
+- **2026-07-03 isolation cleanup**: `LT - Emerging Pool Go Live Helper` (`OGnADUQKd5z5f905`) added a step `Isolate Imported Pool Test Queue` that marks any remaining non-imported `pending` campaign rows as `failed` and leaves imported-pool rows untouched. The first run marked 5 legacy rows as failed.
+- **Active queue after cleanup**: only imported-pool seed rows remain `pending`:
+  - `Oxa0BTBbPi6JkPXGQIeT` — Dispensary — AYR Cannabis Dispensary - Ocala
+  - `2AthxJS3uMoGWxnVU9v7` — Brand — Miss Grass
+  - `FA2Cd923b7YzmJBdfByX` — Brand — Local Grove
+  - `DkDogBpdJhH1gX8pauNP` — Dispensary — Northern Green Canada
+- **Dedup status**: the live flow prevents duplicate calls per contact — classifier and feeder both exclude any contact already in `voice_call_attempt` or pending queue, and enqueue blocks duplicate active rows. The voice dialer and dequeue paths are still paused and should be activated only after the manual assistant quality gate.
 
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 
@@ -532,26 +534,18 @@ All server/function tools already point to the n8n callback webhook — no new t
 1.5 **Inbound assistant**: `ok_transfer_to_jason` tool attached (was missing).
 1.6 **Quality gate (pending)**: 1 manual test call per assistant. Verify persona, tools fire, end-of-call report delivers, dispositions correct.
 
-### Phase 2 — Contact Classification (code path fixed 2026-07-02, supply BLOCKED)
+### Phase 2 — Contact Classification (imported-pool path live 2026-07-03)
 
-2.1 **Rewrite done**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) no longer depends on live GHL pagination.
-  - Manual Trigger -> Postgres (`Emerald_Contacts` joined against `voice_call_attempt`) -> Code classifier -> GHL tag apply
-  - Source rows now come from Postgres `Emerald_Contacts`, using `ghl_contact_id`, `primary_phone`, `source_file`, and `tags`
-  - This removes the old `/contacts/search` 238-page scan, the PIT rate-limit failure, and the fragile Code-node HTTP loop
-2.2 **Live supply verified**: the remaining Emerald rows with both `ghl_contact_id` and `primary_phone` are executive buckets only.
-  - `Cannabis-Retail-SSO-Executive-2`: 464 rows, 6 with GHL+phone, 4 not previously called
-  - `Cannabis-Retail-SSO-Executive-1`: 84 rows, 1 with GHL+phone, 1 not previously called
-  - Total currently reachable Emerald rows in Postgres: 548 executive rows, 7 with GHL+phone, 5 not previously called
-2.3 **Critical finding**: the old `sso`/`marketing` substring heuristic would have mis-tagged executive rows as Brand. That was tested on 5 contacts, then immediately rolled back by removing the accidental `vapi_campaign_brand` tag from those contacts.
-2.4 **Current blocker**: no live Emerald rows currently meet all of these conditions at once:
-  - campaign-relevant source (`marketing`, `brand`, `dispensary`, or `retail_sales`)
-  - mapped `ghl_contact_id`
-  - usable `primary_phone`
-  - not already called
-2.5 **Pending**: Phase 2 is now blocked by data availability, not workflow code. To complete rollout, we need one of:
-  - sync/import the missing Emerald marketing and dispensary buckets into `Emerald_Contacts` with GHL contact IDs and phones
-  - manually seed a small approved test cohort with `vapi_campaign_brand` / `vapi_campaign_dispensary`
-  - define a new, explicit executive-to-campaign routing rule if executive supply is intentionally in scope
+2.1 **Rewritten for imported pool**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) now uses the imported Brand/Dispensary pool as the canonical campaign source.
+  - Manual Trigger → Postgres (`emerging_pool_contacts` joined against `report_raw_ghl_contacts` for `Em_Emerald_Contact_ID` / `Em_Source_File`) → Code classifier (5 Brand + 5 Dispensary cap) → GHL tag apply → summary
+  - The classifier also dedupes against `voice_call_attempt` and pending/in_progress `voice_call_queue` rows
+  - This removes the old `Emerald_Contacts` executive path entirely
+2.2 **Live data reality (2026-07-03)**: 30 Brand + 20 Dispensary imported rows now have `Em_Emerald_Contact_ID` and `Em_Source_File` in GHL raw contacts. `emerging_pool_contacts.ghl_contact_id` is backfilled for those 50 rows. The remaining 13,818 imported rows are still unmatched to GHL until more reporting ingest lands.
+2.3 **Initial tagged seed (10 contacts)**: 5 Brand + 5 Dispensary, all from `emerging_pool_contacts` source list. Tags applied via GHL API in classifier execution `105490` on 2026-07-03.
+  - Brand: `KdA7vRKGuVUym1acE0D0`, `3uRbaI3yZOjUCrDZfjiE`, `3vMUseClXnxqZuYSTved`, `FA2Cd923b7YzmJBdfByX`, `2AthxJS3uMoGWxnVU9v7`
+  - Dispensary: `DkDogBpdJhH1gX8pauNP`, `bAqpQ2GtnhsoDPcuHGGT`, `wKzcvnuSXMCZdRLJuteo`, `Oxa0BTBbPi6JkPXGQIeT`, `plwkRBIvXuThB54iujAJ`
+2.4 **Bug found and fixed (2026-07-03)**: SQL readiness + backfill assumed custom fields carry a `name` key. Live GHL contact objects only return `id` + `value` for the imported fields, so the lookup missed everything until we also matched by stable field id `R0wbDRyzZz34PMlQSRWN` (`Em_Emerald_Contact_ID`) and `ILurFacMbAaHz2DdGjPa` (`Em_Source_File`).
+2.5 **Next**: continue to wait for more reporting ingest to land; classifier will re-eligible new imported rows automatically as they backfill. No code change needed once a `ghl_contact_id` is set.
 
 ### Phase 3 — Infrastructure Modifications
 
@@ -598,10 +592,16 @@ All server/function tools already point to the n8n callback webhook — no new t
 4.6 Monitor first 50 calls. Rollback any underperforming campaign by removing its tag from intake filter.
 4.7 Update `AGENTS.md` and `Project Status and Next Steps.md` with new assistantIds and campaign status
 
-### Phase 4 status (2026-07-02)
+### Phase 4 status (2026-07-03)
 
-- Not started. Activation remains blocked until a valid Brand/Dispensary test cohort exists.
-- **2026-07-03 update**: the next cohort should come from the imported `emerging_pool_contacts` Brand/Dispensary pool, not the old `Emerald_Contacts` heuristic path. The live classifier workflow is stale and needs patching before reuse.
+- **Quality gate pending**: 1 manual test call per assistant (Alex + Jordan) via Vapi dashboard. Verify persona, tools fire, end-of-call report delivers, dispositions correct.
+- **Active queue after cleanup (imported-pool only)**:
+  - `Oxa0BTBbPi6JkPXGQIeT` — Dispensary — AYR Cannabis Dispensary - Ocala
+  - `2AthxJS3uMoGWxnVU9v7` — Brand — Miss Grass
+  - `FA2Cd923b7YzmJBdfByX` — Brand — Local Grove
+  - `DkDogBpdJhH1gX8pauNP` — Dispensary — Northern Green Canada
+- **Dedup confirmed**: classifier, feeder, enqueue, and dequeue all block duplicate calls per contact. Voice dialer and intake poller remain paused.
+- **Safest next step**: manual assistant quality gate first, then controlled queue-driven call test. Do not enable intake poller or V1 dialer yet.
 
 ## Emerging Pool Import (2026-07-02)
 
@@ -647,9 +647,14 @@ All server/function tools already point to the n8n callback webhook — no new t
 
 ## Imported Pool Go-Live Prep (2026-07-03)
 
-### Current live blocker
-- Brand and Dispensary CSVs have been imported into GHL, but processing was still running when the session ended.
-- Do not run linkage backfills until the imported contacts finish processing and land in `report_raw_ghl_contacts`.
+### Live state (2026-07-03)
+- Brand + Dispensary CSVs imported into GHL. Processing finished.
+- 30 Brand + 20 Dispensary rows already in `report_raw_ghl_contacts` with `Em_Emerald_Contact_ID` and `Em_Source_File` populated.
+- `emerging_pool_contacts.ghl_contact_id` backfilled for those 50 rows.
+- Classifier rebuilt around `emerging_pool_contacts` only; first 5 Brand + 5 Dispensary contacts already tagged in GHL via execution `105490`.
+- Queue feeder hardened to require both campaign tag + matching imported-pool tag, and 3 imported-pool rows are now in the active queue (1 still missing because it was already in `voice_call_queue` from a prior run).
+- Legacy non-imported campaign rows have been moved to `failed` to keep the first call batch isolated.
+- New helper `LT - Emerging Pool Go Live Helper` (`OGnADUQKd5z5f905`) added for the readiness, backfill, audit, and isolation steps.
 
 ### Prepared files for the next session
 - `postgres/emerging-pool-go-live-check.sql`
@@ -835,7 +840,7 @@ Normalized callback output:
 ````markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-02 (Emerging pool imported to Postgres; Apollo re-enrichment on bad numbers added to callback)
+Updated: 2026-07-03 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed)
 
 ## Source Of Truth
 
@@ -847,14 +852,15 @@ It supersedes the duplicated planning notes in:
 
 ## Current State
 
-- The outbound voice stack is **paused** (since 2026-06-05). Queue cleanup completed 2026-07-01: 1,005 stale `pending` rows marked `failed`. Pool audit complete: 23,726 GHL contacts, 1,045 unique already called via V1, ~16k Emerald pool as primary target for new campaigns.
-- **Vapi Campaign Rollout Phase 1 complete (2026-07-01)**: Two Vapi assistants created (Brand/Alex `1d7c5d42`, Dispensary/Jordan `056f2e50`) with full system prompts from campaign docx files, 9 tools each. GHL campaign tags created. Vapi org tools cleaned up (2 deprecated deleted, 1 dangling ref removed). `ok_transfer_to_john` → `ok_transfer_to_jason` migration across all assistants, prompts, and n8n callback. See `plan.md` for next phases.
-- **Vapi classifier path fixed (2026-07-02)**: `LT - Campaign Contact Classifier` now runs from Postgres `Emerald_Contacts` plus `voice_call_attempt` exclusion instead of live GHL pagination. The old PIT rate-limit / Code-node-loop failure path is gone.
-- **Current rollout blocker (2026-07-02)**: the synced Emerald supply with both GHL IDs and phones is executive-only. We currently have 5 not-called rows available, all from executive source files, and zero reachable marketing / dispensary / retail-sales rows for the two new campaigns.
-- **Mis-tag rollback completed (2026-07-02)**: a 5-contact smoke test proved the old `sso` substring heuristic incorrectly routes executive rows into Brand. Those accidental `vapi_campaign_brand` tags were removed immediately.
-- **Queue feeder workflow added (2026-07-02)**: `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`) now exists to gradually feed already-approved campaign-tagged contacts into `voice_call_queue`. Latest manual test found 3 candidates and queued 0 new rows; follow-up audit confirmed those same 3 contacts were already in `voice_call_queue` as `pending`, so the duplicate guard is working correctly.
-- **Activation-readiness audit (2026-07-02)**: the 3 currently staged campaign rows are still `pending` with `attempt_count = 0` and no `voice_call_attempt` rows yet, so they are safe to keep as the seed cohort. The paused Vapi workflows still show the expected campaign-routing updates and no fresh executions since the pause, so the next real gate is controlled reactivation plus manual assistant test calls.
-- **Bug discoveries during audit**: `voice_call_queue` has no `pipeline_stage` column — dequeue query filter `AND pipeline_stage = 'queued'` means dequeue webhook has NEVER picked up poller-inserted rows (V1 worked through dialer cron). Callback had hardcoded `trackedAssistants` array — now includes both new campaign assistants.
+- The outbound voice stack is **paused** (since 2026-06-05). Vapi assistants, dialer, and intake poller remain intentionally held for the quality gate.
+- **Vapi Campaign Rollout Phase 1 complete (2026-07-01)**: Two Vapi assistants created (Brand/Alex `1d7c5d42`, Dispensary/Jordan `056f2e50`) with full system prompts from campaign docx files, 9 tools each. GHL campaign tags created. Vapi org tools cleaned up (2 deprecated deleted, 1 dangling ref removed). `ok_transfer_to_john` → `ok_transfer_to_jason` migration across all assistants, prompts, and n8n callback.
+- **Vapi Campaign Rollout Phase 2 live (2026-07-03)**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) rebuilt around the imported `emerging_pool_contacts` Brand/Dispensary pool. First seed run tagged 5 Brand + 5 Dispensary contacts in GHL via execution `105490`. The old `Emerald_Contacts` executive heuristic path is no longer used.
+- **Imported-pool link fixed (2026-07-03)**: live GHL contacts expose custom fields as `id` + `value` only, not `name`. The readiness, backfill, and audit SQL now match by stable field IDs `R0wbDRyzZz34PMlQSRWN` (`Em_Emerald_Contact_ID`) and `ILurFacMbAaHz2DdGjPa` (`Em_Source_File`), which is what unlocked the first real cohort.
+- **Queue feeder isolated (2026-07-03)**: `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`) now requires both the campaign tag and the matching imported-pool tag (`brands_pool` or `dispensaries_pool`) before staging a queue row.
+- **Active queue after cleanup (2026-07-03)**: only imported-pool seed rows remain `pending`. 4 rows from the first cohort are staged: `Oxa0BTBbPi6JkPXGQIeT` (Dispensary / AYR Cannabis Dispensary - Ocala), `2AthxJS3uMoGWxnVU9v7` (Brand / Miss Grass), `FA2Cd923b7YzmJBdfByX` (Brand / Local Grove), `DkDogBpdJhH1gX8pauNP` (Dispensary / Northern Green Canada). 5 legacy non-imported campaign rows were moved to `failed` to keep the first batch isolated.
+- **Dedup confirmed**: classifier, feeder, enqueue, and dequeue all block duplicate calls per contact. The Vapi dialer and intake poller remain paused and should only be enabled after the manual assistant quality gate.
+- **New helper workflow (2026-07-03)**: `LT - Emerging Pool Go Live Helper` (`OGnADUQKd5z5f905`) runs imported-pool readiness, backfill, audit, queue audit, and isolation SQL through the live `Postgres account` credential.
+- **Bug discoveries (2026-07-03)**: `voice_call_queue` has no `pipeline_stage` column (dequeue filter fixed earlier). Callback `trackedAssistants` array now includes both new campaign assistants.
 - **Emerging Pool import (2026-07-02)**: Two brand/dispensary Emerald CSV files imported into Postgres `emerging_pool_contacts` (13,868 total). GHL-ready CSVs prepared with correct column mapping. Two n8n workflows created. Apollo re-enrichment on bad numbers added to callback workflow.
 - The reporting stack is live: GA4 and GHL ingestion are in production, data is flowing into Postgres, and the Executive Report is live in GHL.
 - Report rollups, attribution bridge, QA/alerts, and the executive summary API are already running.
@@ -881,13 +887,14 @@ It supersedes the duplicated planning notes in:
 - Phone: `+1 (562) 534 1977`
 - Vapi Assistant IDs: V1 Outbound `3f9bbfd2...`, V1 Inbound `43f379ff...`, Brand (Alex) `1d7c5d42...`, Dispensary (Jordan) `056f2e50...`
 - Canonical webhook: `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`
-- Target n8n version: `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
+- Target n8n version: `2.28.6` (upgraded from `2.25.3` on 2026-07-03; originally upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
 - Canonical MCP: `n8n-lt`
 
 ### Active Workflows
 
-- `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) — **Manual**, now reads from `Emerald_Contacts` + `voice_call_attempt`; code path is working, but current campaign-relevant source supply is empty
-- `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`) — **Inactive helper**, runs every 30 minutes when enabled and stages approved `vapi_campaign_*` contacts into the queue with pacing + duplicate guards
+- `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) — **Manual**, reads from `emerging_pool_contacts` joined against `report_raw_ghl_contacts` and deduped against `voice_call_attempt` / pending queue. Tags 5 Brand + 5 Dispensary per run.
+- `LT - Vapi Campaign Queue Feeder` (`RFIZ9Bcfl3Yvms2b`) — **Inactive helper**, runs every 30 minutes when enabled and stages approved `vapi_campaign_*` contacts into the queue with pacing + duplicate guards. Patched 2026-07-03 to require both campaign tag and matching imported-pool tag.
+- `LT - Emerging Pool Go Live Helper` (`OGnADUQKd5z5f905`) — **Manual helper** (created 2026-07-03). Runs imported-pool readiness, backfill, audit, queue audit, and isolation SQL through the live `Postgres account` credential.
 - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — **ACTIVE 2026-07-02**, merged callback plus 4 tools, all 4 campaign assistants tracked
 - `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — **ACTIVE 2026-07-02**, receives GHL call webhooks, upserts Postgres, Slack alerts for missed inbound
 - `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — **ACTIVE 2026-07-02**, webhook-triggered dequeue, campaign-aware assistant routing
@@ -977,36 +984,23 @@ It supersedes the duplicated planning notes in:
 
 ## Next Steps
 
-### 0. Emerging Pool Import (DONE 2026-07-02)
+### 0. Emerging Pool Import (DONE 2026-07-02, LINKED 2026-07-03)
 - **13,868 Emerald contacts** imported into Postgres `emerging_pool_contacts` (3,668 brands + 10,200 dispensaries)
 - **GHL-ready CSVs** created at `C:\Users\edmon\OneDrive\Documents\Projects\LiveTransparent\GHL_Ready_{Brands,Dispensaries}.csv` with columns matching existing GHL `Em_*` custom fields
 - Tags: `brands_pool,emerald` / `dispensaries_pool,emerald`
 - Two n8n workflows created: `LT - Brands Pool to Postgres + Sheets` (`fg06Ip8wT3EapfdD`) and `LT - Dispensaries Pool to Postgres + Sheets` (`q7qbjjm6185WeukV`)
-- **2026-07-03 update**: Brand and Dispensary CSVs have now been imported into GHL, but GHL-side processing was still running at the end of session. Do not run the backfill yet until imported contacts finish processing and land in `report_raw_ghl_contacts`.
-- **Next live sequence when processing finishes**:
-  1. `postgres/emerging-pool-go-live-check.sql`
-  2. `postgres/backfill-emerging-pool-ghl-ids.sql`
-  3. `postgres/audit-emerging-pool-linkage.sql`
-  4. patch `IduCoT5YOs0g2faT` using `n8n/workflow-update-payloads/lt-campaign-contact-classifier-update-ops.json`
-  5. manually run classifier with 5 Brand + 5 Dispensary cap
-  6. verify queue feeder `RFIZ9Bcfl3Yvms2b`
+- **2026-07-03 update**: GHL import finished. 30 Brand + 20 Dispensary rows now have `Em_Emerald_Contact_ID` and `Em_Source_File` in `report_raw_ghl_contacts`. `emerging_pool_contacts.ghl_contact_id` backfilled for those 50 rows. First classifier seed run tagged 5 Brand + 5 Dispensary via execution `105490`.
 
-### 1. Vapi Campaign Rollout (Phases 1+3 DONE, Phase 2 DATA-BLOCKED — 2026-07-02)
+### 1. Vapi Campaign Rollout (Phases 1–3 DONE, Phase 4 READY FOR QUALITY GATE — 2026-07-03)
 
 See `plan.md` for full details. Progress:
 - **Phase 1**: **DONE** — 2 assistants created, tools cleanup, John→Jason migration, GHL tags created
 - **Quality gate (PENDING)**: Manual test call per assistant (Alex + Jordan) via Vapi dashboard
-- **Phase 2**: **DATA-BLOCKED** — The classifier workflow is fixed, but the current data supply is not.
-  - `Cannabis-Retail-SSO-Executive-2`: 464 rows, 6 with GHL+phone, 4 not previously called
-  - `Cannabis-Retail-SSO-Executive-1`: 84 rows, 1 with GHL+phone, 1 not previously called
-  - No current marketing / dispensary / retail-sales source rows have the required combination of `ghl_contact_id`, usable phone, and not-called status
-  - Old `sso` matching is no longer safe because it routes executives into Brand
-  - To unblock: sync refreshed marketing / dispensary rows into `Emerald_Contacts`, manually approve a GHL test cohort, or define executive routing intentionally
-- **2026-07-03 strategy shift**: the imported `emerging_pool_contacts` Brand/Dispensary split is now the preferred campaign source for this rollout. The classifier should become a simple eligibility filter over `emerging_pool_contacts`, not a heuristic role classifier over `Emerald_Contacts`.
-- **2026-07-03 workflow note**: the live `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) is stale and currently hardcoded to 3 queue contact IDs. It must be patched before reuse. Patch assets are prepared in repo.
+- **Phase 2**: **DONE** — `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) rebuilt around `emerging_pool_contacts`. First seed run tagged 5 Brand + 5 Dispensary. Old `Emerald_Contacts` executive heuristic is no longer used. GHL field-ID matching fix is live.
 - **Phase 3**: **DONE** — All 6 infra changes deployed (dialer mapping, intake poller campaign tags, enqueue dedup, dequeue bugfix + routing, callback trackedAssistants, Config includeOtherFields)
-- **Phase 4**: **BLOCKED** — Needs quality gate plus an approved Brand/Dispensary cohort first
-- **Supporting helper**: Queue feeder workflow exists and its no-op behavior has been verified as expected when candidates are already pending in `voice_call_queue`
+- **Phase 4**: **READY FOR QUALITY GATE** — Active queue is now imported-pool-only. Dialer and intake poller remain paused. 4 imported-pool seed rows are pending (`Oxa0BTBbPi6JkPXGQIeT`, `2AthxJS3uMoGWxnVU9v7`, `FA2Cd923b7YzmJBdfByX`, `DkDogBpdJhH1gX8pauNP`). 5 legacy non-imported campaign rows were moved to `failed` to keep the first batch isolated.
+- **Supporting helper**: Queue feeder workflow hardened to require both campaign tag and matching imported-pool tag. `LT - Emerging Pool Go Live Helper` (`OGnADUQKd5z5f905`) added for the readiness, backfill, audit, queue audit, and isolation SQL.
+- **Dedup confirmed**: classifier, feeder, enqueue, and dequeue all block duplicate calls per contact. Do not enable intake poller or V1 dialer until after the manual assistant quality gate.
 
 ### 1A. Imported Pool Go-Live Prep (DONE 2026-07-03)
 
@@ -1028,7 +1022,8 @@ See `plan.md` for full details. Progress:
   - `live-mutation-plan.md`
   - `rollback-checklist-vapi-emerging-pool.md`
   - `execution-checklist-after-import.md`
-- **Remaining blocker**: external only. Wait for GHL import completion + reporting ingest landing imported contacts in `report_raw_ghl_contacts`.
+- **All SQL assets updated to match custom fields by stable field id (`R0wbDRyzZz34PMlQSRWN` / `ILurFacMbAaHz2DdGjPa`) in addition to name, so the imported-pool linkage survives the GHL custom-field shape change.**
+- **Next move is operational, not data-side**: manual assistant quality gate, then controlled queue-driven call test. Do not enable intake poller or V1 dialer yet.
 
 ### 2. Voice Hardening
 

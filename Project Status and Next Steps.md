@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-03 (imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed, docs synced)
+Updated: 2026-07-03 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed)
 
 ## Source Of Truth
 
@@ -47,7 +47,7 @@ It supersedes the duplicated planning notes in:
 - Phone: `+1 (562) 534 1977`
 - Vapi Assistant IDs: V1 Outbound `3f9bbfd2...`, V1 Inbound `43f379ff...`, Brand (Alex) `1d7c5d42...`, Dispensary (Jordan) `056f2e50...`
 - Canonical webhook: `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`
-- Target n8n version: `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
+- Target n8n version: `2.28.6` (upgraded from `2.25.3` on 2026-07-03; originally upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
 - Canonical MCP: `n8n-lt`
 
 ### Active Workflows
