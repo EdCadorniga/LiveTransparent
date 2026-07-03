@@ -274,13 +274,13 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 
 ## Outreach Notes
 
-- LinkedIn invite copy is sourced from `outreach_messages.v2.docx`.
-- LinkedIn DM copy is sourced from `outreach_messages.v2.docx`.
+- LinkedIn invite copy is sourced from `docs/outreach/outreach_messages.v2.docx`.
+- LinkedIn DM copy is sourced from `docs/outreach/outreach_messages.v2.docx`.
 - LinkedIn DM timing is currently 0, 3, 4, 3, 4 days between sends after the first message clock starts.
 - Active LinkedIn conversations are marked in `linkedin_connection_state` via `payload_json.dm_conversation_status = 'active'`.
 - For LinkedIn supply, prefer seeding `linkedin_connection_state` from the working GHL contacts list and keep `linkedin_connected` rows out of the queue entirely.
 - If you restart the session, re-check the live n8n executions for the sync, dispatcher, and DM workflows before saying the pipeline is healthy.
-- SimpleTexting SMS campaign work is now staged in repo workflow exports, using `outreach_messages.docx` as the SMS source of truth.
+- SimpleTexting SMS campaign work is now staged in repo workflow exports, using `docs/outreach/outreach_messages.docx` as the SMS source of truth.
 - SMS campaign requirements:
   - tag each SMS send so the same person is not messaged twice
   - keep send state and response state in the same canonical table or a tightly controlled pair of tables
@@ -304,8 +304,8 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - `n8n/workflows/lt-linkedin-connection-acceptance-checker.ts`
 - `n8n/workflows/lt-apollo-queued-timeout-reaper.ts` — flips GHL contacts stuck in `Apollo Phone Enrichment Status = queued` past 24h to `callback_timeout` so the Vapi poller unblocks them (workflow ID `RL5ZyUoshSPbmVA1`, hourly)
 - `n8n/workflows/lt-emerging-pool-import.ts` — SDK workflow for Brands/Dispensaries Postgres import
-- `fix_intake_poller.js` — intake poller fix script
-- `fix_sheets_node.py`, `fix_brands_code.py`, `fix_parse_csv.py` — temporary fix scripts (can be cleaned up)
+- `scripts/fix_intake_poller.js` — intake poller fix script
+- `scripts/fix_sheets_node.py`, `scripts/fix_brands_code.py`, `scripts/fix_parse_csv.py` — temporary fix scripts (can be cleaned up)
 - `n8n/workflows/lt-simpletexting-send-sms.json`
 - `n8n/workflows/lt-simpletexting-pool-dispatcher.json`
 - `n8n/workflows/lt-simpletexting-campaign-sequencer.json`
@@ -316,8 +316,8 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - `reports/nginx.conf`
 - `Backup of all n8n workflows/`
 - `Project Specifications.md`
-- `Vapi_Brand_Campaign.docx` — Brand campaign (Alex persona, brand marketing leads)
-- `Vapi_Dispensary_Campaign.docx` — Dispensary campaign (Jordan persona, dispensary owners)
+- `docs/campaigns/Vapi_Brand_Campaign.docx` — Brand campaign (Alex persona, brand marketing leads)
+- `docs/campaigns/Vapi_Dispensary_Campaign.docx` — Dispensary campaign (Jordan persona, dispensary owners)
 - `plan.md` — Vapi Campaign Rollout implementation plan (4 phases)
 
 ## VPS SSH Access
@@ -337,7 +337,7 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
   ```
 - Reference keys on server: `vps_caddy_key`, `vps_upload`, `id_ed25519_vps_whitefriar` — all passphrase-encrypted, unknown passwords.
 - GHL-ready CSV files live on the n8n server at `/home/node/.n8n-files/GHL_Ready_Brands.csv` and `/home/node/.n8n-files/GHL_Ready_Dispensaries.csv`.
-- Local copies (with GHL-mapped column headers, pool tags + `emerald`) at `C:\Users\edmon\OneDrive\Documents\Projects\LiveTransparent\GHL_Ready_Brands.csv` and `GHL_Ready_Dispensaries.csv`.
+- Local copies (with GHL-mapped column headers, pool tags + `emerald`) at `data/GHL_Ready_Brands.csv` and `data/GHL_Ready_Dispensaries.csv`.
 - n8n workflows:
   - `LT - Brands Pool to Postgres + Sheets` (`fg06Ip8wT3EapfdD`) — reads Brands CSV, inserts into `emerging_pool_contacts` with `source_list='brands'`
   - `LT - Dispensaries Pool to Postgres + Sheets` (`q7qbjjm6185WeukV`) — reads Dispensaries CSV, inserts with `source_list='dispensaries'`
@@ -350,15 +350,15 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
   - `postgres/backfill-emerging-pool-ghl-opportunity-ids.sql` — optional second-pass opportunity linkage
   - `postgres/select-emerging-pool-vapi-candidates.sql` — eligibility query for rebuilt classifier
   - `postgres/select-vapi-seed-test-batch.sql` — first 5 Brand + 5 Dispensary manual review cohort
-  - `classifier-repair-plan.md` — why the classifier must move to `emerging_pool_contacts`
-  - `classifier-workflow-change-plan.md` — node-by-node classifier rebuild plan
-  - `classifier-workflow-patch-snippets.md` — exact node content replacements
-  - `classifier-workflow-mcp-update-ops.md` — MCP operation objects for `IduCoT5YOs0g2faT`
-  - `n8n/workflow-update-payloads/lt-campaign-contact-classifier-update-ops.json` — machine-ready workflow update payload
-  - `emerging-pool-post-import-runbook.md` — full operator sequence
-  - `live-mutation-plan.md` — mutation order and stop gates
-  - `rollback-checklist-vapi-emerging-pool.md` — surgical rollback plan
-  - `execution-checklist-after-import.md` — concise after-import execution checklist
+   - `docs/classifier/classifier-repair-plan.md` — why the classifier must move to `emerging_pool_contacts`
+   - `docs/classifier/classifier-workflow-change-plan.md` — node-by-node classifier rebuild plan
+   - `docs/classifier/classifier-workflow-patch-snippets.md` — exact node content replacements
+   - `docs/classifier/classifier-workflow-mcp-update-ops.md` — MCP operation objects for `IduCoT5YOs0g2faT`
+   - `n8n/workflow-update-payloads/lt-campaign-contact-classifier-update-ops.json` — machine-ready workflow update payload
+   - `docs/classifier/emerging-pool-post-import-runbook.md` — full operator sequence
+   - `docs/classifier/live-mutation-plan.md` — mutation order and stop gates
+   - `docs/classifier/rollback-checklist-vapi-emerging-pool.md` — surgical rollback plan
+   - `docs/classifier/execution-checklist-after-import.md` — concise after-import execution checklist
 - **Apollo re-enrichment on bad numbers** (added 2026-07-02): In callback workflow `fx4UvKUWbqJEY3LK`, after `GHL - Apply Tags`, a new `Should Re-enrich Phone` IF node checks disposition. If `wrong_number` or `contact_disconnected`, it fires `HTTP - Set Apollo Enrichment` which sets `Enrich Phone via Apollo = Yes` (custom field `gdJDuZelIxEBE6n9i5Q6`). The existing `LT - Apollo Phone Enrichment Intake V3` then looks up a new number.
 
 ## repomix-output.md Refresh

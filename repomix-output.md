@@ -39,15 +39,29 @@ The content is organized as follows:
 # Directory Structure
 ```
 AGENTS.md
+classifier-repair-plan.md
+classifier-workflow-change-plan.md
+classifier-workflow-mcp-update-ops.md
+classifier-workflow-patch-snippets.md
 Dockerfile
+Emerald_Contacts_Data_Audit.md
+emerging-pool-post-import-runbook.md
+execution-checklist-after-import.md
+Executive_Report_Training_Guide.md
+fix_intake_poller.js
+live-mutation-plan.md
 LiveTransparent Report Plan.md
+LT_SSO_Executive_Set1_UPDATED.docx
 package.json
 plan.md
 Project Specifications.md
 Project Status and Next Steps.md
 QWEN.md
+rollback-checklist-vapi-emerging-pool.md
 Sales and Marketing Roadmap.md
+sms_edited_templatekeys.md
 Unipile_potential_automations.md
+vapi-campaign-prompts-summary.md
 ```
 
 # Files
@@ -100,6 +114,15 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - GHL MCP: primary `ghl_official`, secondary `ghl_katwill_*`.
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
 - **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. Use `setNodeParameter` for single-path edits on Set v3.4 nodes instead of `updateNodeParameters`. If `setNodeParameter` also fails, **use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) but note that PUT auto-publishes and validates all node credentials, which may fail if credential IDs aren't embedded in node JSON. For Code nodes, `updateNodeParameters` and `setNodeParameter` are both safe. Verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
+- **n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` return fields (`tags`, `scopes`, `canExecute`, `availableInMCP`) that violate the MCP tool's `additionalProperties: false` output schema. **Workaround:** Use direct REST API calls for workflow listing and details:
+  ```bash
+  # List workflows
+  curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows?active=true&limit=100"
+  
+  # Get single workflow
+  curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows/{workflowId}"
+  ```
+  The MCP tools for **workflow execution, editing, and node operations** are unaffected. Only discovery/listing tools are broken. This will be fixed in a future n8n release.
 
 ## Code Node HTTP Requests
 
@@ -321,13 +344,13 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 
 ## Outreach Notes
 
-- LinkedIn invite copy is sourced from `outreach_messages.v2.docx`.
-- LinkedIn DM copy is sourced from `outreach_messages.v2.docx`.
+- LinkedIn invite copy is sourced from `docs/outreach/outreach_messages.v2.docx`.
+- LinkedIn DM copy is sourced from `docs/outreach/outreach_messages.v2.docx`.
 - LinkedIn DM timing is currently 0, 3, 4, 3, 4 days between sends after the first message clock starts.
 - Active LinkedIn conversations are marked in `linkedin_connection_state` via `payload_json.dm_conversation_status = 'active'`.
 - For LinkedIn supply, prefer seeding `linkedin_connection_state` from the working GHL contacts list and keep `linkedin_connected` rows out of the queue entirely.
 - If you restart the session, re-check the live n8n executions for the sync, dispatcher, and DM workflows before saying the pipeline is healthy.
-- SimpleTexting SMS campaign work is now staged in repo workflow exports, using `outreach_messages.docx` as the SMS source of truth.
+- SimpleTexting SMS campaign work is now staged in repo workflow exports, using `docs/outreach/outreach_messages.docx` as the SMS source of truth.
 - SMS campaign requirements:
   - tag each SMS send so the same person is not messaged twice
   - keep send state and response state in the same canonical table or a tightly controlled pair of tables
@@ -351,8 +374,8 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - `n8n/workflows/lt-linkedin-connection-acceptance-checker.ts`
 - `n8n/workflows/lt-apollo-queued-timeout-reaper.ts` — flips GHL contacts stuck in `Apollo Phone Enrichment Status = queued` past 24h to `callback_timeout` so the Vapi poller unblocks them (workflow ID `RL5ZyUoshSPbmVA1`, hourly)
 - `n8n/workflows/lt-emerging-pool-import.ts` — SDK workflow for Brands/Dispensaries Postgres import
-- `fix_intake_poller.js` — intake poller fix script
-- `fix_sheets_node.py`, `fix_brands_code.py`, `fix_parse_csv.py` — temporary fix scripts (can be cleaned up)
+- `scripts/fix_intake_poller.js` — intake poller fix script
+- `scripts/fix_sheets_node.py`, `scripts/fix_brands_code.py`, `scripts/fix_parse_csv.py` — temporary fix scripts (can be cleaned up)
 - `n8n/workflows/lt-simpletexting-send-sms.json`
 - `n8n/workflows/lt-simpletexting-pool-dispatcher.json`
 - `n8n/workflows/lt-simpletexting-campaign-sequencer.json`
@@ -363,8 +386,8 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - `reports/nginx.conf`
 - `Backup of all n8n workflows/`
 - `Project Specifications.md`
-- `Vapi_Brand_Campaign.docx` — Brand campaign (Alex persona, brand marketing leads)
-- `Vapi_Dispensary_Campaign.docx` — Dispensary campaign (Jordan persona, dispensary owners)
+- `docs/campaigns/Vapi_Brand_Campaign.docx` — Brand campaign (Alex persona, brand marketing leads)
+- `docs/campaigns/Vapi_Dispensary_Campaign.docx` — Dispensary campaign (Jordan persona, dispensary owners)
 - `plan.md` — Vapi Campaign Rollout implementation plan (4 phases)
 
 ## VPS SSH Access
@@ -384,7 +407,7 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
   ```
 - Reference keys on server: `vps_caddy_key`, `vps_upload`, `id_ed25519_vps_whitefriar` — all passphrase-encrypted, unknown passwords.
 - GHL-ready CSV files live on the n8n server at `/home/node/.n8n-files/GHL_Ready_Brands.csv` and `/home/node/.n8n-files/GHL_Ready_Dispensaries.csv`.
-- Local copies (with GHL-mapped column headers, pool tags + `emerald`) at `C:\Users\edmon\OneDrive\Documents\Projects\LiveTransparent\GHL_Ready_Brands.csv` and `GHL_Ready_Dispensaries.csv`.
+- Local copies (with GHL-mapped column headers, pool tags + `emerald`) at `data/GHL_Ready_Brands.csv` and `data/GHL_Ready_Dispensaries.csv`.
 - n8n workflows:
   - `LT - Brands Pool to Postgres + Sheets` (`fg06Ip8wT3EapfdD`) — reads Brands CSV, inserts into `emerging_pool_contacts` with `source_list='brands'`
   - `LT - Dispensaries Pool to Postgres + Sheets` (`q7qbjjm6185WeukV`) — reads Dispensaries CSV, inserts with `source_list='dispensaries'`
@@ -397,15 +420,15 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
   - `postgres/backfill-emerging-pool-ghl-opportunity-ids.sql` — optional second-pass opportunity linkage
   - `postgres/select-emerging-pool-vapi-candidates.sql` — eligibility query for rebuilt classifier
   - `postgres/select-vapi-seed-test-batch.sql` — first 5 Brand + 5 Dispensary manual review cohort
-  - `classifier-repair-plan.md` — why the classifier must move to `emerging_pool_contacts`
-  - `classifier-workflow-change-plan.md` — node-by-node classifier rebuild plan
-  - `classifier-workflow-patch-snippets.md` — exact node content replacements
-  - `classifier-workflow-mcp-update-ops.md` — MCP operation objects for `IduCoT5YOs0g2faT`
-  - `n8n/workflow-update-payloads/lt-campaign-contact-classifier-update-ops.json` — machine-ready workflow update payload
-  - `emerging-pool-post-import-runbook.md` — full operator sequence
-  - `live-mutation-plan.md` — mutation order and stop gates
-  - `rollback-checklist-vapi-emerging-pool.md` — surgical rollback plan
-  - `execution-checklist-after-import.md` — concise after-import execution checklist
+   - `docs/classifier/classifier-repair-plan.md` — why the classifier must move to `emerging_pool_contacts`
+   - `docs/classifier/classifier-workflow-change-plan.md` — node-by-node classifier rebuild plan
+   - `docs/classifier/classifier-workflow-patch-snippets.md` — exact node content replacements
+   - `docs/classifier/classifier-workflow-mcp-update-ops.md` — MCP operation objects for `IduCoT5YOs0g2faT`
+   - `n8n/workflow-update-payloads/lt-campaign-contact-classifier-update-ops.json` — machine-ready workflow update payload
+   - `docs/classifier/emerging-pool-post-import-runbook.md` — full operator sequence
+   - `docs/classifier/live-mutation-plan.md` — mutation order and stop gates
+   - `docs/classifier/rollback-checklist-vapi-emerging-pool.md` — surgical rollback plan
+   - `docs/classifier/execution-checklist-after-import.md` — concise after-import execution checklist
 - **Apollo re-enrichment on bad numbers** (added 2026-07-02): In callback workflow `fx4UvKUWbqJEY3LK`, after `GHL - Apply Tags`, a new `Should Re-enrich Phone` IF node checks disposition. If `wrong_number` or `contact_disconnected`, it fires `HTTP - Set Apollo Enrichment` which sets `Enrich Phone via Apollo = Yes` (custom field `gdJDuZelIxEBE6n9i5Q6`). The existing `LT - Apollo Phone Enrichment Intake V3` then looks up a new number.
 
 ## repomix-output.md Refresh
@@ -418,12 +441,1201 @@ After any significant work session (workflow fixes, new automations, config chan
 This stages key files into `C:\TempRepomixStaging`, runs `npx repomix --style markdown --compress --remove-comments --remove-empty-lines`, and copies the result back to the project root.
 ````
 
+## File: classifier-repair-plan.md
+````markdown
+# Emerald Vapi Classifier Repair Plan
+
+## Why This Needs Repair
+
+- The documented classifier intent says `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) should classify Emerald candidates from Postgres and apply `vapi_campaign_brand` / `vapi_campaign_dispensary`.
+- The live workflow no longer matches that description. Its current `Called Contacts` node is hardcoded to 3 specific `voice_call_queue.contact_id` values, so it is not a general classifier anymore.
+- Once the imported Brand/Dispensary contacts are linked back into `emerging_pool_contacts`, the classifier should be rebuilt around that imported pool instead of the older executive-heavy `Emerald_Contacts` table.
+
+## Target Data Source
+
+Primary table:
+- `emerging_pool_contacts`
+
+Required fields before classification:
+- `emerald_contact_id`
+- `source_list`
+- `primary_phone`
+- `primary_email`
+- `company_name`
+- `tags`
+- `ghl_contact_id`
+
+Optional enrichment fields later:
+- `ghl_opportunity_id`
+- `ghl_import_status`
+
+## Classification Goal
+
+Tag imported pool contacts into one of:
+- `vapi_campaign_brand`
+- `vapi_campaign_dispensary`
+
+while excluding:
+- contacts already called
+- contacts already queued
+- DNC or already-terminal Vapi outcomes
+- contacts without a usable linked `ghl_contact_id`
+- contacts without a callable phone path
+
+## Recommended Rule Set
+
+Do not reuse the old broad `sso` substring heuristic.
+
+### Brand campaign candidates
+- `source_list = 'brands'`
+- linked `ghl_contact_id` present
+- not already called or queued
+- not DNC / not terminal Vapi tagged
+
+### Dispensary campaign candidates
+- `source_list = 'dispensaries'`
+- linked `ghl_contact_id` present
+- not already called or queued
+- not DNC / not terminal Vapi tagged
+
+This is simpler and safer than role-tag inference, because the new imports are already split into Brand vs Dispensary source pools.
+
+## Recommended Workflow Shape
+
+Manual trigger first, then optionally scheduled later.
+
+1. `Manual Trigger`
+2. `Postgres` select eligible rows from `emerging_pool_contacts`
+3. `Code` normalize campaign tag payloads
+4. `HTTP Request` add GHL tag to matching contacts
+5. `Code` summarize counts and sample IDs
+
+## Recommended Eligibility Query Shape
+
+Pull rows from `emerging_pool_contacts` where:
+- `ghl_contact_id IS NOT NULL`
+- `source_list IN ('brands', 'dispensaries')`
+- `primary_phone <> ''` or a later approved fallback exists
+- not already present in `voice_call_attempt`
+- not already present in `voice_call_queue` with `status IN ('pending', 'in_progress')`
+
+Map tag directly:
+- `brands` -> `vapi_campaign_brand`
+- `dispensaries` -> `vapi_campaign_dispensary`
+
+## Suggested SQL Skeleton
+
+```sql
+SELECT
+  epc.id,
+  epc.ghl_contact_id AS contact_id,
+  epc.source_list,
+  epc.first_name,
+  epc.primary_phone,
+  CASE
+    WHEN epc.source_list = 'brands' THEN 'vapi_campaign_brand'
+    WHEN epc.source_list = 'dispensaries' THEN 'vapi_campaign_dispensary'
+    ELSE NULL
+  END AS campaign_tag
+FROM emerging_pool_contacts epc
+WHERE epc.ghl_contact_id IS NOT NULL
+  AND epc.source_list IN ('brands', 'dispensaries')
+  AND COALESCE(epc.primary_phone, '') <> ''
+  AND NOT EXISTS (
+    SELECT 1
+    FROM voice_call_attempt a
+    WHERE a.contact_id = epc.ghl_contact_id
+  )
+  AND NOT EXISTS (
+    SELECT 1
+    FROM voice_call_queue q
+    WHERE q.contact_id = epc.ghl_contact_id
+      AND q.status IN ('pending', 'in_progress')
+  );
+```
+
+## Rollout Recommendation
+
+Phase the classifier relaunch:
+
+1. Run once in dry/manual mode and return only a summary
+2. Spot-check 10 Brand + 10 Dispensary candidates
+3. Enable live tag application for a tiny cohort
+4. Let the queue feeder consume those tagged contacts
+5. Only then resume dialer/poller activation
+
+## Dependency Order
+
+1. GHL CSV import completes
+2. `report_raw_ghl_contacts` lands imported contacts
+3. `postgres/backfill-emerging-pool-ghl-ids.sql` runs
+4. optional `postgres/backfill-emerging-pool-ghl-opportunity-ids.sql` runs later
+5. classifier is rebuilt against `emerging_pool_contacts`
+6. queue feeder is rechecked against real imported campaign cohorts
+
+## Notes
+
+- This classifier should become much simpler than the old Emerald heuristic workflow.
+- The imported pool split (`brands` vs `dispensaries`) is already the campaign decision, so the main job becomes eligibility filtering, not semantic classification.
+````
+
+## File: classifier-workflow-change-plan.md
+````markdown
+# LT - Campaign Contact Classifier Workflow Change Plan
+
+Target workflow:
+- `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`)
+
+## Current Problem
+
+The live workflow currently does not act as a general Emerald classifier.
+Its `Called Contacts` Postgres node is hardcoded to 3 specific `voice_call_queue.contact_id` values.
+
+## New Purpose
+
+Repurpose the workflow into a manual or low-volume helper that:
+- selects eligible imported pool contacts from `emerging_pool_contacts`
+- maps `source_list` directly to campaign tag
+- applies `vapi_campaign_brand` or `vapi_campaign_dispensary` in GHL
+- returns a summary of what was tagged
+
+## Recommended Node Changes
+
+### 1. `Manual Start`
+- Keep as-is.
+
+### 2. Replace `Called Contacts` query
+- Keep the node type as Postgres.
+- Replace the current hardcoded queue-contact query with the selection query from:
+  - `postgres/select-emerging-pool-vapi-candidates.sql`
+- For the workflow version, use only the main candidate-select statement, not the summary block.
+
+Expected output fields:
+- `emerging_pool_row_id`
+- `emerald_contact_id`
+- `source_list`
+- `contact_id`
+- `campaign_id`
+- `campaign_tag`
+- `first_name`
+- `last_name`
+- `primary_email`
+- `primary_phone`
+- `company_name`
+
+### 3. Replace `Classify` node logic
+- Current node just returns `$input.all()`.
+- Update it to normalize payloads and optionally cap run size for safety.
+
+Recommended behavior:
+- pass through only rows with both `contact_id` and `campaign_tag`
+- optionally limit to first N rows per run for controlled activation
+
+Recommended output shape:
+- `contact_id`
+- `campaign_id`
+- `campaign_tag`
+- `first_name`
+- `company_name`
+- `emerging_pool_row_id`
+
+### 4. Keep `Apply Campaign Tag`
+- The HTTP node is structurally fine.
+- It already posts to:
+  - `POST /contacts/{contact_id}/tags`
+- Keep batching.
+
+Verify it still uses:
+- bearer auth credential
+- `Version: 2021-07-28`
+- `Content-Type: application/json`
+- `jsonBody = { tags: [$json.campaign_tag] }`
+
+### 5. Update `Summarize Tags`
+- Keep the node type as Code.
+- Make it report:
+  - total eligible selected
+  - total tagged successfully
+  - counts by `campaign_id`
+  - sample contact IDs
+  - sample company names
+  - sample Emerald row IDs
+
+Suggested summary fields:
+- `eligible_count`
+- `tagged_count`
+- `brand_count`
+- `dispensary_count`
+- `sample_contact_ids`
+- `sample_companies`
+- `sample_emerging_pool_row_ids`
+
+## Recommended Safe Rollout Mode
+
+For the first live pass, constrain the `Classify` node to:
+- max 5 Brand rows
+- max 5 Dispensary rows
+
+After spot-checking the actual contacts in GHL, remove or raise the cap.
+
+## Why This Is Better
+
+- It removes stale dependence on the old executive-focused `Emerald_Contacts` path.
+- It aligns the classifier to the imported pool that was already split into Brand vs Dispensary.
+- It makes campaign selection deterministic rather than heuristic.
+- It keeps the queue feeder as the downstream pacing mechanism.
+
+## Suggested Validation Steps
+
+1. Run `postgres/select-emerging-pool-vapi-candidates.sql`
+2. Confirm there are eligible rows in both pools
+3. Update workflow `IduCoT5YOs0g2faT`
+4. Execute manually with a small cap
+5. Spot-check tags in GHL
+6. Let `RFIZ9Bcfl3Yvms2b` pick up the newly tagged rows
+````
+
+## File: classifier-workflow-mcp-update-ops.md
+````markdown
+# LT - Campaign Contact Classifier MCP Update Ops
+
+Target workflow:
+- `IduCoT5YOs0g2faT`
+
+Use these operation payloads with `n8n-lt update_workflow` after imported contacts are landed and `ghl_contact_id` backfill is done.
+
+## Operation 1: Update `Called Contacts`
+
+```json
+{
+  "type": "updateNodeParameters",
+  "nodeName": "Called Contacts",
+  "replace": false,
+  "parameters": {
+    "operation": "executeQuery",
+    "query": "WITH latest_ghl_contacts AS (\n  SELECT DISTINCT ON (source_key)\n    source_key,\n    regexp_replace(source_key, '^contact:', '') AS ghl_contact_id,\n    payload_json,\n    dimensions_json,\n    loaded_at\n  FROM report_raw_ghl_contacts\n  WHERE source_system = 'ghl'\n    AND source_key LIKE 'contact:%'\n  ORDER BY source_key, report_date DESC, loaded_at DESC\n),\neligible_contacts AS (\n  SELECT\n    epc.id AS emerging_pool_row_id,\n    epc.emerald_contact_id,\n    epc.source_list,\n    epc.first_name,\n    epc.last_name,\n    epc.primary_email,\n    epc.primary_phone,\n    epc.company_name,\n    epc.tags AS pool_tags,\n    epc.ghl_contact_id AS contact_id,\n    epc.ghl_opportunity_id,\n    lgc.dimensions_json->>'tags' AS ghl_tags,\n    lgc.dimensions_json->>'phone' AS ghl_phone,\n    lgc.dimensions_json->>'email' AS ghl_email,\n    CASE\n      WHEN epc.source_list = 'brands' THEN 'brand'\n      WHEN epc.source_list = 'dispensaries' THEN 'dispensary'\n      ELSE NULL\n    END AS campaign_id,\n    CASE\n      WHEN epc.source_list = 'brands' THEN 'vapi_campaign_brand'\n      WHEN epc.source_list = 'dispensaries' THEN 'vapi_campaign_dispensary'\n      ELSE NULL\n    END AS campaign_tag\n  FROM emerging_pool_contacts epc\n  LEFT JOIN latest_ghl_contacts lgc\n    ON lgc.ghl_contact_id = epc.ghl_contact_id\n  WHERE epc.ghl_contact_id IS NOT NULL\n    AND epc.source_list IN ('brands', 'dispensaries')\n    AND COALESCE(epc.primary_phone, '') <> ''\n    AND NOT EXISTS (\n      SELECT 1\n      FROM voice_call_attempt a\n      WHERE a.contact_id = epc.ghl_contact_id\n    )\n    AND NOT EXISTS (\n      SELECT 1\n      FROM voice_call_queue q\n      WHERE q.contact_id = epc.ghl_contact_id\n        AND q.status IN ('pending', 'in_progress')\n    )\n    AND NOT EXISTS (\n      SELECT 1\n      WHERE lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_already_called%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_call_attempted%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_dnc%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%do not contact%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_human_answered%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_interested%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_not_interested%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_interest_unknown%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_voicemail%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_voicemail_left%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_no_answer%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_busy%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_wrong_number%'\n         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_contact_disconnected%'\n    )\n)\nSELECT\n  emerging_pool_row_id,\n  emerald_contact_id,\n  source_list,\n  contact_id,\n  campaign_id,\n  campaign_tag,\n  first_name,\n  last_name,\n  primary_email,\n  primary_phone,\n  company_name,\n  ghl_phone,\n  ghl_email\nFROM eligible_contacts\nWHERE campaign_tag IS NOT NULL\nORDER BY source_list, emerging_pool_row_id;"
+  }
+}
+```
+
+## Operation 2: Update `Classify`
+
+```json
+{
+  "type": "updateNodeParameters",
+  "nodeName": "Classify",
+  "replace": false,
+  "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "const MAX_PER_CAMPAIGN = 5;\nconst rows = $input.all().map((item) => item.json || {});\n\nconst grouped = { brand: [], dispensary: [] };\n\nfor (const row of rows) {\n  const campaignId = String(row.campaign_id || '').trim();\n  const contactId = String(row.contact_id || '').trim();\n  const campaignTag = String(row.campaign_tag || '').trim();\n  if (!campaignId || !contactId || !campaignTag) continue;\n  if (!grouped[campaignId]) continue;\n  if (grouped[campaignId].length >= MAX_PER_CAMPAIGN) continue;\n\n  grouped[campaignId].push({\n    json: {\n      emerging_pool_row_id: row.emerging_pool_row_id || null,\n      emerald_contact_id: row.emerald_contact_id || null,\n      source_list: row.source_list || null,\n      contact_id: contactId,\n      campaign_id: campaignId,\n      campaign_tag: campaignTag,\n      first_name: row.first_name || '',\n      last_name: row.last_name || '',\n      primary_email: row.primary_email || '',\n      primary_phone: row.primary_phone || '',\n      company_name: row.company_name || ''\n    }\n  });\n}\n\nreturn [...grouped.brand, ...grouped.dispensary];"
+  }
+}
+```
+
+## Operation 3: Update `Summarize Tags`
+
+```json
+{
+  "type": "updateNodeParameters",
+  "nodeName": "Summarize Tags",
+  "replace": false,
+  "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "const classified = $items('Classify').map((item) => item.json || {});\nconst applied = $input.all().map((item) => item.json || {});\n\nconst byCampaign = {\n  brand: { eligible: 0, tagged: 0 },\n  dispensary: { eligible: 0, tagged: 0 }\n};\n\nfor (const row of classified) {\n  const key = String(row.campaign_id || '').trim();\n  if (byCampaign[key]) byCampaign[key].eligible += 1;\n}\n\nfor (const row of applied) {\n  const key = String(row.campaign_id || '').trim();\n  if (byCampaign[key]) byCampaign[key].tagged += 1;\n}\n\nreturn [{\n  json: {\n    ok: true,\n    workflow: 'LT - Campaign Contact Classifier',\n    eligible_count: classified.length,\n    tagged_count: applied.length,\n    brand_count: byCampaign.brand.eligible,\n    dispensary_count: byCampaign.dispensary.eligible,\n    brand_tagged_count: byCampaign.brand.tagged,\n    dispensary_tagged_count: byCampaign.dispensary.tagged,\n    sample_contact_ids: classified.slice(0, 10).map((row) => row.contact_id),\n    sample_companies: classified.slice(0, 10).map((row) => row.company_name || row.first_name || row.contact_id),\n    sample_emerging_pool_row_ids: classified.slice(0, 10).map((row) => row.emerging_pool_row_id)\n  }\n}];"
+  }
+}
+```
+
+## Suggested Batch Apply
+
+Pass the three operations in one atomic `update_workflow` call.
+
+## First Manual Validation
+
+After patching:
+- execute the workflow manually
+- verify it selects only up to 5 Brand + 5 Dispensary rows
+- spot-check those contact IDs in GHL before letting the queue feeder continue
+````
+
+## File: classifier-workflow-patch-snippets.md
+````markdown
+# LT - Campaign Contact Classifier Patch Snippets
+
+Target workflow:
+- `IduCoT5YOs0g2faT`
+
+Use this after:
+- `postgres/backfill-emerging-pool-ghl-ids.sql`
+- optional review of `postgres/select-emerging-pool-vapi-candidates.sql`
+
+## Replace `Called Contacts` Query
+
+Node name:
+- `Called Contacts`
+
+Replace the current SQL with:
+
+```sql
+WITH latest_ghl_contacts AS (
+  SELECT DISTINCT ON (source_key)
+    source_key,
+    regexp_replace(source_key, '^contact:', '') AS ghl_contact_id,
+    payload_json,
+    dimensions_json,
+    loaded_at
+  FROM report_raw_ghl_contacts
+  WHERE source_system = 'ghl'
+    AND source_key LIKE 'contact:%'
+  ORDER BY source_key, report_date DESC, loaded_at DESC
+),
+eligible_contacts AS (
+  SELECT
+    epc.id AS emerging_pool_row_id,
+    epc.emerald_contact_id,
+    epc.source_list,
+    epc.first_name,
+    epc.last_name,
+    epc.primary_email,
+    epc.primary_phone,
+    epc.company_name,
+    epc.tags AS pool_tags,
+    epc.ghl_contact_id AS contact_id,
+    epc.ghl_opportunity_id,
+    lgc.dimensions_json->>'tags' AS ghl_tags,
+    lgc.dimensions_json->>'phone' AS ghl_phone,
+    lgc.dimensions_json->>'email' AS ghl_email,
+    CASE
+      WHEN epc.source_list = 'brands' THEN 'brand'
+      WHEN epc.source_list = 'dispensaries' THEN 'dispensary'
+      ELSE NULL
+    END AS campaign_id,
+    CASE
+      WHEN epc.source_list = 'brands' THEN 'vapi_campaign_brand'
+      WHEN epc.source_list = 'dispensaries' THEN 'vapi_campaign_dispensary'
+      ELSE NULL
+    END AS campaign_tag
+  FROM emerging_pool_contacts epc
+  LEFT JOIN latest_ghl_contacts lgc
+    ON lgc.ghl_contact_id = epc.ghl_contact_id
+  WHERE epc.ghl_contact_id IS NOT NULL
+    AND epc.source_list IN ('brands', 'dispensaries')
+    AND COALESCE(epc.primary_phone, '') <> ''
+    AND NOT EXISTS (
+      SELECT 1
+      FROM voice_call_attempt a
+      WHERE a.contact_id = epc.ghl_contact_id
+    )
+    AND NOT EXISTS (
+      SELECT 1
+      FROM voice_call_queue q
+      WHERE q.contact_id = epc.ghl_contact_id
+        AND q.status IN ('pending', 'in_progress')
+    )
+    AND NOT EXISTS (
+      SELECT 1
+      WHERE lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_already_called%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_call_attempted%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_dnc%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%do not contact%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_human_answered%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_interested%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_not_interested%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_interest_unknown%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_voicemail%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_voicemail_left%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_no_answer%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_busy%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_wrong_number%'
+         OR lower(COALESCE(lgc.dimensions_json->>'tags', '')) LIKE '%vapi_contact_disconnected%'
+    )
+)
+SELECT
+  emerging_pool_row_id,
+  emerald_contact_id,
+  source_list,
+  contact_id,
+  campaign_id,
+  campaign_tag,
+  first_name,
+  last_name,
+  primary_email,
+  primary_phone,
+  company_name,
+  ghl_phone,
+  ghl_email
+FROM eligible_contacts
+WHERE campaign_tag IS NOT NULL
+ORDER BY source_list, emerging_pool_row_id;
+```
+
+## Replace `Classify` Code
+
+Node name:
+- `Classify`
+
+Recommended safe first-pass code:
+
+```javascript
+const MAX_PER_CAMPAIGN = 5;
+const rows = $input.all().map((item) => item.json || {});
+
+const grouped = {
+  brand: [],
+  dispensary: [],
+};
+
+for (const row of rows) {
+  const campaignId = String(row.campaign_id || '').trim();
+  const contactId = String(row.contact_id || '').trim();
+  const campaignTag = String(row.campaign_tag || '').trim();
+  if (!campaignId || !contactId || !campaignTag) continue;
+  if (!grouped[campaignId]) continue;
+  if (grouped[campaignId].length >= MAX_PER_CAMPAIGN) continue;
+
+  grouped[campaignId].push({
+    json: {
+      emerging_pool_row_id: row.emerging_pool_row_id || null,
+      emerald_contact_id: row.emerald_contact_id || null,
+      source_list: row.source_list || null,
+      contact_id: contactId,
+      campaign_id: campaignId,
+      campaign_tag: campaignTag,
+      first_name: row.first_name || '',
+      last_name: row.last_name || '',
+      primary_email: row.primary_email || '',
+      primary_phone: row.primary_phone || '',
+      company_name: row.company_name || '',
+    },
+  });
+}
+
+return [...grouped.brand, ...grouped.dispensary];
+```
+
+After validation, raise or remove `MAX_PER_CAMPAIGN`.
+
+## Replace `Summarize Tags` Code
+
+Node name:
+- `Summarize Tags`
+
+Use this summary code:
+
+```javascript
+const classified = $items('Classify').map((item) => item.json || {});
+const applied = $input.all().map((item) => item.json || {});
+
+const byCampaign = {
+  brand: { eligible: 0, tagged: 0 },
+  dispensary: { eligible: 0, tagged: 0 },
+};
+
+for (const row of classified) {
+  const key = String(row.campaign_id || '').trim();
+  if (byCampaign[key]) byCampaign[key].eligible += 1;
+}
+
+for (const row of classified) {
+  const key = String(row.campaign_id || '').trim();
+  if (byCampaign[key]) byCampaign[key].tagged += 1;
+}
+
+return [{
+  json: {
+    ok: true,
+    workflow: 'LT - Campaign Contact Classifier',
+    eligible_count: classified.length,
+    tagged_count: applied.length,
+    brand_count: byCampaign.brand.eligible,
+    dispensary_count: byCampaign.dispensary.eligible,
+    sample_contact_ids: classified.slice(0, 10).map((row) => row.contact_id),
+    sample_companies: classified.slice(0, 10).map((row) => row.company_name || row.first_name || row.contact_id),
+    sample_emerging_pool_row_ids: classified.slice(0, 10).map((row) => row.emerging_pool_row_id),
+  },
+}];
+```
+
+## Suggested MCP Update Sequence
+
+When you're ready to patch the workflow, use targeted updates only:
+
+1. `updateNodeParameters` for `Called Contacts` (safe for Postgres node)
+2. `updateNodeParameters` for `Classify` (safe for Code node)
+3. `updateNodeParameters` for `Summarize Tags` (safe for Code node)
+
+Avoid editing unrelated nodes.
+
+## Validation Checklist
+
+After patching the workflow:
+
+1. Execute manually
+2. Confirm returned candidates are only from `brands` / `dispensaries`
+3. Confirm no already-called or already-queued contacts are included
+4. Confirm only 5 Brand + 5 Dispensary contacts are tagged on the first pass
+5. Spot-check those contacts in GHL before letting the queue feeder consume them
+````
+
 ## File: Dockerfile
 ````dockerfile
 FROM nginx:1.27-alpine
 
 COPY reports/nginx.conf /etc/nginx/conf.d/default.conf
 COPY reports /usr/share/nginx/html
+````
+
+## File: Emerald_Contacts_Data_Audit.md
+````markdown
+# Emerald Contacts Data Audit
+
+**Date:** 2026-05-14
+
+## Executive Summary
+
+| Issue | Count |
+|-------|-------|
+| Cross-bucket duplicates (same email in multiple role buckets) | **50** contacts |
+| DNC + active bucket conflicts | **9** contacts (marked Do Not Contact but also in mso_executive or sso_executive) |
+| Shared phone numbers (2+ contacts share same number) | **2,247** numbers affecting **~16k** contacts |
+| Contacts moved to review file (phone-only shared/invalid) | **4,705** rows |
+| Contacts without any phone number (deduped file) | **7,085** / 19,649 (36%) |
+| Contacts without usable phone (no-phone + review file) | **11,790** / 24,354 (**48%**) |
+| Bucket tag counts: sso_executive 7,603 / mso_executive 4,027 / marketing 2,363 / finance 892 / retail_sales 730 / DNC 909 | **16,524** total in v5 tagging file |
+
+**Data sources:**
+- `ghl_v5_tagging_import_email_only.csv` — 16,524 rows, email+tag buckets for GHL tagging
+- `emerald-contacts.ghl.csv` — 27,320 rows, full source data (pre-dedup)
+- `emerald-contacts.dedup.ghl.csv` — 19,649 rows, deduped GHL-safe import
+- `emerald-contacts.dedup.review-shared-phone.csv` — 4,705 rows, phone-only shared/invalid flagged
+
+---
+
+## 1. Cross-Bucket Duplicates (Same Email in Multiple Buckets)
+
+**50 unique emails** appear in 2+ different role buckets. These are contacts assigned to multiple categories (MSO executive, SSO executive, marketing, finance, retail sales, or Do Not Contact).
+
+| Email | Name | Buckets | Rows |
+|-------|------|---------|------|
+| bj@cookiesre.com | | Do Not Contact, mso_executive | 5 |
+| phvesq@gmail.com | | mso_executive, sso_executive | 5 |
+| queen@soldistro.com | | mso_executive, sso_executive | 3 |
+| gdinla@proton.me | | sso_executive, sso_finance | 3 |
+| thebabyloncompany@gmail.com | | mso_executive, sso_executive | 3 |
+| altaherbllc@gmail.com | | mso_executive, sso_executive | 3 |
+| sveta@citrushill.org | | mso_executive, sso_executive | 3 |
+| mike@arcadewellness.org | | mso_executive, mso_finance | 3 |
+| nick@highlinedistro.com | | mso_executive, sso_executive | 3 |
+| jmendonca@tokenfarmsinc.com | | mso_executive, mso_marketing | 2 |
+| joey@theflowery.co | | Do Not Contact, mso_executive | 2 |
+| john@novafarms.com | | Do Not Contact, mso_executive | 2 |
+| karen.duval@crescolabs.com | | mso_executive, mso_retail_sales | 2 |
+| kelsey@thefirestation.com | | mso_executive, mso_marketing | 2 |
+| michael.bang@calyxpeak.com | | mso_executive, mso_finance | 2 |
+| 17325muskratinc@gmail.com | | sso_executive, sso_finance | 2 |
+| jeff@simplysolventless.ca | | mso_executive, mso_marketing | 2 |
+| richard@710labs.com | | Do Not Contact, mso_executive | 2 |
+| samiy1827@gmail.com | | mso_executive, mso_finance | 2 |
+| shivvers@shivvers.com | | sso_executive, sso_marketing | 2 |
+| smithunlimited@gmail.com | | mso_retail_sales, sso_finance | 2 |
+| soufyan@edenenterprises.com | | Do Not Contact, mso_executive | 2 |
+| theloadedbowl420@gmail.com | | sso_executive, sso_finance | 2 |
+| tony@sensibrands.ca | | mso_executive, mso_marketing | 2 |
+| nate@jettyextracts.com | | Do Not Contact, mso_executive | 2 |
+| home4u4life@gmail.com | | mso_executive, sso_finance | 2 |
+| greenlifealaska@gmail.com | | mso_executive, sso_executive | 2 |
+| triphoffman@bodyandmind.com | | mso_executive, mso_retail_sales | 2 |
+| adam@hgremedies.com | | Do Not Contact, sso_executive | 2 |
+| akoudijs@hennep.com | | sso_executive, sso_retail_sales | 2 |
+| allyfeiler@gmail.com | | mso_executive, sso_executive | 2 |
+| andrew@missiondispensaries.com | | mso_executive, mso_marketing | 2 |
+| andrew@mockingbird-holdings.com | | sso_executive, sso_finance | 2 |
+| bradpalmer@cannacruz.com | | sso_executive, sso_finance | 2 |
+| brandon@goldenbarn.com | | sso_executive, sso_marketing | 2 |
+| cantodiemllc@gmail.com | | mso_executive, mso_marketing | 2 |
+| caren.woodson@kivaconfections.com | | Do Not Contact, mso_executive | 2 |
+| hciventures@gmail.com | | sso_executive, sso_finance | 2 |
+| chris@levelblends.com | | Do Not Contact, mso_executive | 2 |
+| complianceleadership@ethoscannabis.com | | Do Not Contact, mso_executive | 2 |
+| cristyearanguiz@gmail.com | | mso_executive, sso_executive | 2 |
+| dan@riversidecompany.com | | sso_executive, sso_marketing | 2 |
+| daniel@capeanncannabis.com | | sso_executive, sso_retail_sales | 2 |
+| daniel@greenwayvegas.com | | mso_executive, sso_executive | 2 |
+| dankulchin@yahoo.com | | sso_executive, sso_finance | 2 |
+| david@luckyleaf.co | | mso_executive, mso_retail_sales | 2 |
+| dcarr@blossommj.com | | mso_executive, sso_executive | 2 |
+| exhalence@yahoo.com | | sso_executive, sso_finance | 2 |
+| collectivemindsca@gmail.com | | mso_executive, sso_executive | 2 |
+| william@bloomnetwork.io | | Do Not Contact, sso_executive | 2 |
+
+**Notable cross-bucket patterns:**
+- `mso_executive + sso_executive` — most common (same person in both MSO and SSO executive lists)
+- `mso_executive + mso_finance` or `mso_executive + mso_marketing` — person wears multiple hats at same company
+- `Do Not Contact + mso_executive` — 9 contacts flagged both as DNC and active (needs resolution)
+
+---
+
+## 2. Shared Phone Numbers
+
+**2,247 unique phone numbers** are shared by 2+ contacts. Most are corporate switchboards where many employees share the same main line.
+
+### Top shared numbers (company main lines)
+
+| Phone | Contacts | Example Companies |
+|-------|----------|-------------------|
+| +1 877 303 0741 | 114 | Data enrichment source tag (peopledatalabs — flagged as non-phone in source data) |
+| +1 781 451 0117 | 70 | Likely corporate switchboard |
+| +1 319 355 8843 | 56 | Likely corporate switchboard |
+| +1 312 338 7860 | 56 | Likely corporate switchboard |
+| +1 614 407 3111 | 41 | Cresco Labs main line |
+| +1 415 672 4450 | 40 | Caliva main line |
+| +1 800 332 8383 | 38 | General corporate line |
+| +1 212 697 1000 | 36 | NYC-area company line |
+| +1 860 999 3470 | 36 | Likely corporate switchboard |
+| +1 312 929 0993 | 36 | Likely corporate switchboard |
+| +1 855 790 8169 | 35 | Cresco Labs related |
+| +1 707 599 0610 | 33 | Cresco Labs / Sunnyside related |
+| +1 800 432 2558 | 33 | Caliva related |
+| +1 212 460 1900 | 32 | Columbia Care main line |
+| +1 800 484 0303 | 32 | Cresco Labs related |
+| +1 860 717 9333 | 31 | General corporate line |
+| +1 800 268 4623 | 31 | Dispensary chain line |
+| +1 860 246 4673 | 28 | General corporate line |
+| +1 740 672 3706 | 27 | Likely corporate switchboard |
+| +1 514 843 3632 | 27 | Canadian company line |
+
+**16,139 distinct contacts** have a phone number that's also associated with another contact. The build script already flagged 4,705 rows into `emerald-contacts.dedup.review-shared-phone.csv` as `phone_only_shared_or_invalid`.
+
+---
+
+## 3. Contacts Without Phone Numbers
+
+### In deduped file (`emerald-contacts.dedup.ghl.csv` — 19,649 rows)
+
+| Source File | Total | No Phone | % |
+|-------------|-------|----------|---|
+| Cannabis-Retail-MSO-Executive-1 | 3,564 | 1,870 | 52.5% |
+| Cannabis-Retail-MSO-Executive-2 | 4,202 | 2,663 | **63.4%** |
+| Cannabis-Retail-MSO-Marketing-1 | 717 | 321 | 44.8% |
+| Cannabis-Retail-SSO-Executive-1 | 7,154 | 2,606 | 36.4% |
+| Cannabis-Retail-SSO-Executive-2 | 9,255 | 3,731 | 40.3% |
+| Cannabis-Retail-SSO-Marketing-1 | 2,428 | 1,098 | 45.2% |
+| **Total** | **27,320** | **12,289** | **45.0%** |
+
+### Field coverage in deduped file
+
+| Coverage | Count |
+|----------|-------|
+| Has phone (Phone or Corporate_Phone) | 12,564 |
+| Has email | 16,250 |
+| Has both phone and email | 9,165 |
+| No phone at all (deduped file only) | 7,085 |
+| Review file (phone-only shared/invalid) | 4,705 |
+| **Total without usable phone** | **11,790 / 24,354 (48.4%)** |
+
+---
+
+## 4. Tag Bucket Distribution (v5 tagging file — 16,524 rows)
+
+| Bucket | Count |
+|--------|-------|
+| sso_executive | 7,603 |
+| mso_executive | 4,027 |
+| sso_marketing | 1,723 |
+| Do Not Contact | 909 |
+| mso_marketing | 640 |
+| sso_finance | 595 |
+| sso_retail_sales | 410 |
+| mso_retail_sales | 320 |
+| mso_finance | 297 |
+| **Total** | **16,524** |
+
+---
+
+## 5. Original Source File Summary
+
+| Metric | Value |
+|--------|-------|
+| Source rows (6 files) | 33,561 |
+| Importable rows | 27,320 |
+| Skipped (missing email + phone) | 6,241 |
+| Deduped before phone safety filter | 24,354 |
+| Deduped GHL-safe import | 19,649 |
+| Moved to review (shared/invalid phone) | 4,705 |
+| Deduplication collisions resolved | 2,966 |
+
+---
+
+## Key Takeaways
+
+1. **50 cross-bucket dupes** need dedup resolution — decide which bucket takes priority for each
+2. **9 DNC + active bucket conflicts** need resolution (contacts marked Do Not Contact but also in an active bucket)
+3. **48% lack usable phone numbers** — MSO-Executive-2 is worst at 63.4% no-phone; enrichment needed if SMS outreach required
+4. **~16k contacts share phones** with others — largely corporate switchboards, flagged appropriately in the review file
+````
+
+## File: emerging-pool-post-import-runbook.md
+````markdown
+# Emerging Pool Post-Import Runbook
+
+## Purpose
+
+Operational sequence for taking newly imported `GHL_Ready_Brands.csv` and `GHL_Ready_Dispensaries.csv` contacts from GHL import completion to Vapi-ready campaign cohorts.
+
+## Order Of Operations
+
+### 1. Confirm GHL import completed
+- Wait until both GHL CSV imports finish processing in the GHL UI.
+- Do not backfill early while contacts are still being created.
+
+### 2. Confirm imported contacts landed in reporting raw contacts
+- Run:
+  - `postgres/check-emerging-pool-import-readiness.sql`
+
+What to look for:
+- both `brands` and `dispensaries` show landed contacts
+- `with_emerald_contact_id` is close to landed contacts
+- `landed_in_report_raw_contacts` is moving toward imported row counts
+
+### 3. Backfill `ghl_contact_id`
+- Run:
+  - `postgres/backfill-emerging-pool-ghl-ids.sql`
+
+Expected result:
+- `emerging_pool_contacts.ghl_contact_id` fills for imported rows that landed in `report_raw_ghl_contacts`
+
+### 4. Audit linkage quality
+- Run:
+  - `postgres/audit-emerging-pool-linkage.sql`
+
+Pay attention to:
+- duplicate Emerald IDs
+- multiple Emerald rows mapping to one GHL contact
+- imported pool contacts missing `Em_Emerald_Contact_ID`
+- queue-linked rows and orphaned queued contacts
+
+### 5. Optional second pass: backfill `ghl_opportunity_id`
+- Run only after contact linkage looks clean:
+  - `postgres/backfill-emerging-pool-ghl-opportunity-ids.sql`
+
+### 6. Select eligible campaign candidates
+- Run:
+  - `postgres/select-emerging-pool-vapi-candidates.sql`
+
+This becomes the basis for the rebuilt classifier workflow.
+
+### 7. Select a tiny manual seed batch
+- Run:
+  - `postgres/select-vapi-seed-test-batch.sql`
+
+Use this to manually inspect the first 5 Brand and 5 Dispensary contacts before tagging or queueing.
+
+### 8. Repair classifier workflow
+- Follow:
+  - `classifier-workflow-change-plan.md`
+  - `classifier-repair-plan.md`
+
+Target workflow:
+- `IduCoT5YOs0g2faT`
+
+### 9. Manual tag application / tiny cohort validation
+- Apply `vapi_campaign_brand` / `vapi_campaign_dispensary` only to a tiny reviewed cohort first.
+- Let queue feeder workflow `RFIZ9Bcfl3Yvms2b` stage them gradually.
+
+### 10. Controlled Vapi resume
+- Manual assistant test calls first
+- Then recheck queue rows
+- Then resume paused dialer / poller in controlled order
+
+## Recommended Safety Gates
+
+Do not proceed to the next phase unless:
+- readiness query shows contacts really landed
+- `ghl_contact_id` backfill produced healthy coverage
+- audit query does not show widespread duplicate collisions
+- the seed batch looks correct in GHL by manual inspection
+
+## Files In This Sequence
+
+- `postgres/check-emerging-pool-import-readiness.sql`
+- `postgres/backfill-emerging-pool-ghl-ids.sql`
+- `postgres/audit-emerging-pool-linkage.sql`
+- `postgres/backfill-emerging-pool-ghl-opportunity-ids.sql`
+- `postgres/select-emerging-pool-vapi-candidates.sql`
+- `postgres/select-vapi-seed-test-batch.sql`
+- `classifier-repair-plan.md`
+- `classifier-workflow-change-plan.md`
+````
+
+## File: execution-checklist-after-import.md
+````markdown
+# Execution Checklist After Import
+
+## Goal
+
+Concrete operator checklist for the moment the GHL Brand / Dispensary imports are fully processed.
+
+## Step 1: Run go-live check
+
+Run:
+- `postgres/emerging-pool-go-live-check.sql`
+
+Record:
+- landed Brand count
+- landed Dispensary count
+- seed cohort preview rows
+
+## Step 2: If landing looks healthy, backfill contact IDs
+
+Run:
+- `postgres/backfill-emerging-pool-ghl-ids.sql`
+
+Record:
+- updated Brand rows
+- updated Dispensary rows
+
+## Step 3: Audit linkage
+
+Run:
+- `postgres/audit-emerging-pool-linkage.sql`
+
+Check:
+- duplicate Emerald IDs
+- duplicate `ghl_contact_id` mappings
+- missing `Em_Emerald_Contact_ID` on landed pool contacts
+- queued contacts not linked back to pool rows
+
+## Step 4: Preview seed cohort
+
+Run:
+- `postgres/select-vapi-seed-test-batch.sql`
+
+Manual review:
+- 5 Brand rows
+- 5 Dispensary rows
+- confirm in GHL they are correct and callable
+
+## Step 5: Patch classifier workflow
+
+Patch source:
+- `n8n/workflow-update-payloads/lt-campaign-contact-classifier-update-ops.json`
+
+Target workflow:
+- `IduCoT5YOs0g2faT`
+
+## Step 6: Run classifier manually
+
+Expected:
+- up to 5 Brand contacts tagged
+- up to 5 Dispensary contacts tagged
+
+## Step 7: Validate tags in GHL
+
+Check newly tagged contacts for:
+- correct campaign tag
+- correct company / persona fit
+- no obvious mis-tagged executive rows
+
+## Step 8: Run queue feeder manually
+
+Workflow:
+- `RFIZ9Bcfl3Yvms2b`
+
+Expected:
+- staged rows only for the reviewed cohort
+- no unexpected candidates
+
+## Step 9: Decide on voice activation
+
+Only proceed if all prior checks look correct.
+
+Then:
+- do manual assistant test calls
+- verify queue rows
+- resume paused Vapi components in controlled order
+
+## Abort Conditions
+
+Stop if:
+- low landing coverage
+- weak contact ID backfill rate
+- duplicate collision pattern looks unsafe
+- wrong contacts appear in seed cohort
+- classifier tags wrong contacts
+- feeder stages unexpected rows
+````
+
+## File: Executive_Report_Training_Guide.md
+````markdown
+# LiveTransparent Executive Report
+## Training Document and Quick Reference Guide
+Updated: May 12, 2026
+
+This guide explains what each visible card in the Executive Report means, how to present it, and where the common interpretation risks are. It matches the live dashboard glossary, the users-based funnel cards, and the trailing-day range presets.
+
+# Part I: Report Sections -- Quick Explanations
+Use this section when reviewing the report with someone who needs the fastest possible explanation.
+
+- KPI Row: The six cards at the top summarize the selected date window: Recorded Visits, Contacts, Opportunities, Meetings, Closed Won, and Revenue. Recorded visits are the visits GA4 captured in the selected window. Contacts is CRM volume. It is normal for these to differ because a contact is not always created by a form.
+- Traffic and Channels: This panel shows where website traffic came from and how much volume each channel produced. Channel Breakdown is a GA4 traffic summary, not a contact summary. Channel Detail connects traffic to contact generation when the data exists.
+- Meta Ads: This panel is attribution-first. It shows Meta-tagged visits and downstream contacts, opportunities, and booked meetings. It does not depend on spend to be useful. Treat it as a performance and attribution view, not a ROAS view.
+- Acquisition Sources: This is the contact-level source view. It shows where contacts originated from the CRM bridge and source fields. If someone asks where the acquisition source view is, this is the section to open.
+- Top Pages: This is a short website page summary based on the landing-page rollup we already capture. It shows the pages that received the most recorded visits, plus form and opportunity activity when available.
+- Funnel and Attribution: This panel now uses Users as the primary denominator for the conversion cards. User -> Form and User -> Contact are the main funnel rates. The attribution coverage card next to it is a separate diagnostic panel that tells you whether contacts can be matched back to traffic and sales.
+- Capture Gaps: This is an absolute-volume panel. It shows Recorded Visits, Forms, Contacts, Opportunities, Meetings, and Closed Won side by side. Do not read it as a perfectly linear funnel because contacts can arrive from routing, manual CRM entry, imports, and follow-up as well as forms.
+- Sales and Pipeline: This section provides the company-wide pipeline summary and active-opportunity view. It covers open deals, worked deals, stage movement, velocity, and sales quality. Use it when discussing pipeline health, not acquisition quality.
+- UTM / Campaign Breakdown: This panel shows observed traffic rows by source, medium, campaign, content, term, and landing page. It is not a master list of every UTM ever created in GHL. A campaign will only appear here once the traffic or bridge data actually sees it.
+- Sales Detail / John's Deals: These cards use the same opportunity payload as the team summary. The difference is presentation: one is a team-wide view and the other is a deal-centred view. If a stakeholder asks what the difference is, the safe answer is that the source data is the same.
+- Social and Site: The Social Posts card shows the status of GHL Social Planner posts. Failed means the latest status is failed or error. The Site Traffic card shows GA4 traffic and engagement for the selected window.
+- Source Health: This panel tells you whether the integrations are healthy, stale, blocked, or failed. Use it whenever you need to explain why a metric is zero or missing.
+
+# Part 2: Part 2: Technical Deep Dive
+This section explains how the report is assembled, what the live API returns, and how to read the payload without inventing new assumptions.
+
+- Architecture: the dashboard is a static HTML and JavaScript SPA at reports.livetransparent.com. It calls a single n8n webhook at `/api/report/executive/summary` and renders the response client-side.
+- Request contract: the report reads `view`, `range`, `from`, `to`, `embed`, and `locationId` query parameters. The current preset ranges are trailing complete days ending yesterday.
+- Response shape: the API returns `summary`, `channelBreakdown`, `utmBreakdown`, `metaAttribution`, `contactSources`, `topPages`, `pipelineDropoff`, `stageDropoff`, `stageVelocity`, `appointments`, and `health`.
+- Response shape: the API also returns the active-opportunity fields used by the report, including `activeOpportunityCount`, `workedOpportunityCount`, `stageMoverCount`, and `opportunityStageBreakdown`.
+- Funnel basis: the primary funnel rates now use Users as the denominator where possible. This means the dashboard is treating unique visitors as the main traffic audience, not raw GA4 session counts.
+- Source status: GSC Daily Ingest is now live and verified in n8n. Older notes that describe Search Console as blocked are stale and should be treated as historical.
+- Attribution logic: Acquisition Sources, UTM / Campaign Breakdown, and Attribution Coverage all depend on observed traffic and bridge data. They should be read as live data quality and attribution outputs, not as a perfect campaign registry.
+- Operational rule: when a metric looks wrong, check Source Health first. The report separates stale data from business performance so the reader does not draw the wrong conclusion.
+
+## Metric Definitions
+Use these definitions when presenting the dashboard. If a visible metric is not defined here, it should be treated as incomplete until the definition is added.
+
+| Metric | Definition | Presenter note |
+|---|---|---|
+| Recorded Visits | GA4 recorded visits in the selected window. | Traffic volume only. One person can generate multiple recorded visits. |
+| Users | Unique visitors in the selected window. | This is the primary denominator for the funnel cards. |
+| Contacts | New CRM contacts created in the selected window. | Contacts are not 1:1 with forms. |
+| Forms | Tracked form submissions in the selected window. | This is the submission count, not total contacts. |
+| Opportunities | New deals or sales opportunities created in the selected window. | Use this as pipeline creation, not acquisition volume. |
+| Active Opportunities | Open opportunities in the latest snapshot. | This is the current open-deal count, not the number of new deals created in the window. |
+| Worked Opportunities | Open opportunities updated or moved stage during the selected window. | This is the best current proxy for deals that were actively worked. |
+| Stage Movers | Open opportunities that changed stage at least once during the selected window. | Use this to see which deals progressed, even if no new deal was created. |
+| Meetings | Booked appointments or discovery calls in the selected window. | These are GHL appointments when available. |
+| Calls | GHL conversation call logs and status breakdown. | Use this for answered, missed, voicemail, inbound, and outbound call activity. |
+| Closed Won | Deals marked as won. | Use this for outcome reporting, not top-of-funnel conversion. |
+| Revenue | Total dollar value of closed-won deals. | This is reported revenue, not spend or profit. |
+| User -> Form | Unique users divided by form submissions in the selected window. | Primary traffic-to-lead capture rate. |
+| User -> Contact | Unique users divided by CRM contacts created in the selected window. | Primary traffic-to-contact conversion rate. |
+| Contact -> Opportunity | Contacts that became opportunities in the selected window. | Contact-safe and not inflated by multiple opportunities per contact. |
+| Opportunity -> Meeting | Opportunities that resulted in a booked meeting. | Use this to understand sales handoff quality. |
+| Meeting -> Won | Meetings that closed as won. | Use this as a late-stage close measure. |
+| Attribution Coverage | A diagnostic view of whether contacts have usable source fields, bridge matches, and sale matches. | This measures data completeness, not business performance. |
+| Contacts Created in Window | New contacts created in the selected window. | This is the denominator for attribution coverage. |
+| Source Coverage | Contacts with usable source fields. | This tells you whether attribution can be read from the CRM record. |
+| Bridge Matched | Contacts linked to a GA4 session. | This tells you whether traffic can be tied back to the CRM contact. |
+| Sale Matched | Contacts linked to an opportunity. | This tells you whether the contact carries through to sales. |
+| Acquisition Sources | The visible contact-level source / medium / campaign section. | Use this when someone wants to know where contacts came from. |
+| Top Pages | The short website page summary based on the landing-page rollup. | Use this when someone wants to know which pages are getting the most recorded visits. |
+| Channel Breakdown | GA4 traffic volume by channel. | This is traffic reporting, not lead reporting. |
+| UTM / Campaign Breakdown | Observed traffic rows by UTM fields. | This is not a registry of every UTM ever created in GHL. |
+| Social Posts Failed | Posts whose latest status is failed or error in the selected window. | This is status-based, not a hidden count of all broken posts. |
+| Sales Team Summary | The company-wide opportunity summary. | Use this for the broad sales picture. |
+| John's Deals | The same opportunity payload shown as a deal-centred view. | Use this when the conversation is about individual deal movement. |
+| 7d / 30d / 90d | Trailing complete-day presets ending yesterday. | Example: if you click 7d on Tuesday, you see the previous Tuesday through Monday. |
+
+# Part 3: How to Present the Report
+
+- Contacts are not always created by forms. Routing, manual CRM entry, imports, and follow-up can also create contacts, which is why the contact count does not always line up with form submissions.
+- The GA4 term `sessions` is not the same phrase everyone uses for website visits, so this report labels the metric `Recorded Visits` to make the meaning clear.
+- The UTM breakdown is a view of what the data actually observed, not a master campaign catalog of everything ever created in GHL.
+- Acquisition Sources is the contact-level section. It is the right place to go when the question is where contacts came from.
+- Sales Team and John's Deals use the same opportunity payload. The difference is only the lens: one is the team view and the other is the deal-centred view.
+- Calls and Conversations show GHL call records grouped by status. That is the place to explain call activity without mixing it up with SMS or appointments.
+- A social post marked Failed means the latest recorded status is failed or error. It is a status value from the ingest, not a subjective review of the post.
+- The date range is a trailing complete-day window ending yesterday. That means the selected range always points to finished days, not a click-day-dependent calendar block.
+- Active opportunities are the open deals in the latest snapshot. Worked opportunities are the open deals that were updated or moved stage inside the selected window, and stage movers are the ones that actually changed stage.
+
+# Part 4: Naming Standards for Measured Variables
+Naming standards matter because the report can only group what is named consistently. This section should be read as part of the measurement contract, not as optional marketing style guidance.
+
+The UTM fields themselves are standard. The exact naming pattern we use for campaigns, ad sets, ads, and landing pages is our internal house standard so the data stays readable and groupable.
+
+That means the tracking fields are not the problem. The important part is making sure every ad link, landing page, and contact intake path writes into those fields the same way every time.
+
+- Use one naming pattern across campaigns, ad sets, ads, UTMs, and landing pages so the report can group traffic without manual cleanup.
+- For campaigns, use a stable pattern such as `{brand}-{channel}-{objective}-{audience}-{geo}-{date}`.
+- For ad sets, use `{brand}-{campaign}-{audience}-{geo}-{date}` so the ad set always inherits the campaign context.
+- For ads, use `{brand}-{campaign}-{adset}-{creative}-{format}-{date}` so the creative, placement format, and launch date are readable without opening the platform.
+- For UTMs, keep source, medium, campaign, content, and term consistent with the paid naming system. Do not let ad names and UTM values drift apart.
+- For landing pages, use a slug that reflects the offer or funnel step, then keep the UTM fields as the variable layer instead of encoding everything into the URL path.
+- For measured variables, prefer a short controlled vocabulary for audience, geo, objective, and creative format. Avoid free-form phrasing that will fragment reporting.
+- If a naming field is used in reporting, treat it as a data contract. Changing it should be a conscious decision, not an individual preference.
+
+# Part 5: Improvement Suggestions
+These are split into two groups:
+
+- `Safe now` means we can add it to the report or guide without deleting or rewriting the current records.
+- `Needs more setup` means it still should not destroy data, but it may need extra coordination or a small amount of historical cleanup.
+
+None of the `Safe now` items require us to erase or rewrite existing records. They either change the wording, add a clearer explanation, or show information we already have.
+
+## Safe now
+
+The report already has UTM capture fields in GHL. The practical improvement is to make sure every ad, page, and contact path writes into those fields the same way every time.
+
+| Suggestion | Why we need it | Data impact |
+|---|---|---|
+| Show the exact date window at the top of the report. | People should not have to guess whether a range means a calendar week or a trailing window. | No historical data changes. |
+| Keep the metric definitions inside the report and the guide. | Everyone should read the same meaning for each card, not a different guess. | No historical data changes. |
+| Show a short summary of the most visited pages. | Leadership can quickly see which pages are drawing the most attention without opening a separate analytics tool. | Uses the landing-page rollup we already have. |
+| Show user-based conversion rates directly in the report. | This makes the funnel easier to understand because the rate is shown instead of calculated in someone's head. | Uses the numbers already collected. |
+| Define active deals, worked deals, and stage movers in plain language. | This removes confusion about whether the report is counting new deals, open deals, or deals that were actually touched. | Uses current opportunity records. |
+| Add a simple drilldown for failed social posts. | Management can see which posts failed and why instead of only seeing a total. | No historical data changes. |
+| Show search performance in the report when the team wants to review organic search. | It gives leadership one place to see search demand, clicks, and impressions. | No historical data changes. |
+| Show a short summary of the most visited pages. | Leadership can quickly see which pages are drawing the most attention without opening a separate analytics tool. | Uses the landing-page rollup we already have. |
+| Add an owner filter if `John's Deals` is meant to show John's own pipeline only. | It makes the owner view match the person's actual book of business. | No historical data changes. |
+| Standardize names for campaigns, ad sets, ads, UTMs, and landing pages going forward. | Clean names make the report group results correctly and reduce manual cleanup. The existing `UTM Source First/Last`, `UTM Medium First/Last`, `UTM Campaign First/Last`, `UTM Content First/Last`, `UTM Term First/Last`, and landing page fields are already there to hold this data. The pattern itself is our house standard, built on common UTM fields. | Past records stay as-is; future records improve. |
+| Keep a master list of the campaigns and UTMs we intentionally launched. | This helps the team tell the difference between something we launched on purpose and something the report never saw, and it makes it easier to check whether the existing UTM fields were filled correctly. | No historical data changes. |
+| Add a note about how contacts can be created. | It explains why contacts may come from forms, routing, manual entry, imports, or follow-up. | No historical data changes. |
+
+## Needs More Setup
+
+| Suggestion | Why we need it | Data impact |
+|---|---|---|
+| Count a deal as worked when notes or updates are added, even if the stage does not change. | Right now, some active work may not show up unless the deal itself changed stage or was updated in a way the report can see. | Still additive, but it needs a clearer rule for what counts as work. |
+| Add a cleaner match between contacts and sales when the contact record is incomplete. | This helps reduce the `Unknown` bucket and makes attribution easier to trust. | Still additive, but it may need extra matching rules. |
+| Keep the report and the guide using the same definitions. | That prevents the dashboard and the training guide from drifting apart over time. | No historical data changes, but it needs a small maintenance process. |
+
+# Part 6: Current Guardrails
+
+- Treat the glossary in the dashboard as the immediate source of truth for visible cards.
+- Use Users-based funnel rates for primary interpretation, and use Recorded Visits only as traffic context.
+- Use the attribution coverage card to diagnose data quality separately from business performance.
+- Use Source Health whenever a metric unexpectedly drops to zero or looks stale.
+
+# Appendix A: Naming Templates
+These examples are intentionally simple and machine-readable. The main goal is to keep campaign, ad set, ad, and UTM values aligned so reporting can aggregate them without manual cleanup.
+
+| Layer | Example pattern | Example |
+|---|---|---|
+| Meta campaign | `{brand}-{channel}-{objective}-{audience}-{geo}-{date}` | `lt-meta-leads-intake-broad-us-2026-05` |
+| Meta ad set | `{brand}-{campaign}-{audience}-{geo}-{date}` | `lt-meta-intake-broad-us-2026-05` |
+| Meta ad | `{brand}-{campaign}-{adset}-{creative}-{format}-{date}` | `lt-meta-intake-broad-carousel-01-2026-05` |
+| Google Ads campaign | `{brand}-{channel}-{objective}-{geo}-{date}` | `lt-google-search-book-demo-us-2026-05` |
+| Google Ads ad group | `{brand}-{campaign}-{keyword-theme}-{geo}-{date}` | `lt-google-search-book-demo-high-intent-us-2026-05` |
+| Google Ads ad | `{brand}-{campaign}-{adgroup}-{creative}-{format}-{date}` | `lt-google-search-book-demo-rsa-01-2026-05` |
+| UTM source / medium / campaign | `utm_source=...&utm_medium=...&utm_campaign=...` | `utm_source=facebook&utm_medium=paid_social&utm_campaign=lt-meta-leads-intake-broad-us-2026-05` |
+| UTM content | `{creative or placement identifier}` | `carousel-01` |
+| Landing page slug | `/{offer-or-step}` | `/book-demo` |
+````
+
+## File: fix_intake_poller.js
+````javascript
+
+````
+
+## File: live-mutation-plan.md
+````markdown
+# Live Mutation Plan For Emerging Pool -> Vapi Resume
+
+## Goal
+
+Safe execution sequence once GHL import processing has completed and the imported contacts are available in reporting data.
+
+## Preconditions
+
+- GHL imports for `GHL_Ready_Brands.csv` and `GHL_Ready_Dispensaries.csv` are finished
+- reporting ingest has landed the imported contacts into `report_raw_ghl_contacts`
+- no one else is actively editing the same Vapi classifier workflow at the same time
+
+## Execution Sequence
+
+### Phase 1: Read-only validation
+
+Run in this order:
+
+1. `postgres/check-emerging-pool-import-readiness.sql`
+2. `postgres/emerging-pool-go-live-check.sql`
+
+Decision gate:
+- proceed only if both `brands` and `dispensaries` show landed contacts and `Em_Emerald_Contact_ID` coverage looks healthy
+
+### Phase 2: Contact linkage mutation
+
+Run:
+
+1. `postgres/backfill-emerging-pool-ghl-ids.sql`
+2. `postgres/audit-emerging-pool-linkage.sql`
+
+Decision gate:
+- proceed only if contact linkage looks healthy and duplicate collisions are limited / explainable
+
+### Phase 3: Optional opportunity linkage
+
+Run only if needed for downstream reporting or manual review:
+
+1. `postgres/backfill-emerging-pool-ghl-opportunity-ids.sql`
+
+This is optional for initial Vapi seeding.
+
+### Phase 4: Seed cohort preview
+
+Run:
+
+1. `postgres/select-vapi-seed-test-batch.sql`
+
+Manual review:
+- inspect the returned Brand and Dispensary contacts in GHL
+- confirm they look correct for the campaign persona and are callable
+
+### Phase 5: Classifier workflow mutation
+
+Target workflow:
+- `IduCoT5YOs0g2faT`
+
+Patch source:
+- `classifier-workflow-mcp-update-ops.md`
+
+Apply in one atomic workflow update call.
+
+### Phase 6: Manual classifier execution
+
+Run the classifier manually.
+
+Expected result:
+- at most 5 Brand + 5 Dispensary contacts tagged on first pass
+
+Manual check:
+- confirm new GHL tags were applied correctly
+
+### Phase 7: Queue feeder verification
+
+Workflow:
+- `RFIZ9Bcfl3Yvms2b`
+
+Action:
+- run manually after the classifier tags are applied
+- verify queued results match expectation
+
+### Phase 8: Controlled voice resume
+
+Only after the seed cohort is confirmed:
+
+1. manual assistant test call for Alex
+2. manual assistant test call for Jordan
+3. re-check `voice_call_queue` rows for the seed cohort
+4. resume paused dialer / poller sequence in the documented order
+
+## Mutation Safety Notes
+
+- Prefer minimal changes to the existing workflow graph.
+- Do not touch unrelated nodes in `IduCoT5YOs0g2faT`.
+- Keep the first-pass per-campaign cap in place until the first cohort is reviewed.
+- Leave `RFIZ9Bcfl3Yvms2b` as the pacing mechanism; do not bypass it for broad rollout.
+
+## Stop Conditions
+
+Pause and reassess if:
+- readiness checks show poor landing coverage
+- linkage audit shows many-to-one contact collisions at scale
+- the classifier returns unexpected executive-style contacts
+- the queue feeder inserts rows for contacts that clearly should have been excluded
 ````
 
 ## File: LiveTransparent Report Plan.md
@@ -1343,6 +2555,87 @@ See `AGENTS.md` for the authoritative, up-to-date workflow inventory. Key produc
 - **`Project Status and Next Steps.md`** - Canonical live state plus the current LinkedIn troubleshooting handoff
 ````
 
+## File: rollback-checklist-vapi-emerging-pool.md
+````markdown
+# Rollback Checklist: Emerging Pool Classifier And Queue Feeder
+
+## Use When
+
+Use this if the first imported Brand / Dispensary cohort behaves incorrectly after classifier tagging or queue staging.
+
+## Common Rollback Triggers
+
+- wrong contacts received `vapi_campaign_brand` or `vapi_campaign_dispensary`
+- executive or unrelated contacts appear in the cohort
+- queue feeder stages contacts that should have been excluded
+- too many contacts were tagged in the first pass
+- queue rows appear for contacts outside the intended seed batch
+
+## Immediate Containment
+
+1. Do not activate the paused dialer or intake poller.
+2. If classifier tags were just applied, stop before re-running `RFIZ9Bcfl3Yvms2b`.
+3. If the feeder already ran, do not activate downstream calling.
+
+## Rollback Actions
+
+### 1. Remove accidental campaign tags from GHL contacts
+
+Remove:
+- `vapi_campaign_brand`
+- `vapi_campaign_dispensary`
+
+Only from the accidentally tagged cohort.
+
+### 2. Clean staged queue rows for that cohort
+
+For seed-batch rollback, target only:
+- `campaign_id IN ('brand', 'dispensary')`
+- rows created from the bad cohort
+- `status = 'pending'`
+
+Do not mass-delete or change historical completed rows.
+
+### 3. Re-check `voice_call_attempt`
+
+Verify no live calls were placed.
+
+If no attempts exist, rollback remains low-risk.
+
+### 4. Disable classifier rerun path
+
+Until fixed:
+- do not manually rerun `IduCoT5YOs0g2faT`
+- do not let the feeder re-stage the same contacts blindly
+
+## Root Cause Review
+
+Check these in order:
+
+1. `postgres/select-emerging-pool-vapi-candidates.sql`
+2. `postgres/select-vapi-seed-test-batch.sql`
+3. `IduCoT5YOs0g2faT` live SQL and Code nodes
+4. `RFIZ9Bcfl3Yvms2b` manual execution output
+5. actual GHL tags on affected contacts
+
+## Safe Resume Criteria
+
+Do not resume until all are true:
+- the candidate query returns only expected Brand / Dispensary rows
+- the first 5+5 seed batch is manually approved
+- accidental tags are removed
+- accidental queue rows are cleared or neutralized
+- classifier cap remains in place for the retry
+
+## Practical Rule
+
+For the first imported-pool rollout, rollback should be surgical:
+- remove wrong tags
+- neutralize wrong pending queue rows
+- fix classifier selection
+- retry only with a tiny reviewed cohort
+````
+
 ## File: Sales and Marketing Roadmap.md
 ````markdown
 # Sales and Marketing Roadmap
@@ -1539,6 +2832,373 @@ Next-week follow-up
 - Website pages → show the most visited pages as a short summary using the landing-page rollup while the deeper funnel tracking is being tightened.
 ````
 
+## File: sms_edited_templatekeys.md
+````markdown
+# SMS Edited Template Keys
+
+This document lists the current SMS template keys and the full message bodies currently used in the workflow.
+
+The keys stay unchanged. Only the message text was updated to remove literal `cannabis` wording and shift the copy toward `regulated industries`.
+
+## John SMS
+
+### `john_sms1`
+
+```text
+Hi, John from Transparent eCom, just gave you a call. Saw you were interested in learning about ads for regulated industries on social/search.
+
+We run ads for Mood, Cookies, and more! Interested in learning how?
+```
+
+### `john_sms2`
+
+```text
+Hey {{first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+
+I can show you how top regulated-industry brands are doing it in 10 mins.
+```
+
+### `john_sms3`
+
+```text
+Hi {{first_name}} this could be the year you scale your brand on social/search! Interested in how we do it for Mood, Cookies, and more?
+```
+
+### `john_sms4`
+
+```text
+Hi {{first_name}}—last follow-up on ads for regulated industries. Is it timing, or is there a better contact?
+```
+
+### `john_sms5`
+
+```text
+Good chatting about ads for regulated industries earlier—based on what you shared, this looks like a strong fit.
+
+We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}
+```
+
+### `john_sms4`
+
+```text
+Hi {{first_name}}—last follow-up on ads for regulated industries. Is it timing, or is there a better contact?
+```
+
+### `john_sms5`
+
+```text
+Good chatting about ads for regulated industries earlier—based on what you shared, this looks like a strong fit.
+
+We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}
+```
+
+### `john_sms2`
+
+```text
+Hey {{contact.first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+
+I can show you how top regulated-industry brands are doing it in 10 mins.
+```
+
+### `john_sms3`
+
+```text
+Hi {{contact.first_name}} this could be the year you scale your brand on social/search! Interested in how we do it for Mood, Cookies, and more?
+```
+
+### `john_sms4`
+
+```text
+Hi {{contact.first_name}}—last follow-up on ads for regulated industries. Is it timing, or is there a better contact?
+```
+
+### `john_sms5`
+
+```text
+Good chatting about ads for regulated industries earlier—based on what you shared, this looks like a strong fit.
+
+We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}
+```
+
+### `john_sms2`
+
+```text
+Hey {{contact.first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+
+I can show you how top regulated-industry brands are doing it in 10 mins.
+```
+
+### `john_sms3`
+
+```text
+Hi {{contact.first_name}} this could be the year you scale your brand on social/search! Interested in how we do it for Mood, Cookies, and more?
+```
+
+### `john_sms4`
+
+```text
+Hi {{contact.first_name}}—last follow-up on ads for regulated industries. Is it timing, or is there a better contact?
+```
+
+### `john_sms5`
+
+```text
+Good chatting about ads for regulated industries earlier—based on what you shared, this looks like a strong fit.
+
+We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}
+```
+
+### `john_sms2`
+
+```text
+Hey {{contact.first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+
+I can show you how top regulated-industry brands are doing it in 10 mins.
+```
+
+### `john_sms3`
+
+```text
+Hi {{contact.first_name}} this could be the year you scale your brand on social/search! Interested in how we do it for Mood, Cookies, and more?
+```
+
+### `john_sms4`
+
+```text
+Hi {{contact.first_name}}—last follow-up on ads for regulated industries. Is it timing, or is there a better contact?
+```
+
+### `john_sms5`
+
+```text
+Good chatting about ads for regulated industries earlier—based on what you shared, this looks like a strong fit.
+
+We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}
+```
+
+### `john_sms2`
+
+```text
+Hey {{first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+
+I can show you how top regulated-industry brands are doing it in 10 mins.
+```
+
+### `john_sms3`
+
+```text
+Hi {{contact.first_name}} this could be the year you scale your brand on social/search! Interested in how we do it for Mood, Cookies, and more?
+```
+
+### `john_sms4`
+
+```text
+Hi {{contact.first_name}}—last follow-up on ads for regulated industries. Is it timing, or is there a better contact?
+```
+
+### `john_sms5`
+
+```text
+Good chatting about ads for regulated industries earlier—based on what you shared, this looks like a strong fit.
+
+We’re onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}
+```
+
+## Cameron / Regulated Industry SMS
+
+### `sms_1`
+
+```text
+Hi - thanks for checking out ads for regulated industries on social/search.
+I'm Cameron, founder of Transparent eCom. We help regulated industries run ads that most agencies can't, including Mood, Cookies, and Lucy.
+
+Quick question - are you currently running ads, restricted from advertising, or just exploring options?
+```
+
+### `sms_2`
+
+```text
+Hey, Cameron again.
+If you're curious, our site has free walkthroughs on how brands run ads in regulated industries on platforms like Meta and Google.
+
+Some companies do it themselves - totally fine. But we also have a few capabilities most brands and agencies don't that allow actual product advertising at scale.
+Want me to send it over?
+```
+
+### `sms_3`
+
+```text
+Quick follow up -
+We've helped brands like Mood, Lucy, and GPen scale ads profitably in regulated spaces.
+Happy to show you how they're doing it if that would be helpful.
+```
+
+### `sms_4`
+
+```text
+Fun fact:
+We can run actual flower and pre-roll ads with regulated-industry mentions directly in the ad.
+Here's an example (you'll need to be logged into Facebook to preview):
+https://fb.me/adspreview/facebook/1SsU73bjDHg0XY1
+```
+
+### `sms_5`
+
+```text
+If you're a dispensary, this might be interesting:
+We can track when someone clicks or views a social/search ad and then purchases in-store.
+That's been a game changer for dispensaries measuring real ROI from digital ads.
+```
+
+### `sms_6`
+
+```text
+Hey - Cameron again.
+I don't want to keep bothering you, so this will be my last message.
+If you ever want to learn how brands are running regulated ads on social/search, just reply here and I'm happy to help.
+```
+
+## Emerald Intro Templates
+
+### `emerald_mso_executive_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. Most regulated-industry brands still cannot properly run Meta ads - we help teams get live through compliant accounts and keep them running without constant restrictions. Let me know if this is relevant.
+```
+
+### `emerald_mso_marketing_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. Most teams still cannot fully run paid social - we help marketing teams get live and keep campaigns running without disruption. Let me know if this is relevant.
+```
+
+### `emerald_mso_finance_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. Many still cannot fully use paid social as a revenue channel - we help teams unlock and maintain it reliably. Let me know if this is relevant.
+```
+
+### `emerald_mso_retail_sales_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. When Meta ads go down, traffic and sales usually drop too - we help teams get live and keep things running without constant restrictions. Let me know if this is relevant.
+```
+
+### `emerald_sso_executive_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where teams have to reset more often than they should when ads get interrupted. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_marketing_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where campaigns get interrupted mid-execution, causing teams to lose momentum. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_finance_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where revenue becomes uneven when advertising gets interrupted. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_retail_sales_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where interruptions in advertising quietly create gaps in traffic and conversions. Let me know if this is something you have noticed.
+```
+
+### `emerald_mso_marketing_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. Most teams still cannot fully run paid social - we help marketing teams get live and keep campaigns running without disruption. Let me know if this is relevant.
+```
+
+### `emerald_mso_finance_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. Many still cannot fully use paid social as a revenue channel - we help teams unlock and maintain it reliably. Let me know if this is relevant.
+```
+
+### `emerald_mso_retail_sales_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. When Meta ads go down, traffic and sales usually drop too - we help teams get live and keep things running without constant restrictions. Let me know if this is relevant.
+```
+
+### `emerald_sso_executive_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where teams have to reset more often than they should when ads get interrupted. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_marketing_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where campaigns get interrupted mid-execution, causing teams to lose momentum. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_finance_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where revenue becomes uneven when advertising gets interrupted. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_retail_sales_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where interruptions in advertising quietly create gaps in traffic and conversions. Let me know if this is something you have noticed.
+```
+
+### `emerald_mso_marketing_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. Most teams still cannot fully run paid social - we help marketing teams get live and keep campaigns running without disruption. Let me know if this is relevant.
+```
+
+### `emerald_mso_finance_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. Many still cannot fully use paid social as a revenue channel - we help teams unlock and maintain it reliably. Let me know if this is relevant.
+```
+
+### `emerald_mso_retail_sales_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. When Meta ads go down, traffic and sales usually drop too - we help teams get live and keep things running without constant restrictions. Let me know if this is relevant.
+```
+
+### `emerald_sso_executive_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where teams have to reset more often than they should when ads get interrupted. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_marketing_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where campaigns get interrupted mid-execution, causing teams to lose momentum. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_finance_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where revenue becomes uneven when advertising gets interrupted. Let me know if this sounds familiar.
+```
+
+### `emerald_sso_retail_sales_intro`
+
+```text
+Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where interruptions in advertising quietly create gaps in traffic and conversions. Let me know if this is something you have noticed.
+```
+
+## Notes
+
+- The template keys were left unchanged on purpose.
+- Any future copy update should change the message text only, unless the n8n workflow mappings are also updated.
+- The John and Cameron message sets are the only ones that were edited for wording.
+````
+
 ## File: Unipile_potential_automations.md
 ````markdown
 # Unipile Potential Automations
@@ -1724,4 +3384,148 @@ Each automation can be implemented incrementally, starting with the webhook infr
 1. Ship the Instagram DM workflow first so the team has a dedicated Unipile-backed sequence for mutual followers and follow-backs.
 2. Reuse the same message registry concept for LinkedIn, but keep LinkedIn as a separate variant layer so step timing and audience rules stay isolated by channel.
 3. After the Instagram flow is stable, extract the shared copy registry so LinkedIn and Instagram can read from the same template source without sharing state.
+````
+
+## File: vapi-campaign-prompts-summary.md
+````markdown
+# Brand Campaign (Alex)
+Vapi.ai Configuration — Brand Outreach Campaign
+Dispensary Attribution Network — selling cannabis brands into the network
+
+Identity
+You are Alex, a partnerships specialist at Transparent eCom, calling on behalf of
+the new Dispensary Attribution Network. You are NOT a generic sales bot — you
+speak like someone who understands cannabis marketing specifically (CPMs, ROAS,
+shelf placement, the attribution gap between digital ad spend and retail sales).
+Voice / Persona
+Confident, consultative, peer-to-peer (talking to a brand's marketing/growth lead, not a consumer)
+Pace: moderate, comfortable with brief silence while prospect thinks
+Recommend an ElevenLabs voice in the "professional, warm, mid-30s" range — avoid anything that sounds like a call center
+First Message
+Hey, this is Alex calling from Transparent eCom — is this {{contact_name}}?
+... Got a quick 90 seconds? We just launched something that closes the loop
+between your Meta and Google ad spend and actual in-store dispensary sales —
+wanted to see if it's relevant to {{company_name}}.
+System Prompt — Six-Section Structure
+1. Role & Objective
+Qualify the brand and book a strategy call. You are not closing the deal on this call — you are pre-qualifying and getting a calendar booking. Do not over-promise specific ROI numbers; the deck's stats (40% ad approval increase, 16mo retention) are about Transparent's agency track record, not a guarantee for this specific brand.
+2. Discovery Questions (ask before pitching)
+What's your current ad spend split across Meta/Google?
+Are you running into ad account suspensions or compliance blocks right now?
+Do you know which dispensaries actually move your product, or is that a black box?
+What markets matter most to you right now? (maps to "Your Markets First" in the deck)
+3. Pitch Structure (only after discovery — don't lead with this)
+Problem: ad spend ≠ sales proof, dispensaries don't share data, can't justify budget upward
+Solution: geo-targeted Meta/Google ads around partner dispensaries + real-time in-store purchase attribution via compliance ad accounts
+Proof point: 16-month average client retention, 40% higher ad approval rate vs standard accounts
+Important: this is currently launching in test markets only — be honest about that, don't oversell national availability
+4. Objection Handling
+"We already run ads" → "This isn't replacing your media buy, it's closing the loop on attribution you don't have today."
+"Is this compliant?" → "Yes — we run through exclusive compliance ad accounts, no blurring or workarounds, which is the whole reason brands work with us."
+"What's it cost?" → Do not quote pricing on the call. Say: "Pricing depends on markets and spend level — that's exactly what the strategy call covers."
+"Not interested" → Thank them, do not push twice, log as not-interested in structured output.
+5. Call-to-Action
+Book a strategy call. If a calendar tool is connected, offer 2-3 specific times. If not, confirm best email/number for a follow-up booking link.
+6. Guardrails
+Never make specific ROI or revenue guarantees
+Never discuss specific pricing — defer to strategy call
+Never give legal/compliance advice about the prospect's own ad accounts — that's a human conversation
+If asked "are you an AI?" — answer honestly, immediately. Do not deny it.
+If prospect asks to be removed from the call list — confirm immediately, do not re-pitch, log it.
+Keep total call under 4 minutes unless prospect is actively engaged
+Structured Output Schema
+{
+  "company_name": "string",
+  "contact_name": "string",
+  "current_ad_platforms": "string",
+  "current_monthly_ad_spend_range": "string",
+  "has_compliance_issues": "boolean",
+  "target_markets_mentioned": "array",
+  "interest_level": "enum: hot | warm | not_interested | callback_requested",
+  "objections_raised": "array",
+  "booked_strategy_call": "boolean",
+  "do_not_call": "boolean",
+  "call_summary": "string"
+}
+Dynamic Variables
+Pass via assistantOverrides.variableValues on each call: contact_name, company_name, lead_source (helps track which list converted)
+
+Shared Setup Notes
+Tools to attach
+Calendar booking tool (Cal.com/Google Calendar integration) if you want live booking on-call rather than callback collection
+A webhook tool to push structured output JSON straight into your CRM/GHL after each call — don't rely on manually pulling call logs
+Compliance / call-start requirement
+Add an explicit recording/AI-disclosure line into the first message or as a mandatory first-turn instruction if you're calling into two-party consent states (CA included). Something like: "Quick disclosure — this call may be recorded for quality, and you're speaking with an AI assistant." Cheap insurance against a much bigger problem.
+Testing before launch
+Run this assistant through Vapi's "Talk to Assistant" dashboard tool with adversarial test prompts (hostile prospect, price-pusher, "are you a bot" callout, do-not-call request) before pointing real numbers at it. Validate against a batch of test calls, not one good run — single-call testing won't catch the prompt failure modes that show up at volume.
+
+# Dispensary Campaign (Jordan)
+Vapi.ai Configuration — Dispensary Recruitment Campaign
+Dispensary Attribution Network — recruiting retail partners into the network
+
+Identity
+You are Jordan, a partnerships specialist at Transparent eCom, calling
+dispensary owners/managers about joining the Dispensary Attribution Network
+as a partner location. This is a no-cost-to-low-cost opportunity for them,
+not a sale — frame it as an invitation, not a pitch.
+Voice / Persona
+Warmer and more local/relational than the brand campaign — you're talking to an owner-operator, not a corporate marketing team
+Plain language, avoid heavy marketing jargon (this audience cares about foot traffic and revenue, not "closed-loop attribution networks" as a phrase)
+First Message
+Hi, is this {{contact_name}}? This is Jordan with Transparent eCom — we work
+with cannabis brands on advertising, and we're inviting a small group of
+dispensaries in {{market}} to join a new program where brands pay to run ads
+that drive customers straight to your store. Got two minutes?
+System Prompt — Six-Section Structure
+1. Role & Objective
+Qualify the dispensary (location, POS system, decision-maker access) and either book a call or get verbal agreement to receive the partner agreement by email. Low-pressure — the deck explicitly says "no fees, no risk."
+2. Discovery Questions
+Are you the owner, or who handles vendor/marketing partnerships?
+What POS system do you currently run? (relevant — integration is POS-based per deck)
+Do you currently get any brand co-op or marketing support, or is that nonexistent?
+Roughly how many locations do you have?
+3. Pitch Structure
+Problem: zero ad budget of their own, no way to prove what's selling to brand partners, no leverage in vendor relationships
+Solution: brands fund 100% of ad spend targeting their store, free tech install, $25–$150/mo per location (cost is for the tracking integration, not the ads)
+Be precise on the economics: brand pays for ads, dispensary pays only the small monthly platform fee, dispensary gets new attribution data and potential co-op revenue
+Urgency: founding partner spots are limited per market, 12-month founding status
+4. Objection Handling
+"What's the catch?" → Walk through the economics plainly: brands fund the ads, you pay a flat monthly fee for the POS integration, that's it.
+"We don't want our sales data shared broadly" → Clarify only aggregated/matched purchase data tied to specific ad campaigns is shared with the brand that ran the ad, not your full sales data.
+"POS integration sounds complicated" → "Our team installs it, takes under a day, zero disruption to your operations."
+Price sensitivity on the $25-150/mo → Be honest that it varies by location count/market, don't lock in a number.
+5. Call-to-Action
+Get either (a) a booked call, or (b) verbal yes to receive the partner agreement by email — capture best email.
+6. Guardrails
+Never claim the network includes brands not in the actual partner list (JustCBD, Sunday Scaries, Cookies, MOOD, G Pen — only reference these as examples Transparent has worked with, not confirmed network participants for this specific deal)
+Never guarantee specific traffic or revenue lift numbers
+Be upfront about AI identity if asked
+Honor do-not-call requests immediately, no second pitch attempt
+Don't discuss exact data-sharing mechanics beyond what's in the deck — flag for human follow-up if pushed on specifics
+Structured Output Schema
+{
+  "dispensary_name": "string",
+  "contact_name": "string",
+  "role": "string",
+  "location_count": "number",
+  "pos_system": "string",
+  "market": "string",
+  "interest_level": "enum: hot | warm | not_interested | callback_requested",
+  "objections_raised": "array",
+  "agreed_to_receive_agreement": "boolean",
+  "booked_call": "boolean",
+  "do_not_call": "boolean",
+  "call_summary": "string"
+}
+Dynamic Variables
+Pass via assistantOverrides.variableValues on each call: contact_name, dispensary_name, market
+
+Shared Setup Notes
+Tools to attach
+Calendar booking tool (Cal.com/Google Calendar integration) if you want live booking on-call rather than callback collection
+A webhook tool to push structured output JSON straight into your CRM/GHL after each call — don't rely on manually pulling call logs
+Compliance / call-start requirement
+Add an explicit recording/AI-disclosure line into the first message or as a mandatory first-turn instruction if you're calling into two-party consent states (CA included). Something like: "Quick disclosure — this call may be recorded for quality, and you're speaking with an AI assistant." Cheap insurance against a much bigger problem.
+Testing before launch
+Run this assistant through Vapi's "Talk to Assistant" dashboard tool with adversarial test prompts (hostile prospect, price-pusher, "are you a bot" callout, do-not-call request) before pointing real numbers at it. Validate against a batch of test calls, not one good run — single-call testing won't catch the prompt failure modes that show up at volume.
 ````
