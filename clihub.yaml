@@ -1,0 +1,47 @@
+version: 1
+
+tools:
+  - codex
+  - opencode
+
+skills:
+  - id: .system
+    tool: codex
+  - id: agent-browser
+    tool: codex
+  - id: ai-first-engineering
+    tool: codex
+  - id: browser-qa
+    tool: codex
+  - id: codebase-onboarding
+    tool: codex
+  - id: context-budget
+    tool: codex
+  - id: deep-research
+    tool: codex
+  - id: n8n-node-tidy
+    tool: codex
+  - id: rules-distill
+    tool: codex
+  - id: security-review
+    tool: codex
+  - id: verification-loop
+    tool: codex
+  - id: graphify
+    tool: opencode
+
+presets: []
+
+mcp:
+  - id: playwright
+  - id: ref_http
+  - id: exa
+  - id: chrome_devtools
+  - id: ghl_official
+  - id: n8n_katwill
+  - id: ghl_katwill_agency
+  - id: ghl_katwill_rct
+  - id: n8n_lt
+  - id: n8n_whitefriar
+  - id: n8n_katwill_remote
+plugins: []

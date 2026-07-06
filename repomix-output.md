@@ -114,6 +114,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - GHL MCP: primary `ghl_official`, secondary `ghl_katwill_*`.
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
 - **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. Use `setNodeParameter` for single-path edits on Set v3.4 nodes instead of `updateNodeParameters`. If `setNodeParameter` also fails, **use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) but note that PUT auto-publishes and validates all node credentials, which may fail if credential IDs aren't embedded in node JSON. For Code nodes, `updateNodeParameters` and `setNodeParameter` are both safe. Verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
+- **`setNodeParameter` silent failure (observed 2026-07-06):** On Code nodes and HTTP Request nodes, `setNodeParameter` may report success (4 operations applied, 0 warnings) without actually modifying parameters in draft OR active version. **Use `updateNodeParameters` with `replace: true`** as the primary mutation method for both Code and HTTP Request nodes. Always verify with a fresh `GET` after mutation.
 - **n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` return fields (`tags`, `scopes`, `canExecute`, `availableInMCP`) that violate the MCP tool's `additionalProperties: false` output schema. **Workaround:** Use direct REST API calls for workflow listing and details:
   ```bash
   # List workflows
@@ -154,6 +155,9 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 ### GHL Apollo Phone Enrichment Intake V3 (`WuxgTa0EEL1mb2SA`)
 - **Issue**: 3 webhook errors on 2026-06-30 with "Missing contactId in webhook payload". Root cause: the Set v3.4 Config node sometimes drops the webhook payload when `includeOtherFields` is not set, starving the Code node of `contactId`.
 - **Fix**: Code node now falls back to reading directly from `$item(0).$node['Webhook']?.json` if the primary input lacks contactId. Fix was already live in the active version as of 2026-07-01 audit.
+- **Issue 2 (2026-07-06)**: Apollo API call had two bugs: (a) path missing `/api/` prefix (`/v1/people/match` → `/api/v1/people/match`), (b) parameters sent as JSON body instead of URL query string. These prevented Apollo from delivering async phone number reveals to the V4 callback webhook (0 executions ever on `U7c6byTLXAMgcS75`).
+- **Fix 2**: Changed path to `/api/v1/people/match`, moved all params (match fields + flags + `webhook_url`) from request body to query string with `encodeURIComponent`. Removed `body` from the API call.
+- **Fix 3 (2026-07-06)**: V4 Callback Handler (`U7c6byTLXAMgcS75`) had a webhook key validation bug — the first-ever Apollo callback (receiving phone `+12104882613` for a test contact) was rejected with "Webhook key missing or mismatch" despite the key being present in query params. Fixed by adding a fallback check: if the multi-source candidate doesn't match, also checks `query.webhookKey` directly. Apollo callbacks now deliver within ~17 seconds.
 
 ### LT - GA4 Daily Ingest (`6pCSGzFmrMDFL5Yq`)
 - **Issue**: Google Analytics OAuth2 credential expired (`EAUTH`). Caused hourly failures for 24+ hours.
@@ -290,6 +294,34 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
   - `DkDogBpdJhH1gX8pauNP` — Dispensary — Northern Green Canada
 - **Dedup status**: the live flow prevents duplicate calls per contact — classifier and feeder both exclude any contact already in `voice_call_attempt` or pending queue, and enqueue blocks duplicate active rows. The voice dialer and dequeue paths are still paused and should be activated only after the manual assistant quality gate.
 
+### LT - Instagram DM Sequence (Unipile) (`iCnY6ccdHhfJg3sf`) — 2026-07-06 Fixes
+
+- **Issue 1**: Cron runs every weekday hour at 12-22 UTC failing with HTTP 400. Root cause: `Config.pageSize` was `200`, but Unipile's Instagram API rejects limits >100 with `400 "Limit too high"`. The `fetchPaged()` calls to `/users/followers` and `/users/following` had no try/catch, so the error killed the entire execution.
+- **Issue 2**: Unipile's `/users/following` endpoint returns `501 "feature not implemented"` for Instagram. With no try/catch, this would also crash the workflow even after the limit fix.
+- **Issue 3**: Completed contacts (sequence_step >= 4) were still counted as `eligible`, had `persistState` webhooks fired for them wastefully, and inflated the eligibility metric.
+- **Fix 1**: Config `pageSize` 200 → 100. Code cap `Math.min(200, ...)` → `Math.min(100, ...)` for defense-in-depth.
+- **Fix 2**: Wrapped both `fetchPaged('/users/followers')` and `fetchPaged('/users/following')` in try/catch — on failure, returns empty array and continues. Changed `const` → `let` for these variables.
+- **Fix 3**: Added early-exit check after attendeeId resolution but before `eligible++` and `persistState`:
+  ```
+  if (state.completedAt || state.sequenceStep >= (MESSAGE_TEMPLATES.length - 1)) {
+    skipped += 1;
+    actions.push({ ... reason: 'already_completed' });
+    continue;
+  }
+  ```
+- **Method**: `setNodeParameter` (`/parameters/assignments/assignments/4/value`) for Config + REST `PUT` with JSON file for Code node.
+- **Verification**: Direct Unipile API call confirmed `limit=100` OK, `limit=200` returns 400. Both draft and active versions verified.
+- **State table**: `instagram_dm_state` (Postgres) with webhook upsert (`lt-instagram-dm-state-upsert`). Dedup works correctly via `sequence_step` tracking. Now also prevents wasteful re-processing of completed contacts.
+- **Unipile account**: `V9eiHiDpRmCtan0YNdzsQw` at `api42.unipile.com:17256`. Active and responsive at limit=100.
+
+### LT - Company MQL Google Sheets Sync (`9Y3Kedm768kkwwSV`) — 2026-07-06 Timeout Fix
+
+- **Issue**: `Build Sheet Payload` and `Build All Companies Sheet Payload` Code nodes padded the payload to 5,000 rows (4,999 empty rows when only 2 data rows existed). The bloated payload (~66KB of empty strings) caused the Google Sheets API to exceed the 30s HTTP timeout on `Write Sheet Snapshot` (`ECONNABORTED`). Same bug existed on the Broad/All Companies path.
+- **Fix**: Reduced `targetRowCount` from 4,999 to 500 in both Code nodes. Increased HTTP timeout from 30s to 60s on both `Write Sheet Snapshot` and `Write All Companies Snapshot`. Published 2026-07-06.
+- **Method**: `updateNodeParameters` with `replace: true` on all 4 nodes (Code + HTTP Request). Initial attempt with `setNodeParameter` silently failed — reported success but did not modify parameters. Also confirmed `updateNodeParameters` with `replace: true` on HTTP Request nodes does NOT corrupt parameters (clean audit on all 14 nodes, no nested `parameters.parameters`).
+- **Spreadsheet**: `1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY`, sheets `Company MQLs` (col A-K) and `All Companies` (col A-J).
+- **Verification**: Both draft and active versions confirmed `targetRowCount=500`, `timeout=60000`, no structural corruption, all 12 connections intact across both MQL and Broad paths.
+
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 
 - `enriched` — terminal (good)
@@ -324,6 +356,7 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 | Report Config Sync | `aomO3Z4AXJIgEvvN` | Active |
 | Report Publish Refresh | `3gXztCnBEN6sGINb` | Active |
 | Report Postgres Bootstrap Apply | `3XHThUiUSNa4sTb9` | Active |
+| LT - Company MQL Google Sheets Sync | `9Y3Kedm768kkwwSV` | Active (daily 6am ET) |
 
 ### Reporting Notes
 
@@ -336,6 +369,7 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 ## Other Live Systems
 
 - SimpleTexting: Send, delivery, inbound reply, and unsubscribe webhooks are active.
+- Unipile/Instagram: DM Sequence workflow active, cron `0 12-22 * * 1-5`, sends 4-message sequence to mutual followers. State tracked in `instagram_dm_state`.
 - Unipile/LinkedIn: All pipeline workflows are active and verified live.
 - LinkedIn pipeline status (verified 2026-07-01): Sync seeds state table, Dispatcher sends connection requests, DM Sequence sends follow-ups with auto-connected-sync, daily limit enforcement, and reply detection. LinkedIn Connection State Sync timeout fix published 2026-07-01.
 - LinkedIn GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (from root `.env`). The alternate token `pit-2d2ed8c3-...` is broken (401), do not use.
@@ -430,6 +464,26 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
    - `docs/classifier/rollback-checklist-vapi-emerging-pool.md` — surgical rollback plan
    - `docs/classifier/execution-checklist-after-import.md` — concise after-import execution checklist
 - **Apollo re-enrichment on bad numbers** (added 2026-07-02): In callback workflow `fx4UvKUWbqJEY3LK`, after `GHL - Apply Tags`, a new `Should Re-enrich Phone` IF node checks disposition. If `wrong_number` or `contact_disconnected`, it fires `HTTP - Set Apollo Enrichment` which sets `Enrich Phone via Apollo = Yes` (custom field `gdJDuZelIxEBE6n9i5Q6`). The existing `LT - Apollo Phone Enrichment Intake V3` then looks up a new number.
+
+## Tool & CLI Preferences
+
+These CLI tools are installed and available via PATH on this system. Prefer them over slower alternatives when running bash commands:
+
+| Tool | Use instead of | Why |
+|------|---------------|-----|
+| `rg` | `findstr`, `Select-String`, `grep` | 10-100x faster text search, .gitignore-aware |
+| `fd` | `Get-ChildItem`, `dir` | Blazing fast file finding by name/pattern |
+| `bat` | `cat`, `Get-Content` | Syntax-highlighted file viewing with line numbers |
+| `jq` | manual JSON parsing | Process API/LLM JSON responses inline |
+| `yq` | manual YAML parsing | YAML equivalent of jq |
+| `xsv` | CSV processing in Python/JS | Fast CSV search, slice, stats, join (better for large datasets) |
+| `delta` | default git diff | Syntax-highlighted, side-by-side git diffs |
+| `fzf` | scrolling through lists | Interactive fuzzy finder (pipe any list into it) |
+| `zoxide` | `cd` | Learns your navigation patterns, `z <fragment>` jumps anywhere |
+| `hyperfine` | manual timing | Benchmark any command with statistical analysis |
+| `sd` | `sed`, regex replaces | Simpler find-and-replace syntax |
+| `ast-grep` | regex-only code search | Structural code search that understands syntax trees |
+| `eza` | `ls`, `dir` | Modern ls with icons, colors, tree view |
 
 ## repomix-output.md Refresh
 
@@ -1665,8 +1719,9 @@ Use that file for the current state and priority order so reporting work stays a
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
 
 - Canonical status: [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
-- Active work now spans voice, reporting, LinkedIn outreach, and the upcoming SimpleTexting SMS campaign.
+- Active work now spans voice, reporting, LinkedIn outreach, Instagram outreach, and the upcoming SimpleTexting SMS campaign.
 - For LinkedIn, keep invite copy and DM copy aligned to `outreach_messages.v2.docx`, and keep reply-stop behavior active.
+- For Instagram, the DM Sequence workflow (`iCnY6ccdHhfJg3sf`) is active, sending a 4-message sequence with state tracked in `instagram_dm_state`. Sequence copy is hardcoded in the Code node (4 messages, v1). Keep pageSize at 100 (Unipile API limit) and completed-contact early-exit intact.
 - For SMS, use `outreach_messages.docx` as the campaign source, with batch dispatch, per-send tagging, shared reply-state tracking, and `#lead` notifications on response.
 - Keep this file short; the detailed operating status belongs in `Project Status and Next Steps.md`.
 
@@ -2052,7 +2107,7 @@ Normalized callback output:
 ````markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-03 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed)
+Updated: 2026-07-06 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed. Instagram DM Sequence fixes applied — Unipile pageSize limit, try/catch hardening, completed-contact dedup. Company MQL Google Sheets Sync timeout fix applied — row cap 5000→500, timeout 30s→60s. Apollo phone enrichment pipeline fixed — intake API path/body bugs resolved, V4 callback key validation fixed, end-to-end enrichment verified working)
 
 ## Source Of Truth
 
@@ -2087,10 +2142,13 @@ It supersedes the duplicated planning notes in:
   - Working GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28`. The alternate `pit-2d2ed8c3-...` is broken (401).
   - Code node regex safety: always use `[/]` character class instead of `\/` in regex literals to avoid SDK JSON serialization corruption.
   - State table `linkedin_connection_state`: 171 contacts with `status='ready'`, 34 with `status='connected'`, 10 invites sent, 2 DMs delivered.
+- **Instagram DM Sequence (2026-07-06)**: `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`) is active, cron `0 12-22 * * 1-5`. Fetches mutual followers via Unipile, sends 4-message DM sequence with timed windows (0, 3, 6, 11 days). State tracked in `instagram_dm_state` (Postgres) via webhook `lt-instagram-dm-state-upsert`. **Fixes applied 2026-07-06**: Config `pageSize` 200→100 (Unipile rejects >100 with 400), Code node `fetchPaged` wrapped in try/catch (also protects against `/users/following` 501 "not implemented"), and completed contacts (step >= 4) now exit early before `eligible++` and `persistState` — stops wasteful webhook calls and fixes inflated eligibility metric. Unipile account `V9eiHiDpRmCtan0YNdzsQw` at `api42.unipile.com:17256`.
 - SimpleTexting SMS campaign workflow exports are now staged in repo from `outreach_messages.docx`: sender, pool dispatcher, sequencer, inbound reply, delivery events, and unsubscribe events are all represented as separate workflows.
 - The SMS stack still needs live deployment and a final GHL pool filter body for the dispatcher, but the message registry, batching shape, reply-stop handling, and Slack `#lead` notification path are now defined in the repo artifacts.
 - GSC still needs workflow verification / cleanup.
 - Meta Ads API access is validated, but spend ingest is still deferred.
+- **Company MQL Google Sheets Sync (2026-07-06)**: `LT - Company MQL Google Sheets Sync` (`9Y3Kedm768kkwwSV`) timeout fix applied. Execution `106658` failed with `ECONNABORTED` after the `Build Sheet Payload` Code nodes padded to 5,000 rows (4,997 empty when only 2 data rows existed), causing the Google Sheets API to exceed the 30s HTTP timeout. Fixed by reducing `targetRowCount` 4,999→500 in both `Build Sheet Payload` and `Build All Companies Sheet Payload`, and increasing timeout 30s→60s on both `Write Sheet Snapshot` and `Write All Companies Snapshot`. Published 2026-07-06. Spreadsheet `1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY`, sheets `Company MQLs` and `All Companies`.
+- **Apollo Phone Enrichment Pipeline Fix (2026-07-06)**: Intake V3 (`WuxgTa0EEL1mb2SA`) Apollo API call had two bugs: missing `/api/` path prefix and params sent as JSON body instead of query string — both prevented async phone reveals. Callback V4 (`U7c6byTLXAMgcS75`) webhook key validation rejected the first-ever callback. All three bugs fixed and verified end-to-end: intake execution `106957` was the first successful run ever, Apollo callbacks now deliver within ~17 seconds (received phone `+12104882613` for test call).
 
 ## Voice Workflows
 

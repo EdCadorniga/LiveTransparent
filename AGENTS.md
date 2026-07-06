@@ -395,6 +395,26 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
    - `docs/classifier/execution-checklist-after-import.md` — concise after-import execution checklist
 - **Apollo re-enrichment on bad numbers** (added 2026-07-02): In callback workflow `fx4UvKUWbqJEY3LK`, after `GHL - Apply Tags`, a new `Should Re-enrich Phone` IF node checks disposition. If `wrong_number` or `contact_disconnected`, it fires `HTTP - Set Apollo Enrichment` which sets `Enrich Phone via Apollo = Yes` (custom field `gdJDuZelIxEBE6n9i5Q6`). The existing `LT - Apollo Phone Enrichment Intake V3` then looks up a new number.
 
+## Tool & CLI Preferences
+
+These CLI tools are installed and available via PATH on this system. Prefer them over slower alternatives when running bash commands:
+
+| Tool | Use instead of | Why |
+|------|---------------|-----|
+| `rg` | `findstr`, `Select-String`, `grep` | 10-100x faster text search, .gitignore-aware |
+| `fd` | `Get-ChildItem`, `dir` | Blazing fast file finding by name/pattern |
+| `bat` | `cat`, `Get-Content` | Syntax-highlighted file viewing with line numbers |
+| `jq` | manual JSON parsing | Process API/LLM JSON responses inline |
+| `yq` | manual YAML parsing | YAML equivalent of jq |
+| `xsv` | CSV processing in Python/JS | Fast CSV search, slice, stats, join (better for large datasets) |
+| `delta` | default git diff | Syntax-highlighted, side-by-side git diffs |
+| `fzf` | scrolling through lists | Interactive fuzzy finder (pipe any list into it) |
+| `zoxide` | `cd` | Learns your navigation patterns, `z <fragment>` jumps anywhere |
+| `hyperfine` | manual timing | Benchmark any command with statistical analysis |
+| `sd` | `sed`, regex replaces | Simpler find-and-replace syntax |
+| `ast-grep` | regex-only code search | Structural code search that understands syntax trees |
+| `eza` | `ls`, `dir` | Modern ls with icons, colors, tree view |
+
 ## repomix-output.md Refresh
 
 After any significant work session (workflow fixes, new automations, config changes), regenerate `repomix-output.md` so next-session context is up to date:

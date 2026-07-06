@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-06T06:19:28.592Z",
+  "source": "clihub.yaml",
+  "clihub": "1.77.0",
+  "tools": {
+    "codex": {
+      "version": "latest"
+    },
+    "opencode": {
+      "version": "latest"
+    }
+  },
+  "skills": {
+    ".system": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "agent-browser": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "ai-first-engineering": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "browser-qa": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "codebase-onboarding": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "context-budget": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "deep-research": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "n8n-node-tidy": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "rules-distill": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "security-review": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "verification-loop": {
+      "tools": [
+        "codex"
+      ]
+    },
+    "graphify": {
+      "tools": [
+        "opencode"
+      ]
+    }
+  },
+  "mcp": {
+    "playwright": {},
+    "ref_http": {},
+    "exa": {},
+    "chrome_devtools": {},
+    "ghl_official": {},
+    "n8n_katwill": {},
+    "ghl_katwill_agency": {},
+    "ghl_katwill_rct": {},
+    "n8n_lt": {},
+    "n8n_whitefriar": {},
+    "n8n_katwill_remote": {}
+  },
+  "plugins": {}
+}
