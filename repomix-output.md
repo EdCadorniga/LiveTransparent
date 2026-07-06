@@ -322,6 +322,28 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - **Spreadsheet**: `1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY`, sheets `Company MQLs` (col A-K) and `All Companies` (col A-J).
 - **Verification**: Both draft and active versions confirmed `targetRowCount=500`, `timeout=60000`, no structural corruption, all 12 connections intact across both MQL and Broad paths.
 
+### Vapi Assistant Optimizations (2026-07-07)
+
+- **Voice settings applied** (all 4 assistants): `onNoPunctuationSeconds: 0.7` (was 1.5s default), `backgroundSound: "office"`, `backchannelingEnabled: true`. `startSpeakingPlan` with `smartEndpointingEnabled: true`, `smartEndpointingPlan: { provider: "vapi" }`, `waitSeconds: 0.4`.
+- **Async tools**: All 13 tools across all 4 assistants set to `async: true`. Vapi fires tool calls without blocking — assistant acknowledges immediately while n8n processes in background.
+- **maxTokens reduced**: All assistants 1000/250 → 300 for faster response generation.
+- **Transcriber upgraded**: `deepgram/nova-2` → `deepgram/flux-general-en` on all 4 assistants. `eotTimeoutMs` reduced from 5s default to 700ms for native end-of-turn detection. `smartFormat: false`. `endpointing: 10`.
+- **Temperature unified**: All 4 assistants set to `temperature: 0.5` (was 0.4 outbound, 0.7 inbound).
+- **V1 Outbound tool fix (CRITICAL)**: Was missing 6 tools (`ok_transfer_to_jason`, `ok_get_ghl_contact`, `update_lead_status`, `add_to_dnc`, `log_call_outcome`, `notify_sales`) due to earlier Phase 1 cleanup — only `press_dtmf` was attached. All 7 tools now attached.
+- **serverMessages fix**: Brand, Dispensary, and V1 Inbound were missing `tool-calls` in `serverMessages`. Added to all 3.
+- **V1 Inbound gap fixes**: Added missing `endCallMessage: "Goodbye."`, `voicemailMessage`, and `voicemailDetection: { type: "audio", provider: "vapi" }`. Enabled `backgroundDenoisingEnabled: true`.
+
+### Vapi Assistants — Current Configs
+
+| Assistant | ID | LLM | maxTokens | Temp | Transcriber | Tools | serverMessages |
+|-----------|-----|-----|-----------|------|-------------|-------|----------------|
+| V1 Outbound (Savannah) | `3f9bbfd2` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | deepgram/flux-general-en | 7 | end-of-call-report, tool-calls, status-update |
+| Brand (Alex) | `1d7c5d42` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | deepgram/flux-general-en | 9 | end-of-call-report, tool-calls, status-update |
+| Dispensary (Jordan) | `056f2e50` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | deepgram/flux-general-en | 9 | end-of-call-report, tool-calls, status-update |
+| V1 Inbound (Savannah) | `43f379ff` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | deepgram/flux-general-en | 8 | end-of-call-report, tool-calls, status-update |
+
+All: `backgroundSound: office`, `backchannelingEnabled: true`, `backgroundDenoisingEnabled: true`, `firstMessageMode: assistant-speaks-first`, `endCallMessage: "Goodbye."`, `maxDurationSeconds: 480`, `voicemailDetection: audio`.
+
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 
 - `enriched` — terminal (good)
@@ -2107,7 +2129,7 @@ Normalized callback output:
 ````markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-06 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed. Instagram DM Sequence fixes applied — Unipile pageSize limit, try/catch hardening, completed-contact dedup. Company MQL Google Sheets Sync timeout fix applied — row cap 5000→500, timeout 30s→60s. Apollo phone enrichment pipeline fixed — intake API path/body bugs resolved, V4 callback key validation fixed, end-to-end enrichment verified working)
+Updated: 2026-07-07 (Vapi assistant optimizations applied across all 4 assistants — voice settings, async tools, maxTokens 300, Flux transcriber, temperature unified to 0.5. Critical V1 Outbound tool gap fixed — 7 tools now attached after Phase 1 cleanup left it with only press_dtmf. All assistants: serverMessages now include tool-calls, background settings uniform. V1 Inbound: endCallMessage, voicemailMessage, voicemailDetection, backgroundDenoising all applied.)
 
 ## Source Of Truth
 

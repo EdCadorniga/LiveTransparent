@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-06 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed. Instagram DM Sequence fixes applied — Unipile pageSize limit, try/catch hardening, completed-contact dedup. Company MQL Google Sheets Sync timeout fix applied — row cap 5000→500, timeout 30s→60s. Apollo phone enrichment pipeline fixed — intake API path/body bugs resolved, V4 callback key validation fixed, end-to-end enrichment verified working)
+Updated: 2026-07-07 (Vapi assistant optimizations applied across all 4 assistants — voice settings, async tools, maxTokens 300, Flux transcriber, temperature unified to 0.5. Critical V1 Outbound tool gap fixed — 7 tools now attached after Phase 1 cleanup left it with only press_dtmf. All assistants: serverMessages now include tool-calls, background settings uniform. V1 Inbound: endCallMessage, voicemailMessage, voicemailDetection, backgroundDenoising all applied.)
 
 ## Source Of Truth
 
