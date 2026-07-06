@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-06 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed. Instagram DM Sequence fixes applied — Unipile pageSize limit, try/catch hardening, completed-contact dedup)
+Updated: 2026-07-06 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed. Instagram DM Sequence fixes applied — Unipile pageSize limit, try/catch hardening, completed-contact dedup. Company MQL Google Sheets Sync timeout fix applied — row cap 5000→500, timeout 30s→60s. Apollo phone enrichment pipeline fixed — intake API path/body bugs resolved, V4 callback key validation fixed, end-to-end enrichment verified working)
 
 ## Source Of Truth
 
@@ -40,6 +40,8 @@ It supersedes the duplicated planning notes in:
 - The SMS stack still needs live deployment and a final GHL pool filter body for the dispatcher, but the message registry, batching shape, reply-stop handling, and Slack `#lead` notification path are now defined in the repo artifacts.
 - GSC still needs workflow verification / cleanup.
 - Meta Ads API access is validated, but spend ingest is still deferred.
+- **Company MQL Google Sheets Sync (2026-07-06)**: `LT - Company MQL Google Sheets Sync` (`9Y3Kedm768kkwwSV`) timeout fix applied. Execution `106658` failed with `ECONNABORTED` after the `Build Sheet Payload` Code nodes padded to 5,000 rows (4,997 empty when only 2 data rows existed), causing the Google Sheets API to exceed the 30s HTTP timeout. Fixed by reducing `targetRowCount` 4,999→500 in both `Build Sheet Payload` and `Build All Companies Sheet Payload`, and increasing timeout 30s→60s on both `Write Sheet Snapshot` and `Write All Companies Snapshot`. Published 2026-07-06. Spreadsheet `1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY`, sheets `Company MQLs` and `All Companies`.
+- **Apollo Phone Enrichment Pipeline Fix (2026-07-06)**: Intake V3 (`WuxgTa0EEL1mb2SA`) Apollo API call had two bugs: missing `/api/` path prefix and params sent as JSON body instead of query string — both prevented async phone reveals. Callback V4 (`U7c6byTLXAMgcS75`) webhook key validation rejected the first-ever callback. All three bugs fixed and verified end-to-end: intake execution `106957` was the first successful run ever, Apollo callbacks now deliver within ~17 seconds (received phone `+12104882613` for test call).
 
 ## Voice Workflows
 

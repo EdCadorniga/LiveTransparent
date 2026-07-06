@@ -44,6 +44,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - GHL MCP: primary `ghl_official`, secondary `ghl_katwill_*`.
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
 - **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans (`"true"` instead of `true`) and `options: {}` to `""`. The MCP response reports warnings but the corruption persists AND auto-publishes. Use `setNodeParameter` for single-path edits on Set v3.4 nodes instead of `updateNodeParameters`. If `setNodeParameter` also fails, **use direct n8n REST** (`PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` root) but note that PUT auto-publishes and validates all node credentials, which may fail if credential IDs aren't embedded in node JSON. For Code nodes, `updateNodeParameters` and `setNodeParameter` are both safe. Verify with `GET /api/v1/workflows/{id}` checking both `nodes` (draft) and `activeVersion.nodes` (live). Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
+- **`setNodeParameter` silent failure (observed 2026-07-06):** On Code nodes and HTTP Request nodes, `setNodeParameter` may report success (4 operations applied, 0 warnings) without actually modifying parameters in draft OR active version. **Use `updateNodeParameters` with `replace: true`** as the primary mutation method for both Code and HTTP Request nodes. Always verify with a fresh `GET` after mutation.
 - **n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` return fields (`tags`, `scopes`, `canExecute`, `availableInMCP`) that violate the MCP tool's `additionalProperties: false` output schema. **Workaround:** Use direct REST API calls for workflow listing and details:
   ```bash
   # List workflows
@@ -84,6 +85,9 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 ### GHL Apollo Phone Enrichment Intake V3 (`WuxgTa0EEL1mb2SA`)
 - **Issue**: 3 webhook errors on 2026-06-30 with "Missing contactId in webhook payload". Root cause: the Set v3.4 Config node sometimes drops the webhook payload when `includeOtherFields` is not set, starving the Code node of `contactId`.
 - **Fix**: Code node now falls back to reading directly from `$item(0).$node['Webhook']?.json` if the primary input lacks contactId. Fix was already live in the active version as of 2026-07-01 audit.
+- **Issue 2 (2026-07-06)**: Apollo API call had two bugs: (a) path missing `/api/` prefix (`/v1/people/match` → `/api/v1/people/match`), (b) parameters sent as JSON body instead of URL query string. These prevented Apollo from delivering async phone number reveals to the V4 callback webhook (0 executions ever on `U7c6byTLXAMgcS75`).
+- **Fix 2**: Changed path to `/api/v1/people/match`, moved all params (match fields + flags + `webhook_url`) from request body to query string with `encodeURIComponent`. Removed `body` from the API call.
+- **Fix 3 (2026-07-06)**: V4 Callback Handler (`U7c6byTLXAMgcS75`) had a webhook key validation bug — the first-ever Apollo callback (receiving phone `+12104882613` for a test contact) was rejected with "Webhook key missing or mismatch" despite the key being present in query params. Fixed by adding a fallback check: if the multi-source candidate doesn't match, also checks `query.webhookKey` directly. Apollo callbacks now deliver within ~17 seconds.
 
 ### LT - GA4 Daily Ingest (`6pCSGzFmrMDFL5Yq`)
 - **Issue**: Google Analytics OAuth2 credential expired (`EAUTH`). Caused hourly failures for 24+ hours.
@@ -240,6 +244,14 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - **State table**: `instagram_dm_state` (Postgres) with webhook upsert (`lt-instagram-dm-state-upsert`). Dedup works correctly via `sequence_step` tracking. Now also prevents wasteful re-processing of completed contacts.
 - **Unipile account**: `V9eiHiDpRmCtan0YNdzsQw` at `api42.unipile.com:17256`. Active and responsive at limit=100.
 
+### LT - Company MQL Google Sheets Sync (`9Y3Kedm768kkwwSV`) — 2026-07-06 Timeout Fix
+
+- **Issue**: `Build Sheet Payload` and `Build All Companies Sheet Payload` Code nodes padded the payload to 5,000 rows (4,999 empty rows when only 2 data rows existed). The bloated payload (~66KB of empty strings) caused the Google Sheets API to exceed the 30s HTTP timeout on `Write Sheet Snapshot` (`ECONNABORTED`). Same bug existed on the Broad/All Companies path.
+- **Fix**: Reduced `targetRowCount` from 4,999 to 500 in both Code nodes. Increased HTTP timeout from 30s to 60s on both `Write Sheet Snapshot` and `Write All Companies Snapshot`. Published 2026-07-06.
+- **Method**: `updateNodeParameters` with `replace: true` on all 4 nodes (Code + HTTP Request). Initial attempt with `setNodeParameter` silently failed — reported success but did not modify parameters. Also confirmed `updateNodeParameters` with `replace: true` on HTTP Request nodes does NOT corrupt parameters (clean audit on all 14 nodes, no nested `parameters.parameters`).
+- **Spreadsheet**: `1h71qBh90rh4hK94qYEBD4MZILDEZKPiocKcajo1-BcY`, sheets `Company MQLs` (col A-K) and `All Companies` (col A-J).
+- **Verification**: Both draft and active versions confirmed `targetRowCount=500`, `timeout=60000`, no structural corruption, all 12 connections intact across both MQL and Broad paths.
+
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 
 - `enriched` — terminal (good)
@@ -274,6 +286,7 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 | Report Config Sync | `aomO3Z4AXJIgEvvN` | Active |
 | Report Publish Refresh | `3gXztCnBEN6sGINb` | Active |
 | Report Postgres Bootstrap Apply | `3XHThUiUSNa4sTb9` | Active |
+| LT - Company MQL Google Sheets Sync | `9Y3Kedm768kkwwSV` | Active (daily 6am ET) |
 
 ### Reporting Notes
 
