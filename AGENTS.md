@@ -220,6 +220,26 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
   - `DkDogBpdJhH1gX8pauNP` — Dispensary — Northern Green Canada
 - **Dedup status**: the live flow prevents duplicate calls per contact — classifier and feeder both exclude any contact already in `voice_call_attempt` or pending queue, and enqueue blocks duplicate active rows. The voice dialer and dequeue paths are still paused and should be activated only after the manual assistant quality gate.
 
+### LT - Instagram DM Sequence (Unipile) (`iCnY6ccdHhfJg3sf`) — 2026-07-06 Fixes
+
+- **Issue 1**: Cron runs every weekday hour at 12-22 UTC failing with HTTP 400. Root cause: `Config.pageSize` was `200`, but Unipile's Instagram API rejects limits >100 with `400 "Limit too high"`. The `fetchPaged()` calls to `/users/followers` and `/users/following` had no try/catch, so the error killed the entire execution.
+- **Issue 2**: Unipile's `/users/following` endpoint returns `501 "feature not implemented"` for Instagram. With no try/catch, this would also crash the workflow even after the limit fix.
+- **Issue 3**: Completed contacts (sequence_step >= 4) were still counted as `eligible`, had `persistState` webhooks fired for them wastefully, and inflated the eligibility metric.
+- **Fix 1**: Config `pageSize` 200 → 100. Code cap `Math.min(200, ...)` → `Math.min(100, ...)` for defense-in-depth.
+- **Fix 2**: Wrapped both `fetchPaged('/users/followers')` and `fetchPaged('/users/following')` in try/catch — on failure, returns empty array and continues. Changed `const` → `let` for these variables.
+- **Fix 3**: Added early-exit check after attendeeId resolution but before `eligible++` and `persistState`:
+  ```
+  if (state.completedAt || state.sequenceStep >= (MESSAGE_TEMPLATES.length - 1)) {
+    skipped += 1;
+    actions.push({ ... reason: 'already_completed' });
+    continue;
+  }
+  ```
+- **Method**: `setNodeParameter` (`/parameters/assignments/assignments/4/value`) for Config + REST `PUT` with JSON file for Code node.
+- **Verification**: Direct Unipile API call confirmed `limit=100` OK, `limit=200` returns 400. Both draft and active versions verified.
+- **State table**: `instagram_dm_state` (Postgres) with webhook upsert (`lt-instagram-dm-state-upsert`). Dedup works correctly via `sequence_step` tracking. Now also prevents wasteful re-processing of completed contacts.
+- **Unipile account**: `V9eiHiDpRmCtan0YNdzsQw` at `api42.unipile.com:17256`. Active and responsive at limit=100.
+
 ### Apollo Phone Enrichment Status (custom field `rgYJ7UqoznGoe3WeUAtH`)
 
 - `enriched` — terminal (good)
@@ -266,6 +286,7 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 ## Other Live Systems
 
 - SimpleTexting: Send, delivery, inbound reply, and unsubscribe webhooks are active.
+- Unipile/Instagram: DM Sequence workflow active, cron `0 12-22 * * 1-5`, sends 4-message sequence to mutual followers. State tracked in `instagram_dm_state`.
 - Unipile/LinkedIn: All pipeline workflows are active and verified live.
 - LinkedIn pipeline status (verified 2026-07-01): Sync seeds state table, Dispatcher sends connection requests, DM Sequence sends follow-ups with auto-connected-sync, daily limit enforcement, and reply detection. LinkedIn Connection State Sync timeout fix published 2026-07-01.
 - LinkedIn GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (from root `.env`). The alternate token `pit-2d2ed8c3-...` is broken (401), do not use.

@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-03 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed)
+Updated: 2026-07-06 (n8n upgraded to 2.28.6, imported Brand/Dispensary pool live in classifier + feeder, queue isolated to imported-pool seed. Instagram DM Sequence fixes applied — Unipile pageSize limit, try/catch hardening, completed-contact dedup)
 
 ## Source Of Truth
 
@@ -35,6 +35,7 @@ It supersedes the duplicated planning notes in:
   - Working GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28`. The alternate `pit-2d2ed8c3-...` is broken (401).
   - Code node regex safety: always use `[/]` character class instead of `\/` in regex literals to avoid SDK JSON serialization corruption.
   - State table `linkedin_connection_state`: 171 contacts with `status='ready'`, 34 with `status='connected'`, 10 invites sent, 2 DMs delivered.
+- **Instagram DM Sequence (2026-07-06)**: `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`) is active, cron `0 12-22 * * 1-5`. Fetches mutual followers via Unipile, sends 4-message DM sequence with timed windows (0, 3, 6, 11 days). State tracked in `instagram_dm_state` (Postgres) via webhook `lt-instagram-dm-state-upsert`. **Fixes applied 2026-07-06**: Config `pageSize` 200→100 (Unipile rejects >100 with 400), Code node `fetchPaged` wrapped in try/catch (also protects against `/users/following` 501 "not implemented"), and completed contacts (step >= 4) now exit early before `eligible++` and `persistState` — stops wasteful webhook calls and fixes inflated eligibility metric. Unipile account `V9eiHiDpRmCtan0YNdzsQw` at `api42.unipile.com:17256`.
 - SimpleTexting SMS campaign workflow exports are now staged in repo from `outreach_messages.docx`: sender, pool dispatcher, sequencer, inbound reply, delivery events, and unsubscribe events are all represented as separate workflows.
 - The SMS stack still needs live deployment and a final GHL pool filter body for the dispatcher, but the message registry, batching shape, reply-stop handling, and Slack `#lead` notification path are now defined in the repo artifacts.
 - GSC still needs workflow verification / cleanup.
