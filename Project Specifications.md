@@ -45,6 +45,7 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 - Persist `sequence_step`, `dm_sequence_started_at`, and `payload_json`.
 - Preserve reply state when a contact enters active conversation.
 - Never send duplicate LinkedIn DMs once a reply is detected.
+- If someone responds on LinkedIn, immediately suppress them from all remaining automated LinkedIn DMs and persist that suppression in the shared state.
 
 ### SMS Campaign Scope
 
@@ -136,6 +137,7 @@ Normalized callback output:
 2. Send one LinkedIn test DM and confirm `linkedin_connection_state` advances exactly one step.
 3. Simulate an inbound LinkedIn reply and confirm `dm_conversation_status` becomes `active`.
 4. Confirm the active conversation is excluded from both LinkedIn DM send paths.
-5. Prepare a single SMS test contact and confirm one SMS send is tagged in state.
-6. Simulate an inbound SMS reply and confirm the response workflow updates the same canonical state.
-7. Confirm unsubscribe handling blocks any future SMS sends for opted-out contacts.
+5. Confirm a replied LinkedIn contact stays excluded from all later automated DM steps, not just the next scheduled run.
+6. Prepare a single SMS test contact and confirm one SMS send is tagged in state.
+7. Simulate an inbound SMS reply and confirm the response workflow updates the same canonical state.
+8. Confirm unsubscribe handling blocks any future SMS sends for opted-out contacts.

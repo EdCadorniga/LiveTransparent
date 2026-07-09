@@ -439,8 +439,10 @@ Snapshot → Postgres (Emerald_Campaign_Contacts) → Dispatcher → GHL tags + 
 
 - SimpleTexting: Send, delivery, inbound reply, and unsubscribe webhooks are active.
 - Unipile/Instagram: DM Sequence workflow active, cron `0 12-22 * * 1-5`, sends 4-message sequence to mutual followers. State tracked in `instagram_dm_state`.
-- Unipile/LinkedIn: All pipeline workflows are active and verified live.
+- Unipile/LinkedIn: As of 2026-07-09, the production LinkedIn `n8n` workflows are intentionally paused for a controlled DM test. Do not reactivate until owner confirms resume.
 - LinkedIn pipeline fix applied 2026-07-08: Supply chain now works — State sync uses `GET /contacts/{id}` for reliable tag filtering, Dispatcher has `Feed Ready Queue` to upsert new contacts as `ready`, Acceptance Checker (`3ttEvr5NMcQCS4Hp`) deployed at `/webhook/lt-linkedin-connection-accepted`. Follower DM Sequence has timeout fix. See `"LinkedIn Pipeline Supply Chain Fix (2026-07-08)"` section above.
+- LinkedIn outbound guardrails applied 2026-07-09: live sender workflows `fXxw5lanZcDmUrst` and `pq7XVajNFnnwMUTr` now reject John-branded outbound copy before calling Unipile. Keep webhook `body.message` overrides disabled by default on any LinkedIn sender path.
+- The paused LinkedIn sender workflows `Zt8p2aYtIuY0HK18` and `d0tEtijajisIsYcs` still need a full-body rewrite if they are ever reactivated; the earlier REST patch did not land cleanly on both workflows.
 - LinkedIn GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (from root `.env`). The alternate token `pit-2d2ed8c3-...` is broken (401), do not use.
 - LinkedIn Code node regex pattern: always use `[/]` (character class) instead of `\/` in regex literals to avoid SDK JSON serialization corruption.
 - GHL warm intake/routing, Apollo enrichment, and Emerald/Cold outreach are active.
@@ -453,6 +455,11 @@ Snapshot → Postgres (Emerald_Campaign_Contacts) → Dispatcher → GHL tags + 
 - LinkedIn DM timing is currently 0, 3, 4, 3, 4 days between sends after the first message clock starts.
 - Active LinkedIn conversations are marked in `linkedin_connection_state` via `payload_json.dm_conversation_status = 'active'`.
 - For LinkedIn supply, prefer seeding `linkedin_connection_state` from the working GHL contacts list and keep `linkedin_connected` rows out of the queue entirely.
+- LinkedIn test workflow (2026-07-09): `LT - LinkedIn DM Sequence Test (No Delay)` (`wnpVYUNFLyNe5cS6`) is manual-only and inactive by design. It targets `https://www.linkedin.com/in/edmundo-c-a06372166/` and sends the 4 LinkedIn DM sequence messages immediately with `interMessageDelayMs = 0`.
+- LinkedIn pause set (2026-07-09): `Old7ZvyVYgFaJgDr`, `7o5EBdvwAuIaWW7k`, `pq7XVajNFnnwMUTr`, `3ttEvr5NMcQCS4Hp`, `ceaKnz6E3onQrZpt`, `d0tEtijajisIsYcs`, `Zt8p2aYtIuY0HK18`, and `fXxw5lanZcDmUrst` were all deactivated via n8n REST for the controlled test.
+- LinkedIn connection verification (2026-07-09): Cameron's Unipile account (`cameronkarkut`, account `V9eiHiDpRmCtan0YNdzsQw`) initially showed Edmundo's profile as `invitation.status = PENDING`. After acceptance, Unipile reported `is_relationship = true`, `network_distance = FIRST_DEGREE`, and the test DMs looked correct from the recipient side.
+- LinkedIn invite copy audit (2026-07-09): the live `n8n` invite defaults in `fXxw5lanZcDmUrst`, `Zt8p2aYtIuY0HK18`, and `n8n/workflows/social_outreach_templates.ts` already say `Transparent eCom`. If an invite shows `LiveTransparent`, treat a GHL-side `body.message` override as the primary suspect before editing `n8n`.
+- Guardrail status (2026-07-09): production invite and follower-DM senders now block John-branded copy before the Unipile call is made. If you need to re-enable the paused sender workflows, verify both draft and active JSON first and reapply the same guard logic before publishing.
 - If you restart the session, re-check the live n8n executions for the sync, dispatcher, and DM workflows before saying the pipeline is healthy.
 - SimpleTexting SMS campaign work is now staged in repo workflow exports, using `docs/outreach/outreach_messages.docx` as the SMS source of truth.
 - SMS campaign requirements:
@@ -605,9 +612,9 @@ After any significant work session (workflow fixes, new automations, config chan
 
 This stages key files into `C:\TempRepomixStaging`, runs `npx repomix --style markdown --compress --remove-comments --remove-empty-lines`, and copies the result back to the project root.
 
-## John → Jason Migration — Remaining GHL Workflows (2026-07-09)
+## John → Jason Migration — GHL Status (2026-07-09)
 
-The n8n side is fully migrated (all Code node templates use Cameron/Jason). However, **3 GHL workflows still reference John** and need manual editing in the GHL UI:
+The `n8n` side is fully migrated (all Code node templates use Cameron/Jason), and the John follow-up email templates were also updated today in repo and in the live GHL email-template folder. The remaining work is now mostly on GHL workflow/UI-only paths, especially the LinkedIn connection-request origin.
 
 ### 1. `Task John to create a LinkedIn Connection Request when MQL is found`
 - **ID**: `25cd82a2-8344-4dc5-962f-a2b5e5c5ee88`
@@ -615,12 +622,15 @@ The n8n side is fully migrated (all Code node templates use Cameron/Jason). Howe
 - **Issue**: Sends `"Hey {first_name} - quick connect. John here with Transparent eCom."` as the LinkedIn connection request message. This POSTs to the n8n webhook `/webhook/unipile-linkedin-connect-test` with a `body.message` that overrides the Cameron default.
 - **Fix**: Change the message in the GHL HTTP POST action to use Cameron instead of John.
 - **Note**: The n8n Connection Request webhook (`Zt8p2aYtIuY0HK18`) accepts `body.message` as an override. The default in the Code node is already Cameron. The GHL workflow sends the override.
+- **Open question as of 2026-07-09**: Even after the live `n8n` invite defaults were audited and confirmed as `Transparent eCom`, the owner still saw an old invite phrasing from the recipient side before accepting Cameron's connection request. Treat the GHL workflow above as the primary suspect, but do not assume it is the only source until the exact trigger path is reproduced and confirmed.
 
 ### 2. `JohnFollowup Emails and SMS`
 - **ID**: `f6b44e34-779e-4959-b41d-b05641f134e7`
 - **URL**: `https://app.gohighlevel.com/v2/location/Zwz4relUXVPxx8uohnjV/automation/workflow/f6b44e34-779e-4959-b41d-b05641f134e7/advanced-canvas`
-- **Issue**: Email and SMS templates still reference John. Need to update to Jason.
-- **Fix**: Edit all email/SMS action nodes in this workflow to replace John with Jason.
+- **Status as of 2026-07-09**: Repo HTML templates were renamed to Jason and updated to use `{{trigger_link.quqSUM8bckKaOIktVvgU}}`. The matching live GHL email templates in folder `69e0c9069af5986541802d88` were updated via API, and template `01` sender metadata was corrected to `Jason from Transparent eCom <jason@livetransparent.com>`.
+- **Manual GHL workflow edit reported complete**: Owner manually updated all `Send email` actions in this workflow to Jason.
+- **Verification note**: Workflow-step verification could not be completed programmatically because the GHL workflow builder endpoints for this workflow type still return 404 and the local browser profiles were not authenticated to GHL during the audit attempt.
+- **Booking-link requirement**: Any email CTA / booking link in this workflow should use `{{trigger_link.quqSUM8bckKaOIktVvgU}}`.
 
 ### 3. `Simpletexting Send SMS for failed sends - John SMS1`
 - **ID**: `41c6aecd-de75-429e-826f-6e65245be3d0`
@@ -629,6 +639,13 @@ The n8n side is fully migrated (all Code node templates use Cameron/Jason). Howe
 ### 4. `Simpletexting Send SMS for failed sends - John SMS2`
 - **ID**: `a99f96d9-0bed-46a2-8f40-ecf62e856345`
 - **Issue**: SMS template still references John.
+
+### Next-session execution target
+- Start with `Task John to create a LinkedIn Connection Request when MQL is found` (`25cd82a2`) and treat it as the primary suspect for the old John-branded LinkedIn invite.
+- Reproduce the actual GHL trigger path that emits the connection request and confirm whether `body.message` from that workflow is still the live override source.
+- If `25cd82a2` is not the source, trace all other GHL paths that can reach `/webhook/unipile-linkedin-connect-test` until the John-branded override is found.
+- After the LinkedIn source is confirmed/fixed, return to the two failed-send SMS GHL workflows (`41c6aecd`, `a99f96d9`) if they still show John in recipient-visible copy.
+- Do not spend time re-auditing the `n8n` invite defaults unless a newly reproduced request proves the GHL-side override theory wrong.
 
 ### GHL API Limitation
 The GHL REST API (`/workflows/{id}/builder`, `/workflows/{id}/actions`) returns 404 for these workflow types. Workflow details can only be edited via the GHL UI at the URLs above. The GHL MCP tool (`ghl_official`) may be able to access them — try `get_workflow` or `list_workflow_steps` if available.
@@ -639,3 +656,45 @@ The GHL REST API (`/workflows/{id}/builder`, `/workflows/{id}/actions`) returns 
 **Issue**: The `TEMPLATE_REGISTRY` in the `Process LinkedIn Followers` Code node had garbled multi-byte characters — curly quotes (`'`, `'`, `—`) and the wave emoji (`👇`) were mangled into garbage like `Γò¼├┤Γö£├ºΓö£├╗`, `Γò¼├┤Γö£├ºΓö£Γòó`, and `╬ô├½├¡Γò₧├åΓö£┬¬Γö£┬║`.
 **Fix**: Replaced the entire corrupted registry with clean text using straight quotes and proper dashes. Applied via n8n REST API PUT. Both draft and active versions verified clean.
 **Verification**: All 12 LinkedIn/Instagram/SMS workflows checked — only the Follower DM had corruption. The DM Sequence (`d0tEtijajisIsYcs`) was already clean.
+
+## LinkedIn Pause + No-Delay Test (2026-07-09)
+
+**Goal**: Pause all production LinkedIn `n8n` workflows, create a safe manual-only test workflow that sends the full DM sequence without delay, and validate delivery to Edmundo's own LinkedIn profile before any reactivation.
+
+**Production workflows paused**:
+- `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`)
+- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`)
+- `LT - LinkedIn Follower DM Sequence (Unipile)` (`pq7XVajNFnnwMUTr`)
+- `LT - LinkedIn Connection Acceptance Checker (Unipile)` (`3ttEvr5NMcQCS4Hp`)
+- `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`)
+- `LT - LinkedIn DM Sequence (Unipile)` (`d0tEtijajisIsYcs`)
+- `LT - LinkedIn Connection Request (Unipile) (Internal Test)` (`Zt8p2aYtIuY0HK18`)
+- `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`)
+
+**Test workflow created**:
+- `LT - LinkedIn DM Sequence Test (No Delay)` (`wnpVYUNFLyNe5cS6`)
+- Manual-only, inactive by design
+- Target: `https://www.linkedin.com/in/edmundo-c-a06372166/`
+- Uses the live Unipile account `V9eiHiDpRmCtan0YNdzsQw` / Cameron Karkut (`cameronkarkut`)
+- Sends the 4 LinkedIn DM sequence messages immediately with `interMessageDelayMs = 0`
+
+**Live verification path**:
+1. Initial Unipile lookup showed `invitation.type = SENT`, `invitation.status = PENDING`, `is_relationship = false`.
+2. Owner located and accepted the pending invite from Cameron Karkut in LinkedIn.
+3. Fresh Unipile lookup then showed `is_relationship = true`, `network_distance = FIRST_DEGREE`.
+4. Owner confirmed the DM messages looked correct from the recipient side.
+
+**Invite copy verification**:
+- The live `n8n` invite defaults already say `Transparent eCom`, not `LiveTransparent`.
+- Verified in:
+  - `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`)
+  - `LT - LinkedIn Connection Request (Unipile) (Internal Test)` (`Zt8p2aYtIuY0HK18`)
+  - `n8n/workflows/social_outreach_templates.ts`
+- If old invite branding appears again, inspect GHL-side `body.message` overrides before changing `n8n`.
+- Guardrail status: production invite and follower-DM senders now block John-branded copy before the Unipile call is made. The paused internal test invite workflow and main DM workflow still need a full-body rewrite if they are ever reactivated.
+
+**Current hold point**:
+- Keep all LinkedIn production workflows paused until the owner explicitly confirms reactivation.
+
+**New-session note**:
+- The next session should not spend time re-deriving the LinkedIn test state. The important unresolved LinkedIn item is the GHL-side origin of the old John-branded connection request, not the `n8n` invite defaults.

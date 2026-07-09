@@ -4,8 +4,14 @@
 
 - Canonical status: [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
 - Active work now spans the **Emerald email campaign** (activated 2026-07-07), voice, reporting, LinkedIn outreach, Instagram outreach, and the upcoming SimpleTexting SMS campaign.
-- **2026-07-09**: LinkedIn Follower DM template corruption fixed. 4 GHL workflows still need John→Jason migration (see AGENTS.md).
+- **2026-07-09**: LinkedIn Follower DM template corruption fixed. The John follow-up email templates were renamed to Jason in repo, the six live GHL email templates were updated via API, and workflow `f6b44e34` email action updates were completed manually in GHL.
+- **2026-07-09**: All active LinkedIn `n8n` workflows were manually paused for a controlled test. Manual workflow `LT - LinkedIn DM Sequence Test (No Delay)` (`wnpVYUNFLyNe5cS6`) was created to send the 4 LinkedIn DMs immediately to `https://www.linkedin.com/in/edmundo-c-a06372166/`. Cameron's pending invite was accepted the same day and Unipile now reports `is_relationship=true` / `FIRST_DEGREE`. DMs looked correct from the recipient side. Hold LinkedIn workflow reactivation until owner confirms resume.
+- **2026-07-09**: LinkedIn outbound guardrails were added to the live sender workflows so John-branded copy is blocked before Unipile sends. Production invite/follower-DM paths now reject banned text; the paused internal test invite workflow and the main DM workflow still need a full-body rewrite if they are ever reactivated.
+- **Next session priority (2026-07-09 handoff)**: Start by tracing the exact GHL-side source of the old John-branded LinkedIn connection request. Primary suspect is workflow `25cd82a2`, which can override the Cameron default by posting `body.message` into the n8n connection-request webhook. Only after that should time go to any still-unfixed failed-send SMS workflows. Booking-link standard for the Jason email templates is now `{{trigger_link.quqSUM8bckKaOIktVvgU}}`.
 - For LinkedIn, keep invite copy and DM copy aligned to `outreach_messages.v2.docx`, and keep reply-stop behavior active.
+- If someone replies on LinkedIn, remove them from further automated LinkedIn DMs immediately and mark the conversation state so no later sequence step can send.
+- LinkedIn invite copy audit on 2026-07-09 confirmed the live `n8n` invite sources already say `Transparent eCom`; if `LiveTransparent` appears again, check GHL-side message overrides first.
+- If reactivating LinkedIn senders, verify the banned-copy guard is still present in draft and active JSON before publishing.
 - For Instagram, the DM Sequence workflow (`iCnY6ccdHhfJg3sf`) is active, sending a 4-message sequence with state tracked in `instagram_dm_state`. Sequence copy is hardcoded in the Code node (4 messages, v1). Keep pageSize at 100 (Unipile API limit) and completed-contact early-exit intact.
 - For SMS, use `outreach_messages.docx` as the campaign source, with batch dispatch, per-send tagging, shared reply-state tracking, and `#lead` notifications on response.
 - Keep this file short; the detailed operating status belongs in `Project Status and Next Steps.md`.
