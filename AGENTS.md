@@ -82,6 +82,34 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 - **Fix**: Published 2026-07-01. Changed `cfg.maxPages → cfg.maxContacts`, capped `maxPages` at 10, `maxContacts` at 50, added `timeout: 15000` to `apiRequest` HTTP calls.
 - **Code node note**: The `maxPages` and `maxContacts` are capped in the Code node itself (not just Config), so adjusting Config values beyond caps has no effect.
 
+### LinkedIn Pipeline Supply Chain Fix (2026-07-08)
+
+**Root cause**: The Postgres-queue dispatcher (`fXxw5lanZcDmUrst`) queried `linkedin_connection_state WHERE connection_status = 'ready'` but zero rows ever had `ready` status. The state sync's GHL `POST /contacts/search` API response didn't include tags in the format the `hasTag()` function expected, so every run re-upserted already-processed contacts (which the UPSERT guard kept as `requested`/`connected`). The dispatcher had never returned a single `ready` contact since deployment (2026-07-02).
+
+**Fixes applied** (all 2026-07-08):
+
+| Fix | Workflow | Method |
+|-----|----------|--------|
+| State sync tag reliability | `ceaKnz6E3onQrZpt` | `updateNodeParameters` (Code node) |
+| Feed Ready Queue node | `fXxw5lanZcDmUrst` | `addNode` + connection reroute |
+| Acceptance Checker deploy | `3ttEvr5NMcQCS4Hp` (NEW) | REST API POST |
+| Follower DM timeout | `pq7XVajNFnnwMUTr` | REST API PUT |
+| GHL DM placeholder | `WL - Micro - LinkedIn DM` (GHL) | Browser UI |
+
+**Detailed changes:**
+
+1. **State sync** (`ceaKnz6E3onQrZpt`): Tag check changed from `hasTag(contact, requestTag)` on search response to `GET /contacts/{id}` call for each matched contact (reliable tag data). Added `linkedin_state_queued` to exclusion list. After successful upsert, applies `linkedin_state_queued` GHL tag to prevent re-processing.
+
+2. **Dispatcher** (`fXxw5lanZcDmUrst`): Added `Feed Ready Queue` Code node between Config and Fetch Ready Queue. Searches GHL contacts with LinkedIn custom fields (`apollo_person_linkedin_url`, `em_contact_linkedin_urls`), checks tags via `GET /contacts/{id}`, and for contacts without blocking tags (`linkedin_connection_requested`, `linkedin_connected`, `linkedin_state_queued`), upserts to state table as `ready` and applies `linkedin_state_queued` tag. Limits 20 per run. Pipeline: `Schedule → Config → Feed Ready Queue (NEW) → Fetch Ready Queue (Postgres) → Dispatch LinkedIn Requests → Result`.
+
+3. **Acceptance Checker** (`3ttEvr5NMcQCS4Hp`, new, active): Webhook at `/webhook/lt-linkedin-connection-accepted`. Receives Unipile `new_relation` events, matches by `linkedin_provider_id` / `linkedin_public_identifier` / `linkedin_profile_url`, upserts state as `connected`, and applies `linkedin_connected` GHL tag.
+
+4. **Follower DM Sequence** (`pq7XVajNFnnwMUTr`): Added `timeout: 30000` to `apiRequest()` HTTP calls (was missing, causing indefinite hangs on Unipile `/users/followers` calls). The `firstNameFromDisplay` regex was already fixed in a prior session. Scheduler was stuck (0 executions ever); unpublish/re-publish reset it. Manual run post-fix completed in ~3min.
+
+5. **GHL DM placeholder** (`WL - Micro - LinkedIn DM`): Changed If/Else condition from `message.body CONTAINS 'something from dm from linkedIn that we will get later'` (placeholder that never matched any real message) to `Contact replied = True` (always true since the trigger `Customer Replied through LinkedIn DM` already guarantees it's a LinkedIn DM reply). Published.
+
+6. **Spec document** (`GHL_Live Transparent CRM/GHL_Snapshot_Build_Spec_LinkedIn_Micro_Workflows.md`): Updated tag names to match live values (lowercase, normalized spacing), updated Lead Form UTM mapping to use `contact.attributionSource.*`, documented DM condition fix.
+
 ### GHL Apollo Phone Enrichment Intake V3 (`WuxgTa0EEL1mb2SA`)
 - **Issue**: 3 webhook errors on 2026-06-30 with "Missing contactId in webhook payload". Root cause: the Set v3.4 Config node sometimes drops the webhook payload when `includeOtherFields` is not set, starving the Code node of `contactId`.
 - **Fix**: Code node now falls back to reading directly from `$item(0).$node['Webhook']?.json` if the primary input lacks contactId. Fix was already live in the active version as of 2026-07-01 audit.
@@ -224,6 +252,13 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
   - `DkDogBpdJhH1gX8pauNP` — Dispensary — Northern Green Canada
 - **Dedup status**: the live flow prevents duplicate calls per contact — classifier and feeder both exclude any contact already in `voice_call_attempt` or pending queue, and enqueue blocks duplicate active rows. The voice dialer and dequeue paths are still paused and should be activated only after the manual assistant quality gate.
 
+### DM firstNameFromDisplay Regex Bug — 2026-07-08 Fixes
+
+- **Issue**: `firstNameFromDisplay()` in both `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`) and `LT - LinkedIn Follower DM Sequence (Unipile)` (`pq7XVajNFnnwMUTr`) had regex `base.split(/s+/)` missing the backslash before `s`. This split on the literal letter `s` instead of whitespace (`\s`), so names without an `s` (e.g. "Roberta Lion Motta") were returned as a single token — the full name instead of just the first name.
+- **Fix**: Changed `base.split(/s+/)` → `base.split(/\s+/)` in both live workflows via n8n REST PUT. `LT - LinkedIn DM Sequence (Unipile)` (`d0tEtijajisIsYcs`) was verified clean — it uses `getGhlContact()` to pull `contact.firstName` from GHL directly, never uses `firstNameFromDisplay`.
+- **SMS check**: SimpleTexting SMS send workflow (`Q3Ivnwe4z2Y3cD7A`) verified clean — no `firstNameFromDisplay` function, all templates use `{{first_name}}` correctly. Stale `{{contact.first_name}}` in source script `update_n8n_template_registry.ps1` fixed to `{{first_name}}`.
+- **Lesson**: The same `base.split(/s+/)` vs `base.split(/\s+/)` typo existed in TWO independent live workflows, suggesting the bug was introduced via manual edit or copy-paste at creation time. The SDK source files had the correct `\s+` regex; the live workflows diverged.
+
 ### LT - Instagram DM Sequence (Unipile) (`iCnY6ccdHhfJg3sf`) — 2026-07-06 Fixes
 
 - **Issue 1**: Cron runs every weekday hour at 12-22 UTC failing with HTTP 400. Root cause: `Config.pageSize` was `200`, but Unipile's Instagram API rejects limits >100 with `400 "Limit too high"`. The `fetchPaged()` calls to `/users/followers` and `/users/following` had no try/catch, so the error killed the entire execution.
@@ -263,14 +298,47 @@ Two new voice campaigns deploying alongside the existing V1 paused infrastructur
 - **serverMessages fix**: Brand, Dispensary, and V1 Inbound were missing `tool-calls` in `serverMessages`. Added to all 3.
 - **V1 Inbound gap fixes**: Added missing `endCallMessage: "Goodbye."`, `voicemailMessage`, and `voicemailDetection: { type: "audio", provider: "vapi" }`. Enabled `backgroundDenoisingEnabled: true`.
 
+### Vapi Campaign Assistant Optimizations (2026-07-08)
+
+**Scope**: Brand (Alex `1d7c5d42`) and Dispensary (Jordan `056f2e50`) system prompt and voice config optimizations applied via Vapi REST API PATCH.
+
+#### Speed
+- **Brand (Alex)**: 0.95 → **1.05** (5% faster). Brand marketers expect confident, quick peer-to-peer talk.
+- **Dispensary (Jordan)**: 0.95 → **0.88** (12% slower). Dispensary owners trust warmer, deliberate delivery.
+
+#### Fillers ("um", "uh", "like", "you know")
+- **Brand (Alex)**: MINIMIZE — 0-1 per call max. Never use "like", "you know", "sort of", "basically", "actually". Occasional brief "um/uh" when thinking is acceptable but rare.
+- **Dispensary (Jordan)**: PRESERVE — natural speech disfluencies ("um", "uh", brief hesitations) are OK. They signal careful verification and build trust with skeptical owner-operators. Banned only "like", "you know", "sort of", "basically" — those sound uncertain, not thoughtful.
+
+#### Compliance Disclosure
+- Both assistants now open every live call with: *"Quick disclosure — this call may be recorded for quality, and you're speaking with an AI assistant."*
+- Required for two-party consent states (including California). If asked "are you a bot?", answer honestly immediately.
+
+#### Objection Handling
+- Both have exact scripted responses for top objections (pricing, compliance, data sharing, POS integration).
+- Brand: "This is not replacing your media buy — it is closing the loop on attribution you do not have today."
+- Dispensary: "Only aggregated/matched purchase data tied to specific ad campaigns is shared with the brand that ran the ad — not your full sales data."
+
+#### Guardrails
+- Hard rules: no ROI/revenue guarantees, no pricing quotes on call (defer to strategy call), honor do-not-call immediately, transfer to Jason if prospect asks for a human.
+
+#### Structured Output
+- Both log a structured call summary (interest level, objections, booked yes/no, etc.) for clean CRM data.
+- Brand: 11-field schema (company_name, interest_level, booked_strategy_call, call_summary, etc.)
+- Dispensary: 12-field schema (dispensary_name, pos_system, agreed_to_receive_agreement, etc.)
+
+#### Method
+- Vapi REST `PATCH /assistant/{id}` with full voice + model + firstMessage payload.
+- Preserved all existing settings (transcriber, endpointing, backgroundSound, backchanneling, startSpeakingPlan, server).
+
 ### Vapi Assistants — Current Configs
 
-| Assistant | ID | LLM | maxTokens | Temp | Transcriber | Tools | serverMessages |
-|-----------|-----|-----|-----------|------|-------------|-------|----------------|
-| V1 Outbound (Savannah) | `3f9bbfd2` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | deepgram/flux-general-en | 7 | end-of-call-report, tool-calls, status-update |
-| Brand (Alex) | `1d7c5d42` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | deepgram/flux-general-en | 9 | end-of-call-report, tool-calls, status-update |
-| Dispensary (Jordan) | `056f2e50` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | deepgram/flux-general-en | 9 | end-of-call-report, tool-calls, status-update |
-| V1 Inbound (Savannah) | `43f379ff` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | deepgram/flux-general-en | 8 | end-of-call-report, tool-calls, status-update |
+| Assistant | ID | LLM | maxTokens | Temp | Speed | Voice | Transcriber | Tools | serverMessages |
+|-----------|-----|-----|-----------|------|-------|-------|-------------|-------|----------------|
+| V1 Outbound (Savannah) | `3f9bbfd2` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | 0.95 | Savannah | deepgram/flux-general-en | 7 | end-of-call-report, tool-calls, status-update |
+| Brand (Alex) | `1d7c5d42` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | **1.05** | Elliot | deepgram/flux-general-en | 9 | end-of-call-report, tool-calls, status-update |
+| Dispensary (Jordan) | `056f2e50` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | **0.88** | Nico | deepgram/flux-general-en | 9 | end-of-call-report, tool-calls, status-update |
+| V1 Inbound (Savannah) | `43f379ff` | openrouter/anthropic/claude-3-haiku | 300 | 0.5 | 0.95 | Savannah | deepgram/flux-general-en | 8 | end-of-call-report, tool-calls, status-update |
 
 All: `backgroundSound: office`, `backchannelingEnabled: true`, `backgroundDenoisingEnabled: true`, `firstMessageMode: assistant-speaks-first`, `endCallMessage: "Goodbye."`, `maxDurationSeconds: 480`, `voicemailDetection: audio`.
 
@@ -287,6 +355,55 @@ All: `backgroundSound: office`, `backchannelingEnabled: true`, `backgroundDenois
 - `Apollo Phone Enrichment Status` = `rgYJ7UqoznGoe3WeUAtH` (SINGLE_OPTIONS)
 - `Apollo Phone Enrichment Queued At` = `NgC3xGTh0laQ9ArTnude` (DATE)
 - `Enrich Phone via Apollo` = `gdJDuZelIxEBE6n9i5Q6` (SINGLE_OPTIONS: Yes/No)
+
+## Emerald Email Campaign (Activated 2026-07-07)
+
+Dispatches ~14,702 unenrolled Emerald contacts through GHL email sequences using 4 sender addresses with safe warmup pacing (300/sender/day Week 1).
+
+### Pipeline
+
+```
+Snapshot → Postgres (Emerald_Campaign_Contacts) → Dispatcher → GHL tags + sender field
+→ GHL "Enrollment Queue Entry" workflow → Emerald Sequence → Email
+→ GHL Event webhook → n8n Event Ingest → Postgres (Email_Events)
+```
+
+### n8n Workflows
+
+| Workflow | ID | Status |
+|----------|----|--------|
+| LT - Emerald Campaign Sender Release Dispatcher (Staged) | `8UXlpoMJnQ229AuG` | Active, hourly |
+| LT - Email Event Ingest | `ZrqFN8qLKO8eVHDc` | Active, webhook |
+| LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged) | `0jDKgG8VvmfyORQn` | Active, webhook |
+
+### GHL Workflows (all published)
+
+- **5 Event automations**: `WL - Event - Emerald Email Event Ingest - {Opened,Clicked,Bounced,Complained,Unsubscribed}` — POST to n8n webhook `/lt-email-event-ingest`
+- **Bridge**: `WL - Seq - Enrollment Queue Entry` (v13) — triggers on `Enrollment Queue - Emerald - {Bucket}` tags
+- **8 Emerald sequences**: `WL - Seq - Cannabis Ads Emerald - {Bucket}` + P2 per bucket — executives/marketing/finance/retail_sales, MSO/SSO
+- **Supporting**: `WL - Seq - Cannabis Ads - Variant A/B`, `WL - Seq - Stop on Booked/Reply/Closed`, `WL - Micro - Email Inbound/Outbound/Open Counter`
+
+### Dispatcher Fixes (2026-07-07)
+
+- **Timeout fix**: Removed per-contact `GET /contacts/{id}` call (500 serial GETs per run). Suppression checks moved to Postgres SQL (`tags_raw ILIKE` for DNC/DND/enrolled). `candidateLimit` 500→250 cuts runtime from 300s+ to ~112s.
+- **Stale snapshot sync**: 5,463 GHL-enrolled contacts matched against Postgres and marked `released` (via GHL search API, paginated). Backlog reset from 20,165 to 14,702 pending.
+- **PIT token fix**: Updated expired Config apiKey to working token via n8n REST PUT.
+
+### Current State
+
+- 250 contacts dispatched first batch (execution #108638), 0 errors, 0 deferred
+- 4 senders: cameron@livetransparent.{com,co,agency,org}, 300/day each Week 1
+- Backlog: 10,618 unreleased after DNC/DND SQL filtering
+- Email events flowing to `Email_Events` table within 3 min of dispatch
+- See `Project Status and Next Steps.md` for full details.
+
+### Postgres Tables
+
+| Table | Rows | Notes |
+|-------|------|-------|
+| `Emerald_Campaign_Contacts` | 20,165 | 14,702 pending, 5,463 released |
+| `Emerald_Release_Log` | 250+ | Dispatched contacts by sender |
+| `Email_Events` | growing | From 5 GHL event automations → n8n webhook |
 
 ## Reporting System
 
@@ -323,10 +440,11 @@ All: `backgroundSound: office`, `backchannelingEnabled: true`, `backgroundDenois
 - SimpleTexting: Send, delivery, inbound reply, and unsubscribe webhooks are active.
 - Unipile/Instagram: DM Sequence workflow active, cron `0 12-22 * * 1-5`, sends 4-message sequence to mutual followers. State tracked in `instagram_dm_state`.
 - Unipile/LinkedIn: All pipeline workflows are active and verified live.
-- LinkedIn pipeline status (verified 2026-07-01): Sync seeds state table, Dispatcher sends connection requests, DM Sequence sends follow-ups with auto-connected-sync, daily limit enforcement, and reply detection. LinkedIn Connection State Sync timeout fix published 2026-07-01.
+- LinkedIn pipeline fix applied 2026-07-08: Supply chain now works — State sync uses `GET /contacts/{id}` for reliable tag filtering, Dispatcher has `Feed Ready Queue` to upsert new contacts as `ready`, Acceptance Checker (`3ttEvr5NMcQCS4Hp`) deployed at `/webhook/lt-linkedin-connection-accepted`. Follower DM Sequence has timeout fix. See `"LinkedIn Pipeline Supply Chain Fix (2026-07-08)"` section above.
 - LinkedIn GHL token: `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (from root `.env`). The alternate token `pit-2d2ed8c3-...` is broken (401), do not use.
 - LinkedIn Code node regex pattern: always use `[/]` (character class) instead of `\/` in regex literals to avoid SDK JSON serialization corruption.
 - GHL warm intake/routing, Apollo enrichment, and Emerald/Cold outreach are active.
+- **Emerald Email Campaign**: Active since 2026-07-07 — see `Emerald Email Campaign (Activated 2026-07-07)` section above.
 
 ## Outreach Notes
 
@@ -375,6 +493,9 @@ All: `backgroundSound: office`, `backchannelingEnabled: true`, `backgroundDenois
 - `docs/campaigns/Vapi_Brand_Campaign.docx` — Brand campaign (Alex persona, brand marketing leads)
 - `docs/campaigns/Vapi_Dispensary_Campaign.docx` — Dispensary campaign (Jordan persona, dispensary owners)
 - `plan.md` — Vapi Campaign Rollout implementation plan (4 phases)
+- `marketing/email-marketing/emerald-email-campaign/plan.md` — Emerald email campaign sub-plan
+- `marketing/email-marketing/emerald-email-campaign/dispatcher-plan.md` — Dispatcher architecture, SQL, sender warmup plan
+- `marketing/email-marketing/emerald-email-campaign/workflow-mapping.md` — GHL workflow IDs, trigger tags, bucket audit tags
 
 ## VPS SSH Access
 
@@ -437,6 +558,44 @@ These CLI tools are installed and available via PATH on this system. Prefer them
 | `ast-grep` | regex-only code search | Structural code search that understands syntax trees |
 | `eza` | `ls`, `dir` | Modern ls with icons, colors, tree view |
 
+## John → Jason Migration (2026-07-07)
+
+John is no longer with the company. All SMS and email messages that had John as the sender were updated to Jason (`jason@livetransparent.com`).
+
+### What changed
+- **Message content**: "John from Transparent eCom" → "Jason from Transparent eCom" in all SMS templates (`sms_1`, `sms_2`, `john_sms1`, `john_sms2`)
+- **SMS intro**: "Hi this is John" → "Hi this is Jason" in `john_sms1`
+- **Email signatures**: "Best, John" → "Best, Jason" in all 6 HTML templates and plain-text copy
+- **HTML signatures**: `Best,<br>John.` → `Best,<br>Jason.` in all email HTML files
+- **Sender info**: `john@livetransparent.com` → `jason@livetransparent.com` in implementation docs
+- **READMEs**: Updated to reference "Jason follow-up" instead of "John follow-up"
+
+### What stayed the same (keys NOT changed)
+- **Template keys**: `john_sms1` through `john_sms5` — kept as-is because GHL automations reference these keys in their webhook payloads. Changing them would break GHL → n8n send
+- **Display names**: "John SMS 1 - Initial Outreach" etc. — kept as-is for consistency with keys
+- **GHL runbook**: GHL payloads still use `"templateKey": "john_sms4"` — the n8n workflow resolves these to the updated message text
+
+### Files affected (~28 files)
+- `data/SMS_Template_Keys.txt` — section header now "Jason SMS", keys stay `john_sms1-5`
+- `docs/outreach/sms_edited_templatekeys.md` — same pattern
+- `marketing/email-marketing/john-follow-up/source/` — 6 HTML files updated
+- `marketing/email-marketing/john-follow-up/source/john-email-templates.txt` — signatures updated
+- `marketing/sms-marketing/john-follow-up/source/john-sms-messages.txt` — intro updated
+- `marketing/automation/scripts/` — 6 files (test scripts, results, registry updater)
+- `GHL Live Transparent CRM/GHL_SimpleTexting_Access_Workflow.md` — payload updated
+- `n8n/backups/` — 5 backup files updated
+- `repomix-output.md` — message content updated
+- `marketing/email-marketing/README.md`, `marketing/sms-marketing/README.md` — directory descriptions
+- `marketing/email-marketing/john-follow-up/implementation/README.md` — sender info and file list
+
+### Live n8n workflow updated
+- **`Q3Ivnwe4z2Y3cD7A`** (LT - SimpleTexting SMS Send) — Config node `templateRegistryJson`: message content updated to Jason, all keys stayed as `john_sms*`
+
+### Future modification notes
+- To change message text: edit the relevant template in the Config node's `templateRegistryJson` and update the corresponding entries in `data/SMS_Template_Keys.txt` and `docs/outreach/sms_edited_templatekeys.md`
+- To add a new SMS template: use `marketing/automation/scripts/update_n8n_template_registry.ps1` as reference
+- To update GHL-side payloads: modify the GHL workflow(s) that POST to `/webhook/lt-simpletexting-send-sms` — the `templateKey` field must match a key in the Config node
+
 ## repomix-output.md Refresh
 
 After any significant work session (workflow fixes, new automations, config changes), regenerate `repomix-output.md` so next-session context is up to date:
@@ -445,3 +604,38 @@ After any significant work session (workflow fixes, new automations, config chan
 2. `packlive`
 
 This stages key files into `C:\TempRepomixStaging`, runs `npx repomix --style markdown --compress --remove-comments --remove-empty-lines`, and copies the result back to the project root.
+
+## John → Jason Migration — Remaining GHL Workflows (2026-07-09)
+
+The n8n side is fully migrated (all Code node templates use Cameron/Jason). However, **3 GHL workflows still reference John** and need manual editing in the GHL UI:
+
+### 1. `Task John to create a LinkedIn Connection Request when MQL is found`
+- **ID**: `25cd82a2-8344-4dc5-962f-a2b5e5c5ee88`
+- **URL**: `https://app.gohighlevel.com/v2/location/Zwz4relUXVPxx8uohnjV/automation/workflow/25cd82a2-8344-4dc5-962f-a2b5e5c5ee88/advanced-canvas`
+- **Issue**: Sends `"Hey {first_name} - quick connect. John here with Transparent eCom."` as the LinkedIn connection request message. This POSTs to the n8n webhook `/webhook/unipile-linkedin-connect-test` with a `body.message` that overrides the Cameron default.
+- **Fix**: Change the message in the GHL HTTP POST action to use Cameron instead of John.
+- **Note**: The n8n Connection Request webhook (`Zt8p2aYtIuY0HK18`) accepts `body.message` as an override. The default in the Code node is already Cameron. The GHL workflow sends the override.
+
+### 2. `JohnFollowup Emails and SMS`
+- **ID**: `f6b44e34-779e-4959-b41d-b05641f134e7`
+- **URL**: `https://app.gohighlevel.com/v2/location/Zwz4relUXVPxx8uohnjV/automation/workflow/f6b44e34-779e-4959-b41d-b05641f134e7/advanced-canvas`
+- **Issue**: Email and SMS templates still reference John. Need to update to Jason.
+- **Fix**: Edit all email/SMS action nodes in this workflow to replace John with Jason.
+
+### 3. `Simpletexting Send SMS for failed sends - John SMS1`
+- **ID**: `41c6aecd-de75-429e-826f-6e65245be3d0`
+- **Issue**: SMS template still references John.
+
+### 4. `Simpletexting Send SMS for failed sends - John SMS2`
+- **ID**: `a99f96d9-0bed-46a2-8f40-ecf62e856345`
+- **Issue**: SMS template still references John.
+
+### GHL API Limitation
+The GHL REST API (`/workflows/{id}/builder`, `/workflows/{id}/actions`) returns 404 for these workflow types. Workflow details can only be edited via the GHL UI at the URLs above. The GHL MCP tool (`ghl_official`) may be able to access them — try `get_workflow` or `list_workflow_steps` if available.
+
+## LinkedIn Follower DM Template Corruption Fix (2026-07-09)
+
+**Workflow**: `LT - LinkedIn Follower DM Sequence (Unipile)` (`pq7XVajNFnnwMUTr`)
+**Issue**: The `TEMPLATE_REGISTRY` in the `Process LinkedIn Followers` Code node had garbled multi-byte characters — curly quotes (`'`, `'`, `—`) and the wave emoji (`👇`) were mangled into garbage like `Γò¼├┤Γö£├ºΓö£├╗`, `Γò¼├┤Γö£├ºΓö£Γòó`, and `╬ô├½├¡Γò₧├åΓö£┬¬Γö£┬║`.
+**Fix**: Replaced the entire corrupted registry with clean text using straight quotes and proper dashes. Applied via n8n REST API PUT. Both draft and active versions verified clean.
+**Verification**: All 12 LinkedIn/Instagram/SMS workflows checked — only the Follower DM had corruption. The DM Sequence (`d0tEtijajisIsYcs`) was already clean.
