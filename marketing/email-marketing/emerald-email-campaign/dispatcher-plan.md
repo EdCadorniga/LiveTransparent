@@ -1,6 +1,8 @@
 # Emerald Dispatcher Plan
 
-Last updated: `2026-03-27`
+⚠️ **Stale (last updated 2026-03-27).** The dispatcher is now live and fixed. See `Project Status and Next Steps.md` (Email Campaign section) for current state, fix log, and config.
+
+Last updated: `2026-03-27` (architectural reference only)
 
 ## Postgres Table
 - Table: `Emerald_Campaign_Contacts`

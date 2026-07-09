@@ -6,35 +6,35 @@ This document lists the current SMS template keys and the full message bodies cu
 The keys stay unchanged. Only the message text was updated to remove literal cannabis wording and shift the copy toward regulated industries.
 
 
-John SMS
---------
+Jason SMS
+----------
 
 john_sms1
----------
-Hi, John from Transparent eCom, just gave you a call. Saw you were interested in learning about ads for regulated industries on social/search.
+-----------
+Hi, Jason from Transparent eCom, just gave you a call. Saw you were interested in learning about ads for regulated industries on social/search.
 
 We run ads for Mood, Cookies, and more! Interested in learning how?
 
 
 john_sms2
----------
-Hey {{first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+-----------
+Hey {{first_name}}! Jason from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
 
 I can show you how top regulated-industry brands are doing it in 10 mins.
 
 
 john_sms3
----------
+-----------
 Hi {{first_name}} this could be the year you scale your brand on social/search! Interested in how we do it for Mood, Cookies, and more?
 
 
 john_sms4
----------
+-----------
 Hi {{first_name}}—last follow-up on ads for regulated industries. Is it timing, or is there a better contact?
 
 
 john_sms5
----------
+-----------
 Good chatting about ads for regulated industries earlier—based on what you shared, this looks like a strong fit.
 
 We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLFBlEsdm7qccr8Yyog}}
@@ -136,4 +136,4 @@ Notes
 -----
 - The template keys were left unchanged on purpose.
 - Any future copy update should change the message text only, unless the n8n workflow mappings are also updated.
-- The John and Cameron message sets are the only ones that were edited for wording.
+- The Jason and Cameron message sets are the only ones that were edited for wording.

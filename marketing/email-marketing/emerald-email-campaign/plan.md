@@ -1,8 +1,10 @@
 # Emerald Email Campaign
 
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This sub-plan tracks the Emerald campaign rollout; it does not repeat the architecture.
+>
+> ⚠️ **This file is stale (last updated 2026-03-27).** The Emerald campaign was activated on 2026-07-07 with critical fixes. See `Project Status and Next Steps.md` (section "Email Campaign — Emerald Cannabis Ads") for the canonical live state, current backlog, and fix log.
 
-Last updated: `2026-03-27`
+Last updated: `2026-03-27` (architectural reference only)
 
 ## Summary
 - Canonical workspace for the Emerald campaign rollout.

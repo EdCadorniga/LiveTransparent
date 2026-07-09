@@ -2920,12 +2920,12 @@ This document lists the current SMS template keys and the full message bodies cu
 
 The keys stay unchanged. Only the message text was updated to remove literal `cannabis` wording and shift the copy toward `regulated industries`.
 
-## John SMS
+## Jason SMS
 
 ### `john_sms1`
 
 ```text
-Hi, John from Transparent eCom, just gave you a call. Saw you were interested in learning about ads for regulated industries on social/search.
+Hi, Jason from Transparent eCom, just gave you a call. Saw you were interested in learning about ads for regulated industries on social/search.
 
 We run ads for Mood, Cookies, and more! Interested in learning how?
 ```
@@ -2933,7 +2933,7 @@ We run ads for Mood, Cookies, and more! Interested in learning how?
 ### `john_sms2`
 
 ```text
-Hey {{first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+Hey {{first_name}}! Jason from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
 
 I can show you how top regulated-industry brands are doing it in 10 mins.
 ```
@@ -2975,7 +2975,7 @@ We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLF
 ### `john_sms2`
 
 ```text
-Hey {{contact.first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+Hey {{contact.first_name}}! Jason from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
 
 I can show you how top regulated-industry brands are doing it in 10 mins.
 ```
@@ -3003,7 +3003,7 @@ We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLF
 ### `john_sms2`
 
 ```text
-Hey {{contact.first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+Hey {{contact.first_name}}! Jason from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
 
 I can show you how top regulated-industry brands are doing it in 10 mins.
 ```
@@ -3031,7 +3031,7 @@ We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLF
 ### `john_sms2`
 
 ```text
-Hey {{contact.first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+Hey {{contact.first_name}}! Jason from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
 
 I can show you how top regulated-industry brands are doing it in 10 mins.
 ```
@@ -3059,7 +3059,7 @@ We're onboarding a few brands this month—grab a time here: {{trigger_link.nqLF
 ### `john_sms2`
 
 ```text
-Hey {{first_name}}! John from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
+Hey {{first_name}}! Jason from Transparent eCom here. Are you locked out of ads, or just avoiding them because of the horror stories?
 
 I can show you how top regulated-industry brands are doing it in 10 mins.
 ```

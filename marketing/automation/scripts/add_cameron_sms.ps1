@@ -43,8 +43,8 @@ if ([string]::IsNullOrWhiteSpace($currentJsonStr)) { $currentJson = @{} } else {
 Write-Host "Adding john_sms1 to templateRegistryJson"
 
 $cameronEntry = @{
-    name = 'Cameron SMS 1 - Site Check'
-    message = "Hi this is John, just gave you a call. Saw you were interested in learning about ads for regulated industries on social/search.\n\nWe run ads for Mood, Cookies, and more! Interested in learning how?"
+    name = 'Jason SMS 1 - Initial Outreach'
+    message = "Hi this is Jason, just gave you a call. Saw you were interested in learning about ads for regulated industries on social/search.\n\nWe run ads for Mood, Cookies, and more! Interested in learning how?"
 }
 
 if ($currentJson.PSObject.Properties.Name -contains 'john_sms1') {

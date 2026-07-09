@@ -43,14 +43,14 @@ Trigger:
 - LinkedIn lead form submission event (your connected LinkedIn lead source)
 
 Actions in order:
-1. Add tag: `Warm  LinkedIn Lead Form`
-2. Set Last-touch fields:
-   - `UTM Source Last` = trigger `utm_source` else `linkedin`
-   - `UTM Medium Last` = trigger `utm_medium` else `paid`
-   - `UTM Campaign Last` = trigger `utm_campaign` else `linkedin_lead_form`
-   - `UTM Content Last` = trigger `utm_content` if present
-   - `UTM Term Last` = trigger `utm_term` if present
-   - `UTM Landing Page Last` = trigger `page_url` if present
+1. Add tag: `linkedin lead form` (live; spec originally had `Warm  LinkedIn Lead Form`)
+2. Set Last-touch fields from `{{contact.attributionSource.*}}`:
+   - `UTM Source Last` = attribution `source` else `linkedin`
+   - `UTM Medium Last` = attribution `medium` else `paid`
+   - `UTM Campaign Last` = attribution `campaign` else `linkedin_lead_form`
+   - `UTM Content Last` = attribution `content` if present
+   - `UTM Term Last` = attribution `term` if present
+   - `UTM Landing Page Last` = attribution `landingPage` or `page_url` if present
 3. If empty, set First-touch fields using same resolved values:
    - `UTM Source First`
    - `UTM Medium First`
@@ -67,8 +67,10 @@ Name: `WL - Micro - LinkedIn DM`
 Trigger:
 - LinkedIn DM reply event
 
+Workflow fix applied 2026-07-08: If/Else condition changed from checking message.body CONTAINS placeholder text to checking Contact replied = True (trigger already guarantees LinkedIn DM; the placeholder never matched any real message).
+
 Actions in order:
-1. Add tag: `Warm  LinkedIn DM`
+1. Add tag: `warm linkedin dm` (live; spec originally had `Warm  LinkedIn DM`)
 2. Set Last-touch fields:
    - `UTM Source Last` = trigger `utm_source` else `linkedin`
    - `UTM Medium Last` = trigger `utm_medium` else `dm`
@@ -93,7 +95,7 @@ Trigger:
 - LinkedIn engagement event (non-DM, non-lead-form)
 
 Actions in order:
-1. Add tag: `Warm  LinkedIn`
+1. Add tag: `warm linkedin` (live; spec originally had `Warm  LinkedIn`)
 2. Set Last-touch fields:
    - `UTM Source Last` = trigger `utm_source` else `linkedin`
    - `UTM Medium Last` = trigger `utm_medium` else `organic`
