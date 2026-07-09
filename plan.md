@@ -4,6 +4,7 @@
 
 - Canonical status: [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
 - Active work now spans the **Emerald email campaign** (activated 2026-07-07), voice, reporting, LinkedIn outreach, Instagram outreach, and the upcoming SimpleTexting SMS campaign.
+- **2026-07-09**: LinkedIn Follower DM template corruption fixed. 4 GHL workflows still need John→Jason migration (see AGENTS.md).
 - For LinkedIn, keep invite copy and DM copy aligned to `outreach_messages.v2.docx`, and keep reply-stop behavior active.
 - For Instagram, the DM Sequence workflow (`iCnY6ccdHhfJg3sf`) is active, sending a 4-message sequence with state tracked in `instagram_dm_state`. Sequence copy is hardcoded in the Code node (4 messages, v1). Keep pageSize at 100 (Unipile API limit) and completed-contact early-exit intact.
 - For SMS, use `outreach_messages.docx` as the campaign source, with batch dispatch, per-send tagging, shared reply-state tracking, and `#lead` notifications on response.
