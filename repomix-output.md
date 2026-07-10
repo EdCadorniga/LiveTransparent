@@ -83,6 +83,8 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 6. Custom scripts — infrastructure specifics
 7. All other repo files — only when a task requires fine detail
 
+> **Source of Truth**: Live n8n (via `n8n-lt` MCP) is the single source of truth for all workflow state. Repo files (`.ts`, `.json`, `Backup of all n8n workflows/`) may be outdated snapshots. Always `get_workflow_details` or `search_workflows` to read current state before editing.
+
 > **Historical traceability**: Detailed fix narratives, root-cause analyses, and execution histories from 2026-06 onward are preserved in git history. This file contains only the current operating guide and critical patterns.
 
 ## Canonical Status
@@ -103,6 +105,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 
 - Check the live state before and after every mutation.
 - Fetch first, patch second.
+- After every mutation via `update_workflow`, verify the workflow is both **updated AND published**: compare `versionId` vs `activeVersionId` from `get_workflow_details`. If they differ, call `publish_workflow` to activate the draft. The `update_workflow` MCP tool does NOT auto-publish.
 - Preserve n8n graph integrity: keep node IDs and connection maps aligned.
 - Use `Switch` over `IF` for voice automations.
 - Prefer raw JSON import for dialer patches.
