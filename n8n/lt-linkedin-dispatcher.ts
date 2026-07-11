@@ -87,9 +87,19 @@ const jsCode = `const CFG = {
 
 function clean(v) {
   if (v == null) return "";
-  if (typeof v === "string") return v.trim();
+  if (typeof v === "string") return v.normalize("NFC").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim();
   if (typeof v === "number" || typeof v === "boolean" || typeof v === "bigint") return String(v);
-  try { return JSON.stringify(v).trim(); } catch (e) { return String(v).trim(); }
+  try { return JSON.stringify(v).normalize("NFC").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim(); } catch (e) { return String(v).normalize("NFC").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim(); }
+}
+
+function extractConversationItems(resp) {
+  if (!resp) return [];
+  if (Array.isArray(resp.conversations)) return resp.conversations;
+  if (Array.isArray(resp.items)) return resp.items;
+  if (Array.isArray(resp.data?.conversations)) return resp.data.conversations;
+  if (Array.isArray(resp.data?.items)) return resp.data.items;
+  if (Array.isArray(resp.data)) return resp.data;
+  return [];
 }
 
 function describeError(err) {
@@ -132,6 +142,27 @@ async function ghlSearchContacts(pageLimit, page, fieldName) {
     body,
     json: true,
   });
+}
+
+async function hasInboundConversation(contactId) {
+  if (!contactId) return { blocked: true, reason: "missing_contact_id" };
+  try {
+    const resp = await this.helpers.httpRequest({
+      method: "GET",
+      url: CFG.ghlApiBaseUrl + "/conversations/search?contactId=" + encodeURIComponent(contactId) + "&lastMessageDirection=inbound&status=all&limit=1",
+      headers: {
+        Authorization: "Bearer " + CFG.ghlApiKey,
+        Version: "2021-07-28",
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      json: true,
+    });
+    const items = extractConversationItems(resp);
+    return { blocked: items.length > 0, reason: items.length > 0 ? "inbound_conversation" : "" };
+  } catch (err) {
+    return { blocked: true, reason: "conversation_check_failed", error: describeError(err) };
+  }
 }
 
 function extractUrls(raw) {
@@ -288,6 +319,10 @@ try {
         if (hasTag(c, "linkedin_connected")) continue;
         const liUrl = getLinkedInUrl(c);
         if (!liUrl) continue;
+
+        const inbound = await hasInboundConversation.call(this, contactId);
+        if (inbound.blocked) continue;
+
         seenContactIds.add(contactId);
         eligible.push({ id: c.id, firstName: String(c.firstName || "").trim(), lastName: String(c.lastName || "").trim(), liUrl });
       }
@@ -328,6 +363,21 @@ try {
     const firstName = contact.firstName || clean(profile.data?.first_name || "there");
     const requestSentAt = new Date().toISOString();
 
+    const inbound = await hasInboundConversation.call(this, contact.id);
+    if (inbound.blocked) {
+      results.push({
+        contactId: contact.id,
+        firstName,
+        liUrl: contact.liUrl,
+        identifier: id,
+        providerId,
+        status: "skipped",
+        reason: inbound.reason,
+        inboundError: inbound.error || "",
+      });
+      continue;
+    }
+
     if (hasTag(contact, 'linkedin_connected')) {
       results.push({
         contactId: contact.id,
@@ -355,7 +405,7 @@ try {
       continue;
     }
 
-    const msgRaw = CFG.defaultMessage.replace(/\\{first_name\\}/gi, firstName);
+    const msgRaw = clean(CFG.defaultMessage).replace(/\\{first_name\\}/gi, firstName);
     const msg = msgRaw.length > 300 ? msgRaw.slice(0, 300) : msgRaw;
     const inv = await unipileReq("POST", CFG.unipileApiBaseUrl + "/users/invite", { account_id: CFG.unipileAccountId, provider_id: providerId, ...(msg ? { message: msg } : {}) }, { "X-API-KEY": CFG.unipileApiKey });
     let stateSyncOk = false;

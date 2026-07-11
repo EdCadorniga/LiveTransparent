@@ -3,7 +3,7 @@
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
 
 - Canonical status: [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
-- Active work now spans the **Emerald email campaign** (activated 2026-07-07), voice, reporting, LinkedIn outreach, Instagram outreach, and the upcoming SimpleTexting SMS campaign.
+- Active work now spans the **Emerald email campaign** (activated 2026-07-07), voice, reporting, LinkedIn outreach (guardrails hardened; monitoring), Instagram outreach, and the upcoming SimpleTexting SMS campaign.
 
 ## Vapi Campaign Rollout
 
@@ -43,7 +43,7 @@ Dedup confirmed across classifier, feeder, enqueue, and dequeue. 5 legacy non-im
 
 - Move remaining secrets out of workflow Config nodes into credentials or env-backed config.
 - Verify Vapi dashboard still points all tools and end-of-call webhook to canonical callback URL.
-- Diagnose Apollo phone-enrichment callback URL zero deliveries since 2026-05-13.
 - Deploy staged SimpleTexting SMS workflows.
 - Retry blocked GSC ingest workflow.
 - Build Meta Ads ingest for spend, clicks, impressions, and cost metrics.
+- Monitor LinkedIn outbound guardrails and reply-state sync after the fail-closed patch.

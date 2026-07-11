@@ -112,6 +112,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Use `={{ ... }}` expressions with `$('Node').item.json.field`.
 - Prefer runbooks in `GHL Live Transparent CRM/` before changing GHL/n8n workflows.
 - Use `Config` nodes only when env or credential access is blocked.
+- LinkedIn outbound senders must fail closed on reply/inbound lookup errors. A failed reply check is a skip, not a send.
 
 ## Tooling
 
@@ -1707,7 +1708,7 @@ Use that file for the current state and priority order so reporting work stays a
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
 
 - Canonical status: [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
-- Active work now spans the **Emerald email campaign** (activated 2026-07-07), voice, reporting, LinkedIn outreach, Instagram outreach, and the upcoming SimpleTexting SMS campaign.
+- Active work now spans the **Emerald email campaign** (activated 2026-07-07), voice, reporting, LinkedIn outreach (guardrails hardened; monitoring), Instagram outreach, and the upcoming SimpleTexting SMS campaign.
 
 ## Vapi Campaign Rollout
 
@@ -1747,10 +1748,10 @@ Dedup confirmed across classifier, feeder, enqueue, and dequeue. 5 legacy non-im
 
 - Move remaining secrets out of workflow Config nodes into credentials or env-backed config.
 - Verify Vapi dashboard still points all tools and end-of-call webhook to canonical callback URL.
-- Diagnose Apollo phone-enrichment callback URL zero deliveries since 2026-05-13.
 - Deploy staged SimpleTexting SMS workflows.
 - Retry blocked GSC ingest workflow.
 - Build Meta Ads ingest for spend, clicks, impressions, and cost metrics.
+- Monitor LinkedIn outbound guardrails and reply-state sync after the fail-closed patch.
 ````
 
 ## File: Project Specifications.md
@@ -1904,7 +1905,7 @@ Normalized callback output:
 ````markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-10
+Updated: 2026-07-11
 
 ## Source Of Truth
 
@@ -1917,7 +1918,7 @@ This document is the canonical project status and next-steps reference. It super
 - **Voice stack**: Paused since 2026-06-05. Vapi assistants, dialer, and intake poller held for quality gate. Vapi Campaign Rollout Phase 1-3 complete (assistants created, classifier live, infrastructure modified). See plan.md for quality gate status and activation order.
 - **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences.
 - **DAN email campaign**: FULLY LIVE since 2026-07-10. 10 templates, 3 GHL workflows, n8n dispatcher active.
-- **LinkedIn**: 8 workflows re-enabled 2026-07-10. All pipeline fixes verified intact.
+- **LinkedIn**: 8 workflows re-enabled 2026-07-10. All pipeline fixes verified intact, including a fail-closed DM reply check and a cycled connect dispatcher on 2026-07-11.
 - **Instagram**: DM Sequence active, cron 0 12-22 * * 1-5.
 - **Reporting**: GA4, GHL, GSC ingestion live. Executive report live in GHL.
 - **SMS campaign**: Workflow exports staged in repo. Not yet deployed.
@@ -2069,6 +2070,10 @@ Callback webhook: https://automations.livetransparent.com/webhook/lt-voice-agent
 
 Guardrails: John-branded copy blocked before Unipile send. Invite defaults say Transparent eCom (not LiveTransparent).
 
+Outbound guardrails: DM sends now fail closed if the reply lookup fails, and both DM / request paths skip when an inbound conversation is already present.
+
+Backfill: LT - LinkedIn Relations Backfill (Unipile) processed 1,977 relations with 80 matched GHL contacts and 0 errors after pagination was fixed.
+
 ## Instagram
 
 LT - Instagram DM Sequence (Unipile) (iCnY6ccdHhfJg3sf) -- active, cron 0 12-22 * * 1-5. Sends 4-message sequence to mutual followers. State tracked in instagram_dm_state (Postgres). Unipile account V9eiHiDpRmCtan0YNdzsQw at api42.unipile.com:17256.
@@ -2137,7 +2142,7 @@ Monitor first week of dispatcher runs. Verify Email_Events data quality. Increas
 - Deploy staged SimpleTexting SMS workflows with live GHL pool query
 - Confirm SimpleTexting reply handler posts to #lead and suppresses future sends
 - Retry and enable blocked GSC ingest workflow
-- Configure Unipile webhook for LinkedIn acceptance events
+- Monitor LinkedIn outbound guardrails and reply-state lag after the fail-closed patch
 - Clean up temporary fix scripts (scripts/fix_*.py, fix_*.js)
 - Delete duplicate DAN template 6a4f6fcdf74b73e4b5b9ac0b in Brands folder
 

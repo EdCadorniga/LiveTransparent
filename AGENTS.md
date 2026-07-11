@@ -42,6 +42,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Use `={{ ... }}` expressions with `$('Node').item.json.field`.
 - Prefer runbooks in `GHL Live Transparent CRM/` before changing GHL/n8n workflows.
 - Use `Config` nodes only when env or credential access is blocked.
+- LinkedIn outbound senders must fail closed on reply/inbound lookup errors. A failed reply check is a skip, not a send.
 
 ## Tooling
 

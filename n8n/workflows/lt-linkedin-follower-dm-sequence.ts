@@ -80,7 +80,20 @@ const processNode = node({
     parameters: {
       mode: 'runOnceForAllItems',
       language: 'javaScript',
-      jsCode: `const TEMPLATE_REGISTRY = ${JSON.stringify(SOCIAL_OUTREACH_TEMPLATES)};
+      jsCode: `const TEMPLATE_REGISTRY = {
+  linkedin: {
+    invite: "Hi {first_name}, I'm Cameron co-founder of Transparent eCom. We help brands in regulated industries advertise on social/search without restrictions and at scale. Are you currently running ads on social/search?",
+    v2: [
+      null,
+      "Most cannabis brands still can't run Meta/Google ads the way mainstream brands can.\n\nFor a lot of teams, the issue isn't performance - it's access. Accounts getting restricted or shut down before anything can scale.\n\nWe help operators get live on Meta through compliant ad accounts, then build a setup designed to stay live and grow more reliably across brands.\n\nIf Meta or Google is a channel you're looking to open up, I'd love to connect - happy to share how other operators are making it work.\n\nWorth a quick chat?",
+      "One of the most common constraints we see with cannabis teams is not being able to fully activate paid social and search.\n\nIt's rarely a strategy problem. It's infrastructure - not having a setup that lets you launch and keep things running without constant interruptions.\n\nWe work with teams to open up these channels properly, then build a structure that supports ongoing execution without the resets.\n\nIf this sounds familiar, I'd love to show you how other operators are handling it.\n\nWorth a 15-minute call?",
+      "Most cannabis operators still can't use paid social and search the way mainstream brands can.\n\nThat usually means there's a revenue channel sitting unused - not because demand isn't there, but because teams can't get it live or keep it running.\n\nWe help operators unlock these channels through compliant infrastructure, then keep them running so revenue stays more consistent over time.\n\nIf this is something you're looking into, I'd love to share how other operators are doing it.\n\nWorth a 15-minute call?",
+      "Most cannabis brands still can't run Meta ads in a way they can rely on.\n\nWhen ads get restricted or taken down, traffic slows and sales follow - which makes it hard to keep things consistent across locations.\n\nWe help operators get live on Meta through compliant ad accounts, then keep things running so traffic and sales stop getting disrupted.\n\nIf you want Meta working consistently, I'd love to show you how other multi-location brands are doing it.\n\nWorth a 15-minute call?",
+    ],
+  },
+};
+TEMPLATE_REGISTRY.linkedin.v1 = TEMPLATE_REGISTRY.linkedin.v2;
+
 var CFG = (function() {
   var c = $node['Config'].json || {};
   return {
@@ -103,6 +116,16 @@ function clean(v) {
   if (typeof v === 'string') return v.trim();
   if (typeof v === 'number' || typeof v === 'boolean') return String(v);
   return '';
+}
+
+function extractConversationItems(resp) {
+  if (!resp) return [];
+  if (Array.isArray(resp.conversations)) return resp.conversations;
+  if (Array.isArray(resp.items)) return resp.items;
+  if (Array.isArray(resp.data?.conversations)) return resp.data.conversations;
+  if (Array.isArray(resp.data?.items)) return resp.data.items;
+  if (Array.isArray(resp.data)) return resp.data;
+  return [];
 }
 
 function first() {
@@ -156,6 +179,27 @@ async function apiRequest(method, path, body, params) {
   };
   if (body !== undefined) options.body = body;
   return await this.helpers.httpRequest(options);
+}
+
+async function hasInboundConversation(contactId) {
+  if (!contactId) return { blocked: true, reason: 'missing_contact_id' };
+  try {
+    const resp = await this.helpers.httpRequest({
+      method: 'GET',
+      url: CFG.ghlApiBaseUrl + '/conversations/search?contactId=' + encodeURIComponent(contactId) + '&lastMessageDirection=inbound&status=all&limit=1',
+      headers: {
+        Authorization: 'Bearer ' + CFG.ghlApiKey,
+        Version: '2021-07-28',
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      json: true,
+    });
+    const conversations = extractConversationItems(resp);
+    return { blocked: conversations.length > 0, reason: conversations.length > 0 ? 'inbound_conversation' : '' };
+  } catch (err) {
+    return { blocked: true, reason: 'conversation_check_failed' };
+  }
 }
 
 function extractItems(resp) {
@@ -270,6 +314,12 @@ for (var j = 0; j < followers.length; j += 1) {
   var existing = existingByProvider.get(providerId) || existingByKey.get('linkedin:follower:' + providerId);
   if (existing && (Number(existing.sequence_step || 0) >= 1 || String(existing?.payload_json?.dm_conversation_status || '').toLowerCase() === 'active')) {
     results.push({ identifier: identifier, providerId: providerId, status: 'skipped', reason: 'already_messaged' });
+    continue;
+  }
+
+  var inbound = await hasInboundConversation.call(this, existing?.ghl_contact_id || 'linkedin:follower:' + providerId);
+  if (inbound.blocked) {
+    results.push({ identifier: identifier, providerId: providerId, status: 'skipped', reason: inbound.reason || 'contact_replied' });
     continue;
   }
 

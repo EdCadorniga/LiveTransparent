@@ -60,9 +60,9 @@ const sync = node({
       jsCode: `const cfg = $node['Config'].json || {};
 const workflowName = String(cfg.workflowName || 'LT - LinkedIn Connection State Sync (Unipile)').trim();
 const locationId = String(cfg.locationId || '').trim();
-const ghlApiBaseUrl = String(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/$/, '');
+const ghlApiBaseUrl = String(cfg.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/[\\/]+$/, '');
 const ghlApiKey = String(cfg.ghlApiKey || '').trim();
-const unipileApiBaseUrl = String(cfg.unipileApiBaseUrl || 'https://api42.unipile.com:17256/api/v1').replace(/\\/$/, '');
+const unipileApiBaseUrl = String(cfg.unipileApiBaseUrl || 'https://api42.unipile.com:17256/api/v1').replace(/[\\/]+$/, '');
 const unipileApiKey = String(cfg.unipileApiKey || '').trim();
 const unipileAccountId = String(cfg.unipileAccountId || '').trim();
 const requestTag = String(cfg.requestTag || 'linkedin_connection_requested').trim();
@@ -82,6 +82,15 @@ function clean(v) {
   if (v === undefined || v === null) return '';
   return String(v).trim();
 }
+function extractConversationItems(resp) {
+  if (!resp) return [];
+  if (Array.isArray(resp.conversations)) return resp.conversations;
+  if (Array.isArray(resp.items)) return resp.items;
+  if (Array.isArray(resp.data?.conversations)) return resp.data.conversations;
+  if (Array.isArray(resp.data?.items)) return resp.data.items;
+  if (Array.isArray(resp.data)) return resp.data;
+  return [];
+}
 function hasTag(contact, tagName) {
   const tags = Array.isArray(contact?.tags) ? contact.tags : [];
   return tags.some((t) => (typeof t === 'string' ? t : clean(t?.name || t?.value || '')).trim() === tagName);
@@ -89,19 +98,25 @@ function hasTag(contact, tagName) {
 function extractUrls(raw) {
   const value = clean(raw);
   if (!value) return [];
-  return Array.from(new Set((value.match(/https?:\\/\\/[^\\s,]+/gi) || []).map((u) => clean(u).replace(/[).,;]+$/, ''))));
+  const urls = [];
+  for (const part of value.split(/\s+/)) {
+    const item = clean(part).replace(/[).,;]+$/, '');
+    const lower = item.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) urls.push(item);
+  }
+  return Array.from(new Set(urls));
 }
 function getLinkedInUrl(contact) {
   const fields = Array.isArray(contact?.customFields) ? contact.customFields : [];
   if (linkedinCustomFieldName) {
     const preferred = fields.find((f) => clean(f?.name || f?.label || f?.key || '').toLowerCase() === linkedinCustomFieldName);
     if (preferred) {
-      const urls = extractUrls(preferred.value).filter((u) => /linkedin\\.com/i.test(u) && /\\/in\\//i.test(u));
+      const urls = extractUrls(preferred.value).filter((u) => u.toLowerCase().includes('linkedin.com') && u.toLowerCase().includes('/in/'));
       if (urls.length > 0) return urls[0];
     }
   }
   for (const f of fields) {
-    const urls = extractUrls(f?.value).filter((u) => /linkedin\\.com/i.test(u) && /\\/in\\//i.test(u));
+    const urls = extractUrls(f?.value).filter((u) => u.toLowerCase().includes('linkedin.com') && u.toLowerCase().includes('/in/'));
     if (urls.length > 0) return urls[0];
   }
   return '';
@@ -110,10 +125,10 @@ function linkedinIdentifier(input) {
   const raw = clean(input);
   if (!raw) return '';
   const urls = extractUrls(raw);
-  const linkedinUrl = urls.find((u) => /linkedin\\.com/i.test(u));
+  const linkedinUrl = urls.find((u) => u.toLowerCase().includes('linkedin.com'));
   const candidate = linkedinUrl || raw;
-  if (!/^https?:\\/\\//i.test(candidate)) return decodeURIComponent(candidate).replace(/^@/, '').replace(/\\/$/, '').trim();
-  const withoutScheme = candidate.replace(/^https?:\\/\\//i, '');
+  if (!candidate.toLowerCase().startsWith('http://') && !candidate.toLowerCase().startsWith('https://')) return decodeURIComponent(candidate).replace(/^@/, '').replace(/\/+$/, '').trim();
+  const withoutScheme = candidate.replace(/^https?:\/\//i, '');
   const host = withoutScheme.split('/')[0].split('?')[0].toLowerCase();
   if (host !== 'linkedin.com' && !host.endsWith('.linkedin.com')) {
     if (linkedinUrl) return linkedinIdentifier(linkedinUrl);
@@ -123,7 +138,7 @@ function linkedinIdentifier(input) {
   const parts = path.split('/').filter(Boolean);
   const idx = parts.findIndex((p) => p.toLowerCase() === 'in');
   const val = idx >= 0 && parts[idx + 1] ? parts[idx + 1] : parts[parts.length - 1];
-  return decodeURIComponent(val || '').replace(/^@/, '').replace(/\\/$/, '').trim();
+  return decodeURIComponent(val || '').replace(/^@/, '').replace(/\/+$/, '').trim();
 }
 async function doHttpRequest(options) {
   if (typeof $httpRequest === 'function') return await $httpRequest(options);
@@ -147,6 +162,16 @@ async function apiRequest(method, url, body, extraHeaders = {}) {
   } catch (err) {
     return { ok: false, data: err?.response?.body || err?.message || err };
   }
+}
+async function hasInboundConversation(contactId) {
+  if (!contactId) return { blocked: true, reason: 'missing_contact_id' };
+  const resp = await apiRequest.call(this, 'GET', ghlApiBaseUrl + '/conversations/search?contactId=' + encodeURIComponent(contactId) + '&lastMessageDirection=inbound&status=all&limit=1', undefined, {
+    Authorization: 'Bearer ' + ghlApiKey,
+    Version: '2021-07-28',
+  });
+  if (!resp.ok) return { blocked: true, reason: 'conversation_check_failed' };
+  const conversations = extractConversationItems(resp.data);
+  return { blocked: conversations.length > 0, reason: conversations.length > 0 ? 'inbound_conversation' : '' };
 }
 async function ghlSearch(page, fieldName) {
   return await apiRequest.call(this, 'POST', ghlApiBaseUrl + '/contacts/search', {
@@ -186,6 +211,7 @@ for (const fieldName of ['customFields.apollo_person_linkedin_url', 'customField
       const profile = await apiRequest.call(this, 'GET', unipileApiBaseUrl + '/users/' + encodeURIComponent(identifier) + '?account_id=' + encodeURIComponent(unipileAccountId), undefined, { 'X-API-KEY': unipileApiKey });
       const providerId = clean(profile.data?.provider_id || profile.data?.providerId || profile.data?.id || '');
       const firstName = clean(contact?.firstName || profile.data?.first_name || profile.data?.firstName || 'there');
+      const inbound = await hasInboundConversation.call(this, contactId);
 
       if (!profile.ok || !providerId) {
         errors.push({ contact_id: contactId, identifier, reason: 'profile_lookup_failed' });
@@ -214,11 +240,16 @@ for (const fieldName of ['customFields.apollo_person_linkedin_url', 'customField
           identifier,
           providerId,
           status: 'ready',
+          dm_conversation_status: inbound.blocked ? 'active' : 'idle',
+          dm_last_inbound_at: inbound.blocked ? new Date().toISOString() : '',
+          dm_backfill_checked_at: new Date().toISOString(),
           source: 'state_sync',
         },
         metadata_json: {
           source: 'backfill_sync',
           workflow: workflowName,
+          inbound_blocked: inbound.blocked,
+          inbound_reason: inbound.reason || '',
         },
       };
 
