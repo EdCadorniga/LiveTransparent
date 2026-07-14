@@ -105,7 +105,6 @@ WHERE connection_status = 'connected'
     OR (sequence_step = 1 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '3 days')
     OR (sequence_step = 2 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '7 days')
     OR (sequence_step = 3 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '10 days')
-    OR (sequence_step = 4 AND dm_sequence_started_at IS NOT NULL AND dm_sequence_started_at <= NOW() - INTERVAL '14 days')
   )
 ORDER BY sequence_step ASC, dm_sequence_started_at ASC NULLS FIRST
 LIMIT 20;`,
@@ -142,10 +141,10 @@ TEMPLATE_REGISTRY.linkedin.v1 = TEMPLATE_REGISTRY.linkedin.v2;
         var CFG = (function() {
           var c = $node['Config'].json || {};
           return {
-            unipileApiBaseUrl: String(c.unipileApiBaseUrl || 'https://api42.unipile.com:17256/api/v1').replace(/\\/+$/, ''),
+            unipileApiBaseUrl: String(c.unipileApiBaseUrl || 'https://api42.unipile.com:17256/api/v1').replace(/\/+$/, ''),
             unipileApiKey: String(c.unipileApiKey || '').trim(),
             unipileAccountId: String(c.unipileAccountId || '').trim(),
-            ghlApiBaseUrl: String(c.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\\/+$/, ''),
+            ghlApiBaseUrl: String(c.ghlApiBaseUrl || 'https://services.leadconnectorhq.com').replace(/\/+$/, ''),
             ghlApiKey: String(c.ghlApiKey || '').trim(),
             locationId: String(c.locationId || '').trim(),
             stateUpsertUrl: String(c.stateUpsertUrl || '').trim(),
@@ -154,6 +153,7 @@ TEMPLATE_REGISTRY.linkedin.v1 = TEMPLATE_REGISTRY.linkedin.v2;
         })();
 
         var MESSAGES = (TEMPLATE_REGISTRY.linkedin[CFG.templateVariant] || TEMPLATE_REGISTRY.linkedin.v1);
+        var DM_COMPLETE_TAG = 'linkedin_dm_sequence_completed';
 
         function clean(v) {
           if (v == null) return '';
@@ -241,6 +241,21 @@ TEMPLATE_REGISTRY.linkedin.v1 = TEMPLATE_REGISTRY.linkedin.v2;
           });
         }
 
+        function addGhlTags(contactId, tags) {
+          return this.helpers.httpRequest({
+            method: 'POST',
+            url: CFG.ghlApiBaseUrl + '/contacts/' + encodeURIComponent(contactId) + '/tags',
+            headers: {
+              Authorization: 'Bearer ' + CFG.ghlApiKey,
+              Version: '2021-07-28',
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: { tags: tags },
+            json: true,
+          });
+        }
+
         var inputItems = [];
         if (typeof $input === 'object' && $input !== null) {
           if (typeof $input.all === 'function') {
@@ -310,6 +325,42 @@ TEMPLATE_REGISTRY.linkedin.v1 = TEMPLATE_REGISTRY.linkedin.v2;
           }
 
           if (newStep < 1 || newStep >= MESSAGES.length || !MESSAGES[newStep]) {
+            if (step >= 4) {
+              var completedAt = new Date().toISOString();
+              try {
+                await addGhlTags.call(self, contactId, [DM_COMPLETE_TAG]);
+
+                var completionUpsertBody = {
+                  ghl_contact_id: contactId,
+                  location_id: CFG.locationId,
+                  connection_status: 'completed',
+                  sequence_step: newStep,
+                  source_workflow_name: 'LT - LinkedIn DM Sequence (Unipile)',
+                  source_key: 'contact:' + contactId + ':completed',
+                  payload_json: Object.assign({}, payload, {
+                    dm_sequence_status: 'completed',
+                    dm_sequence_completed_at: completedAt,
+                    last_message_step: step,
+                  }),
+                  metadata_json: { source: 'dm_sequence', step: step, completed: true },
+                };
+
+                await self.helpers.httpRequest({
+                  method: 'POST',
+                  url: CFG.stateUpsertUrl,
+                  headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                  body: completionUpsertBody,
+                  json: true,
+                });
+
+                results.push({ contactId: contactId, step: step, newStep: newStep, status: 'completed', completedAt: completedAt, tag: DM_COMPLETE_TAG });
+                return processNext.call(self, index + 1);
+              } catch (completionErr) {
+                results.push({ contactId: contactId, step: step, newStep: newStep, status: 'completion_failed', error: describeError(completionErr) });
+                return processNext.call(self, index + 1);
+              }
+            }
+
             results.push({ contactId: contactId, step: step, status: 'skipped', reason: 'no_message_for_step_' + step });
             return processNext.call(self, index + 1);
           }

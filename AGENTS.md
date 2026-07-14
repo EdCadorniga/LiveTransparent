@@ -43,6 +43,8 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Prefer runbooks in `GHL Live Transparent CRM/` before changing GHL/n8n workflows.
 - Use `Config` nodes only when env or credential access is blocked.
 - LinkedIn outbound senders must fail closed on reply/inbound lookup errors. A failed reply check is a skip, not a send.
+- For any "stop LinkedIn DMs" request, suppress the contact in both places: add `linkedin_dm_sequence_completed` in GHL and mark the shared `linkedin_connection_state` row terminal (`connection_status = completed`, `sequence_step >= 4`, `dm_sequence_status = completed`/`dm_conversation_status = active` as applicable). The GHL tag alone is not enough because the live LinkedIn send paths select from shared state.
+- LinkedIn DM sequences must mark terminal contacts with `linkedin_dm_sequence_completed` and stop reselecting step-4 rows; the queue source is `LT - LinkedIn Connection State Sync (Unipile)` and the GHL connect dispatcher feeds 20 contacts at a time when healthy.
 
 ## Tooling
 
@@ -121,14 +123,31 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 | LT - Vapi Campaign Queue Feeder | RFIZ9Bcfl3Yvms2b | Inactive helper |
 | LT - Emerging Pool Go Live Helper | OGnADUQKd5z5f905 | Manual helper |
 | LT - Voice Agent V1 Vapi Callback + Tools | fx4UvKUWbqJEY3LK | Active |
-| LT - Voice Agent V1 Outbound Dialer (Vapi) | r7UjWLndmc6EqEUW | Paused (quality gate) |
-| LT - Voice Queue Vapi Intake Poller | bYk1Ai6MJLyhTsDZ | Paused (quality gate) |
+| LT - Voice Agent V1 Outbound Dialer (Vapi) | r7UjWLndmc6EqEUW | Active (polls `*/2 13-22 UTC Mon-Fri`, ET-forward schedule) |
+| LT - Voice Queue Vapi Intake Poller | bYk1Ai6MJLyhTsDZ | Active (polls every 10 min, 30 contacts/cycle, tag rotation) |
 | LT - Voice Queue Enqueue | XzcpOBi9YcIhJPck | Active |
 | LT - Voice Dequeue Next | KsBMFcz1YpBGrjDW | Active |
 | LT - Call Outcome Ingest | PUCfTZBANSPcgS0c | Active |
 | LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Active (hourly, no Slack reporting) |
 | LT - Voice Campaign Brand (Alex) | 1d7c5d42-f0a4-4b58-9494-dbda3be3c657 | Created, not active |
 | LT - Voice Campaign Dispensary (Jordan) | 056f2e50-8bdf-4257-ac45-4d575600c39d | Created, not active |
+
+### LT - Voice Queue Vapi Intake Poller (bYk1Ai6MJLyhTsDZ) — Details
+
+**Tag rotation** (one tag per 10-min cycle, cycles every 40 min):
+1. `vapi_campaign_brand` (926)
+2. `vapi_campaign_dispensary` (19)
+3. `brands_pool` (3,024)
+4. `dispensaries_pool` (7,953)
+
+**Fixes applied 2026-07-14:**
+- `Trigger Apollo Enrichment` auth: changed `predefinedCredentialType` → `none` (was crashing because API key is passed in headers)
+- `Remove Tag - Enriching` URL: changed `$json.contact_id` → `$json.contact.id` (Apollo response nests ID)
+- Added full pagination loop with 250ms delays and 30-contact cap to avoid GHL rate limiting
+- Added `brands_pool`/`dispensaries_pool` to search tags (was only searching campaign tags)
+- Dedup: SQL `WHERE NOT EXISTS` prevents re-enqueue + `Set` dedup within each run
+- **Timezone inference**: added state-to-timezone mapping in both intake poller (`Classify Contacts`) and outbound dialer (`Code - Check Phone`) since most pool contacts lack timezone data. Maps US state/Canadian province codes to IANA timezone names (e.g. `NY`→`America/New_York`, `CA`→`America/Los_Angeles`).
+- **ET-forward dialer schedule**: cron shifted from `*/2 14-22` to `*/2 13-22` UTC to start calling at 9am ET instead of 10am ET. Initial business hours guard widened from 9-17 to 8-18 CT so it doesn't gate early ET calls.
 
 ### Voice Tags
 
@@ -157,7 +176,38 @@ vapi_call_attempted, vapi_dnc, vapi_human_answered, vapi_interested, vapi_not_in
 - no_match -- terminal (no Apollo hit)
 - error -- terminal (API error)
 - queued -- transient (awaiting Apollo callback)
+- queued_phone -- transient (profile enriched, phone requested via async callback)
 - callback_timeout -- terminal (set by reaper when queued > 24h)
+- callback_failed -- terminal (Apollo callbacks received but processing failed)
+
+### Apollo Enrichment Pipeline (Fixed 2026-07-14)
+
+The pipeline was completely dead since 2026-05-13. All webhook-based workflows had 0 executions.
+
+**Before fix**: 3 webhook workflows with 0 executions each, 1,279 contacts stuck at callback_timeout.
+
+**After fix**: New polling workflow replaces the webhook-based intake. Works in two steps per contact:
+1. Sync profile match: calls Apollo `/v1/people/match` (no phone), writes name/email/company/LinkedIn/title/dept/revenue immediately
+2. Async phone request: calls Apollo again with `webhook_url` pointing to V4 callback handler
+
+| Workflow | ID | Status |
+|----------|-----|--------|
+| **LT - Apollo Phone Enrichment Polling** | **JH8ShfpglWmLMZ3l** | **Active, every 30 min, batch 50** |
+| GHL Apollo Phone Enrichment - Callback Handler V4 | U7c6byTLXAMgcS75 | Active (489 callbacks received, working) |
+| GHL Apollo Enrichment - Webhook Intake (Sheet First) | WmKAhG7mIaXonNsh | Active (0 executions - superseded by polling) |
+| GHL Apollo Enrichment - Phone Webhook Intake (Staged) | WuxgTa0EEL1mb2SA | **Unpublished** (was causing stuck executions) |
+| GHL Apollo Phone Enrichment - Callback Handler | YaWizRnw7XmkcvZH | Active (legacy V3, superseded by V4) |
+
+**Pipeline flow:**
+1. **Polling workflow** searches GHL hourly for contacts needing enrichment (3 sources: `Enrich Phone via Apollo = Yes`, empty enrichment status + no phone, orphaned `queued` status)
+2. **Sync step**: Calls Apollo `/v1/people/match` with name/email/LinkedIn → writes profile data (name, email, company, title, dept, LinkedIn, revenue, funding) to GHL immediately
+3. **Async step**: Calls Apollo `/v1/people/match` with `reveal_phone_number: true` + `webhook_url` pointing to V4 callback → Apollo processes and calls back
+4. **V4 callback handler** receives the phone number and updates GHL with it, setting status to `enriched`
+5. **GHL automation** (`WL - Apollo Phone Enrichment Trigger`) watches for `Enrich Phone via Apollo = Yes` and POSTs to the (now unpublished) intake webhook — no longer needed since poller handles it
+
+**Webhook key** for all Apollo callbacks: `4ecdfb53615c43fc9541d9a65b758102addf5b4f279c415f88b9d1a89e468d55`
+
+**Apollo API key**: `CIgACIqwFAXuvYUQKHZcLA`
 
 ### Custom Field IDs (GHL)
 
@@ -175,6 +225,28 @@ vapi_call_attempted, vapi_dnc, vapi_human_answered, vapi_interested, vapi_not_in
 ### Apollo Re-enrichment on Bad Numbers
 
 In callback workflow fx4UvKUWbqJEY3LK, when Vapi returns wrong_number or contact_disconnected, the Should Re-enrich Phone IF node sets Enrich Phone via Apollo = Yes (custom field gdJDuZelIxEBE6n9i5Q6). The existing LT - Apollo Phone Enrichment Intake V3 then looks up a new number.
+
+## LinkedIn Workflow Fixes (2026-07-14)
+
+### Connection Acceptance Checker (3ttEvr5NMcQCS4Hp)
+`access to env vars denied` on Postgres queryReplacement using `$env.UNIPILE_ACCOUNT_ID`. Node `N8N_BLOCK_ENV_ACCESS_IN_NODE` blocks env access. **Fix**: Replaced with hardcoded `V9eiHiDpRmCtan0YNdzsQw`.
+
+### Connection State Sync (ceaKnz6E3onQrZpt)
+Task runner timed out after 300s. Code node searches GHL + Unipile with 15 pages/200 contacts. **Fix**: Reduced maxPages 15→5, maxContacts 200→50.
+
+### Follower DM Sequence (pq7XVajNFnnwMUTr)
+Code node referenced `CFG.ghlApiBaseUrl`/`CFG.ghlApiKey` but Config node lacked those fields. **Fix**: Added `ghlApiBaseUrl` and `ghlApiKey` to Config.
+
+### DM Sequence (d0tEtijajisIsYcs)
+`Code doesn't return items properly` — trailing backtick at end of `jsCode` field caused unterminated template literal syntax error. **Fix**: Removed orphan backtick.
+
+### Dispatcher Feeder Tag Check (fXxw5lanZcDmUrst)
+`Feed Ready Queue` Code node checked `fullContact.tags` but GHL `GET /contacts/{id}` returns tags nested under `fullContact.contact.tags`. So blocking tags (`linkedin_connection_requested`, `linkedin_connected`, `linkedin_state_queued`) were never detected — `skipped` was always 0. This caused every run to re-process already-queued contacts, but the UPSERT CASE in `linkedin_connection_state` prevented downgrading `requested`/`connected` back to `ready`, so `Fetch Ready Queue` always returned empty. **Fix**: Added GHL response unwrap: `var contactData = fullContact.contact ? fullContact.contact : fullContact;`. Tag check now correctly skips already-processed contacts.
+
+**GHL API response gotcha**: `GET /contacts/{id}` returns `{ contact: { tags: [...], ... } }`. Code reading `.tags` directly will always get `undefined`. Always unwrap via `.contact` first.
+
+### Bulk Feed (2026-07-13)
+Discovered dispatcher had zero `connection_status = 'ready'` rows because all contacts in the state table were `requested` or `connected` from June 2026. User exported 14,987 contacts from GHL with LinkedIn URLs and no blocking tags. Batch-upserted via state upsert webhook into `linkedin_connection_state` with `connection_status = 'ready'`. ~15,202 total executions recorded. Dispatcher's `Fetch Ready Queue` will now find contacts on its next scheduled run.
 
 ## Emerald Email Campaign (Activated 2026-07-07)
 
@@ -218,17 +290,28 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 | Emerald_Release_Log | 250+ | Dispatched contacts by sender |
 | Email_Events | growing | From 5 GHL event automations |
 
-## DAN Email Campaign -- Brands and Dispensaries (LIVE 2026-07-10)
+## DAN Email Campaign -- Brands and Dispensaries (LIVE 2026-07-10, Backfilled 2026-07-13)
 
 ### Dispatcher
 
 | Workflow | ID | Status |
 |----------|----|--------|
-| LT - DAN Campaign Sender Release Dispatcher (Staged) | toUG1yPDmFG48KEP | Active (dryRun=false), hourly |
+| LT - DAN Campaign Sender Release Dispatcher (Staged) | toUG1yPDmFG48KEP | Active (dryRun=false), every 30 min |
 
 **Pipeline**: Schedule Trigger -> Config -> Ensure Release Log Table -> Fetch DAN Candidates -> Dispatch + Queue -> Write Release Log + Summary
 
-**Config**: dryRun=false, candidateLimit=50, sender=cameron@livetransparent.com, senderFieldName=marketing_sender_email
+**Config**: dryRun=false, candidateLimit=65, sender=cameron@livetransparent.com, senderFieldName=marketing_sender_email
+
+**Fixes applied 2026-07-14:**
+- Schedule changed from hourly to every 30 min (was only hitting 600/day, needed 1200+)
+- Added `await new Promise(r => setTimeout(r, 250))` between each contact's GHL API calls to prevent rate limiting (was seeing 20-40% `error_fetch_contact` on early runs)
+- candidateLimit increased from 50 to 65 to compensate for ~10 recurring DNC contacts per run (BRĒZ, Teal Cannabis, AYR Wellness, Nova Farms — have `do not contact` in GHL but stale data in report_raw_ghl_contacts)
+
+**Dispatch performance (2026-07-14):**
+- First window run (12:00 UTC): 25 queued, 5 DNC, 20 errors (rate limited)
+- After 250ms delay fix (12:30+): 40-44 queued, 6-10 DNC, **0 errors** consistently
+- DNC contacts not written to DAN_Release_Log, recur each run until SQL tags catch up
+- Emails confirmed sending: GHL conversation shows TYPE_EMAIL outbound automated
 
 **Enrollment tags applied**:
 - Brands: Enrollment Queue - DAN - Brands
@@ -239,6 +322,21 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 **DNC/unsubscribe protection** (two layers):
 1. SQL-level: filters report_raw_ghl_contacts.tags_raw for do not contact, do not nurture, unsubscribed, opted out, seq enrolled - dan
 2. Per-contact live check: GET /contacts/{id} before dispatching
+
+### ghl_contact_id Backfill (2026-07-13)
+
+The import workflows (`LT - Brands Pool to Postgres + Sheets`, `LT - Dispensaries Pool to Postgres + Sheets`) set `ghl_contact_id = NULL`. The DAN dispatcher requires a non-null `ghl_contact_id`, so it found zero candidates despite contacts existing in GHL.
+
+**Fix**: Backfilled 13,705 `ghl_contact_id` values from GHL export CSVs using three match passes:
+1. Email match (lower+trim): +4,629
+2. Phone match (digit-stripped): +5,691
+3. Name+company match: +3,385
+
+**Result**: 13,755 with IDs (3,645 brands / 10,110 dispensaries), 113 still missing (not in exports). **5,373 now eligible for DAN dispatch**.
+
+**Export CSVs used** (delete after use):
+- `Export_Contacts_brands pool_Jul_2026_5_24_AM.csv`
+- `Export_Contacts_Dispensaries pool_Jul_2026_5_28_AM.csv`
 
 ### GHL Sequence Tags
 
@@ -302,7 +400,7 @@ LiveTransparent.com
 
 - **SimpleTexting**: Send, delivery, inbound reply, and unsubscribe webhooks are active.
 - **Unipile/Instagram**: DM Sequence workflow (iCnY6ccdHhfJg3sf) active, cron 0 12-22 * * 1-5, 4-message sequence to mutual followers. State tracked in instagram_dm_state. Unipile account V9eiHiDpRmCtan0YNdzsQw at api42.unipile.com:17256.
-- **Unipile/LinkedIn**: 8 workflows active (re-enabled 2026-07-10). DM Sequence (d0tEtijajisIsYcs) + Follower DM (pq7XVajNFnnwMUTr) 0 12-22 * * 1-5. State Sync (ceaKnz6E3onQrZpt) 15 */6 * * *. Dispatcher (fXxw5lanZcDmUrst) */15 15-21 * * 1-5. Guardrails block John-branded copy. Acceptance Checker (3ttEvr5NMcQCS4Hp) at /webhook/lt-linkedin-connection-accepted.
+- **Unipile/LinkedIn**: 8 workflows active (re-enabled 2026-07-10, fixes applied 2026-07-14). DM Sequence (d0tEtijajisIsYcs) + Follower DM (pq7XVajNFnnwMUTr) 0 12-22 * * 1-5. State Sync (ceaKnz6E3onQrZpt) 15 */6 * * *. Dispatcher (fXxw5lanZcDmUrst) */15 15-21 * * 1-5. Guardrails block John-branded copy. Acceptance Checker (3ttEvr5NMcQCS4Hp) at /webhook/lt-linkedin-connection-accepted.
 - **LinkedIn invite copy**: n8n defaults say Transparent eCom. If LiveTransparent appears, check GHL-side body.message overrides first. Use [/] character class instead of \/ in regex literals to avoid SDK serialization corruption.
 - **GHL warm intake/routing**, Apollo enrichment, Emerald and DAN email campaigns are active.
 - **SMS campaign**: Workflow exports staged in repo. See docs/outreach/outreach_messages.docx for SMS source copy. Requirements: tag sends, shared reply-state tracking, #lead on response, unsubscribe handling.
@@ -312,6 +410,9 @@ LiveTransparent.com
 - repomix-output.md
 - .env
 - Project Status and Next Steps.md
+- Export_Contacts_brands pool_Jul_2026_5_24_AM.csv (GHL export, used for DAN backfill)
+- Export_Contacts_Dispensaries pool_Jul_2026_5_28_AM.csv (GHL export, used for DAN backfill)
+- Export_Contacts_for fresh Linkedin connections_Jul_2026_2_16_AM.csv (GHL export, 14,987 contacts, used for LinkedIn dispatcher bulk feed 2026-07-13)
 - GHL Live Transparent CRM/
 - postgres/reporting-bootstrap.sql
 - n8n/docker-compose.yml
@@ -354,6 +455,7 @@ LiveTransparent.com
 
 - emerging_pool_contacts: 13,868 contacts (3,668 brands + 10,200 dispensaries)
   Fields: emerald_contact_id, source_list, first_name, last_name, primary_email, primary_phone, company_name, tags, ghl_contact_id, ghl_opportunity_id, ghl_import_status, raw_json (JSONB). UNIQUE on (emerald_contact_id, source_list).
+  ghl_contact_id coverage: 13,755 filled (3,645 brands / 10,110 dispensaries), 113 null (not in exports).
 
 ## John -> Jason Migration (2026-07-07)
 
