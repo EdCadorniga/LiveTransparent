@@ -12,8 +12,8 @@ export const SOCIAL_OUTREACH_TEMPLATES = {
   instagram: {
     v1: [
       null,
-      'Hey {first_name} - most cannabis brands can’t run Meta ads reliably. Usually it’s a setup and platform access issue. We help operators get live through compliant accounts + keep them running. Worth a quick chat?',
-      'Hey {first_name} - a lot of cannabis teams can’t fully activate paid social and search. Usually it’s a setup issue, not strategy. We open up these channels and keep them running. Curious if this is relevant?',
+      "Hey {first_name} - most cannabis brands can't run Meta ads reliably. Usually it's a setup and platform access issue. We help operators get live through compliant accounts + keep them running. Worth a quick chat?",
+      "Hey {first_name} - a lot of cannabis teams can't fully activate paid social and search. Usually it's a setup issue, not strategy. We open up these channels and keep them running. Curious if this is relevant?",
       'Hey {first_name} - most cannabis operators have a revenue channel sitting unused in paid social and search. Not a demand problem - a setup one. Happy to share how others are opening it up. Would this be useful to explore?',
       'Hey {first_name} - when Meta ads get restricted, traffic and sales drop. Hard to stay consistent across locations that way. We help cannabis brands stay live on Meta through compliant accounts. Open to a quick conversation?',
     ],
@@ -21,8 +21,8 @@ export const SOCIAL_OUTREACH_TEMPLATES = {
   sms: {
     v1: [
       null,
-      'Hey {first_name} - most cannabis brands can’t run Meta ads reliably. Usually it’s a setup and platform access issue. We help operators get live through compliant accounts + keep them running. Worth a quick chat?',
-      'Hey {first_name} - a lot of cannabis teams can’t fully activate paid social and search. Usually it’s a setup issue, not strategy. We open up these channels and keep them running. Curious if this is relevant?',
+      "Hey {first_name} - most cannabis brands can't run Meta ads reliably. Usually it's a setup and platform access issue. We help operators get live through compliant accounts + keep them running. Worth a quick chat?",
+      "Hey {first_name} - a lot of cannabis teams can't fully activate paid social and search. Usually it's a setup issue, not strategy. We open up these channels and keep them running. Curious if this is relevant?",
       'Hey {first_name} - most cannabis operators have a revenue channel sitting unused in paid social and search. Not a demand problem - a setup one. Happy to share how others are opening it up. Would this be useful to explore?',
       'Hey {first_name} - when Meta ads get restricted, traffic and sales drop. Hard to stay consistent across locations that way. We help cannabis brands stay live on Meta through compliant accounts. Open to a quick conversation?',
     ],

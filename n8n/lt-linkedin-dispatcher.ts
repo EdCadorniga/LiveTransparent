@@ -92,6 +92,25 @@ function clean(v) {
   try { return JSON.stringify(v).normalize("NFC").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim(); } catch (e) { return String(v).normalize("NFC").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim(); }
 }
 
+function sanitizeMessage(text) {
+  if (typeof text !== "string") return text;
+  return text
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2013|\u2014/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ")
+    .replace(/\u0393\u00C7[\u00D6\u00FF]/g, "'")
+    .replace(/\u0393\u00C7[\u00A3\u00A5]/g, '"')
+    .replace(/\u0393\u00C7[\u00F4\u00F6]/g, "-")
+    .replace(/\u0393\u00C7\u00AA/g, "...")
+    .replace(/\u00E2\u20AC[\u02DC\u2122]/g, "'")
+    .replace(/\u00E2\u20AC[\u0153\u009D]/g, '"')
+    .replace(/\u00E2\u20AC[\u201C\u009D]/g, '"')
+    .replace(/\u00E2\u20AC[\u201C\u0094]/g, "-")
+    .replace(/\u00E2\u20AC\u00A6/g, "...");
+}
+
 function extractConversationItems(resp) {
   if (!resp) return [];
   if (Array.isArray(resp.conversations)) return resp.conversations;
@@ -405,7 +424,7 @@ try {
       continue;
     }
 
-    const msgRaw = clean(CFG.defaultMessage).replace(/\\{first_name\\}/gi, firstName);
+    const msgRaw = sanitizeMessage(clean(CFG.defaultMessage).replace(/\\{first_name\\}/gi, firstName));
     const msg = msgRaw.length > 300 ? msgRaw.slice(0, 300) : msgRaw;
     const inv = await unipileReq("POST", CFG.unipileApiBaseUrl + "/users/invite", { account_id: CFG.unipileAccountId, provider_id: providerId, ...(msg ? { message: msg } : {}) }, { "X-API-KEY": CFG.unipileApiKey });
     let stateSyncOk = false;

@@ -152,8 +152,40 @@ const CFG = {
   stateUpsertUrl: String(cfg.stateUpsertUrl || 'https://automations.livetransparent.com/webhook/lt-instagram-dm-state-upsert').trim(),
 };
 
+function sanitizeMessage(text) {
+  if (typeof text !== 'string') return text;
+  return text
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2013|\u2014/g, '-')
+    .replace(/\u2026/g, '...')
+    .replace(/\u00A0/g, ' ')
+    .replace(/\u0393\u00C7[\u00D6\u00FF]/g, "'")
+    .replace(/\u0393\u00C7[\u00A3\u00A5]/g, '"')
+    .replace(/\u0393\u00C7[\u00F4\u00F6]/g, '-')
+    .replace(/\u0393\u00C7\u00AA/g, '...')
+    .replace(/\u00E2\u20AC[\u02DC\u2122]/g, "'")
+    .replace(/\u00E2\u20AC[\u0153\u009D]/g, '"')
+    .replace(/\u00E2\u20AC[\u201C\u009D]/g, '"')
+    .replace(/\u00E2\u20AC[\u201C\u0094]/g, '-')
+    .replace(/\u00E2\u20AC\u00A6/g, '...');
+}
+
+function sanitizeTemplateRegistry(value) {
+  if (typeof value === 'string') return sanitizeMessage(value);
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i += 1) value[i] = sanitizeTemplateRegistry(value[i]);
+    return value;
+  }
+  if (value && typeof value === 'object') {
+    Object.keys(value).forEach((key) => { value[key] = sanitizeTemplateRegistry(value[key]); });
+  }
+  return value;
+}
+
 const DAY = 24 * 60 * 60 * 1000;
 const STEP_WINDOWS = [0, 3 * DAY, 6 * DAY, 11 * DAY];
+sanitizeTemplateRegistry(TEMPLATE_REGISTRY);
 const MESSAGE_TEMPLATES = (TEMPLATE_REGISTRY.instagram[CFG.templateVariant] || TEMPLATE_REGISTRY.instagram.v1);
 
 function clean(v) {
@@ -496,7 +528,7 @@ for (const candidate of merged) {
   }
 
   const firstName = firstNameFromDisplay(state.displayName, candidate.identifier);
-  const message = String(MESSAGE_TEMPLATES[nextStep]).replace(/\\{first_name\\}/gi, firstName);
+  const message = sanitizeMessage(String(MESSAGE_TEMPLATES[nextStep]).replace(/\\{first_name\\}/gi, firstName));
 
   try {
     const chatResp = await sendDirectMessage.call(this, state.attendeeId, message);

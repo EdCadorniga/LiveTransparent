@@ -94,6 +94,37 @@ const processNode = node({
 };
 TEMPLATE_REGISTRY.linkedin.v1 = TEMPLATE_REGISTRY.linkedin.v2;
 
+function sanitizeMessage(text) {
+  if (typeof text !== 'string') return text;
+  return text
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2013|\u2014/g, '-')
+    .replace(/\u2026/g, '...')
+    .replace(/\u00A0/g, ' ')
+    .replace(/\u0393\u00C7[\u00D6\u00FF]/g, "'")
+    .replace(/\u0393\u00C7[\u00A3\u00A5]/g, '"')
+    .replace(/\u0393\u00C7[\u00F4\u00F6]/g, '-')
+    .replace(/\u0393\u00C7\u00AA/g, '...')
+    .replace(/\u00E2\u20AC[\u02DC\u2122]/g, "'")
+    .replace(/\u00E2\u20AC[\u0153\u009D]/g, '"')
+    .replace(/\u00E2\u20AC[\u201C\u009D]/g, '"')
+    .replace(/\u00E2\u20AC[\u201C\u0094]/g, '-')
+    .replace(/\u00E2\u20AC\u00A6/g, '...');
+}
+
+function sanitizeTemplateRegistry(value) {
+  if (typeof value === 'string') return sanitizeMessage(value);
+  if (Array.isArray(value)) {
+    for (var i = 0; i < value.length; i += 1) value[i] = sanitizeTemplateRegistry(value[i]);
+    return value;
+  }
+  if (value && typeof value === 'object') {
+    Object.keys(value).forEach(function(key) { value[key] = sanitizeTemplateRegistry(value[key]); });
+  }
+  return value;
+}
+
 var CFG = (function() {
   var c = $node['Config'].json || {};
   return {
@@ -109,6 +140,7 @@ var CFG = (function() {
   };
 })();
 
+sanitizeTemplateRegistry(TEMPLATE_REGISTRY);
 var MESSAGES = (TEMPLATE_REGISTRY.linkedin[CFG.templateVariant] || TEMPLATE_REGISTRY.linkedin.v1);
 
 function clean(v) {
@@ -331,7 +363,7 @@ for (var j = 0; j < followers.length; j += 1) {
     errors.push({ identifier: identifier, providerId: providerId, reason: 'missing_message_template' });
     continue;
   }
-  var message = String(messageTemplate).replace(/\\{first_name\\}/gi, firstName);
+  var message = sanitizeMessage(String(messageTemplate).replace(/\\{first_name\\}/gi, firstName));
 
   try {
     var chatResp = await apiRequest.call(this, 'POST', '/chats', {
