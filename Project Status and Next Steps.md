@@ -186,13 +186,13 @@ Legacy step-4 LinkedIn DM rows are now marked with `linkedin_dm_sequence_complet
 
 1,711 total attempts across 1,045 unique contacts. Dispositions: voicemail=782, qualified/booked=305, connected=288, no_answer=212, busy=106, failed=18.
 
-## LinkedIn Workflows (All Active, Re-enabled 2026-07-10, Fixes 2026-07-14 — 2026-07-15)
+## LinkedIn Workflows (Production Active + Duplicate Send Paths Stopped)
 
 | Workflow | ID | Schedule | Notes |
 |----------|----|----------|-------|
-| LT - LinkedIn DM Sequence (Unipile) | d0tEtijajisIsYcs | 0 12-22 * * 1-5 | Fixed trailing backtick in jsCode; added sanitizeMessage() for Unicode→ASCII |
-| LT - LinkedIn Follower DM Sequence (Unipile) | pq7XVajNFnnwMUTr | 0 12-22 * * 1-5 | Added missing ghlApiBaseUrl/ghlApiKey to Config; added sanitizeMessage() |
-| LT - GHL LinkedIn Connect Dispatcher (Unipile) | fXxw5lanZcDmUrst | */15 15-21 * * 1-5 | Fixed GHL response unwrap in tag check; added sanitizeMessage() for invites; added linkedin_dm_sequence_completed to Feeder tag block |
+| LT - LinkedIn DM Sequence (Unipile) | d0tEtijajisIsYcs | 0 12-22 * * 1-5 | Fixed trailing backtick in jsCode; added template pre-sanitize + send-time sanitize in both DM sender nodes |
+| LT - LinkedIn Follower DM Sequence (Unipile) | pq7XVajNFnnwMUTr | Unpublished | Redundant one-touch follower DM path; stopped 2026-07-16 after canonical connected-contact DM sequence was confirmed as the only production DM path |
+| LT - GHL LinkedIn Connect Dispatcher (Unipile) | fXxw5lanZcDmUrst | */15 15-21 * * 1-5 | Fixed GHL response unwrap in tag check; added send-time sanitize for invites; added linkedin_dm_sequence_completed to Feeder tag block |
 | LT - LinkedIn Connection State Sync (Unipile) | ceaKnz6E3onQrZpt | 15 */6 * * * | Reduced maxPages 15→5, maxContacts 200→50 |
 | LT - LinkedIn Connection Acceptance Checker (Unipile) | 3ttEvr5NMcQCS4Hp | Webhook | Replaced $env.UNIPILE_ACCOUNT_ID with hardcoded value |
 | LT - LinkedIn Connection State Upsert (Unipile) | Old7ZvyVYgFaJgDr | Webhook | No changes |
@@ -200,12 +200,17 @@ Legacy step-4 LinkedIn DM rows are now marked with `linkedin_dm_sequence_complet
 | LT - LinkedIn DM Sequence Test (No Delay) | wnpVYUNFLyNe5cS6 | Manual only | No changes |
 | **LT - LinkedIn DM Suppression from GHL Tag** | **IPN8jnR3XSurX0o1** | **Webhook** | **NEW 2026-07-15. GHL tag stop_linkedin_dms → webhook → Unipile lookup → GHL tag + state table terminal** |
 
+Intentionally stopped non-canonical sender: `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`) is unpublished. It was using the LinkedIn Unipile account ID and sending Instagram templates as LinkedIn DMs via `instagram_dm_state`.
+
 Guardrails: John-branded copy blocked before Unipile send. Invite defaults say Transparent eCom (not LiveTransparent).
 
 Outbound guardrails: DM sends now fail closed if the reply lookup fails, and both DM / request paths skip when an inbound conversation is already present.
 
 ### 2026-07-15 Unicode Encoding Fix
-All three message-sending LinkedIn workflows (DM Sequence, Follower DM, Dispatcher) now sanitize message text before Unipile API calls. A `sanitizeMessage()` function replaces curly apostrophes `'`/`'`, smart quotes `"`/`"`, em/en dashes, ellipsis, and non-breaking spaces with ASCII equivalents. Fixes garbled text (e.g., `can't` → `canâ€™t`) caused by Unicode→Latin-1 decoding in the JSON.stringify pipeline. Created `scripts/suppress_linkedin_dms.py` for one-command DM suppression.
+All audited Unipile message sender nodes now sanitize message text before API calls, and template registries are pre-sanitized where present. Coverage includes LinkedIn DM Sequence (`Sync Connected from Unipile` and `Send DM Sequence Messages`), LinkedIn Follower DM, LinkedIn Dispatcher invites, and Instagram DM Sequence. `sanitizeMessage()` handles smart punctuation plus mojibake forms like `canâ€™t` / `canΓÇÖt`. Final live audit passed: active versions published, send-time sanitization present, registry pre-sanitization present where applicable, and no remaining bad literal template text in audited sender nodes. Created `scripts/suppress_linkedin_dms.py` for one-command DM suppression.
+
+### 2026-07-16 Sender Path Cleanup
+Malformed LinkedIn screenshot messages were traced to `LT - Instagram DM Sequence (Unipile)`, not the canonical LinkedIn DM Sequence. Unpublished both `iCnY6ccdHhfJg3sf` and redundant `pq7XVajNFnnwMUTr`; production LinkedIn outreach is now dispatcher → acceptance/state sync → canonical 4-message DM sequence only.
 
 ### 2026-07-14 Fixes Summary
 - **Connection Acceptance Checker**: `$env.UNIPILE_ACCOUNT_ID` blocked by N8N_BLOCK_ENV_ACCESS_IN_NODE → hardcoded
