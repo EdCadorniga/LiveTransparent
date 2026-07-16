@@ -1,6 +1,6 @@
 # Live Transparent CRM Operating Snapshot
 
-Updated: 2026-06-30
+Updated: 2026-07-16
 
 ## Purpose
 This is the live-state summary for the Live Transparent GHL sub-account.
@@ -111,9 +111,20 @@ Keep these aligned with routing and report logic:
 - `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`) — active, `0 15-21 * * 1-5`
 - `LT - LinkedIn DM Sequence (Unipile)` (`d0tEtijajisIsYcs`) — active, `0 12-22 * * 1-5`
 - `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) — active (webhook receiver)
-- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) — active (reply detection)
+- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) — active; posts inbound LinkedIn messages into GHL Conversations under `LinkedIn via Unipile` using canonical provider `6a58a14ff3023bea3783c152`.
 - `LT - LinkedIn Connection Request (Unipile) (Internal Test)` (`Zt8p2aYtIuY0HK18`) — active (test)
 - Verified 2026-06-03: sync scans 101/matches 100, dispatcher sent 10, DM sent 2
+
+### Social Provider Bridge (GHL Custom Providers + Unipile)
+- Full handoff: `../docs/strategy/unipile-ghl-bidirectional-integration.md`
+- GHL provider `LinkedIn via Unipile` (`6a58a14ff3023bea3783c152`) — canonical SMS-type additional custom conversation provider for LinkedIn via Unipile.
+- GHL provider `Instagram via Unipile` (`6a58a1193cdfc36997580a68`) — canonical SMS-type additional custom conversation provider for Instagram via Unipile; inbound, direct router smoke tests, GHL UI outbound reply, and dedup replay succeeded.
+- Deleted Email providers must not be reused: LinkedIn `6a5892b9107668309b3f85ac`, Instagram `6a5893d11e9368345005f66e`. Legacy SMS providers remain reference/transition only: LinkedIn `6a5853a51e93687696053bf8`, Instagram `6a5853d33cdfc31a8c572766`.
+- `LT - Social Provider Outbound Router` (`kqIi8i1RjFAZKrK3`) — active; receives GHL provider outbound replies at `/webhook/lt-social-provider-outbound` and routes to Unipile via conversation map tables.
+- `LT - GHL OAuth Callback` (`UnSWPnVoUy3tNJkX`) — active; captures marketplace app OAuth callbacks at `/webhook/ghl-oauth-callback`.
+- `LT - Instagram Unipile New Messages` (`pISlgYUsyJIrLuJd`) — active; receives Instagram inbound payloads at `/webhook/lt-unipile-instagram-new-messages`, conservatively resolves existing GHL contacts before creating, posts messages into GHL Conversations, and persists `instagram_conversation_map`. Post-merge map repair verified row `1` points chat `yx-R-9J6XdWaFpGOQd1JFA` to canonical GHL contact `XZ4yChllGBdcsVxhFRDe`.
+- `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`) — unpublished; was misconfigured with the LinkedIn Unipile account ID.
+- `LT - LinkedIn Follower DM Sequence (Unipile)` (`pq7XVajNFnnwMUTr`) — unpublished; redundant with canonical LinkedIn DM sequence.
 
 ### Emerald (Staged — Marketing Email Paused 2026-06-05)
 - All 7 Emerald workflows are inactive (staged by design since pause):

@@ -169,15 +169,18 @@ These are potential automations we want to do using Unipile for our regulated-in
 
 ## Next Steps
 
-1. **Priority 1:** Implement CRM Sync & Tagging (already partially done via webhook)
-2. **Priority 2:** Build Multi-Step Sequences for John's outreach
-3. **Priority 3:** Set up Lead Scoring & Prioritization
-4. **Priority 4:** Create Analytics Dashboard for ROI tracking
+1. **Priority 1:** Finish the GHL Custom Conversation Provider bridge for LinkedIn/Instagram via Unipile. Current handoff: `docs/strategy/unipile-ghl-bidirectional-integration.md`.
+2. **Priority 2:** Resolve GHL marketplace/custom-provider OAuth `401` on `/conversations/messages/inbound`, then verify inbound Instagram messages appear in GHL Conversations.
+3. **Priority 3:** Build real outbound routing in `LT - Social Provider Outbound Router` so GHL replies send through the correct Unipile chat/account.
+4. **Priority 4:** Upgrade LinkedIn inbound messages to also post into GHL Conversations, while preserving existing reply-state suppression.
+5. **Priority 5:** Only after bidirectional inbox routing is stable, rebuild Instagram outbound/follower DM with the real Instagram Unipile account, account-type guard, and reply suppression.
 
 Each automation can be implemented incrementally, starting with the webhook infrastructure already in place.
 
 ## Implementation Order
 
-1. Ship the Instagram DM workflow first so the team has a dedicated Unipile-backed sequence for mutual followers and follow-backs.
-2. Reuse the same message registry concept for LinkedIn, but keep LinkedIn as a separate variant layer so step timing and audience rules stay isolated by channel.
-3. After the Instagram flow is stable, extract the shared copy registry so LinkedIn and Instagram can read from the same template source without sharing state.
+1. Complete inbound-to-GHL for Instagram and LinkedIn custom providers.
+2. Complete GHL outbound-provider reply routing back to Unipile.
+3. Keep LinkedIn automated outreach on the canonical dispatcher -> acceptance/state sync -> 4-message DM sequence path.
+4. Rebuild Instagram outbound only after inbox routing and reply suppression are verified.
+5. Extract shared template/copy utilities only after both channels have stable, separate state models.

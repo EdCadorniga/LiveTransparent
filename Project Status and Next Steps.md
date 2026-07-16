@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-15 (LinkedIn DM suppression automation deployed, dispatcher Feeder tag gap fixed)
+Updated: 2026-07-16 (Vapi anti-spam hardening; Instagram/LinkedIn social provider bridge verified)
 
 ## Source Of Truth
 
@@ -10,12 +10,13 @@ This document is the canonical project status and next-steps reference. It super
 
 ## Current State Summary
 
-- **Voice stack**: ACTIVE since 2026-07-14. Intake Poller + Outbound Dialer published. Poller searches 4 tag pools with rotation, 30/cycle. Dialer fires `*/2 13-22 UTC Mon-Fri` (9am ET start). State-to-timezone inference for business hours. 28 contacts initially enqueued.
+- **Voice stack**: ACTIVE since 2026-07-14, hardened 2026-07-16. Intake Poller + Outbound Dialer + Callback published. Poller searches 4 tag pools with rotation, 30/cycle, now removes the source campaign tag after enqueueing to prevent re-discovery. Dialer fires `*/2 13-22 UTC Mon-Fri` (9am ET start). Callback now marks queue `completed` after every end-of-call event. 8-tag blocklist (`vapi_voicemail`, `vapi_voicemail_left`, `vapi_qualified`, `vapi_no_answer`, `vapi_busy`, `vapi_wrong_number`, `vapi_contact_disconnected`, `vapi_dnc`) synced across all 3 workflows with 5-layer defense against spam.
 - **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences.
 - **DAN email campaign**: FULLY LIVE AND SENDING since 2026-07-14. 10 templates, 3 GHL workflows, n8n dispatcher active (65/run every 30 min, 1,560/day capacity). ghl_contact_id backfilled 2026-07-13 (13,705 IDs). 181+ contacts queued first day with verified email delivery.
-- **Apollo phone enrichment**: REPAIRED 2026-07-14. New polling workflow replaces dead webhook-based pipeline. Profile data syncing immediately, phone numbers via async callback.
+- **Apollo phone enrichment**: ACTIVE and hardened 2026-07-16. Production path is polling + V4 callback + reaper. Legacy staged webhook orphans were canceled, poller now re-discovers `queued_phone`, callback provider failures map to `callback_failed`, and known blank contacts were backfilled into `queued_phone`.
 - **LinkedIn**: 8 workflows re-enabled 2026-07-10. All pipeline fixes verified intact, including a fail-closed DM reply check, a terminal DM completion tag, and a cycled connect dispatcher on 2026-07-11.
-- **Instagram**: DM Sequence active, cron 0 12-22 * * 1-5.
+- **Instagram**: old DM Sequence is unpublished after it was found using the LinkedIn Unipile account. New inbound bridge is active and posts messages into GHL Conversations under `Instagram via Unipile`.
+- **Social provider bridge**: Instagram and LinkedIn inbound both work through SMS-type custom conversation providers (`LinkedIn: 6a58a14ff3023bea3783c152`, `Instagram: 6a58a1193cdfc36997580a68`). Inbound uses `type: "Custom"`, not `SMS`, and avoids dummy phone/email data. GHL duplicate cleanup consolidated Edmundo Cadorniga to canonical contact `XZ4yChllGBdcsVxhFRDe`; both Instagram chat `yx-R-9J6XdWaFpGOQd1JFA` and LinkedIn chat `60Ult1SrWhOuvuZp1u7nXw` now map there. Detailed handoff lives in `docs/strategy/unipile-ghl-bidirectional-integration.md`.
 - **Reporting**: GA4, GHL, GSC ingestion live. Executive report live in GHL.
 - **SMS campaign**: Workflow exports staged in repo. Not yet deployed.
 - **John->Jason migration**: Complete on n8n side. GHL workflows updated. Template keys preserved.
@@ -224,7 +225,37 @@ The `linkedin_connection_state` table was exhausted (all contacts at `requested`
 
 ## Instagram
 
-LT - Instagram DM Sequence (Unipile) (iCnY6ccdHhfJg3sf) -- active, cron 0 12-22 * * 1-5. Sends 4-message sequence to mutual followers. State tracked in instagram_dm_state (Postgres). Unipile account V9eiHiDpRmCtan0YNdzsQw at api42.unipile.com:17256.
+### Active
+
+| Workflow | ID | Status | Notes |
+|----------|----|--------|-------|
+| LT - Instagram Unipile New Messages | pISlgYUsyJIrLuJd | Active webhook | Receives Unipile Instagram inbound payloads at `/webhook/lt-unipile-instagram-new-messages`, normalizes identity, creates/updates GHL contacts, persists `instagram_conversation_map`, converts the stored agency OAuth token to a location token, and posts inbound messages into GHL Conversations under `Instagram via Unipile`. |
+
+### Stopped
+
+| Workflow | ID | Status | Why |
+|----------|----|--------|-----|
+| LT - Instagram DM Sequence (Unipile) | iCnY6ccdHhfJg3sf | Unpublished | It was using LinkedIn Unipile account `V9eiHiDpRmCtan0YNdzsQw` and could send Instagram templates as LinkedIn DMs through `instagram_dm_state`. Do not republish until rebuilt with Instagram account `F2UprZ8aQc6Qm9CYYWU6cg`, account-type guard, reply suppression, and safe cadence. |
+
+### 2026-07-16 Inbound Mapping Status
+
+- Detailed build context, endpoint contracts, known test payload, and next steps: [docs/strategy/unipile-ghl-bidirectional-integration.md](./docs/strategy/unipile-ghl-bidirectional-integration.md)
+- Confirmed real Instagram Unipile account: `F2UprZ8aQc6Qm9CYYWU6cg` (`Transparent eCom`).
+- Confirmed test inbound identity: `edmundocadorniga`, profile provider ID `6361495593`, messaging/provider ID `109928757071246`, chat ID `yx-R-9J6XdWaFpGOQd1JFA`.
+- Created GHL custom fields for Instagram username/profile URL/profile provider ID/chat attendee ID/chat ID.
+- Post-merge cleanup: GHL duplicate contacts for `Edmundo Cadorniga` were consolidated to canonical contact `XZ4yChllGBdcsVxhFRDe`; `instagram_conversation_map.id = 1` now maps chat `yx-R-9J6XdWaFpGOQd1JFA` to that canonical contact.
+- Inbound OAuth fix: the workflow converts the stored agency token to a location token inline before calling GHL inbound APIs.
+- Direct outbound router test: POST to `/webhook/lt-social-provider-outbound` routed the known Instagram contact/chat to Unipile successfully with message id `DOfjxs8_Xm26V5Ee1IO7PQ`.
+- Map repair verification: temporary maintenance workflow `nuuB3qCKxr7J6iPw` repointed Instagram map row `1` and LinkedIn map row `2` to `XZ4yChllGBdcsVxhFRDe`, then was archived. Direct outbound router checks succeeded for Instagram (`vjdEYSk9XD6R0I46oPWLwA`) and LinkedIn (`C7I9944kWsSKutX2XhZEpA`).
+- GHL UI outbound verification: message `this is a test reply from GHL to Instagram` routed through `LT - Social Provider Outbound Router` to Unipile message `iEJO1vnvWVGwbk7ril1__A`.
+
+### Social Provider Next Steps
+
+- Monitor the next real Instagram inbound after duplicate cleanup; avoid artificial replays unless needed because they create visible conversation messages.
+- Confirm Unipile Instagram webhook delivery to `/webhook/lt-unipile-instagram-new-messages` in production.
+- `LT - Social Provider Outbound Router` (`kqIi8i1RjFAZKrK3`) direct webhook path is fixed and routes canonical contact `XZ4yChllGBdcsVxhFRDe` to Instagram and LinkedIn via Unipile successfully using canonical provider IDs.
+- Optionally run a controlled LinkedIn GHL UI outbound reply test from conversation `Ze8o3KbsrwuAXQ3KK5ge`.
+- Rebuild Instagram outbound/follower DM only after the bidirectional inbox path is stable and guarded.
 
 ## Apollo Phone Enrichment (Repaired 2026-07-14, Audited + Hardened 2026-07-15)
 
@@ -278,8 +309,23 @@ Full review found 2 CRITICAL bugs (`queued_phone` invisible to reaper, Intake Po
 | GHL Apollo Phone Enrichment - Callback Handler V4 | U7c6byTLXAMgcS75 | Active, webhook | Receives Apollo async phone callbacks, writes phone to GHL |
 | GHL Apollo Phone Enrichment - Callback Handler V3 | YaWizRnw7XmkcvZH | **Unpublished** | Legacy V3, fully superseded by V4 |
 | GHL Apollo Enrichment - Webhook Intake (Sheet First) | WmKAhG7mIaXonNsh | Active, webhook | 0 executions — superseded by polling, SQL injection fixed |
-| GHL Apollo Enrichment - Phone Webhook Intake (Staged) | WuxgTa0EEL1mb2SA | **Unpublished** | Was causing stuck executions |
+| GHL Apollo Enrichment - Phone Webhook Intake (Staged) | WuxgTa0EEL1mb2SA | **Unpublished** | Legacy path. 1,008 orphaned webhook executions canceled on 2026-07-16; not part of production enrichment |
 | LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Active, hourly | Flips stale `queued` + `queued_phone` to `callback_timeout` |
+
+### 2026-07-16 Production Hardening
+
+- Verified live production workflows are active and published:
+  - Polling `JH8ShfpglWmLMZ3l`
+  - Callback V4 `U7c6byTLXAMgcS75`
+  - Reaper `RL5ZyUoshSPbmVA1`
+- Canceled **1,008** orphaned `running` executions on legacy staged workflow `WuxgTa0EEL1mb2SA`. Sample stuck runs never progressed past the `Webhook` node.
+- Polling workflow fix: orphan status rediscovery now includes both `queued` and `queued_phone`.
+- Callback V4 fix: Apollo provider-level callback failures now map to `callback_failed` rather than silently landing as `no_match`.
+- Polling write-path fix: hardened GHL `PUT /contacts/{id}` fallback after reproducing live API behavior.
+  Working update shape is `customFields` without `locationId`; payloads containing `locationId` or `customField` can return `422`.
+- Polling now has a minimal fallback write so contacts are not left blank when the full Apollo profile write fails.
+- Backfilled 6 previously blank contacts into `queued_phone` on 2026-07-16:
+  `VXwNjbZyBm1DMNljim6g`, `K9otZl89OAFlWmGk8fY7`, `mUgGwrkOB8CW8reYmpMd`, `e7eu0xGixu3ATmA61OqN`, `KA8xGJbf0QZHxXV6HXWF`, `8uobjmgriFLAdtmHfjk7`.
 
 ## SMS Campaign (Staged)
 
@@ -354,12 +400,13 @@ Monitor first week of dispatcher runs. Verify Email_Events data quality. Increas
 ### 7. Apollo Enrichment — MONITORING (audited + hardened 2026-07-15)
 
 - ~~Watch polling workflow runs to confirm steady 30/cycle consumption~~ — Confirmed: batch size 50, steady 30-min runs, all successful
-- ~~Verify V4 callback handler starts receiving Apollo async phone responses~~ — Confirmed: 489 callbacks received, working
+- ~~Verify V4 callback handler starts receiving Apollo async phone responses~~ — Confirmed: 1,058+ callbacks received by 2026-07-16, working
 - ~~Confirm `queued_phone` contacts transition to `enriched` as callbacks arrive~~ — Pipeline confirmed end-to-end. Reaper now monitors both statuses.
 - ~~Retune maxPerRun and schedule if Apollo rate limits appear~~ — 429 retry with 5s delay added to all 3 search sources
+- ~~Ensure legacy blank contacts are not left invisible after poller write failures~~ — Fixed 2026-07-16 with hardened poller fallback + 6-contact backfill to `queued_phone`
 - **ACTIVE MONITORING**: Watch Reaper Slack reports for `queued_phone` reaping counts
 - **ACTIVE MONITORING**: Confirm polling `Queued At` dates flow correctly so Reaper aging works
-- **ACTIVE MONITORING**: Watch for Apollo API rate limits on async phone callback requests (currently silent failure)
+- **ACTIVE MONITORING**: Watch for Apollo API rate limits / Apollo credit exhaustion on async phone callback requests; V4 now maps provider failures to `callback_failed`
 
 ### 8. LinkedIn Dispatcher Monitoring
 
