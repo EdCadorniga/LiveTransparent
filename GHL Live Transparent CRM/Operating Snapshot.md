@@ -144,7 +144,7 @@ Keep these aligned with routing and report logic:
   - `LT - Cold Outreach Sender Release Dispatcher (Staged)` — inactive
 
 ### Reporting Workflows (All Active)
-- `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) — active
+- `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) — active (every 60 min)
 - `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) — active
 - `LT - GHL Daily Calls Ingest` (`SqNQ0BYaTdcqyt1l`) — active (4hr schedule)
 - `LT - GHL Daily Appointments Ingest` (`yWZVSqEcjTbMT3kG`) — active
@@ -154,21 +154,23 @@ Keep these aligned with routing and report logic:
 - `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) — active
 - `LT - GSC Rollup Bridge` (`fOVBHwti9rC3qrLV`) — active
 - `LT - Report Attribution Bridge` (`Y0TU7Il71JswxOBp`) — active
-- `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`) — active
-- `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`) — active
+- `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`) — active (90-day backfill, +email columns 2026-07-21)
+- `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`) — active (+MQL/SQL/LinkedIn/Vapi/Pool/Email sections 2026-07-21)
 - `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`) — active
 - `LT - Report Config Sync` (`aomO3Z4AXJIgEvvN`) — active
 - `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`) — active
 - `LT - Report Postgres Bootstrap Apply` (`3XHThUiUSNa4sTb9`) — active
 - `LT - Report Pipeline Velocity` (`iFfwh0jpYUZoDhDR`) — active
+- `LT - Email Event Ingest` (`ZrqFN8qLKO8eVHDc`) — active
+- `LT - Company MQL Google Sheets Sync` (`9Y3Kedm768kkwwSV`) — active (daily 6am ET)
 
 Deferred by design:
 - `LT - GHL Executive Report Menu Sync` (`8YtaPmPnTXUkBDAd`) — inactive (one-time provision)
 
-Known issues:
-- `opportunitiesCreated` inflation — suspect rollup/SQL counting bug
-- `closed_won = 0` — needs verification whether genuine or mapping gap
-- GHL Executive Report Menu Sync is inactive — menu already configured
+Known issues (resolved 2026-07-21):
+- ~~`opportunitiesCreated` inflation — suspect rollup/SQL counting bug~~ → Resolved
+- ~~`closed_won = 0` — needs verification whether genuine or mapping gap~~ → Stage names NULL in raw data; resolved via stage ID fallback in Executive Summary SQL
+- ~~`stage_movers = 0`~~ → Fixed (was 0, now 93): removed date filter from `opportunity_traces` CTE, added stage ID resolution
 
 ## Special Live Rules
 - The regulated ads booking path is the only booking flow that currently auto-hands off into `Sales -> Discovery Scheduled`.

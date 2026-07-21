@@ -21,7 +21,12 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary dedupe and stage-aware win logic integrated into production.
 - `LT - Report Daily Rollups` now preserves GA-backed channel, UTM, landing-page, and daily traffic rows so the report host keeps live Channel Breakdown after rollups run.
 - `LT - Report Rollup Corrections` has been deactivated because the production Rollups workflow now owns those fixes.
-- `LT - Report Executive Summary API` now returns funnel-efficiency metrics for the embedded report, including traffic-to-contact and opportunity-stage conversion rates, plus the live `activeOpportunityCount`, `workedOpportunityCount`, and `stageMoverCount` fields.
+- The Executive Report now surfaces email campaign metrics (sent, opened, clicked, bounced, unsubscribed, complained) with computed engagement rates. Data sourced from `report_daily_summary` (emails_* columns), populated from `DAN_Release_Log`, `Emerald_Release_Log`, and `Email_Events`.
+- LinkedIn outreach funnel metrics (`linkedinFunnel`) are now available, aggregated from `linkedin_connection_state` showing the full funnel: ready → requested → connected → DM active → completed.
+- Vapi voice campaign breakdown (`vapiCampaignBreakdown`) and queue distribution (`vapiQueueDistribution`) are now surfaced from `voice_call_attempt` and `voice_call_queue`.
+- MQL summary (`mqlSummary`) tracks active and total opportunities in the Warm pipeline Qualified (MQL) stage. SQL contacts (`sqlContacts`) counts contacts with the SQL tag.
+- Pool distribution (`poolDistribution`) shows brand, dispensary, and Vapi campaign pool tag counts.
+- Stage mover count was fixed (was 0) by resolving pipeline/stage names from GHL stage IDs when name fields are NULL and by removing the date filter from `opportunity_traces` to detect transitions across all history.
 - `LT - Report Executive Summary API` now uses a contact-safe cohort definition for `contactToOpportunityRate` so the embedded funnel is not inflated by multi-opportunity rollup semantics.
 - `LT - Report Executive Summary API` now also exposes attribution-coverage metrics for the new-contact cohort so the report can separate funnel weakness from matching weakness.
 - Meta reporting in the Executive Report is currently attribution-first:

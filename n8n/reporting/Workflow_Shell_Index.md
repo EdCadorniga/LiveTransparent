@@ -91,9 +91,10 @@ Known cleanup completed: `LT - Report Daily Rollups` was restored, republished, 
 
 ### `LT - Report Executive Summary API`
 - Trigger: Webhook
-- First nodes: Trigger -> Config -> Normalize -> Build Query -> Query Summary -> Respond
+- First nodes: Trigger -> Config -> Normalize -> Build Query -> Query Summary -> Shape Response -> Respond
 - Live n8n ID: `Bukc0mgOD2r7V6ED`
 - Status: created in n8n, active, returns the dashboard JSON payload
+- Sections added 2026-07-21: email metrics, LinkedIn funnel, Vapi campaign/queue, MQL/SQL, pool distribution, stage mover fix
 
 ### `LT - Report Postgres Bootstrap Apply`
 - Trigger: Webhook

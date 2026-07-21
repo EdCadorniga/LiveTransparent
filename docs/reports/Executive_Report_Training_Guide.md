@@ -1,6 +1,6 @@
 # LiveTransparent Executive Report
 ## Training Document and Quick Reference Guide
-Updated: May 12, 2026
+Updated: July 21, 2026
 
 This guide explains what each visible card in the Executive Report means, how to present it, and where the common interpretation risks are. It matches the live dashboard glossary, the users-based funnel cards, and the trailing-day range presets.
 
@@ -25,7 +25,7 @@ This section explains how the report is assembled, what the live API returns, an
 
 - Architecture: the dashboard is a static HTML and JavaScript SPA at reports.livetransparent.com. It calls a single n8n webhook at `/api/report/executive/summary` and renders the response client-side.
 - Request contract: the report reads `view`, `range`, `from`, `to`, `embed`, and `locationId` query parameters. The current preset ranges are trailing complete days ending yesterday.
-- Response shape: the API returns `summary`, `channelBreakdown`, `utmBreakdown`, `metaAttribution`, `contactSources`, `topPages`, `pipelineDropoff`, `stageDropoff`, `stageVelocity`, `appointments`, and `health`.
+- Response shape: the API returns `summary`, `channelBreakdown`, `utmBreakdown`, `metaAttribution`, `contactSources`, `topPages`, `pipelineDropoff`, `stageDropoff`, `stageVelocity`, `appointments`, `health`, `linkedinFunnel`, `vapiCampaignBreakdown`, `vapiQueueDistribution`, `mqlSummary`, `sqlContacts`, `poolDistribution`, `emailsSent`, `emailsOpened`, `emailsClicked`, `emailsBounced`, `emailsUnsubscribed`, `emailsComplained`, `emailOpenRate`, `emailClickRate`, and `emailBounceRate`.
 - Response shape: the API also returns the active-opportunity fields used by the report, including `activeOpportunityCount`, `workedOpportunityCount`, `stageMoverCount`, and `opportunityStageBreakdown`.
 - Funnel basis: the primary funnel rates now use Users as the denominator where possible. This means the dashboard is treating unique visitors as the main traffic audience, not raw GA4 session counts.
 - Source status: GSC Daily Ingest is now live and verified in n8n. Older notes that describe Search Console as blocked are stale and should be treated as historical.
@@ -45,6 +45,14 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 | Active Opportunities | Open opportunities in the latest snapshot. | This is the current open-deal count, not the number of new deals created in the window. |
 | Worked Opportunities | Open opportunities updated or moved stage during the selected window. | This is the best current proxy for deals that were actively worked. |
 | Stage Movers | Open opportunities that changed stage at least once during the selected window. | Use this to see which deals progressed, even if no new deal was created. |
+| LinkedIn Funnel | Connection state distribution: ready, requested, connected, DM active, completed. | Tracks LinkedIn outreach pipeline health. |
+| Vapi Campaigns | Voice AI call outcomes by campaign. | Shows answered rate, qualified calls, and booked meetings per campaign. |
+| Vapi Queue | Pending outbound calls grouped by campaign. | Shows how many contacts are queued for each Vapi campaign. |
+| MQL Summary | Active and total opportunities in the Warm pipeline Qualified (MQL) stage. | Tracks marketing-qualified lead volume. |
+| SQL Contacts | Contacts with the SQL (Sales Qualified Lead) tag. | Counts contacts promoted to sales-qualified status. |
+| Pool Distribution | Contact counts by pool tag (brands, dispensaries, Vapi campaigns). | Shows audience segment sizes. |
+| Email Campaigns | Sent, opened, clicked, bounced, unsubscribed, and spam complaint counts. | Tracks email campaign performance across all senders. |
+| Email Rates | Open rate, click rate, and bounce rate. | Computed from email event metrics. |
 | Meetings | Booked appointments or discovery calls in the selected window. | These are GHL appointments when available. |
 | Calls | GHL conversation call logs and status breakdown. | Use this for answered, missed, voicemail, inbound, and outbound call activity. |
 | Closed Won | Deals marked as won. | Use this for outcome reporting, not top-of-funnel conversion. |

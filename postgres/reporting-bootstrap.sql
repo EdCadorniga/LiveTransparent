@@ -409,6 +409,12 @@ CREATE TABLE IF NOT EXISTS report_daily_summary (
   closed_won_count INTEGER NOT NULL DEFAULT 0,
   closed_won_revenue NUMERIC(18,2) NOT NULL DEFAULT 0,
   closed_lost_count INTEGER NOT NULL DEFAULT 0,
+  emails_sent INTEGER NOT NULL DEFAULT 0,
+  emails_opened INTEGER NOT NULL DEFAULT 0,
+  emails_clicked INTEGER NOT NULL DEFAULT 0,
+  emails_bounced INTEGER NOT NULL DEFAULT 0,
+  emails_unsubscribed INTEGER NOT NULL DEFAULT 0,
+  emails_complained INTEGER NOT NULL DEFAULT 0,
   metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

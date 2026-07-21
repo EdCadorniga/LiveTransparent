@@ -209,8 +209,8 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 | LT - Voice Dequeue Next | KsBMFcz1YpBGrjDW | Active |
 | LT - Call Outcome Ingest | PUCfTZBANSPcgS0c | Active |
 | LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Active (hourly, no Slack reporting) |
-| LT - Voice Campaign Brand (Alex) | 1d7c5d42-f0a4-4b58-9494-dbda3be3c657 | Created, not active |
-| LT - Voice Campaign Dispensary (Jordan) | 056f2e50-8bdf-4257-ac45-4d575600c39d | Created, not active |
+| LT - Voice Campaign Brand (Alex) | 1d7c5d42-f0a4-4b58-9494-dbda3be3c657 | Active (optimized 2026-07-20) |
+| LT - Voice Campaign Dispensary (Jordan) | 056f2e50-8bdf-4257-ac45-4d575600c39d | Active (optimized 2026-07-20) |
 
 ### LT - Voice Queue Vapi Intake Poller (bYk1Ai6MJLyhTsDZ) — Details
 
@@ -233,6 +233,33 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 - **Campaign tag removal**: After enqueueing, the poller now removes the source campaign tag (e.g. `brands_pool`) instead of the hardcoded `vapi_queue` tag. This prevents contacts from being re-found in subsequent rotation cycles.
 - **Blocklist expansion**: `Classify Contacts` now checks all 8 `BLOCKLIST_TAGS` via `hasAnyBlocklistTag()` (was only checking `vapi_voicemail` and `vapi_qualified`). Contacts with any terminal outcome tag have their campaign tag removed inline and are skipped.
 - `removeTag()` helper now accepts a `tagsToRemove` array parameter for flexible tag removal.
+
+### Voice Assistant Optimizations (2026-07-20)
+
+Live call audit of 4 Vapi calls uncovered 7 issues across the outbound assistants. All fixes applied and published.
+
+**Jordan (Dispensary, `056f2e50`) — 8 prompt fixes + 2 config fixes:**
+- `firstMessage` template variables fixed: `{{contact_name}}` → `{{first_name}}` (n8n passes `first_name`, name was never resolving). Removed `{{market}}` (never passed, rendered as blank).
+- "with Transparent eCom" → "from Transparent eCom" (Nico TTS inserted "a" → "with-a-transparent").
+- Compliance disclosure removed from `firstMessage` — now system-prompt-only for live calls. Voicemail recipients no longer hear the AI/recording disclosure.
+- Discovery questions restructured to ONE AT A TIME: numbered Q1-Q4 each with WAIT instructions. Old bullet list caused all 4 questions fired in one turn.
+- New `[IVR vs Voicemail Detection - CRITICAL DISAMBIGUATION]` section with keyword-based classification. Voicemail indicators: "record/rerecord your message", "press pound to send". IVR indicators: "press X for sales/operator". Tiebreaker: assume voicemail.
+- `[Speech Naturalness]`: "um"/"uh" minimized to once per call max (was explicitly permitted).
+- `[Pronunciation]`: "Point of Sale" never "POS" (Nico says "paws"), "from" never "with".
+- `[No Stage Directions]` expanded: banned throat-clearing, coughing, sighing, humming, and text like "*clears throat*" that TTS acts out.
+- Transcriber: `smartFormat` false → true (Deepgram suppresses non-speech artifacts).
+- Model: Llama 3.3 70B tested (cheaper/faster) but reverted to Claude 3 Haiku (better instruction following). System prompt preserved through swap.
+- Voice: Nico kept (Emma + Layla as fallbacks).
+
+**Alex (Brand, `1d7c5d42`) — same discovery questions, IVR/voicemail disambiguation, turn-taking, stage directions, and `{{contact_name}}`→`{{first_name}}` fixes.**
+
+**Savannah (V1 Outbound, `3f9bbfd2`) — same IVR/voicemail disambiguation, stage directions, and `{{contact_name}}`→`{{first_name}}` fixes.**
+
+**Outbound Dialer (`r7UjWLndmc6EqEUW`) — stuck queue fix:**
+- Contact `AX3wfQNpRwm6DG0HgUE2` (deleted from GHL, 2 entries in voice_call_queue) blocked every dialer run since ~18:38 UTC.
+- `HTTP - Get GHL Contact` had `neverError: false` — GHL's 400 crashed the run before lock release. Same contact re-picked every 2 min.
+- Fix: `neverError: true` on lookup node (400 passes through to Code - Check Phone which falls back to queue phone). `onError: continueRegularOutput` on `GHL - Create Call Note` (cosmetic note failure won't error the execution).
+- Intake poller (`bYk1Ai6MJLyhTsDZ`) was unaffected — continued enqueueing contacts every 10 min throughout.
 
 ### Voice Tags
 
@@ -685,10 +712,26 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 
 ### Current State
 
-- 250 contacts dispatched first batch, 0 errors
-- 4 senders: cameron@livetransparent.{com,co,agency,org}, 300/day each Week 1
-- Backlog: ~10,618 unreleased after DNC/DND SQL filtering
+- 4 senders: cameron@livetransparent.{com,co,agency,org}, warmup Week 1 cap 300/day each
+- Safety buffer: 5% of cap (15/sender), remaining: 285/sender/day
+- Backlog: ~4,918 unreleased after DNC/DND SQL filtering
 - Email events flowing to Email_Events table within 3 min
+
+### Sender Capacity (Week 1, per-day)
+
+| Sender | Cap | Safety (5%) | Remaining |
+|--------|-----|-------------|-----------|
+| cameron@livetransparent.com | 300 | 15 | 285 |
+| cameron@livetransparent.co | 300 | 15 | 285 |
+| cameron@livetransparent.agency | 300 | 15 | 285 |
+| cameron@livetransparent.org | 300 | 15 | 285 |
+
+**Total: ~1,140/day** (4 × 285). Warmup stages: Week 2 = 400/day, Week 3+ = 500/day.
+
+### Fixes Applied (2026-07-21)
+
+- **CRITICAL: In-flight capacity double-counting**: `Estimate InFlight Due Today` queried across 3 days (`CURRENT_DATE, -2d, -4d`), inflating `inFlightDueToday` to 285/sender and blocking all dispatches. Changed to `release_date = CURRENT_DATE` — counts only today's releases.
+- **Known unfixed**: Dispatch code uses `doHttpRequest` wrapper (HTTP 400 risk in task-runner loops). Write Release Log uses template-literal SQL injection. These are low-risk for Emerald's current low volume but should be migrated to match DAN's patterns.
 
 ### Postgres Tables
 
@@ -706,9 +749,9 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 |----------|----|--------|
 | LT - DAN Campaign Sender Release Dispatcher (Staged) | toUG1yPDmFG48KEP | Active (dryRun=false), every 30 min |
 
-**Pipeline**: Schedule Trigger -> Config -> Ensure Release Log Table -> Fetch DAN Candidates -> Dispatch + Queue -> Write Release Log + Summary
+**Pipeline**: Schedule Trigger -> Config -> Ensure Release Log Table -> Fetch DAN Candidates -> Dispatch + Queue (DryRun Safe) -> Only Queued (filter) -> Write Release Log (with Summary branch)
 
-**Config**: dryRun=false, candidateLimit=65, sender=cameron@livetransparent.com, senderFieldName=marketing_sender_email
+**Config**: dryRun=false, candidateLimit=85, senders=cameron@livetransparent.{com,co,agency,org} (round-robin), senderFieldName=marketing_sender_email
 
 **Fixes applied 2026-07-14:**
 - Schedule changed from hourly to every 30 min (was only hitting 600/day, needed 1200+)
@@ -716,27 +759,42 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 - candidateLimit increased from 50 to 65 to compensate for ~10 recurring DNC contacts per run (BRĒZ, Teal Cannabis, AYR Wellness, Nova Farms — have `do not contact` in GHL but stale data in report_raw_ghl_contacts)
 
 **Fixes applied 2026-07-15 (code/logic audit):**
-- **Brand starvation**: Changed `ORDER BY epc.source_list, epc.id ASC` → `ORDER BY RANDOM()` so brands and dispensaries interleave proportionally instead of brands always filling the 65-slot limit first
+- **Brand starvation**: Changed `ORDER BY epc.source_list, epc.id ASC` → `ORDER BY RANDOM()` so brands and dispensaries interleave proportionally instead of brands always filling the slot limit first
 - **HTTP wrapper**: Removed `doHttpRequest` wrapper function and deprecated `$httpRequest` — all HTTP calls use `this.helpers.httpRequest(options)` directly
 - **Sender rotation**: Added 4-sender pool (`cameron@livetransparent.{com,co,agency,org}`) with round-robin via `ci % senders.length`, matching Emerald's warmup pattern
-- **Error logging**: `Only Queued` filter now passes all non-summary statuses to `DAN_Release_Log`; INSERT uses dynamic `$json.status` instead of hardcoded `'queued'`; error objects include `sender_email` and `run_id` for traceability
 - **Jitter**: Delay randomized to `250 + Math.random() * 250`ms to prevent thundering herd on GHL API recovery
 
-**Dispatch performance (2026-07-14):**
-- First window run (12:00 UTC): 25 queued, 5 DNC, 20 errors (rate limited)
-- After 250ms delay fix (12:30+): 40-44 queued, 6-10 DNC, **0 errors** consistently
-- DNC contacts not written to DAN_Release_Log, recur each run until SQL tags catch up
-- Emails confirmed sending: GHL conversation shows TYPE_EMAIL outbound automated
+**Fixes applied 2026-07-21 (full audit + hardening):**
+- **CRITICAL: Release log crash on skipped_dnc**: `Only Queued` filter passed all non-summary items to `Write Release Log`, but `skipped_dnc` items lacked `enrollment_tag` which is `NOT NULL` in the table. Every daytime run errored on the INSERT. Tags WERE being applied to GHL, so emails were sending, but tracking was broken and the report showed `0 emails sent`.
+  - Fix #1: Changed `Only Queued` filter from `status !== "summary"` to `status === "queued"` so only valid items reach the INSERT.
+  - Fix #2: Expanded filter to `s !== "summary" && s !== "skipped_incomplete"` — passes `queued`, `skipped_dnc`, and all error items now that they carry `enrollment_tag`.
+- **CRITICAL: SQL injection in Write Release Log**: Template-literal `.replace(/'/g, "''")` pattern replaced with parameterized `$1..$10` placeholders and `queryReplacement` array. Same anti-pattern previously fixed in LinkedIn Reply Backfill and Apollo Sheet First.
+- **Self-healing pipeline**: `Dispatch + Queue` code now outputs `enrollment_tag`, `first_name`, `last_name`, `company_name` in ALL non-summary items (`skipped_dnc`, `error_fetch_contact`, `error_set_sender`, `error_add_tag`). This means every outcome — success or skip — gets tracked in `DAN_Release_Log`, permanently excluding that contact from future SQL candidate fetches. Pool self-cleans within a few dispatch cycles.
+- **Candidate limit**: 65 → 85 to compensate for backfilled/skipped contacts, targeting higher throughput.
+
+**Candidate freshness (3-layer defense):**
+1. **SQL dedup**: `NOT EXISTS (SELECT 1 FROM "DAN_Release_Log" r WHERE r.contact_id = epc.ghl_contact_id AND r.campaign = epc.source_list)` — any contact with a release log entry is excluded
+2. **SQL tag filter**: `(lt.tags_raw IS NULL OR NOT (lt.tags_raw ILIKE '%seq enrolled - dan%'))` — stale report data catches already-enrolled contacts
+3. **Live GHL check**: Per-contact `GET /contacts/{id}` + `isBlocked()` tag check — blocks contacts with `do not contact`, `do not nurture`, `unsubscribed`, `opted out`, `seq enrolled - dan`
+
+All three layers feed into the release log: any contact that passes the SQL but gets live-skipped is recorded with `status: 'skipped_dnc'` (with enrollment_tag) and won't reappear.
+
+**Dispatch performance (2026-07-21):**
+- Max theoretical: 85 contacts × 24 runs/day = 2,040/day (Mon-Sat 8 AM ET to 5 PM PT window)
+- After fix, first dispatch window will self-clean: previously-tagged contacts get release-logged as `skipped_dnc`, fresh contacts get `queued`
+- Email events flow: GHL → n8n Email Event Ingest (`ZrqFN8qLKO8eVHDc`) → Postgres `Email_Events` table → Daily Rollups → Executive Summary
+- Report dashboard (`emailsSent`/`emailsOpened`/`emailsClicked`) will populate as the release log backfills and daily rollups ingest
 
 **Enrollment tags applied**:
 - Brands: Enrollment Queue - DAN - Brands
 - Dispensaries: Enrollment Queue - DAN - Dispensaries
 
-**Deduplication**: Per-contact + per-campaign via DAN_Release_Log table (UNIQUE on contact_id, campaign).
+**Deduplication**: Per-contact + per-campaign via DAN_Release_Log table (UNIQUE on contact_id, campaign). Every outcome (queued, skipped_dnc, errors) writes to the release log, permanently excluding the contact from future candidate fetches.
 
-**DNC/unsubscribe protection** (two layers):
+**DNC/unsubscribe protection** (three layers — see "Candidate freshness" above for full details):
 1. SQL-level: filters report_raw_ghl_contacts.tags_raw for do not contact, do not nurture, unsubscribed, opted out, seq enrolled - dan
-2. Per-contact live check: GET /contacts/{id} before dispatching
+2. Per-contact live GHL check: GET /contacts/{id} before dispatching
+3. Release log dedup: any contact with a DAN_Release_Log entry (any status) is excluded from SQL candidates
 
 ### ghl_contact_id Backfill (2026-07-13)
 
@@ -791,37 +849,147 @@ LiveTransparent.com
 
 ## Reporting System
 
+### Data Pipeline (4 Layers)
+
+```
+Raw Ingest → Attribution Bridge → Daily Rollups → Executive Summary API (GET /lt-report-executive-summary)
+```
+
+### Raw Ingest Workflows
+
+| Workflow | ID | Schedule | Target Table |
+|----------|----|----------|--------------|
+| GHL Daily Leads Ingest | osIJOgBmWITF5Yuv | Every 60 min | `report_raw_ghl_contacts` |
+| GHL Daily Sales Ingest | aYT5oHcgmBALzHy5 | Daily | `report_raw_ghl_opportunities` |
+| GA4 Daily Ingest | 6pCSGzFmrMDFL5Yq | Daily (24h) | `report_raw_ga4_sessions` |
+| GSC Daily Ingest | xHqmCC1vOeZ11gCd | Daily | `report_raw_gsc_queries` |
+| GHL Daily Calls Ingest | SqNQ0BYaTdcqyt1l | Every 4 hr | `report_raw_ghl_calls` + `outcomes` |
+| GHL Daily Appointments Ingest | yWZVSqEcjTbMT3kG | Daily | `report_raw_ghl_appointments` |
+| GHL Daily Social Ingest | QZoqCaTwDhbym80O | Daily | `report_raw_ghl_social_posts` |
+
+### Bridge & Rollup Workflows
+
 | Workflow | ID | Status |
 |----------|----|--------|
-| GHL Daily Leads Ingest | osIJOgBmWITF5Yuv | Active |
-| GHL Daily Sales Ingest | aYT5oHcgmBALzHy5 | Active |
-| GHL Daily Calls Ingest | SqNQ0BYaTdcqyt1l | Active (4hr schedule) |
-| GHL Daily Appointments Ingest | yWZVSqEcjTbMT3kG | Active |
-| GHL Daily Social Ingest | QZoqCaTwDhbym80O | Active |
-| GA4 Daily Ingest | 6pCSGzFmrMDFL5Yq | Active |
 | GA4 Traffic Rollup Bridge | 0P2AZcQYWYZjXbRi | Active |
-| GSC Daily Ingest | xHqmCC1vOeZ11gCd | Active |
 | GSC Rollup Bridge | fOVBHwti9rC3qrLV | Active |
-| Report Attribution Bridge | Y0TU7Il71JswxOBp | Active |
-| Report Daily Rollups | EUeOiRttoVLQ9zF9 | Active |
-| Report Executive Summary API | Bukc0mgOD2r7V6ED | Active |
+| Report Attribution Bridge | Y0TU7Il71JswxOBp | Active (daily, 90-day window) |
+| Report Daily Rollups | EUeOiRttoVLQ9zF9 | Active (daily, 90-day backfill) |
+| Report Pipeline Velocity | iFfwh0jpYUZoDhDR | Active |
+
+### API & Frontend
+
+| Workflow | ID | Status |
+|----------|----|--------|
+| Report Executive Summary API | Bukc0mgOD2r7V6ED | Active (webhook GET) |
 | Report QA and Alerts | M5mXcDTFSko6EdHb | Active |
 | Report Config Sync | aomO3Z4AXJIgEvvN | Active |
 | Report Publish Refresh | 3gXztCnBEN6sGINb | Active |
 | Report Postgres Bootstrap Apply | 3XHThUiUSNa4sTb9 | Active |
-| Report Pipeline Velocity | iFfwh0jpYUZoDhDR | Active |
+
+### MQL / Company Sync
+
+| Workflow | ID | Status |
+|----------|----|--------|
 | LT - Company MQL Google Sheets Sync | 9Y3Kedm768kkwwSV | Active (daily 6am ET) |
+
+### Executive Report Data Sections (2026-07-21)
+
+The `Report Executive Summary API` (`GET /webhook/lt-report-executive-summary?range=30d`) returns these top-level keys:
+
+| Section | Source | Description |
+|---------|--------|-------------|
+| `traffic` / `leads` / `sales` | `report_daily_summary` | GA4 sessions, GHL contacts created, closed-won count |
+| `summary` | `metric_summary` CTE | Full nested metrics: funnel rates, coverage, revenue, calls, timezone |
+| `channelBreakdown` | `report_channel_daily_summary` | Top 8 channels by sessions/leads/opps |
+| `utmBreakdown` | `report_utm_daily_summary` | Top 15 UTM source/medium/campaign combos |
+| `metaAttribution` | `report_bridge_traffic_to_lead` | Meta (Facebook/Instagram) attribution |
+| `pipelineDropoff` | `report_pipeline_daily_summary` | Per-pipeline stage counts + moved-in/moved-out |
+| `stageDropoff` | `report_stage_daily_summary` | Top 10 stages by movement |
+| `stageVelocity` | `report_stage_velocity_summary` | Avg days per stage |
+| `opportunityStageBreakdown` | `report_raw_ghl_opportunities` | Active/worked/stage-mover counts per pipeline+stage |
+| `socialPosts` | `report_raw_ghl_social_posts` | Post totals, engagement |
+| `health` | `report_source_health` | Source system health statuses |
+| `callStatusBreakdown` | `report_raw_ghl_calls` | Top 10 call statuses by direction |
+| `callOutcomeBreakdown` | `report_raw_ghl_call_outcomes` | Top 12 dispositions by direction |
+| `appointments` | `report_raw_ghl_appointments` | Top 8 appointment statuses |
+| **`emailsSent` / `emailsOpened` / `emailsClicked` / `emailsBounced`** | `report_daily_summary` + `Email_Events` + Release Logs | Email campaign metrics (added 2026-07-21) |
+| **`emailOpenRate` / `emailClickRate` / `emailBounceRate`** | Computed from above | Email engagement rates (added 2026-07-21) |
+| **`linkedinFunnel`** | `linkedin_connection_state` | ready→requested→connected→DM active→completed (added 2026-07-21) |
+| **`vapiCampaignBreakdown`** | `voice_call_attempt` JOIN `voice_call_queue` | Per-campaign call totals, answered, qualified, booked (added 2026-07-21) |
+| **`vapiQueueDistribution`** | `voice_call_queue` (status=pending) | Pending queue by campaign (added 2026-07-21) |
+| **`mqlSummary`** | `report_raw_ghl_opportunities` (stage IDs) | Active + total MQL opportunities (added 2026-07-21) |
+| **`sqlContacts`** | `report_raw_ghl_contacts` (tag search) | Contacts with SQL tag (added 2026-07-21) |
+| **`poolDistribution`** | `report_raw_ghl_contacts` (tag counts) | brands_pool, dispensaries_pool, vapi brand/dispensary (added 2026-07-21) |
+
+### Stage Name Resolution (2026-07-21 Fix)
+
+GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunities`. The report resolves stage names by falling back to `pipeline_stage_id` with a CASE mapping matching the Daily Rollups workflow. Pipeline names use the same ID-based resolution. This fixes `stage_movers` (was 0, now 93), `meetingsBooked`, and `closedWonCount` which previously depended on NULL stage name fields.
+
+### report_daily_summary New Columns (2026-07-21)
+
+| Column | Source |
+|--------|--------|
+| `emails_sent` | `DAN_Release_Log` + `Emerald_Release_Log` (release_date) |
+| `emails_opened` | `Email_Events` (event_type='opened') |
+| `emails_clicked` | `Email_Events` (event_type='clicked') |
+| `emails_bounced` | `Email_Events` (event_type='bounced') |
+| `emails_unsubscribed` | `Email_Events` (event_type='unsubscribed') |
+| `emails_complained` | `Email_Events` (event_type='complained') |
+
+### Voice Dialer Fix (2026-07-21)
+
+`LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`): `GHL - Create Call Note` node now has `onError: continueRegularOutput`. Previously the dialer errored on every run because deleted GHL contact `AX3wfQNpRwm6DG0HgUE2` (still in `voice_call_queue`) caused a 400 on the note creation endpoint. Calls go out successfully; note failure is cosmetic.
 ## Other Live Systems
 
-- **SimpleTexting**: Send, delivery, inbound reply, and unsubscribe webhooks are active.
+- **SimpleTexting**: Send, sequencer, delivery, inbound reply, unsubscribe, and idempotent-send workflows are live/available in n8n. The scheduled pool dispatcher is active as of 2026-07-18, targets GHL tag `sms_drip`, runs weekdays at `10:15am` and `3:00pm` ET, uses `candidateLimit=10`, and has `defaultDryRun=false` for live sends. Sequencer waits 2 days between SMS steps. Inbound replies add `simpletext_replied`, remove `simpletext_ongoing`, mark campaign state `replied`, and suppress future campaign/direct sends; `simpletext_stop` remains the opt-out hard stop. `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) posts a Slack alert through node `Post to Slack` with title `Inbound SimpleTexting Reply`, then posts the inbound message to GHL Conversations under `SimpleTexting SMS` via `Post to GHL Conversations` node using `type: "Custom"`, `conversationProviderId: "6a5b91913953360948dd59f1"`, and `altId`. Monitor first Monday executions and first real reply/unsubscribe closely before raising volume.
+- **SimpleTexting GHL Conversations provider**: **LIVE** as of 2026-07-20. Separate GHL private app `LiveTransparent SimpleTexting SMS` with provider `SimpleTexting SMS` (`6a5b91913953360948dd59f1`). Delivery URL: `https://automations.livetransparent.com/webhook/lt-simpletexting-provider-outbound`. `LT - SimpleTexting Provider Outbound Router` (`f4VoO1lBWkYRcQai`) receives GHL outbound replies, validates provider ID, normalizes phone to E.164, checks `simpletext_stop` tag, and sends via the idempotent send workflow (`gwaEpWDpTIwsafi8`) → SimpleTexting API. Outbound campaign sends mirror into GHL Conversations via `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`). `simpletexting_conversation_map` table created in Postgres keyed by `(conversation_provider_id, alt_id)`. GHL Conversations is the primary operator inbox for SimpleTexting SMS; Slack alert for inbound replies is preserved.
 - **Unipile/Instagram**: Instagram DM Sequence (`iCnY6ccdHhfJg3sf`) is **unpublished**. It was misconfigured with the LinkedIn Unipile account ID and sent Instagram templates as LinkedIn DMs. Do not republish until it has a real Instagram Unipile account ID and account-type guard.
 - **Instagram inbound bridge**: `LT - Instagram Unipile New Messages` (`pISlgYUsyJIrLuJd`) is active at `/webhook/lt-unipile-instagram-new-messages`. It normalizes Unipile Instagram inbound payloads, conservatively resolves an existing GHL contact before creating one, persists `instagram_conversation_map`, converts the stored agency OAuth token to a location token via `POST /oauth/locationToken`, and posts inbound messages into GHL Conversations under the `Instagram via Unipile` tab. Post-merge cleanup on 2026-07-16 repointed `instagram_conversation_map.id = 1` for chat `yx-R-9J6XdWaFpGOQd1JFA` to canonical GHL contact `XZ4yChllGBdcsVxhFRDe`; the temporary duplicate `4V2oTmM7lWya3Nmtmp1Y` created during verification was deleted.
 - **Social provider outbound router**: `LT - Social Provider Outbound Router` (`kqIi8i1RjFAZKrK3`) is active at `/webhook/lt-social-provider-outbound`. Fixed 2026-07-16: POST webhook `responseMode` now uses `responseNode`, map tables are created defensively, payload message text is preserved through Postgres lookup, and Unipile send uses the working `api42.unipile.com:17256/api/v1` base. Canonical provider IDs are SMS-type additional custom conversation providers: `Instagram via Unipile` = `6a58a1193cdfc36997580a68` and `LinkedIn via Unipile` = `6a58a14ff3023bea3783c152`. Inbound message API must use `type: "Custom"` with `conversationProviderId` + `altId`; do not include `emailTo`/`emailFrom`/`subject` or dummy contact phone/email data. Deleted Email provider IDs `6a5893d11e9368345005f66e` and `6a5892b9107668309b3f85ac` must not be reused. Verified Instagram and LinkedIn inbound as `TYPE_CUSTOM_PROVIDER_SMS`; Instagram chat `yx-R-9J6XdWaFpGOQd1JFA` and LinkedIn chat `60Ult1SrWhOuvuZp1u7nXw` both map to canonical GHL contact `XZ4yChllGBdcsVxhFRDe`, with LinkedIn conversation `Ze8o3KbsrwuAXQ3KK5ge`. LinkedIn normalizer handles Unipile's form-encoded single-JSON-key webhook shape. Direct outbound router smoke tests after map repair passed: Instagram message `vjdEYSk9XD6R0I46oPWLwA`, LinkedIn message `C7I9944kWsSKutX2XhZEpA`.
-- **Social provider bridge handoff**: Full build context and next steps for `LinkedIn via Unipile` + `Instagram via Unipile` GHL bidirectional messaging are in `docs/strategy/unipile-ghl-bidirectional-integration.md`. Read this before changing provider workflows.
+- **Social provider bridge handoff**: Full build context, operator inbox runbook, monitoring gaps, and next steps for `LinkedIn via Unipile` + `Instagram via Unipile` GHL bidirectional messaging are in `docs/strategy/unipile-ghl-bidirectional-integration.md`. Read this before changing provider workflows.
 - **Unipile/LinkedIn**: Active production path is dispatcher → acceptance/state sync → canonical DM sequence. Follower DM (`pq7XVajNFnnwMUTr`) is **unpublished**. Current published workflow inventory is documented in `Current Published Workflow Inventory` above. Guardrails block John-branded copy.
 - **LinkedIn invite copy**: n8n defaults say Transparent eCom. If LiveTransparent appears, check GHL-side body.message overrides first. Use [/] character class instead of \/ in regex literals to avoid SDK serialization corruption.
 - **GHL warm intake/routing**, Apollo enrichment, Emerald and DAN email campaigns are active.
-- **SMS campaign**: Workflow exports staged in repo. See docs/outreach/outreach_messages.docx for SMS source copy. Requirements: tag sends, shared reply-state tracking, #lead on response, unsubscribe handling.
+- **SMS campaign**: Workflow exports staged in repo and corresponding SimpleTexting workflows are live in n8n. See docs/outreach/outreach_messages.docx for SMS source copy. Current launch settings: `sms_drip`, 10 contacts/run, weekdays 10:15am and 3:00pm ET, 2-day inter-step delay, reply/STOP suppression.
+
+### SimpleTexting SMS via GHL — Bidirectional Provider (LIVE 2026-07-20)
+
+GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5b91913953360948dd59f1`), SMS-type, Custom Conversation Provider, Delivery URL: `https://automations.livetransparent.com/webhook/lt-simpletexting-provider-outbound`.
+
+#### Workflows
+
+| Workflow | ID | Status | Role |
+|----------|----|--------|------|
+| LT - SimpleTexting Provider Outbound Router | f4VoO1lBWkYRcQai | Active | Receives GHL outbound messages at `/webhook/lt-simpletexting-provider-outbound`, validates provider ID, normalizes phone to E.164, sends via idempotent boundary → SimpleTexting API. Skips business-hours guard for human replies. |
+| LT - SimpleTexting Inbound Reply (Webhook) | i0pROHpFtN4LYR0Q | Active | Slack alert preserved. Now also posts inbound messages to GHL Conversations under `SimpleTexting SMS` via `type: "Custom"` + `conversationProviderId`. |
+| LT - SimpleTexting SMS Send (Webhook, Staged) | Q3Ivnwe4z2Y3cD7A | Active | Mirrors successful outbound campaign sends into GHL Conversations under `SimpleTexting SMS`. |
+| LT - SMS Idempotent Send | gwaEpWDpTIwsafi8 | Active | Canonical deduplicated SMS boundary. Called by outbound router and campaign send paths. |
+| LT - SimpleTexting Pool Dispatcher (Staged) | usxYXSuc4ahw40V3 | Active | `sms_drip`, 10/run, weekdays 10:15am + 3:00pm ET, `defaultDryRun=false`. |
+| LT - SimpleTexting Campaign Sequencer (Staged) | 7mSiivR3NhtLIcNz | Active | 6-step flow, 2-day inter-step delay. |
+| LT - SimpleTexting Delivery Events (Webhook) | AEi1VCzkLvaYFr4U | Active | No changes needed. |
+| LT - SimpleTexting Unsubscribe Events (Webhook) | IyBKMkpYQ7pa0C8V | Active | No changes needed. |
+
+#### DB Table
+
+`simpletexting_conversation_map` — UNIQUE on `(conversation_provider_id, alt_id)`, with indexes on `ghl_contact_id` and `normalized_phone`. Created on first outbound router execution.
+
+#### Phone Format Contract
+
+- Canonical phone: E.164, e.g. `+17144696406`.
+- Conversation `altId`: `simpletexting:+17144696406`.
+- `simpletexting_conversation_map.normalized_phone`: E.164 only.
+- Outbound router has full E.164 normalization (`normalizePhoneE164`). AltId for inbound/outbound mirroring uses `simpletexting:+1<10-digit>` which works for US numbers. Full E.164 migration across delivery/unsubscribe workflows is deferred.
+- `simpletext_replied` blocks automated sends; `simpletext_stop` blocks all sends including human GHL provider replies.
+
+#### Guardrails
+
+- Human replies bypass business-hours limits but still enforce STOP suppression.
+- Outbound router validates `conversationProviderId` against `6a5b91913953360948dd59f1`.
+- Idempotent send deduplicates on `(contact_id, workflow_id, message_hash)` per day.
+- `simpletext_stop` tag check in outbound router blocks provider-originated sends to opted-out contacts.
+- SMS Send mirroring runs on `onError: continueRegularOutput` so mirror failures don't block sends.
+- Inbound reply still posts to Slack AND GHL Conversations; Slack alert preserved as secondary channel.
 
 ## Key Files
 

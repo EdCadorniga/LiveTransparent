@@ -254,6 +254,111 @@ Logs OAuth install events (codes, exchanges).
 {"account_id":"F2UprZ8aQc6Qm9CYYWU6cg","account_type":"INSTAGRAM","id":"yx-R-9J6XdWaFpGOQd1JFA","chat_id":"yx-R-9J6XdWaFpGOQd1JFA","lastMessage":{"id":"test-msg","chat_id":"yx-R-9J6XdWaFpGOQd1JFA","text":"test message","is_sender":0,"sender_id":"109928757071246","timestamp":"2026-07-17T00:00:00.000Z","account_id":"F2UprZ8aQc6Qm9CYYWU6cg"},"profile":{"provider_id":"6361495593","public_identifier":"edmundocadorniga","full_name":"Edmundo Cadorniga"}}
 ```
 
+## Operator Inbox and Monitoring Runbook
+
+### Current Operator Inbox
+
+GHL Conversations is the canonical operator-facing inbox for LinkedIn and Instagram messages. Inbound Unipile messages are written into GHL as custom-provider messages, and GHL replies are routed back through `LT - Social Provider Outbound Router` to Unipile.
+
+Operators should monitor GHL Conversations at the conversation level, not by opening each contact record manually. Use the provider tabs named `LinkedIn via Unipile` and `Instagram via Unipile` when replying so outbound messages route through the correct custom conversation provider.
+
+### Response Rules
+
+- Reply from the correct GHL custom provider tab: `LinkedIn via Unipile` for LinkedIn, `Instagram via Unipile` for Instagram.
+- Do not reply through normal SMS, email, or manually typed phone/email fields for social messages.
+- Do not add dummy phone or email values to make social replies work; routing depends on `conversationProviderId` and `altId`.
+- If a person replies on LinkedIn, confirm the automated LinkedIn sequence is suppressed by `dm_conversation_status = active` or the `linkedin_dm_sequence_completed` tag/state.
+- If a contact asks to stop LinkedIn DMs, use the suppression runbook in `AGENTS.md` or add the GHL tag `stop_linkedin_dms`.
+
+### Macro-Level Visibility
+
+The system currently supports macro review through GHL Conversations, but there is no dedicated social inbox dashboard or alert digest documented as live. Any macro alerting or dashboard should be treated as a new enhancement unless a live workflow is added and verified.
+
+Recommended macro views:
+
+- GHL Conversations filtered to recent inbound messages from `LinkedIn via Unipile` and `Instagram via Unipile`.
+- GHL Conversations filtered to unread or unreplied conversations when available in the GHL UI.
+- A future n8n digest that lists new inbound LinkedIn/Instagram messages across all contacts.
+- A future dashboard backed by GHL Conversations plus `instagram_conversation_map` and `linkedin_conversation_map`.
+
+### Recommended Alert Workflow
+
+Not currently documented as live. If alerting is needed, build a workflow or extend the inbound bridges after the GHL message write succeeds.
+
+Recommended flow:
+
+```text
+Unipile inbound webhook
+-> Normalize platform/message/contact
+-> Post inbound message to GHL Conversations
+-> Upsert social conversation map
+-> Send Slack/email alert or write digest row
+```
+
+Recommended alert fields:
+
+- Platform: LinkedIn or Instagram
+- Sender name and profile identifier
+- Message text
+- GHL contact ID and contact link
+- GHL conversation ID when available
+- Unipile chat ID / `altId`
+- Automation suppression status
+- Workflow execution ID
+
+Recommended alert cadence:
+
+- Real-time alert for every inbound message until operator confidence is high.
+- Hourly digest for unread or unreplied social conversations.
+- Daily QA summary showing inbound count, outbound reply count, routing failures, and unmapped chats.
+
+### Health Checks
+
+Run these checks after any workflow/provider change and at least weekly while the bridge is in active use.
+
+- Confirm `LT - Instagram Unipile New Messages` (`pISlgYUsyJIrLuJd`) is active and published.
+- Confirm `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) is active and published.
+- Confirm `LT - Social Provider Outbound Router` (`kqIi8i1RjFAZKrK3`) is active and published.
+- Confirm `LT - GHL OAuth Callback` (`UnSWPnVoUy3tNJkX`) is active.
+- Confirm GHL provider IDs are still canonical: Instagram `6a58a1193cdfc36997580a68`, LinkedIn `6a58a14ff3023bea3783c152`.
+- Confirm the provider delivery URL for both providers is `https://automations.livetransparent.com/webhook/lt-social-provider-outbound`.
+- Confirm Unipile Instagram webhook points to `/webhook/lt-unipile-instagram-new-messages`.
+- Confirm Unipile LinkedIn webhook points to `/webhook/lt-unipile-linkedin-new-messages`.
+- Confirm `ghl_oauth_tokens` has an active token row for the Live Transparent location.
+- Confirm `instagram_conversation_map` and `linkedin_conversation_map` contain rows for active social chats.
+
+### Troubleshooting
+
+If an inbound social message does not appear in GHL:
+
+- Check the relevant inbound workflow execution first.
+- Confirm the Unipile webhook is firing and the account ID matches the expected platform account.
+- Check OAuth conversion to a location token via `POST /oauth/locationToken`.
+- Check that the inbound GHL message payload uses `type: "Custom"`, `conversationProviderId`, and `altId`.
+- Check for duplicate or stale map rows pointing to a merged/deleted GHL contact.
+
+If a GHL reply does not send through Unipile:
+
+- Check `LT - Social Provider Outbound Router` executions.
+- Confirm the webhook body includes `conversationProviderId`, `contactId`, `message`, and `altId`.
+- Confirm the matching row exists in `instagram_conversation_map` or `linkedin_conversation_map`.
+- Confirm the router uses the working Unipile base URL `https://api42.unipile.com:17256/api/v1`.
+- Confirm the reply was sent from the correct provider tab, not normal SMS/email.
+
+If automated LinkedIn DMs continue after a reply:
+
+- Check `linkedin_connection_state.payload_json.dm_conversation_status` for `active`.
+- Check whether `linkedin_dm_sequence_completed` is present on the GHL contact when the conversation should be terminal.
+- Run the LinkedIn DM suppression path from `AGENTS.md` if the contact needs to be manually suppressed.
+
+### Open Gaps
+
+- No dedicated macro social inbox dashboard exists in this repo.
+- No live Slack/email alert workflow is documented for every LinkedIn/Instagram inbound message.
+- No SLA/owner assignment rule is documented for social replies.
+- No automated stale-unreplied social conversation report is documented.
+- No daily reconciliation job is documented to compare Unipile chats against GHL conversations.
+
 ## Next Steps (Priority Order)
 
 1. **Monitor post-merge social inbound**: Map rows now point to canonical contact `XZ4yChllGBdcsVxhFRDe`. Watch the next real Instagram inbound to confirm it lands on the canonical contact without creating a new duplicate.
@@ -262,9 +367,11 @@ Logs OAuth install events (codes, exchanges).
 
 3. **Register/confirm Unipile Instagram webhook**: Ensure the production Instagram Unipile webhook points to `/webhook/lt-unipile-instagram-new-messages`.
 
-4. **Rebuild Instagram outbound DM**: Only after the bidirectional inbox remains stable, with Instagram account `F2UprZ8aQc6Qm9CYYWU6cg`, account-type guard, reply suppression, and safe cadence.
+4. **Add macro alerting/digest**: Build and verify a lightweight n8n notification path for inbound LinkedIn/Instagram messages after they are successfully posted to GHL Conversations.
 
-5. Do NOT republish Instagram DM Sequence or LinkedIn Follower DM Sequence unless explicitly requested.
+5. **Rebuild Instagram outbound DM**: Only after the bidirectional inbox remains stable, with Instagram account `F2UprZ8aQc6Qm9CYYWU6cg`, account-type guard, reply suppression, and safe cadence.
+
+6. Do NOT republish Instagram DM Sequence or LinkedIn Follower DM Sequence unless explicitly requested.
 
 ## Guardrails (Preserved)
 

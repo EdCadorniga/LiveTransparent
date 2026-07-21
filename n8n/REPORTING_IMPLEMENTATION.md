@@ -13,13 +13,23 @@ It is operational, phase-based, and safe to use before the GA4 property ID arriv
 6. Build the bridge and rollups.
 7. Add QA and publish refresh.
 
-Current live status as of 2026-05-13:
+Current live status as of 2026-07-21:
 - **Active**: `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report Executive Summary API`, `LT - Report QA and Alerts`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, `LT - Report Postgres Bootstrap Apply`.
 - **GA4 Active**: `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`), `LT - GA4 Traffic Rollup Bridge` (`0P2AZcQYWYZjXbRi`).
-- **GSC Active Raw Ingest**: `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) writes raw query/page/site rows and source health, and the Executive Report search section now surfaces an estimated unique visitors proxy from GA4 Organic Search users alongside native GSC metrics.
+- **GSC Active**: `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) writes raw query/page/site rows.
+- **Email Events Active**: `LT - Email Event Ingest` (`ZrqFN8qLKO8eVHDc`) receives GHL email event webhooks (opens, clicks, bounces, unsubscribes, spam) and stores in `Email_Events`. Email campaign metrics (sent, opened, clicked, bounced) are now rolled into `report_daily_summary` and surfaced in the Executive Report.
 - **Inactive/deferred**: `LT - GHL Executive Report Menu Sync` (one-time provision, inactive).
 Current status: GA4 is live, GSC raw ingest is live, the rollups draft has been restored from the active workflow definition, and the published Rollups workflow now includes the daily-summary correction logic directly.
 The published Rollups workflow preserves GA-backed summary, channel, UTM, and landing-page rows so Channel Breakdown and traffic totals survive the CRM rollup pass. GSC search metrics now render in the Executive Report, with GA4 Organic Search users used as the unique-visitor proxy.
+
+### New Sections Added 2026-07-21
+- **Email campaign metrics**: `emails_sent`, `emails_opened`, `emails_clicked`, `emails_bounced`, `emails_unsubscribed`, `emails_complained` columns added to `report_daily_summary`. Populated from `DAN_Release_Log`, `Emerald_Release_Log`, and `Email_Events`.
+- **LinkedIn outreach funnel**: `linkedinFunnel` key in the Executive Report; aggregated from `linkedin_connection_state` (ready → requested → connected → DM active → completed).
+- **Vapi campaign breakdown**: `vapiCampaignBreakdown` (all-time call metrics by campaign) and `vapiQueueDistribution` (pending queue by campaign) from `voice_call_attempt` JOIN `voice_call_queue`.
+- **MQL/SQL tracking**: `mqlSummary` (opportunities in Warm pipeline Qualified (MQL) stage) and `sqlContacts` (contacts with SQL tag) surfaced in the report.
+- **Pool distribution**: `poolDistribution` with counts for brands_pool, dispensaries_pool, vapi_campaign_brand, vapi_campaign_dispensary.
+- **Stage name resolution**: Pipeline and stage names now resolved from GHL stage IDs via CASE mapping, fixing stagemover count (was 0, now 93+).
+- **Voice dialer**: `GHL - Create Call Note` node set to `onError: continueRegularOutput` to prevent execution errors from blocking calls.
 
 ## Live Pattern To Reuse
 The live workflows in this repo generally follow this shape:

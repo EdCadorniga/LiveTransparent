@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-16 (Vapi anti-spam hardening; Instagram/LinkedIn social provider bridge verified)
+Updated: 2026-07-20 (Voice assistants optimized, dialer stuck-queue fix, SimpleTexting GHL Conversations provider LIVE)
 
 ## Source Of Truth
 
@@ -10,15 +10,15 @@ This document is the canonical project status and next-steps reference. It super
 
 ## Current State Summary
 
-- **Voice stack**: ACTIVE since 2026-07-14, hardened 2026-07-16. Intake Poller + Outbound Dialer + Callback published. Poller searches 4 tag pools with rotation, 30/cycle, now removes the source campaign tag after enqueueing to prevent re-discovery. Dialer fires `*/2 13-22 UTC Mon-Fri` (9am ET start). Callback now marks queue `completed` after every end-of-call event. 8-tag blocklist (`vapi_voicemail`, `vapi_voicemail_left`, `vapi_qualified`, `vapi_no_answer`, `vapi_busy`, `vapi_wrong_number`, `vapi_contact_disconnected`, `vapi_dnc`) synced across all 3 workflows with 5-layer defense against spam.
+- **Voice stack**: ACTIVE since 2026-07-14, hardened 2026-07-16, **optimized 2026-07-20**. All 3 outbound assistants (Jordan/Dispensary, Alex/Brand, Savannah/V1) updated: compliance disclosure removed from voicemail, discovery questions restructured to one-at-a-time with turn-taking enforcement, IVR/voicemail disambiguation added, stage-direction/throat-clearing ban, pronunciation fixes, `{{contact_name}}`→`{{first_name}}` variable corrected. Outbound dialer stuck-queue bug fixed: `neverError: true` on GHL lookup node prevents deleted contacts from crashing the run. Intake Poller + Outbound Dialer + Callback published. Poller searches 4 tag pools with rotation, 30/cycle, removes source campaign tag after enqueueing. Dialer fires `*/2 13-22 UTC Mon-Fri` (9am ET start). Callback marks queue `completed` after every end-of-call event. 8-tag blocklist synced across all 3 workflows with 5-layer defense against spam.
 - **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences.
 - **DAN email campaign**: FULLY LIVE AND SENDING since 2026-07-14. 10 templates, 3 GHL workflows, n8n dispatcher active (65/run every 30 min, 1,560/day capacity). ghl_contact_id backfilled 2026-07-13 (13,705 IDs). 181+ contacts queued first day with verified email delivery.
 - **Apollo phone enrichment**: ACTIVE and hardened 2026-07-16. Production path is polling + V4 callback + reaper. Legacy staged webhook orphans were canceled, poller now re-discovers `queued_phone`, callback provider failures map to `callback_failed`, and known blank contacts were backfilled into `queued_phone`.
-- **LinkedIn**: 8 workflows re-enabled 2026-07-10. All pipeline fixes verified intact, including a fail-closed DM reply check, a terminal DM completion tag, and a cycled connect dispatcher on 2026-07-11.
+- **LinkedIn**: Production path is dispatcher -> acceptance/state sync -> canonical 4-message DM sequence. Follower DM and misconfigured Instagram DM sender paths are unpublished. Guardrails include fail-closed reply checks, inbound/reply state sync, terminal DM completion tagging, and GHL `stop_linkedin_dms` suppression.
 - **Instagram**: old DM Sequence is unpublished after it was found using the LinkedIn Unipile account. New inbound bridge is active and posts messages into GHL Conversations under `Instagram via Unipile`.
-- **Social provider bridge**: Instagram and LinkedIn inbound both work through SMS-type custom conversation providers (`LinkedIn: 6a58a14ff3023bea3783c152`, `Instagram: 6a58a1193cdfc36997580a68`). Inbound uses `type: "Custom"`, not `SMS`, and avoids dummy phone/email data. GHL duplicate cleanup consolidated Edmundo Cadorniga to canonical contact `XZ4yChllGBdcsVxhFRDe`; both Instagram chat `yx-R-9J6XdWaFpGOQd1JFA` and LinkedIn chat `60Ult1SrWhOuvuZp1u7nXw` now map there. Detailed handoff lives in `docs/strategy/unipile-ghl-bidirectional-integration.md`.
+- **Social provider bridge**: Instagram and LinkedIn inbound both work through SMS-type custom conversation providers (`LinkedIn: 6a58a14ff3023bea3783c152`, `Instagram: 6a58a1193cdfc36997580a68`). Inbound uses `type: "Custom"`, not `SMS`, and avoids dummy phone/email data. GHL duplicate cleanup consolidated Edmundo Cadorniga to canonical contact `XZ4yChllGBdcsVxhFRDe`; both Instagram chat `yx-R-9J6XdWaFpGOQd1JFA` and LinkedIn chat `60Ult1SrWhOuvuZp1u7nXw` now map there. GHL Conversations is the operator-facing inbox; no dedicated macro dashboard or alert digest is live yet. Detailed handoff and operator runbook live in `docs/strategy/unipile-ghl-bidirectional-integration.md`.
 - **Reporting**: GA4, GHL, GSC ingestion live. Executive report live in GHL.
-- **SMS campaign**: Workflow exports staged in repo. Not yet deployed.
+- **SMS campaign**: SimpleTexting dispatcher is live as of 2026-07-18. SimpleTexting GHL Conversations bidirectional provider is **LIVE** as of 2026-07-20 — separate `SimpleTexting SMS` provider (`6a5b91913953360948dd59f1`), outbound router routes GHL replies through idempotent send to SimpleTexting, inbound posts to both Slack and GHL Conversations, outbound campaign sends mirror into GHL Conversations.
 - **John->Jason migration**: Complete on n8n side. GHL workflows updated. Template keys preserved.
 
 ## Email Campaign — Emerald (Active 2026-07-07)
@@ -255,6 +255,7 @@ The `linkedin_connection_state` table was exhausted (all contacts at `requested`
 - Confirm Unipile Instagram webhook delivery to `/webhook/lt-unipile-instagram-new-messages` in production.
 - `LT - Social Provider Outbound Router` (`kqIi8i1RjFAZKrK3`) direct webhook path is fixed and routes canonical contact `XZ4yChllGBdcsVxhFRDe` to Instagram and LinkedIn via Unipile successfully using canonical provider IDs.
 - Optionally run a controlled LinkedIn GHL UI outbound reply test from conversation `Ze8o3KbsrwuAXQ3KK5ge`.
+- Build and verify a lightweight macro alert/digest path for inbound LinkedIn/Instagram messages after they are successfully posted to GHL Conversations.
 - Rebuild Instagram outbound/follower DM only after the bidirectional inbox path is stable and guarded.
 
 ## Apollo Phone Enrichment (Repaired 2026-07-14, Audited + Hardened 2026-07-15)
@@ -327,9 +328,43 @@ Full review found 2 CRITICAL bugs (`queued_phone` invisible to reaper, Intake Po
 - Backfilled 6 previously blank contacts into `queued_phone` on 2026-07-16:
   `VXwNjbZyBm1DMNljim6g`, `K9otZl89OAFlWmGk8fY7`, `mUgGwrkOB8CW8reYmpMd`, `e7eu0xGixu3ATmA61OqN`, `KA8xGJbf0QZHxXV6HXWF`, `8uobjmgriFLAdtmHfjk7`.
 
-## SMS Campaign (Staged)
+## SMS Campaign — SimpleTexting via GHL (LIVE 2026-07-20)
 
-Workflow exports staged in repo from docs/outreach/outreach_messages.docx. Not yet live deployed. Requires final GHL pool filter body for dispatcher.
+GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5b91913953360948dd59f1`), SMS-type, Custom Conversation Provider, Delivery URL: `https://automations.livetransparent.com/webhook/lt-simpletexting-provider-outbound`.
+
+### Live n8n Workflow State
+
+| Workflow | ID | Status | Role |
+|----------|----|--------|------|
+| LT - SimpleTexting Provider Outbound Router | f4VoO1lBWkYRcQai | Active | Receives GHL outbound messages at `/webhook/lt-simpletexting-provider-outbound`, validates provider ID, normalizes phone to E.164, sends via idempotent boundary → SimpleTexting API. Skips business-hours guard for human replies. |
+| LT - SimpleTexting Inbound Reply (Webhook) | i0pROHpFtN4LYR0Q | Active | Slack alert preserved. Now also posts inbound messages to GHL Conversations under `SimpleTexting SMS` via `type: "Custom"` + `conversationProviderId`. |
+| LT - SimpleTexting SMS Send (Webhook, Staged) | Q3Ivnwe4z2Y3cD7A | Active | Mirrors successful outbound campaign sends into GHL Conversations under `SimpleTexting SMS`. |
+| LT - SMS Idempotent Send | gwaEpWDpTIwsafi8 | Active | Canonical deduplicated SMS boundary. Called by outbound router and campaign send paths. |
+| LT - SimpleTexting Pool Dispatcher (Staged) | usxYXSuc4ahw40V3 | Active | `sms_drip`, 10/run, weekdays 10:15am + 3:00pm ET, `defaultDryRun=false`. |
+| LT - SimpleTexting Campaign Sequencer (Staged) | 7mSiivR3NhtLIcNz | Active | 6-step flow, 2-day inter-step delay. |
+| LT - SimpleTexting Delivery Events (Webhook) | AEi1VCzkLvaYFr4U | Active | No changes needed. |
+| LT - SimpleTexting Unsubscribe Events (Webhook) | IyBKMkpYQ7pa0C8V | Active | No changes needed. |
+
+### DB Table
+
+`simpletexting_conversation_map` — UNIQUE on `(conversation_provider_id, alt_id)`, with indexes on `ghl_contact_id` and `normalized_phone`. Created on first outbound router execution.
+
+### Phone Format Contract
+
+- Canonical phone: E.164, e.g. `+17144696406`.
+- Conversation `altId`: `simpletexting:+17144696406`.
+- `simpletexting_conversation_map.normalized_phone`: E.164 only.
+- Outbound router has full E.164 normalization (`normalizePhoneE164`). AltId for inbound/outbound mirroring uses `simpletexting:+1<10-digit>` which works for US numbers. Full E.164 migration across delivery/unsubscribe workflows is deferred.
+- `simpletext_replied` blocks automated sends; `simpletext_stop` blocks all sends including human GHL provider replies.
+
+### Guardrails
+
+- Human replies bypass business-hours limits but still enforce STOP suppression.
+- Outbound router validates `conversationProviderId` against `6a5b91913953360948dd59f1`.
+- Idempotent send deduplicates on `(contact_id, workflow_id, message_hash)` per day.
+- `simpletext_stop` tag check in outbound router blocks provider-originated sends to opted-out contacts.
+- SMS Send mirroring runs on `onError: continueRegularOutput` so mirror failures don't block sends.
+- Inbound reply still posts to Slack AND GHL Conversations; Slack alert preserved as secondary channel.
 
 ## Reporting
 
@@ -364,17 +399,17 @@ GA4, GHL, and GSC ingestion are all live. Executive report live in GHL. Report r
 
 ### 1. Vapi Campaign Monitoring
 
-- Monitor Intake Poller executions to confirm steady 30/cycle churn through all 4 pools — verify dedup (Fix #3) prevents double-enqueue
-- Monitor Outbound Dialer when it activates at 14:00 UTC today — verify atomic lock (Fix #1) prevents duplicate calls
-- Watch for GHL rate limiting on downstream nodes (Trigger Apollo Enrichment, Remove Tag nodes) — continueOnFail (Fix #4) prevents workflow crashes from flaky deletions
+- ~~Monitor Intake Poller executions to confirm steady 30/cycle churn through all 4 pools~~ — Confirmed: poller running successfully every 10 min throughout 2026-07-20 dialer outage
+- ~~Monitor Outbound Dialer~~ — Dialer recovered 2026-07-20 after stuck-queue fix (contact `AX3wfQNpRwm6DG0HgUE2` deleted from GHL, `neverError: true` applied to lookup, `onError: continueRegularOutput` on call note)
+- Watch for GHL rate limiting on downstream nodes
 - Verify `report_referral` tool calls now get proper ack in Vapi logs (Fix #2)
 
 ### 2. Voice Hardening
 
+- Test live calls with both Brand and Dispensary assistants after system prompt updates (discovery questions should flow one-at-a-time, no disclosure on voicemail, no "clears throat", "from Transparent eCom" not "with a transparent")
+- Consider switching Jordan's voice from Nico to Emma/Layla (both already fallbacks) to eliminate remaining TTS artifacts
 - Move remaining secrets out of Config nodes into n8n credentials or env-backed config
 - Verify Vapi dashboard tool webhook URLs point to canonical callback
-- Run adversarial test calls against both campaign assistants
-- Monitor timer system for duplicate warning/end-call events — 60s dedup window (Fix #5) should prevent this
 
 ### 3. Emerald Email Campaign Ramp
 
@@ -418,8 +453,8 @@ Monitor first week of dispatcher runs. Verify Email_Events data quality. Increas
 ### 9. Cleanup and Adjacent Automation
 
 - ~~Build automated LinkedIn DM suppression workflow~~ — DONE 2026-07-15. GHL tag `stop_linkedin_dms` → webhook → state table terminal. Full audit confirms all 3 send paths blocked.
-- Deploy staged SimpleTexting SMS workflows with live GHL pool query
-- Confirm SimpleTexting reply handler posts to #lead and suppresses future sends
+- Build the separate `SimpleTexting SMS` GHL Custom Conversation Provider bridge after the user provides `conversationProviderId`; keep the existing SimpleTexting dispatcher live at low volume.
+- Confirm first real SimpleTexting inbound reply posts to the existing Slack alert and suppresses future automated sends; then add GHL Conversations posting as the primary operator inbox.
 - Retry and enable blocked GSC ingest workflow
 - Monitor LinkedIn outbound guardrails, completion tagging, and reply-state lag after the fail-closed patch
 - Clean up temporary fix scripts (scripts/fix_*.py, fix_*.js)
@@ -436,4 +471,5 @@ Monitor first week of dispatcher runs. Verify Email_Events data quality. Increas
 6. **Emerald ramp** — monitor dispatcher, verify data quality
 7. Reporting depth
 8. Meta attribution
-9. Cleanup and adjacent automation
+9. SimpleTexting GHL Conversations provider bridge
+10. Cleanup and adjacent automation

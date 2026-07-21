@@ -193,3 +193,9 @@ These live workflow families create or mutate the records the report reads:
 - GHL closed won revenue
 - GHL pipeline movement and stage drop-off
 - One dashboard surface with source labels
+- Email campaign metrics (sent, opened, clicked, bounced, unsubscribed, complained) — added 2026-07-21
+- Email engagement rates (open rate, click rate, bounce rate) — added 2026-07-21
+- LinkedIn outreach funnel (ready → requested → connected → DM active → completed) — added 2026-07-21
+- Vapi voice campaign breakdown (calls by campaign, queue distribution) — added 2026-07-21
+- MQL/SQL contact tracking (opportunities in MQL stage, contacts with SQL tag) — added 2026-07-21
+- Pool distribution (brands, dispensaries, vapi campaign pools) — added 2026-07-21

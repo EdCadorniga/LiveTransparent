@@ -59,6 +59,10 @@ The executive report (`reports/embed/executive/index.html`) surfaces data from:
 | Attribution Bridge | `LT - Report Attribution Bridge` | Traffic → contact matching |
 | Daily Rollups | `LT - Report Daily Rollups` | Aggregated summary, channel, UTM, landing page tables |
 | Executive API | `LT - Report Executive Summary API` | JSON served to embed via n8n webhook |
+| Email Events | `LT - Email Event Ingest` | Opens, clicks, bounces, unsubscribes, spam complaints |
+| LinkedIn State | `linkedin_connection_state` | Connection funnel: ready → requested → connected → DM → completed |
+| Vapi Voice | `voice_call_attempt` + `voice_call_queue` | Call outcomes by campaign, pending queue distribution |
+| MQL/SQL | `report_raw_ghl_opportunities` + `report_raw_ghl_contacts` | MQL (Warm pipeline Qualified stage), SQL (tagged contacts) |
 
 ### GHL Custom Fields Captured for Reporting
 - `UTM Source First/Last`, `UTM Medium First/Last`, `UTM Campaign First/Last`, `UTM Content First/Last`, `UTM Term First/Last`, `UTM Landing Page First/Last`
@@ -155,9 +159,17 @@ Minimum v1 output from the executive report:
 - [x] Pipeline stage velocity (avg days per stage, per-opp timeline)
 - [x] Sales Detail panel (win rate, deals by stage, pipeline value)
 - [x] GSC clicks and impressions
+- [x] Email campaign metrics (sent, opened, clicked, bounced, unsubscribed, complained) — added 2026-07-21
+- [x] Email engagement rates (open rate, click rate, bounce rate) — added 2026-07-21
+- [x] LinkedIn outreach funnel (ready → requested → connected → DM active → completed) — added 2026-07-21
+- [x] Vapi voice campaign breakdown (calls by campaign, answered, qualified, booked) — added 2026-07-21
+- [x] Vapi queue distribution (pending calls by campaign) — added 2026-07-21
+- [x] MQL summary (active + total opportunities in Warm/Qualified MQL) — added 2026-07-21
+- [x] SQL contacts count (contacts with SQL tag) — added 2026-07-21
+- [x] Pool distribution (brands, dispensaries, vapi brand/dispensary pool tags) — added 2026-07-21
+- [x] Stage mover count (fixed from 0 to 93 via stage ID resolution) — added 2026-07-21
 - [ ] Meta raw spend/clicks/impressions (deferred)
 - [ ] Matched funnel by landing page (after tracking is tightened)
-- [ ] Sequence event performance (opens, replies, clicks, bounces, unsubscribes)
 
 ### Pipeline Movement Tracking
 
