@@ -23,7 +23,9 @@ const processCode = node({
       jsCode: `const GHL_API_KEY = $env.GHL_PIT || $env.GHL_API_KEY;
 const GHL_LOCATION_ID = $env.GHL_LOCATION_ID || 'Zwz4relUXVPxx8uohnjV';
 const BASE_URL = 'https://services.leadconnectorhq.com';
-const ENQUEUE_URL = 'https://automations.livetransparent.com/webhook/voice-queue-enqueue';
+ const ENQUEUE_URL = 'https://automations.livetransparent.com/webhook/voice-queue-enqueue';
+ const ENQUEUE_SECRET = process.env.VOICE_QUEUE_ENQUEUE_SECRET;
+ if (!ENQUEUE_SECRET) throw new Error('VOICE_QUEUE_ENQUEUE_SECRET is required');
 const ENRICHMENT_STATUS = 'rgYJ7UqoznGoe3WeUAtH';
 const ENRICH_PHONE_VIA_APOLLO = 'gdJDuZelIxEBE6n9i5Q6';
 
@@ -68,7 +70,10 @@ async function setEnrichFlag(contactId) {
 async function enqueueContact(contactId, phone, firstName, timezone) {
   const res = await fetch(ENQUEUE_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-LT-Voice-Queue-Secret': ENQUEUE_SECRET,
+    },
     body: JSON.stringify({
       contact_id: contactId, phone, first_name: firstName,
       campaign_id: 'default', timezone

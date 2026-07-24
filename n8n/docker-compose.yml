@@ -1,6 +1,6 @@
 services:
   n8n:
-    image: 'n8nio/n8n:2.28.6'
+    image: 'n8nio/n8n:2.31.5'
     restart: unless-stopped
     labels:
       - 'traefik.enable=true'

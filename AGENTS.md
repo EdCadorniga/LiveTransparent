@@ -27,7 +27,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Deployed via Coolify on a VPS.
 - Public hosts: `automations.livetransparent.com` for n8n and `reports.livetransparent.com` for the report host.
 - Prefer Coolify internal service-to-service calls when possible.
-- n8n target version: `2.28.6`.
+- n8n target version: `2.31.5` (native Schedule Trigger is the scheduling standard; do not add OS/Coolify cron jobs for workflows).
 - Canonical MCP: `n8n-lt`.
 - Root `.env` is the reference copy; Coolify env vars are the deployed source of truth.
 
@@ -133,7 +133,7 @@ POST to `https://automations.livetransparent.com/webhook/lt-linkedin-connection-
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
 - **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans / `options`. Use `setNodeParameter` for single-path edits on Set v3.4 nodes. If that also fails, use direct n8n REST `PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` (note: PUT auto-publishes and validates all node credentials). For Code nodes, both `updateNodeParameters` and `setNodeParameter` are safe. Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
 - **`setNodeParameter` silent failure (observed 2026-07-06):** On Code nodes and HTTP Request nodes, `setNodeParameter` may report success without modifying parameters. **Use `updateNodeParameters` with `replace: true`** as the primary mutation method for both. Always verify with a fresh `GET` after mutation.
-- **n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` return fields that violate the MCP output schema. **Workaround:** Use direct REST API calls for workflow listing and details:
+- **Historical n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` returned fields that violated the MCP output schema. The deployment target is now n8n `2.31.5`; retain the REST workaround if the MCP schema issue recurs:
   ```bash
   curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows?active=true&limit=100"
   curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows/{workflowId}"
@@ -203,10 +203,10 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 | LT - Vapi Campaign Queue Feeder | RFIZ9Bcfl3Yvms2b | Inactive helper |
 | LT - Emerging Pool Go Live Helper | OGnADUQKd5z5f905 | Manual helper |
 | LT - Voice Agent V1 Vapi Callback + Tools | fx4UvKUWbqJEY3LK | Active |
-| LT - Voice Agent V1 Outbound Dialer (Vapi) | r7UjWLndmc6EqEUW | Active (polls `*/2 13-22 UTC Mon-Fri`, ET-forward schedule) |
+| LT - Voice Agent V1 Outbound Dialer (Vapi) | r7UjWLndmc6EqEUW | Active (native Schedule Trigger every 2 minutes; business-hours guard) |
 | LT - Voice Queue Vapi Intake Poller | bYk1Ai6MJLyhTsDZ | Active (polls every 10 min, 30 contacts/cycle, tag rotation) |
 | LT - Voice Queue Enqueue | XzcpOBi9YcIhJPck | Active |
-| LT - Voice Dequeue Next | KsBMFcz1YpBGrjDW | Active |
+| LT - Voice Dequeue Next | KsBMFcz1YpBGrjDW | **Unpublished** (explicit helper only; not an automatic call-start path) |
 | LT - Call Outcome Ingest | PUCfTZBANSPcgS0c | Active |
 | LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Active (hourly, no Slack reporting) |
 | LT - Voice Campaign Brand (Alex) | 1d7c5d42-f0a4-4b58-9494-dbda3be3c657 | Active (optimized 2026-07-20) |
@@ -227,7 +227,7 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 - Added `brands_pool`/`dispensaries_pool` to search tags (was only searching campaign tags)
 - Dedup: SQL `WHERE NOT EXISTS` prevents re-enqueue + `Set` dedup within each run
 - **Timezone inference**: added state-to-timezone mapping in both intake poller (`Classify Contacts`) and outbound dialer (`Code - Check Phone`) since most pool contacts lack timezone data. Maps US state/Canadian province codes to IANA timezone names (e.g. `NY`→`America/New_York`, `CA`→`America/Los_Angeles`).
-- **ET-forward dialer schedule**: cron shifted from `*/2 14-22` to `*/2 13-22` UTC to start calling at 9am ET instead of 10am ET. Initial business hours guard widened from 9-17 to 8-18 CT so it doesn't gate early ET calls.
+- **Native scheduling**: the dialer uses n8n's Schedule Trigger at a two-minute interval. The workflow's timezone-aware business-hours guard remains the authority for whether a call may start; no external cron job is required.
 
 **Fixes applied 2026-07-16 (anti-spam):**
 - **Campaign tag removal**: After enqueueing, the poller now removes the source campaign tag (e.g. `brands_pool`) instead of the hardcoded `vapi_queue` tag. This prevents contacts from being re-found in subsequent rotation cycles.
@@ -464,12 +464,15 @@ Root-cause audit triggered by a contact complaint about repeated Vapi calls afte
 
 **Bug**: `Remove Tag - Enqueued` always removed `vapi_queue`, but contacts were found by campaign tags like `brands_pool`, `dispensaries_pool`, `vapi_campaign_brand`, `vapi_campaign_dispensary`. The campaign tag never got removed, so contacts were re-found every 40-minute rotation cycle.
 
-**Fix**: 
+**2026-07-16 Fix (incomplete)**:
 - `Classify Contacts` now outputs `source_tag` (the matched campaign tag) with every enqueue result
-- `Transform Postgres Output` passes `source_tag` through to tag removal
-- `Remove Tag - Enqueued` removes `$json.source_tag` (the actual campaign tag) instead of hardcoded `vapi_queue`
 - `removeTag()` function accepts `tagsToRemove` array argument
-- `removeFromQueue` check (was `hasContactTag('vapi_voicemail') || hasContactTag('vapi_qualified')`) replaced by `hasAnyBlocklistTag()` that checks all 8 outcome tags
+- `removeFromQueue` check replaced by `hasAnyBlocklistTag()` checking all 8 outcome tags
+- **BUT**: `Transform Postgres Output` couldn't read `source_tag` — Postgres `INSERT...RETURNING` only returns DB columns, not the extra `source_tag` field. `Remove Tag - Enqueued` silently fell back to removing `"vapi_queue"`, which contacts never had. Campaign tag stayed on first enqueue.
+
+**2026-07-22 Fix (this session)**: Rewrote `Transform Postgres Output` to look up `source_tag` from `$("Classify Contacts").all()` by `contact_id` using a pre-built lookup map, instead of expecting Postgres to pass it through. `Remove Tag - Enqueued` now receives the real campaign tag on every run.
+
+**Self-healing behavior**: On the next poller cycle after a contact gets a blocklist outcome tag, `Classify Contacts` matches it in the `skipped` path (not the `enqueue` path). The `skipped` path resolves `matchedCampaignTag` in-scope before any Postgres call and removes the campaign tag inline. So even before this fix, contacts eventually self-cleaned within 1 cycle after getting a terminal tag — but the first enqueue always left the campaign tag intact.
 
 #### 2. EOC callback never marked queue completed (fx4UvKUWbqJEY3LK) — CRITICAL
 
@@ -518,6 +521,28 @@ BLOCKLIST_TAGS = ['vapi_voicemail', 'vapi_voicemail_left', 'vapi_qualified', 'va
 Before: Apply Tags → Should Re-enrich Phone
 After:  Apply Tags → Postgres - Mark Queue Completed → Should Re-enrich Phone
 ```
+
+### Vapi Call-Path Hardening (2026-07-22 — 2026-07-23)
+
+- n8n target upgraded to `2.31.5`; recurring workflows use native Schedule Trigger nodes, not OS/Coolify cron jobs.
+- `Code - Detect Tool vs Callback` now reads the original `Webhook - Vapi` input because the Config Set node replaces the current item.
+- Callback normalization now reads Vapi IDs from `message.assistant.metadata`, `message.assistant.variableValues`, and `artifact.variables`.
+- Callback completion-note JSON is built as an object expression, avoiding invalid JSON when summaries contain quotes or newlines.
+- GHL note/tag failures continue without blocking Postgres queue completion; queue completion passes query replacements as an array.
+- The callback no longer invokes `LT - Voice Dequeue Next`. That helper is unpublished and must remain an explicit/manual helper, not an automatic call-start path.
+- The outbound dialer uses a native two-minute Schedule Trigger plus the existing timezone-aware business-hours guard.
+- The outbound dialer atomically changes a selected queue row from `pending` to `in_progress` before calling Vapi. Ambiguous Vapi/API failures cannot be retried after the stale-lock window; no-phone and outside-hours release branches explicitly restore `pending`.
+
+### Vapi/n8n Final Hardening (2026-07-23)
+
+- n8n is now documented and operated at target version `2.31.5`; recurring workflows use native Schedule Trigger nodes rather than OS/Coolify cron.
+- Callback timer state keeps the 60-second duplicate-start guard and now prunes ended/inactive entries older than 30 minutes.
+- `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) requires `X-LT-Voice-Queue-Secret`; the caller reference is `VOICE_QUEUE_ENQUEUE_SECRET`. Missing authentication fails closed before queue insertion.
+- `LT - Apollo Phone Enrichment Polling` reports `apollo_phone_request_failed` when the asynchronous Apollo phone request fails after profile processing.
+- `LT - Apollo Queued Timeout Reaper` now connects `Build Slack Summary` to `Post to Slack #leads`.
+- Removed the stale response-code option from `LT - Call Outcome Ingest`.
+- Final live workflow versions were checked after each mutation; `versionId` matched `activeVersionId` for all changed workflows.
+- Safe queue smoke checks passed: unauthenticated requests return `400 unauthorized`; authenticated malformed requests reach validation and do not insert a queue row. Live Vapi control URLs remain untested because exercising them requires an actual call.
 
 ## LinkedIn Workflow Fixes (2026-07-14 — 2026-07-15)
 

@@ -315,26 +315,26 @@
           <div class="panel">
             <div class="panel-head">
               <h2>Meta Ads Overview</h2>
-              <span>GA4 + GHL Attribution</span>
+              <span>Meta Ads source data</span>
             </div>
             <div class="panel-body">
               <div class="mini-grid-4" id="meta-summary-grid">
-                <div class="mini"><strong>Recorded Visits</strong><div id="meta-visits">—</div></div>
-                <div class="mini"><strong>Contacts</strong><div id="meta-contacts">—</div></div>
-                <div class="mini"><strong>Opps</strong><div id="meta-opps">—</div></div>
-                <div class="mini"><strong>Booked</strong><div id="meta-booked">—</div></div>
+                <div class="mini"><strong>Spend</strong><div id="meta-visits">—</div></div>
+                <div class="mini"><strong>Clicks</strong><div id="meta-contacts">—</div></div>
+                <div class="mini"><strong>Impressions</strong><div id="meta-opps">—</div></div>
+                <div class="mini"><strong>Leads</strong><div id="meta-booked">—</div></div>
               </div>
-              <div class="footer-note">Meta-attributed traffic and downstream GHL conversions from GA4 recorded visits and UTM data.</div>
+              <div class="footer-note">Direct Meta Ads delivery metrics. GA4/GHL attribution remains available in the campaign and acquisition sections when UTM data is present.</div>
             </div>
           </div>
           <div class="panel">
             <div class="panel-head">
               <h2>Meta Campaign Performance</h2>
-              <span>Attribution</span>
+              <span>Meta Ads source data</span>
             </div>
             <div class="panel-body">
               <div class="bar-list" id="meta-campaign-list"><div class="loading">No Meta data yet...</div></div>
-              <div class="footer-note">Ranked by attributed contact volume. Detects Facebook, Instagram, Meta, FB, IG, AN, AdsManager, utm_id in source/medium/campaign.</div>
+              <div class="footer-note">Ranked by Meta Ads spend for the selected window. Attribution from GA4/GHL is shown separately when available.</div>
             </div>
           </div>
         </section>
@@ -845,20 +845,25 @@
         function renderMetaAttribution(data) {
           var rows = Array.isArray(data.utmBreakdown) ? data.utmBreakdown.filter(isMetaAttributedRow) : [];
           var contacts = Array.isArray(data.metaAttribution) ? data.metaAttribution : [];
+          var raw = data.metaAdsOverview || {};
+          var rawCampaigns = Array.isArray(raw.campaigns) ? raw.campaigns : [];
+          var hasRaw = Number(raw.impressions || 0) > 0 || Number(raw.clicks || 0) > 0 || Number(raw.spend || 0) > 0 || Number(raw.leads || 0) > 0;
           var totalVisits = rows.reduce(function (acc, i) { return acc + Number(i.sessions || 0); }, 0);
           var totalContacts = contacts.reduce(function (acc, i) { return acc + Number(i.contacts || 0); }, 0);
           var totalOpps = contacts.reduce(function (acc, i) { return acc + Number(i.opportunities || 0); }, 0);
           var totalBooked = contacts.reduce(function (acc, i) { return acc + Number(i.bookedContacts || 0); }, 0);
           var el;
-          el = document.getElementById("meta-visits"); if (el) el.textContent = formatNumber(totalVisits);
-          el = document.getElementById("meta-contacts"); if (el) el.textContent = formatNumber(totalContacts);
-          el = document.getElementById("meta-opps"); if (el) el.textContent = formatNumber(totalOpps);
-          el = document.getElementById("meta-booked"); if (el) el.textContent = formatNumber(totalBooked);
-          renderBars(document.getElementById("meta-campaign-list"), contacts.slice(0, 12).map(function (i) {
+          el = document.getElementById("meta-visits"); if (el) el.textContent = hasRaw ? formatCurrency(raw.spend || 0) : formatNumber(totalVisits);
+          el = document.getElementById("meta-contacts"); if (el) el.textContent = hasRaw ? formatNumber(raw.clicks || 0) : formatNumber(totalContacts);
+          el = document.getElementById("meta-opps"); if (el) el.textContent = hasRaw ? formatNumber(raw.impressions || 0) : formatNumber(totalOpps);
+          el = document.getElementById("meta-booked"); if (el) el.textContent = hasRaw ? formatNumber(raw.leads || 0) : formatNumber(totalBooked);
+          renderBars(document.getElementById("meta-campaign-list"), hasRaw ? rawCampaigns.map(function (i) {
+            return { label: i.campaign || "Unknown", sessions: Number(i.spend || 0), sub: "spend:" + formatCurrency(i.spend || 0) + " clicks:" + formatNumber(i.clicks || 0) + " impressions:" + formatNumber(i.impressions || 0) + " leads:" + formatNumber(i.leads || 0) };
+          }) : contacts.slice(0, 12).map(function (i) {
             var label = (i.campaign && i.campaign !== "unknown") ? i.campaign : (i.source || "Meta");
             if (i.medium && i.medium !== "unknown") label += " (" + i.medium + ")";
             return { label: label, sessions: i.contacts || 0, sub: "contacts:" + formatNumber(i.contacts || 0) + " opps:" + formatNumber(i.opportunities || 0) + " booked:" + formatNumber(i.bookedContacts || 0) };
-          }), "No Meta-attributed contacts in this window.");
+          }), hasRaw ? "No Meta Ads delivery data in this window." : "No Meta-attributed contacts in this window.");
         }
         function renderContactSources(data) {
           var sources = Array.isArray(data.contactSources) ? data.contactSources : [];

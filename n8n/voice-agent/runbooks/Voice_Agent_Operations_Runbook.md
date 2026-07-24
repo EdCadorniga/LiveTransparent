@@ -21,6 +21,8 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 - Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
 - Verify DNC source of truth and queue feed workflow are active.
 - Confirm archived workflows are not active in n8n.
+- Confirm n8n is running `2.31.5` and recurring workflows use native Schedule Trigger nodes.
+- Confirm `VOICE_QUEUE_ENQUEUE_SECRET` is configured for callers of `/webhook/voice-queue-enqueue`.
 
 ## Deployment sequence
 1. Restore or update `n8n-workflow/lt-voice-agent-vapi-callback-v1-merged.json` for the canonical callback/tool router if a rebuild is required.
@@ -66,5 +68,7 @@ Do not reintroduce the older split callback workflow into production.
 - Verify queue rows are locked on claim and are only eligible again after the stale lock window.
 - Verify archived workflows remain archived and are not active.
 - Verify the vapi\_\* tags are applied correctly on a sample of completed calls.
+- Verify callback timer records older than 30 minutes are pruned.
+- Verify unauthenticated enqueue requests fail closed before database insertion.
 - Verify the dialer selects the oldest contact within the lowest attempt tier before any repeat passes.
 - Spot-check that failed/null disposition calls did not receive auto tags (expected).

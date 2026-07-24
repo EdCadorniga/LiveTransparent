@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-20 (Voice assistants optimized, dialer stuck-queue fix, SimpleTexting GHL Conversations provider LIVE)
+Updated: 2026-07-24 (n8n 2.31.5 upgrade, Vapi hardening, SimpleTexting send fix)
 
 ## Source Of Truth
 
@@ -10,7 +10,8 @@ This document is the canonical project status and next-steps reference. It super
 
 ## Current State Summary
 
-- **Voice stack**: ACTIVE since 2026-07-14, hardened 2026-07-16, **optimized 2026-07-20**. All 3 outbound assistants (Jordan/Dispensary, Alex/Brand, Savannah/V1) updated: compliance disclosure removed from voicemail, discovery questions restructured to one-at-a-time with turn-taking enforcement, IVR/voicemail disambiguation added, stage-direction/throat-clearing ban, pronunciation fixes, `{{contact_name}}`→`{{first_name}}` variable corrected. Outbound dialer stuck-queue bug fixed: `neverError: true` on GHL lookup node prevents deleted contacts from crashing the run. Intake Poller + Outbound Dialer + Callback published. Poller searches 4 tag pools with rotation, 30/cycle, removes source campaign tag after enqueueing. Dialer fires `*/2 13-22 UTC Mon-Fri` (9am ET start). Callback marks queue `completed` after every end-of-call event. 8-tag blocklist synced across all 3 workflows with 5-layer defense against spam.
+- **Voice stack**: ACTIVE since 2026-07-14, hardened 2026-07-16, optimized 2026-07-20, and call-path hardened 2026-07-23. All 3 outbound assistants (Jordan/Dispensary, Alex/Brand, Savannah/V1) updated: compliance disclosure removed from voicemail, discovery questions restructured to one-at-a-time with turn-taking enforcement, IVR/voicemail disambiguation added, stage-direction/throat-clearing ban, pronunciation fixes, `{{contact_name}}`→`{{first_name}}` variable corrected. The dialer uses n8n's native Schedule Trigger every 2 minutes plus a timezone-aware business-hours guard; no external cron job is used. The callback webhook no longer automatically invokes the dequeue helper, and `LT - Voice Dequeue Next` is unpublished so it cannot start unscheduled calls. Callback metadata extraction, GHL note JSON handling, queue completion parameters, tag failure handling, and the 8-tag plus DNC suppression blocklist were hardened. The dialer now marks selected rows `in_progress` before the Vapi request, preventing ambiguous request failures from retrying the same contact; no-phone and outside-hours branches restore `pending`. Poller searches 4 tag pools with rotation, 30/cycle, and removes the source campaign tag after enqueueing. Post-upgrade verification still shows no new dialer executions after republishing, so scheduler health remains an open operational issue.
+- **n8n runtime**: upgraded to target `2.31.5`. Native Schedule Trigger is the standard for recurring workflows. The Python task-runner warning during deployment is expected for JavaScript-only workflows; the transient database ping timeout recovered during startup. A callback timer gate fix was published after finding that skipped warning/end actions could still reach their Vapi HTTP nodes. A subsequent dialer execution remains queued as `new` with no start time, so scheduler/worker health remains an open operational issue.
 - **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences.
 - **DAN email campaign**: FULLY LIVE AND SENDING since 2026-07-14. 10 templates, 3 GHL workflows, n8n dispatcher active (65/run every 30 min, 1,560/day capacity). ghl_contact_id backfilled 2026-07-13 (13,705 IDs). 181+ contacts queued first day with verified email delivery.
 - **Apollo phone enrichment**: ACTIVE and hardened 2026-07-16. Production path is polling + V4 callback + reaper. Legacy staged webhook orphans were canceled, poller now re-discovers `queued_phone`, callback provider failures map to `callback_failed`, and known blank contacts were backfilled into `queued_phone`.
@@ -18,7 +19,7 @@ This document is the canonical project status and next-steps reference. It super
 - **Instagram**: old DM Sequence is unpublished after it was found using the LinkedIn Unipile account. New inbound bridge is active and posts messages into GHL Conversations under `Instagram via Unipile`.
 - **Social provider bridge**: Instagram and LinkedIn inbound both work through SMS-type custom conversation providers (`LinkedIn: 6a58a14ff3023bea3783c152`, `Instagram: 6a58a1193cdfc36997580a68`). Inbound uses `type: "Custom"`, not `SMS`, and avoids dummy phone/email data. GHL duplicate cleanup consolidated Edmundo Cadorniga to canonical contact `XZ4yChllGBdcsVxhFRDe`; both Instagram chat `yx-R-9J6XdWaFpGOQd1JFA` and LinkedIn chat `60Ult1SrWhOuvuZp1u7nXw` now map there. GHL Conversations is the operator-facing inbox; no dedicated macro dashboard or alert digest is live yet. Detailed handoff and operator runbook live in `docs/strategy/unipile-ghl-bidirectional-integration.md`.
 - **Reporting**: GA4, GHL, GSC ingestion live. Executive report live in GHL.
-- **SMS campaign**: SimpleTexting dispatcher is live as of 2026-07-18. SimpleTexting GHL Conversations bidirectional provider is **LIVE** as of 2026-07-20 — separate `SimpleTexting SMS` provider (`6a5b91913953360948dd59f1`), outbound router routes GHL replies through idempotent send to SimpleTexting, inbound posts to both Slack and GHL Conversations, outbound campaign sends mirror into GHL Conversations.
+- **SMS campaign**: SimpleTexting dispatcher is live as of 2026-07-18. On 2026-07-24, the send boundary was fixed and published: campaign messages now use SimpleTexting `AUTO` mode instead of hardcoded `SINGLE_SMS_STRICTLY`, failed provider claims are retryable, and GHL conversation mirroring requires a real provider message ID. A safe simulation passed; the next scheduled live run must confirm provider delivery.
 - **John->Jason migration**: Complete on n8n side. GHL workflows updated. Template keys preserved.
 
 ## Email Campaign — Emerald (Active 2026-07-07)
@@ -135,14 +136,14 @@ Callback webhook: https://automations.livetransparent.com/webhook/lt-voice-agent
 |----------|----|----------|
 | LT - Voice Agent V1 Vapi Callback + Tools | fx4UvKUWbqJEY3LK | Webhook |
 | LT - Call Outcome Ingest | PUCfTZBANSPcgS0c | Webhook |
-| LT - Voice Dequeue Next | KsBMFcz1YpBGrjDW | Webhook |
+| LT - Voice Dequeue Next | KsBMFcz1YpBGrjDW | Unpublished helper |
 | LT - Voice Queue Enqueue | XzcpOBi9YcIhJPck | Webhook |
 | LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Hourly (monitors queued + queued_phone) |
 | LT - Campaign Contact Classifier | IduCoT5YOs0g2faT | Manual |
 | LT - Vapi Campaign Queue Feeder | RFIZ9Bcfl3Yvms2b | Inactive helper |
 | LT - Emerging Pool Go Live Helper | OGnADUQKd5z5f905 | Manual helper |
-| LT - Voice Agent V1 Outbound Dialer (Vapi) | r7UjWLndmc6EqEUW | Active (polls `*/2 13-22 UTC Mon-Fri`, ET-forward schedule) |
-| LT - Voice Queue Vapi Intake Poller | bYk1Ai6MJLyhTsDZ | Active (polls every 10 min, 30 contacts/cycle, tag rotation) |
+| LT - Voice Agent V1 Outbound Dialer (Vapi) | r7UjWLndmc6EqEUW | Active (native Schedule Trigger every 2 minutes; business-hours guard) |
+| LT - Voice Queue Vapi Intake Poller | bYk1Ai6MJLyhTsDZ | Active (native Schedule Trigger every 10 min, 30 contacts/cycle, tag rotation) |
 
 ### Fixes Applied — Original (2026-07-14)
 
@@ -154,7 +155,7 @@ Callback webhook: https://automations.livetransparent.com/webhook/lt-voice-agent
 - **Pool tag search**: added `brands_pool` (3,024) and `dispensaries_pool` (7,953) to search tags alongside `vapi_campaign_brand` (926) and `vapi_campaign_dispensary` (19)
 - **Tag rotation**: cycles through one tag per 10-min run to ensure all pools are scanned evenly
 - **Timezone inference**: added state-to-timezone mapping in both intake poller (`Classify Contacts`) and outbound dialer (`Code - Check Phone`). Maps US state/Canadian province codes to IANA timezone names (e.g. `NY`→`America/New_York`). Most pool contacts lack timezone data, so this ensures ET contacts get called at 9am ET.
-- **ET-forward dialer schedule**: cron shifted from `*/2 14-22` to `*/2 13-22` UTC to start calling at 9am ET instead of 10am ET. Initial business hours guard widened from 9-17 to 8-18 CT so it doesn't gate early ET calls.
+- **Historical ET-forward timing**: the previous cron-based schedule shifted from `*/2 14-22` to `*/2 13-22` UTC to start calling at 9am ET instead of 10am ET. The current implementation uses a native two-minute Schedule Trigger; the timezone-aware business-hours guard remains authoritative.
 
 ### Fixes Applied — Round 2 (2026-07-14, Full Vapi Audit)
 
@@ -175,9 +176,27 @@ Three HTTP DELETE nodes lacked `continueOnFail`. A flaky GHL API call crashed th
 **5. Timer race condition** (fx4UvKUWbqJEY3LK)
 `$getWorkflowStaticData('global')` not atomic across concurrent executions. Two rapid status-update webhooks could both start a 465-second timer chain. Fixed: replaced `timersScheduled` boolean with `timersScheduledAt` timestamp and 60-second dedup window.
 
+### Fixes Applied — Call-Path and Callback Hardening (2026-07-22 to 2026-07-23)
+
+- **Unscheduled call path removed**: the callback workflow previously posted to `LT - Voice Dequeue Next` after every end-of-call event. That helper could start another Vapi call without the dialer's Schedule Trigger. The callback trigger was removed and `LT - Voice Dequeue Next` was unpublished; it is now an explicit helper only.
+- **Callback payload recovery**: the callback Config Set node replaced the webhook input before detection. `Code - Detect Tool vs Callback` now reads the original `Webhook - Vapi` item directly.
+- **End-of-call metadata coverage**: the normalizer now reads IDs from Vapi `assistant.metadata`, `assistant.variableValues`, and `artifact.variables` paths.
+- **GHL note safety**: completion-note JSON now uses an object expression instead of interpolating unescaped summaries into a JSON string. Note and tag writes are non-blocking so a CRM note failure cannot prevent queue completion.
+- **Queue completion safety**: `Postgres - Mark Queue Completed` now passes query replacements as an array, preventing the scalar-parameter error that previously stopped completion.
+- **Scheduler standardization**: the outbound dialer uses a fresh native Schedule Trigger with a two-minute interval. The business-hours guard remains the call eligibility authority. The workflow is active and published, but post-upgrade execution history showed no new dialer runs even after an explicit unpublish/publish cycle; investigate scheduler registration before resuming production dialing.
+
 ### Queue State
 
-~28 contacts initially enqueued from enriched vapi_campaign_brand/dispensary pools. New pool contacts fed in at 30/cycle via tag rotation. SQL `WHERE NOT EXISTS` prevents duplicate enqueue. Outbound dialer picks up from queue during business hours (13-22 UTC Mon-Fri, ET-forward).
+~28 contacts initially enqueued from enriched vapi_campaign_brand/dispensary pools. New pool contacts fed in at 30/cycle via tag rotation. SQL `WHERE NOT EXISTS` prevents duplicate enqueue. Outbound dialer is configured for a native two-minute Schedule Trigger and picks up from queue only during timezone-aware business hours; the scheduler currently requires post-upgrade investigation.
+
+### Final Production Hardening — 2026-07-23
+
+- Callback timer state now has the existing 60-second duplicate-start guard plus 30-minute pruning of ended/inactive records.
+- `LT - Voice Queue Enqueue` now requires `X-LT-Voice-Queue-Secret`; callers use `VOICE_QUEUE_ENQUEUE_SECRET` and unauthenticated requests fail closed before queue insertion.
+- Apollo phone-request failures are counted as `apollo_phone_request_failed` for monitoring.
+- `LT - Apollo Queued Timeout Reaper` now connects its Slack summary builder to `Post to Slack #leads`.
+- Removed the stale response-code option from `LT - Call Outcome Ingest`.
+- All modified live workflow versions were verified published with matching `versionId` and `activeVersionId`.
 
 ### LinkedIn Queue State
 
@@ -364,7 +383,17 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - Idempotent send deduplicates on `(contact_id, workflow_id, message_hash)` per day.
 - `simpletext_stop` tag check in outbound router blocks provider-originated sends to opted-out contacts.
 - SMS Send mirroring runs on `onError: continueRegularOutput` so mirror failures don't block sends.
+- SimpleTexting send boundary uses `AUTO` mode so multi-segment campaign messages are accepted; provider errors are persisted for diagnosis and can be reclaimed on retry.
+- Campaign mirroring is gated on `action = message_sent` and a non-empty provider message ID. Dry runs, blocked sends, duplicates, and provider errors do not call GHL Conversations.
 - Inbound reply still posts to Slack AND GHL Conversations; Slack alert preserved as secondary channel.
+
+### 2026-07-24 Fix And Next-Run Check
+
+- Root cause of the `409` provider errors: `LT - SMS Idempotent Send` hardcoded `SINGLE_SMS_STRICTLY`, while SMS 1 is 320 characters and requires multi-segment delivery.
+- Root cause of the GHL `404 Contact id not given`: `LT - SimpleTexting SMS Send` mirrored blocked and dry-run outcomes instead of only successful provider sends.
+- Fixed and published workflows: `LT - SMS Idempotent Send` (`gwaEpWDpTIwsafi8`) and `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`).
+- Safe checks passed: idempotent `simulate:true` execution `241272`; campaign dry run `241275` stopped before the mirror node.
+- **Next scheduled dispatcher check:** confirm at least one `status = sent` result with a real SimpleTexting provider message ID, no HTTP `409`, no GHL `Contact id not given` errors, and a matching `report_sms_sent.provider_response` record. Then confirm the campaign state advances to `sent_step_1` only for an actual provider send.
 
 ## Reporting
 

@@ -1,6 +1,6 @@
 # Live Transparent CRM Operating Snapshot
 
-Updated: 2026-07-16
+Updated: 2026-07-23
 
 ## Purpose
 This is the live-state summary for the Live Transparent GHL sub-account.
@@ -11,7 +11,7 @@ Use it for current decisions. Use the deeper runbooks for implementation detail.
 - Location ID: `Zwz4relUXVPxx8uohnjV`
 - Timezone: `America/Los_Angeles`
 - Public n8n host: `https://automations.livetransparent.com`
-- n8n version: `2.25.3` (upgraded from `2.19.5` on 2026-06-05 to fix cron scheduler issue)
+- n8n version: `2.31.5` (current production target; recurring workflows use native Schedule Trigger nodes)
 
 ## Live Assumptions
 - Treat pipeline/stage logic as ID-driven even when docs show human-readable names.

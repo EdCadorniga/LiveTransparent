@@ -57,7 +57,7 @@ Booking should only happen after qualification and explicit interest.
 
 The dialer workflow is responsible for starting calls.
 
-It runs on a schedule, pulls the next eligible row from `voice_call_queue`, and tells Vapi to place the call using:
+It runs from n8n's native Schedule Trigger, pulls the next eligible row from `voice_call_queue`, and tells Vapi to place the call using:
 
 - the Vapi phone number ID
 - the Vapi assistant ID
@@ -111,7 +111,7 @@ If the prospect is qualified and wants to meet:
 
 ## End-to-End Call Flow
 
-1. The dialer runs every 5 minutes.
+1. The dialer runs every 2 minutes through n8n's native Schedule Trigger. No external cron job is used.
 2. It selects one queue row from `voice_call_queue` where:
    - `status = 'pending'`
    - `dnc = false`
@@ -132,13 +132,23 @@ If the prospect is qualified and wants to meet:
 9. When the call ends, Vapi posts the end-of-call payload to the same webhook.
 10. The callback workflow records the call result, adds GHL notes, and updates any tool-specific state.
 
+## 2026-07-23 Production Hardening
+
+- n8n is upgraded to `2.31.5`; recurring schedules use native Schedule Trigger nodes, not OS or Coolify cron.
+- The callback no longer calls `LT - Voice Dequeue Next`; that workflow is unpublished and remains an explicit helper only.
+- Callback timer state uses a 60-second duplicate guard and is pruned after 30 minutes.
+- Queue insertion requires `X-LT-Voice-Queue-Secret` from `VOICE_QUEUE_ENQUEUE_SECRET`.
+- Apollo phone-request failures are counted for monitoring, and the timeout reaper Slack summary is connected.
+
 ## Dialer Workflow Walkthrough
 
 The dialer workflow is intentionally simple.
 
 ### Trigger
 
-- A schedule trigger runs every 5 minutes.
+- An n8n Schedule Trigger runs every 2 minutes.
+- The workflow's business-hours guard prevents calls outside the allowed Mon-Fri window.
+- Do not replace this with an OS or Coolify cron job.
 
 ### Queue lookup
 
@@ -261,7 +271,7 @@ When the payload is not a tool call, the workflow:
 - marks voicemail queue rows completed so they do not re-enter the campaign queue
 - applies the `vapi_*` tags to the GHL contact via `GHL - Apply Tags`
 - writes a GHL contact note with the disposition, summary, and recording link
-- triggers `Code - Trigger Dequeue Next` to pull the next queue item
+- does not trigger another dequeue call; the unpublished dequeue helper is not an automatic call-start path
 
 ## Data Written By The System
 
@@ -363,7 +373,7 @@ Tool names and expected parameters:
 - The callback workflow receives the tool calls and the call completion event.
 - Both workflows depend on the metadata passed from the dialer.
 - The merged callback webhook is the canonical Vapi endpoint.
-- Production traffic should only use the two workflows listed at the top of this document.
+- Production traffic should only use the two workflows listed at the top of this document. `LT - Voice Dequeue Next` is unpublished and must not be reactivated as a call-start path without an explicit design review.
 
 ## Operational Checks
 
@@ -374,6 +384,7 @@ Before changing either workflow, verify:
 - the Vapi assistant still points at the merged callback URL
 - the four tool names still match the callback routing logic
 - the queue table still exposes eligible rows for the dialer
+- the dialer still uses an n8n Schedule Trigger rather than an external cron job
 
 When validating end to end, test in this order:
 

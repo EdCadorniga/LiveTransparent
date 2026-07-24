@@ -2,6 +2,8 @@
 
 Last updated: 2026-06-05 (marketing email pause added)
 
+> Historical pause plan. Vapi was subsequently resumed and hardened; use `Project Status and Next Steps.md` and `n8n/voice-agent/runbooks/Voice_Agent_Operations_Runbook.md` for the current live state.
+
 ## Context
 
 On 2026-06-05, after completing the Apollo API key rotation and the reaper work, the

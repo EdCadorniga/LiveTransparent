@@ -17,6 +17,15 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 - GHL: contact, opportunity, note, and tag system of record.
 - Postgres: call-attempt and transcript metadata store.
 
+### Scheduling Contract
+
+- Recurring n8n workflows must use n8n's native `Schedule Trigger` node.
+- Do not create OS, Coolify, or external cron jobs for workflow scheduling.
+- The Vapi dialer runs from a two-minute Schedule Trigger and applies its timezone-aware business-hours guard before dispatching a call.
+- `LT - Voice Dequeue Next` is an unpublished helper and must not be used as an automatic call-start path. Callback completion must not trigger another dequeue request.
+- `LT - Voice Queue Enqueue` is authenticated with `X-LT-Voice-Queue-Secret` using the `VOICE_QUEUE_ENQUEUE_SECRET` deployment/reference value.
+- Callback timer state is deduplicated within 60 seconds and pruned after 30 minutes.
+
 ## Live Workflows
 
 | Workflow | ID | Role |
@@ -93,6 +102,7 @@ Normalized callback output:
 - Respect `attempt_count < max_attempts`.
 - Enforce 72h cooldown between attempts.
 - Call only Mon-Fri 9am-5pm CT.
+- The native Schedule Trigger controls polling frequency; the workflow guard controls call eligibility.
 - Fall back to GHL contact timezone when queue timezone is missing; use CT 12-2pm safe window if neither is available.
 - Keep secrets in env/credentials; do not hardcode them in workflow JSON.
 - Preserve n8n graph integrity when editing workflows.
