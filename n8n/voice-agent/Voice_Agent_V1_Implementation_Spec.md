@@ -16,20 +16,21 @@ Document the original V1 outbound cold-call design. The live implementation no l
 - Call window: Mon-Fri business hours in PST.
 
 ## Current Production Mapping
-- Dialer: `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`1ogCy9ScVjtF0Cqf`)
+- Dialer: `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`)
 - Callback/tool router: `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`)
 - Archived validation copy: `LT - Voice Agent V1 Vapi Callback + Tools Copy` (`R1gTdLkbjJUPAr6u`)
 - Archived tests: `LT - Voice Agent IF Test` (`cd3Gv3llKB8XOUgg`), `LT - Voice Agent Switch Test` (`pMMPwm2RLjuYqjZ7`), `LT - Voice Agent Switch Branch Test` (`Qdl2a9KMJnIw745d`)
 
 ## Core Flow
-1. Pull next callable item from queue (`pending`, within policy window, not DNC, attempts remaining).
-2. Place voice call through provider.
-3. Run policy-constrained AI conversation.
-4. If qualified, fetch available slots and offer options.
-5. On prospect confirmation, create appointment.
-6. Persist transcript, call metadata, and disposition.
-7. Upsert GHL note/task/opportunity updates.
-8. Mark queue item outcome and schedule retry/follow-up if needed.
+1. Pull the next callable item from queue (`pending`, within policy window, not DNC, attempts remaining).
+2. If the candidate is blocked, invalid, or outside its local calling window, release it and continue to the next candidate in the same execution, up to 25 queue checks.
+3. Place voice call through provider.
+4. Run policy-constrained AI conversation.
+5. If qualified, fetch available slots and offer options.
+6. On prospect confirmation, create appointment.
+7. Persist transcript, call metadata, and disposition.
+8. Upsert GHL note/task/opportunity updates.
+9. Mark queue item outcome and schedule retry/follow-up if needed.
 
 ## Production Note
 The production Phase 2 implementation keeps the queue, call metadata, disposition, and CRM sync behavior, but the live workflow now routes Vapi tool calls through the merged callback workflow instead of the older direct-booking-specific split design.

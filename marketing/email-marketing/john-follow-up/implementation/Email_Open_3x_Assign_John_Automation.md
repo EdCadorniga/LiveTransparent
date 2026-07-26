@@ -1,13 +1,15 @@
-# Email Open 3x -> Assign John (GHL)
+# Email Open 3x -> Sales Outreach Ownership Gate (GHL)
 
 ## Goal
 When a contact accumulates 3 email opens (across any sequence emails), wait 45 minutes, then:
 - If booked: do nothing.
-- If not booked: assign contact owner to John and assign/create opportunity to John.
+- If still in Warm or AI-pending/unverified: record the engagement signal but do not assign an SDR or promote the record.
+- If already in Sales Outreach: preserve the existing owner/alignment contract; do not independently allocate an SDR.
+- If a later Janvi AI assessment promotes the record into `Sales Outreach -> New`, resolve ownership there using the single-owner/matching-owner/conflict/no-owner rules.
 
-Current owner:
-- Name: John
-- Use John's current GHL user ID in the live workflow.
+Ownership boundary:
+- This workflow must not assign John, Jason, Marc, or any other SDR.
+- SDR assignment occurs only when a record enters `Sales Outreach -> New`.
 
 ## Required Field + Tags
 Create/confirm:
@@ -50,9 +52,10 @@ Steps:
 - True branch:
   - Add tag `Email Open 3x - Pending Assign`
 
-## Workflow 2: Delayed Assignment + Booking Exception
+## Workflow 2: Delayed Engagement Review + Booking Exception
 Name:
-- `WL - Seq - Email Open 3x Assign John`
+- Existing legacy GHL workflow: `WL - Seq - Email Open 3x Assign John`
+- Target behavior/name: `WL - Seq - Email Open 3x Engagement Review`
 
 Trigger:
 - Contact tag added: `Email Open 3x - Pending Assign`
@@ -73,17 +76,12 @@ True branch (booked):
 - End.
 
 False branch (not booked):
-3. Assign contact owner
-- Assign to John's current GHL user ID
+3. Preserve the engagement signal
+- Do not assign a contact owner from this workflow.
+- Do not create or move an opportunity to Sales Outreach from this workflow.
+- If the record is already in Sales Outreach, use its existing resolved owner for any follow-up task or notification.
 
-4. Create/Update opportunity
-- Pipeline: `Sales Outreach`
-- Stage: `Engaged` (or your preferred working stage)
-- Status: `Open`
-- Owner: John
-- Behavior: update existing open opportunity if present; otherwise create one.
-
-5. Tags
+4. Tags
 - Add tag `open email 3x`
 - Remove tag `Email Open 3x - Pending Assign`
 

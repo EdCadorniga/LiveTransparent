@@ -1,6 +1,6 @@
 # MQL Tag Opportunity Baseline Webhook
 
-Purpose: when a contact receives the live `mql` tag, ensure there is a corresponding opportunity in `Warm -> Qualified (MQL)` unless the contact already has an opportunity in the `Sales` pipeline.
+Purpose: when a contact receives the live `mql` tag, ensure there is a corresponding opportunity in `Warm -> Qualified (MQL)` unless the contact already has an opportunity in the `Sales` pipeline. This MQL baseline does not by itself authorize SDR assignment or promotion to `Sales Outreach`; the Janvi AI cannabis-business qualification gate is required for normal SDR promotion.
 
 ## Approved MQL Sources
 
@@ -26,6 +26,20 @@ The `mql` tag should not be applied universally to every contact entering `WL - 
 - If the contact has no opportunity yet, create one in:
   - Pipeline: `Warm`
   - Stage: `Qualified (MQL)`
+- Do not assign Jason or Marc from this baseline workflow.
+- Do not move the record to `Sales Outreach` from this baseline workflow unless the downstream AI-qualified promotion contract explicitly invokes that path.
+
+## AI-Qualified Promotion Contract
+
+- Janvi's AI assessment is the authoritative promotion gate once its live workflow and result field/tag are confirmed.
+- Only the explicit `qualified cannabis business` result may promote the contact/opportunity to `Sales Outreach -> New`.
+- AI-pending/unverified records remain in Warm for Vapi verification.
+- AI-rejected/non-cannabis records remain out of the Vapi queue unless a later policy explicitly changes that rule.
+- SDR ownership is resolved only at Sales Outreach entry:
+  - one owner present: align the other record;
+  - matching owners: preserve;
+  - conflicting owners: flag for review;
+  - no owners: deterministic Jason/Marc 50/50 assignment.
 
 ## Locked IDs
 

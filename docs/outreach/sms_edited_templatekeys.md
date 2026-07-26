@@ -2,7 +2,9 @@
 
 This document lists the current SMS template keys and the full message bodies currently used in the workflow.
 
-The keys stay unchanged. Only the message text was updated to remove literal `cannabis` wording and shift the copy toward `regulated industries`.
+The keys stay unchanged because live GHL workflow payloads reference them. The canonical registry is maintained by `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) at `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`.
+
+On 2026-07-26, `sms_1`, `sms_3`, and `sms_5` were revised and the workflow was republished. `sms_2`, `sms_4`, and `sms_6` were left unchanged.
 
 ## Jason SMS
 
@@ -173,10 +175,13 @@ We’re onboarding a few brands this month—grab a time here: {{trigger_link.nq
 ### `sms_1`
 
 ```text
-Hi - thanks for checking out ads for regulated industries on social/search.
-I'm Cameron, founder of Transparent eCom. We help regulated industries run ads that most agencies can't, including Mood, Cookies, and Lucy.
+Hi - thanks for checking out regulated ads on social/search.
 
-Quick question - are you currently running ads, restricted from advertising, or just exploring options?
+I'm Cameron, founder of Transparent eCom. We help regulated brands run ads that most agencies can't, including Mood, Cookies, and Lucy.
+
+You can learn more at https://livetransparent.com/
+
+Are you currently running ads, restricted from advertising, or just exploring options?
 ```
 
 ### `sms_2`
@@ -192,9 +197,11 @@ Want me to send it over?
 ### `sms_3`
 
 ```text
-Quick follow up -
+Quick follow-up -
+
 We've helped brands like Mood, Lucy, and GPen scale ads profitably in regulated spaces.
-Happy to show you how they're doing it if that would be helpful.
+
+Would it be helpful if I showed you what has worked for them?
 ```
 
 ### `sms_4`
@@ -210,8 +217,12 @@ https://fb.me/adspreview/facebook/1SsU73bjDHg0XY1
 
 ```text
 If you're a dispensary, this might be interesting:
-We can track when someone clicks or views a social/search ad and then purchases in-store.
-That's been a game changer for dispensaries measuring real ROI from digital ads.
+
+We help dispensaries connect digital ad activity to in-store purchases, so they can measure actual ROI from social and search campaigns.
+
+More details are available at https://livetransparent.com/
+
+Should I send over a quick example?
 ```
 
 ### `sms_6`
@@ -361,4 +372,3 @@ Hi {{first_name}}, Cameron from Transparent eCom. We have seen cases where inter
 - The template keys were left unchanged on purpose.
 - Any future copy update should change the message text only, unless the n8n workflow mappings are also updated.
 - The Jason and Cameron message sets are the only ones that were edited for wording.
-

@@ -62,7 +62,8 @@ The executive report (`reports/embed/executive/index.html`) surfaces data from:
 | Email Events | `LT - Email Event Ingest` | Opens, clicks, bounces, unsubscribes, spam complaints |
 | LinkedIn State | `linkedin_connection_state` | Connection funnel: ready → requested → connected → DM → completed |
 | Vapi Voice | `voice_call_attempt` + `voice_call_queue` | Call outcomes by campaign, pending queue distribution |
-| MQL/SQL | `report_raw_ghl_opportunities` + `report_raw_ghl_contacts` | MQL (Warm pipeline Qualified stage), SQL (tagged contacts) |
+| MQL/SQL | `report_raw_ghl_opportunities` + `report_raw_ghl_contacts` | MQL (Warm pipeline Qualified stage), AI-qualified cannabis promotion to Sales Outreach, SQL (tagged contacts) |
+| AI Qualification / SDR Routing | Janvi assessment + GHL owner fields | Qualified cannabis -> Sales Outreach; owner alignment or Jason/Marc 50/50 fallback; pending/unverified -> Vapi Warm |
 
 ### GHL Custom Fields Captured for Reporting
 - `UTM Source First/Last`, `UTM Medium First/Last`, `UTM Campaign First/Last`, `UTM Content First/Last`, `UTM Term First/Last`, `UTM Landing Page First/Last`
@@ -79,6 +80,14 @@ The executive report (`reports/embed/executive/index.html`) surfaces data from:
 | Warm | New → Qualified (MQL) → Routed to Outreach → Nurture Active → Disqualified |
 | Sales Outreach | New → Attempting Contact → 2nd attempt → 3rd attempt → Engaged → Meeting Requested → Booked → Unresponsive |
 | Sales | Discovery Scheduled → Discovery Completed → Proposal Sent → Negotiation → Closed Won / Closed Lost |
+
+### Qualification and Work Queue Boundary
+- Warm is the unassigned intake and AI-verification layer.
+- Only Janvi's explicit `qualified cannabis business` result promotes a contact/opportunity into `Sales Outreach -> New`.
+- SDRs work in Sales Outreach; they do not receive ordinary Warm assignments.
+- Vapi calls AI-pending/unverified Warm contacts and excludes AI-qualified or explicitly rejected/non-cannabis contacts.
+- A Vapi warm transfer is manually claimed by the answering SDR and then promoted into Sales Outreach.
+- Cameron's Regulated Ads calendar is used for bookings and does not determine SDR assignment.
 
 ---
 

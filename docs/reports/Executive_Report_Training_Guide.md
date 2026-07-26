@@ -16,7 +16,7 @@ Use this section when reviewing the report with someone who needs the fastest po
 - Capture Gaps: This is an absolute-volume panel. It shows Recorded Visits, Forms, Contacts, Opportunities, Meetings, and Closed Won side by side. Do not read it as a perfectly linear funnel because contacts can arrive from routing, manual CRM entry, imports, and follow-up as well as forms.
 - Sales and Pipeline: This section provides the company-wide pipeline summary and active-opportunity view. It covers open deals, worked deals, stage movement, velocity, and sales quality. Use it when discussing pipeline health, not acquisition quality.
 - UTM / Campaign Breakdown: This panel shows observed traffic rows by source, medium, campaign, content, term, and landing page. It is not a master list of every UTM ever created in GHL. A campaign will only appear here once the traffic or bridge data actually sees it.
-- Sales Detail / John's Deals: These cards use the same opportunity payload as the team summary. The difference is presentation: one is a team-wide view and the other is a deal-centred view. If a stakeholder asks what the difference is, the safe answer is that the source data is the same.
+- Sales Detail / SDR Owner View: These cards use the same opportunity payload as the team summary. The owner view should be driven by canonical GHL user ID, not a hardcoded rep name.
 - Social and Site: The Social Posts card shows the status of GHL Social Planner posts. Failed means the latest status is failed or error. The Site Traffic card shows GA4 traffic and engagement for the selected window.
 - Source Health: This panel tells you whether the integrations are healthy, stale, blocked, or failed. Use it whenever you need to explain why a metric is zero or missing.
 
@@ -49,6 +49,8 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 | Vapi Campaigns | Voice AI call outcomes by campaign. | Shows answered rate, qualified calls, and booked meetings per campaign. |
 | Vapi Queue | Pending outbound calls grouped by campaign. | Shows how many contacts are queued for each Vapi campaign. |
 | MQL Summary | Active and total opportunities in the Warm pipeline Qualified (MQL) stage. | Tracks marketing-qualified lead volume. |
+| AI Qualification | Janvi assessment outcomes for cannabis-business verification. | Distinguishes qualified, pending/unverified, and rejected contacts. |
+| Sales Outreach Queue | Contacts/opportunities promoted after explicit AI cannabis qualification. | Measures SDR work-queue volume and owner assignment source. |
 | SQL Contacts | Contacts with the SQL (Sales Qualified Lead) tag. | Counts contacts promoted to sales-qualified status. |
 | Pool Distribution | Contact counts by pool tag (brands, dispensaries, Vapi campaigns). | Shows audience segment sizes. |
 | Email Campaigns | Sent, opened, clicked, bounced, unsubscribed, and spam complaint counts. | Tracks email campaign performance across all senders. |
@@ -73,7 +75,7 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 | UTM / Campaign Breakdown | Observed traffic rows by UTM fields. | This is not a registry of every UTM ever created in GHL. |
 | Social Posts Failed | Posts whose latest status is failed or error in the selected window. | This is status-based, not a hidden count of all broken posts. |
 | Sales Team Summary | The company-wide opportunity summary. | Use this for the broad sales picture. |
-| John's Deals | The same opportunity payload shown as a deal-centred view. | Use this when the conversation is about individual deal movement. |
+| SDR Owner View | The same opportunity payload shown as a deal-centred view. | Use this when the conversation is about individual owner or deal movement. |
 | 7d / 30d / 90d | Trailing complete-day presets ending yesterday. | Example: if you click 7d on Tuesday, you see the previous Tuesday through Monday. |
 
 # Part 3: How to Present the Report
@@ -82,7 +84,7 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 - The GA4 term `sessions` is not the same phrase everyone uses for website visits, so this report labels the metric `Recorded Visits` to make the meaning clear.
 - The UTM breakdown is a view of what the data actually observed, not a master campaign catalog of everything ever created in GHL.
 - Acquisition Sources is the contact-level section. It is the right place to go when the question is where contacts came from.
-- Sales Team and John's Deals use the same opportunity payload. The difference is only the lens: one is the team view and the other is the deal-centred view.
+- Sales Team and SDR Owner View use the same opportunity payload. The difference is only the lens: one is the team view and the other is the deal-centred view.
 - Calls and Conversations show GHL call records grouped by status. That is the place to explain call activity without mixing it up with SMS or appointments.
 - A social post marked Failed means the latest recorded status is failed or error. It is a status value from the ingest, not a subjective review of the post.
 - The date range is a trailing complete-day window ending yesterday. That means the selected range always points to finished days, not a click-day-dependent calendar block.
@@ -126,7 +128,7 @@ The report already has UTM capture fields in GHL. The practical improvement is t
 | Add a simple drilldown for failed social posts. | Management can see which posts failed and why instead of only seeing a total. | No historical data changes. |
 | Show search performance in the report when the team wants to review organic search. | It gives leadership one place to see search demand, clicks, and impressions. | No historical data changes. |
 | Show a short summary of the most visited pages. | Leadership can quickly see which pages are drawing the most attention without opening a separate analytics tool. | Uses the landing-page rollup we already have. |
-| Add an owner filter if `John's Deals` is meant to show John's own pipeline only. | It makes the owner view match the person's actual book of business. | No historical data changes. |
+| Add an owner filter if `SDR Owner View` is meant to show one rep's pipeline only. | Use the stable GHL user ID and preserve an explicit conflict/unassigned state. | No historical data changes. |
 | Standardize names for campaigns, ad sets, ads, UTMs, and landing pages going forward. | Clean names make the report group results correctly and reduce manual cleanup. The existing `UTM Source First/Last`, `UTM Medium First/Last`, `UTM Campaign First/Last`, `UTM Content First/Last`, `UTM Term First/Last`, and landing page fields are already there to hold this data. The pattern itself is our house standard, built on common UTM fields. | Past records stay as-is; future records improve. |
 | Keep a master list of the campaigns and UTMs we intentionally launched. | This helps the team tell the difference between something we launched on purpose and something the report never saw, and it makes it easier to check whether the existing UTM fields were filled correctly. | No historical data changes. |
 | Add a note about how contacts can be created. | It explains why contacts may come from forms, routing, manual entry, imports, or follow-up. | No historical data changes. |

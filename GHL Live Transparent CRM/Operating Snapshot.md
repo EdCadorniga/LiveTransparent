@@ -84,19 +84,21 @@ Keep these aligned with routing and report logic:
 - `WF - Warm Channel Micro Entry` — active (GHL-side)
 
 ### Apollo Enrichment
-- `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) — active
-- `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) — active (API key rotated 2026-06-05)
-- `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) — active
-- `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) — active (zero deliveries since 2026-05-13, root cause unknown)
+- `LT - Apollo Phone Enrichment Polling` (`JH8ShfpglWmLMZ3l`) — active, every 30 minutes; canonical intake
+- `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) — unpublished 2026-07-25; superseded and had zero executions
+- `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) — unpublished legacy path
+- `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) — unpublished legacy V3 path
+- `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) — active canonical callback
 - `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly backstop for stuck `queued` contacts
 
-### Voice System (All Paused 2026-06-05)
-- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — paused
-- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — paused
-- `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — paused
-- `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) — paused
-- `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — paused
-- `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — paused
+### Voice System (Current Live State)
+- `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — active; silent human answers classify as `interest_unknown`
+- `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) — active; invalid GHL auth fails closed and global hours are 9am-5pm CT
+- `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) — active; unknown campaign tags fail closed
+- `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) — active
+- `LT - Voice Dequeue Next` (`KsBMFcz1YpBGrjDW`) — unpublished; not an automatic call-start path
+- `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) — active
+- Operational note: the `.env` GHL PIT was verified against GHL and propagated to active workflows on 2026-07-25. Dialer smoke execution `242609` succeeded; a controlled live call remains the next production verification.
 
 ### SimpleTexting
 - `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) — active

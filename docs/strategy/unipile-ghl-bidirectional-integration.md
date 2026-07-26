@@ -355,7 +355,7 @@ If automated LinkedIn DMs continue after a reply:
 
 - No dedicated macro social inbox dashboard exists in this repo.
 - No live Slack/email alert workflow is documented for every LinkedIn/Instagram inbound message.
-- No SLA/owner assignment rule is documented for social replies.
+- Social replies remain unassigned in Warm until Janvi's AI assessment verifies a qualified cannabis business. Promotion into `Sales Outreach -> New` applies the documented owner-alignment rule; the social transport itself must not assign an SDR.
 - No automated stale-unreplied social conversation report is documented.
 - No daily reconciliation job is documented to compare Unipile chats against GHL conversations.
 

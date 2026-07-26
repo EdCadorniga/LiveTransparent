@@ -281,16 +281,18 @@ Placeholder values:
 ## Message Placeholders
 Keep message text centralized in `LT - SimpleTexting SMS Send (Webhook, Staged)` using template keys.
 
-Prepare 6 blank template slots:
+The live registry currently uses these six slots:
 
 ```text
-sms_1 = <TBD MESSAGE 1>
-sms_2 = <TBD MESSAGE 2>
-sms_3 = <TBD MESSAGE 3>
-sms_4 = <TBD MESSAGE 4>
-sms_5 = <TBD MESSAGE 5>
-sms_6 = <TBD MESSAGE 6>
+sms_1 = Hi - thanks for checking out regulated ads on social/search. I'm Cameron, founder of Transparent eCom. We help regulated brands run ads that most agencies can't, including Mood, Cookies, and Lucy. You can learn more at https://livetransparent.com/ Are you currently running ads, restricted from advertising, or just exploring options?
+sms_2 = Hey, Cameron again. If you're curious, our site has free walkthroughs on how brands run ads in regulated industries on platforms like Meta and Google. Some companies do it themselves - totally fine. But we also have a few capabilities most brands and agencies don't that allow actual product advertising at scale. Want me to send it over?
+sms_3 = Quick follow-up - We've helped brands like Mood, Lucy, and GPen scale ads profitably in regulated spaces. Would it be helpful if I showed you what has worked for them?
+sms_4 = Fun fact: We can run actual flower and pre-roll ads with regulated-industry mentions directly in the ad. Here's an example (you'll need to be logged into Facebook to preview): https://fb.me/adspreview/facebook/1SsU73bjDHg0XY1
+sms_5 = If you're a dispensary, this might be interesting: We help dispensaries connect digital ad activity to in-store purchases, so they can measure actual ROI from social and search campaigns. More details are available at https://livetransparent.com/ Should I send over a quick example?
+sms_6 = Hey - Cameron again. I don't want to keep bothering you, so this will be my last message. If you ever want to learn how brands are running regulated ads on social/search, just reply here and I'm happy to help.
 ```
+
+On 2026-07-26, `sms_1`, `sms_3`, and `sms_5` were updated in the live registry. The legacy GHL payload aliases `john_sms1` through `john_sms5` remain compatibility keys and were not renamed.
 
 Recommended campaign key:
 ```text

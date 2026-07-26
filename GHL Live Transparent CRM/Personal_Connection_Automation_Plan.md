@@ -150,18 +150,19 @@ Owner-assisted candidates:
 
 ## Recommended Build Order
 
-### Phase 1: Owner Copilot for Warm Leads
-Build an internal-only automation for new warm leads.
+### Phase 1: Owner Copilot for Sales Outreach
+Build an internal-only automation for AI-qualified Sales Outreach records. Warm contacts remain unassigned while Janvi's assessment is pending.
 
 Trigger:
-- contact receives approved warm or MQL tag
-- or opportunity enters `Sales Outreach -> New`
+- opportunity enters `Sales Outreach -> New`
+- or a successful Vapi warm transfer is manually promoted to `Sales Outreach -> New`
 
 Actions:
 - create/update internal context summary
 - generate owner brief
 - create owner follow-up task
 - send Slack alert with high-signal summary
+- use the already-resolved Sales Outreach owner; do not independently assign an SDR
 
 Output format:
 - who they are
@@ -191,7 +192,7 @@ Initial triggers:
 Actions:
 - create task with exact reason
 - set due date
-- assign to correct owner
+- assign to the already-resolved Sales Outreach owner
 - append brief suggested copy
 
 Goal:

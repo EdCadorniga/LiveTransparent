@@ -598,7 +598,7 @@
               <div class="divider"></div>
               <div class="sub-head">Vapi Last 7 Days</div>
               <div class="mini-grid" id="vapi-weekly-grid" style="margin-bottom:12px;">
-                <div class="mini"><strong>Total Calls</strong><div id="vapi-weekly-total">—</div></div>
+                <div class="mini"><strong>Attempts</strong><div id="vapi-weekly-total">—</div></div>
                 <div class="mini"><strong>Answered</strong><div id="vapi-weekly-answered">—</div></div>
                 <div class="mini"><strong>Missed</strong><div id="vapi-weekly-missed">—</div></div>
                 <div class="mini"><strong>Qualified</strong><div id="vapi-weekly-qualified">—</div></div>
@@ -606,7 +606,7 @@
                 <div class="mini"><strong>Handoff</strong><div id="vapi-weekly-handoff">—</div></div>
               </div>
               <div class="bar-list" id="vapi-weekly-breakdown-list"><div class="loading">Loading Vapi weekly data...</div></div>
-              <div class="footer-note">This is a trailing 7-day rollup from <code>voice_call_attempt</code>. Answered counts live contacts; qualified is the strongest intent signal we currently store; handoff counts calls that requested a sales follow-up.</div>
+              <div class="footer-note">This is a trailing selected-range rollup from <code>voice_call_attempt</code>. Attempts may include repeat calls to the same contact; answered counts live contacts; qualified is the strongest intent signal we currently store; handoff counts calls that requested a sales follow-up.</div>
               <div class="footer-note">Calls are read from GHL Conversations. Status groups use the raw CRM status plus answered timestamp so the report reflects what the CRM actually stores.</div>
             </div>
           </div>

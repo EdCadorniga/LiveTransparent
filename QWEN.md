@@ -195,8 +195,12 @@ See `AGENTS.md` for the authoritative, up-to-date workflow inventory. Key produc
 ### Warm Pipeline
 `New` → `Qualified (MQL)` → `Routed to Outreach` → `Nurture Active` → `Disqualified`
 
+Warm is the unassigned intake and AI-verification layer. Only Janvi's explicit `qualified cannabis business` result promotes a record to Sales Outreach. AI-pending/unverified records are eligible for Vapi; explicitly rejected/non-cannabis records are not.
+
 ### Sales Outreach Pipeline
 `New` → `Attempting Contact` → `Engaged` → `Meeting Requested` → `Booked` → `Unresponsive`
+
+SDR ownership is resolved only on entry to `New`: align a single existing contact/opportunity owner, preserve matching owners, flag conflicts, or assign Jason/Marc 50/50 when neither has an owner. Keep native contact/opportunity owners and custom opportunity `Owner` aligned.
 
 ### Sales Pipeline
 `Discovery Scheduled` → `Discovery Completed` → `Proposal Sent` → `Negotiation` → `Closed Won` → `Closed Lost`

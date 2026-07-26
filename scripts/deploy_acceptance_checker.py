@@ -2,10 +2,13 @@ import json, urllib.request, uuid
 
 # Read API key
 key0 = open(r'C:\Users\edmon\OneDrive\Documents\Projects\LiveTransparent\.env').read()
+env = {}
 for line in key0.splitlines():
-    if line.startswith('N8N_API_KEY_LT'):
-        token = line.split('=', 1)[1].strip()
-        break
+    if '=' in line and not line.lstrip().startswith('#'):
+        name, value = line.split('=', 1)
+        env[name.strip()] = value.strip().strip('"')
+token = env['N8N_API_KEY_LT']
+ghl_pit = env['GHL_PIT']
 
 def make_id():
     return str(uuid.uuid4())
@@ -29,6 +32,14 @@ function unwrap(value) {
     if (current.data && typeof current.data === 'object') { current = current.data; continue; }
     break;
   }
+  if (current && typeof current === 'object') {
+    const keys = Object.keys(current);
+    if (keys.length === 1 && keys[0].trim().startsWith('{')) {
+      try { return JSON.parse(keys[0]); } catch (e) {
+        try { return JSON.parse(decodeURIComponent(keys[0])); } catch (ignored) {}
+      }
+    }
+  }
   return current;
 }
 function parseDate(v) {
@@ -40,15 +51,17 @@ function parseDate(v) {
 const raw = unwrap($json || {});
 const body = raw && typeof raw === 'object' ? raw : {};
 const user = body.user && typeof body.user === 'object' ? body.user : {};
+const attendees = Array.isArray(body.attendees) ? body.attendees : [];
+const attendee = attendees.find((value) => value && value.attendee_specifics?.network_distance !== 'SELF') || attendees[0] || {};
 const event = first(body.event, body.type, body.action, body.name) || 'new_relation';
 const now = new Date().toISOString();
 return [{
   json: {
     event_type: event,
     unipile_account_id: first(body.account_id, body.accountId, body.user_account_id, user.account_id, user.accountId),
-    linkedin_provider_id: first(body.user_provider_id, body.provider_id, body.providerId, user.provider_id, user.providerId, user.id),
-    linkedin_public_identifier: first(body.user_public_identifier, body.public_identifier, body.publicIdentifier, user.public_identifier, user.publicIdentifier, user.public_identifier),
-    linkedin_profile_url: first(body.user_profile_url, body.profile_url, body.profileUrl, user.profile_url, user.profileUrl),
+    linkedin_provider_id: first(attendee.attendee_provider_id, attendee.provider_id, attendee.attendee_id, body.user_provider_id, body.provider_id, user.provider_id, user.id),
+    linkedin_public_identifier: first(attendee.attendee_public_identifier, body.user_public_identifier, body.public_identifier, body.publicIdentifier, user.public_identifier),
+    linkedin_profile_url: first(attendee.attendee_profile_url, body.user_profile_url, body.profile_url, body.profileUrl, user.profile_url, user.profileUrl),
     accepted_at: parseDate(first(body.accepted_at, body.acceptedAt, body.created_at, body.createdAt, body.timestamp, now)) || now,
     raw_body: body,
   },
@@ -66,6 +79,7 @@ function first() {
   return '';
 }
 const event = $node['Normalize LinkedIn Acceptance Event'].json || {};
+const config = $node['Config'].json || {};
 const row = $input.first()?.json || {};
 const now = new Date().toISOString();
 const matched = !!clean(row.ghl_contact_id);
@@ -76,8 +90,8 @@ if (!matched) {
 
 const payload = {
   ghl_contact_id: row.ghl_contact_id,
-  location_id: row.location_id || '',
-  unipile_account_id: row.unipile_account_id || event.unipile_account_id || '',
+  location_id: row.location_id || config.GHL_LOCATION_ID || '',
+  unipile_account_id: row.unipile_account_id || event.unipile_account_id || config.UNIPILE_ACCOUNT_ID || '',
   linkedin_profile_url: row.linkedin_profile_url || event.linkedin_profile_url || '',
   linkedin_public_identifier: row.linkedin_public_identifier || event.linkedin_public_identifier || '',
   linkedin_provider_id: row.linkedin_provider_id || event.linkedin_provider_id || '',
@@ -104,19 +118,25 @@ const upsertResp = await this.helpers.httpRequest({
 });
 
 // Apply linkedin_connected tag to GHL contact
+let tag_ok = false;
+let tag_error = '';
 try {
   await this.helpers.httpRequest({
     method: 'POST',
-    url: 'https://services.leadconnectorhq.com/contacts/' + encodeURIComponent(row.ghl_contact_id) + '/tags',
+    url: (config.GHL_API_BASE_URL || 'https://services.leadconnectorhq.com') + '/contacts/' + encodeURIComponent(row.ghl_contact_id) + '/tags',
     headers: {
-      Authorization: 'Bearer ' + $env.GHL_API_KEY,
+      Authorization: 'Bearer ' + String(config.GHL_API_KEY || ''),
       Version: '2021-07-28',
       'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
     body: { tags: ['linkedin_connected'] },
     json: true,
   });
-} catch (e) { /* non-critical */ }
+  tag_ok = true;
+} catch (e) {
+  tag_error = e?.message || String(e);
+}
 
 return [{
   json: {
@@ -127,6 +147,8 @@ return [{
     provider_id: row.linkedin_provider_id || event.linkedin_provider_id || '',
     identifier: row.linkedin_public_identifier || event.linkedin_public_identifier || '',
     upsert_ok: !!upsertResp,
+    tag_ok,
+    tag_error,
   },
 }];"""
 
@@ -158,6 +180,18 @@ nodes = [
     },
     {
         'id': make_id(),
+        'name': 'Config',
+        'type': 'n8n-nodes-base.code',
+        'typeVersion': 2,
+        'position': [360, 120],
+        'parameters': {
+            'mode': 'runOnceForAllItems',
+            'language': 'javaScript',
+            'jsCode': f"const input = $input.first()?.json || {{}};\nreturn [{{ json: {{\n  ...input,\n  UNIPILE_ACCOUNT_ID: 'V9eiHiDpRmCtan0YNdzsQw',\n  GHL_API_KEY: {json.dumps(ghl_pit)},\n  GHL_LOCATION_ID: 'Zwz4relUXVPxx8uohnjV',\n  GHL_API_BASE_URL: 'https://services.leadconnectorhq.com'\n}} }}];",
+        },
+    },
+    {
+        'id': make_id(),
         'name': 'Normalize LinkedIn Acceptance Event',
         'type': 'n8n-nodes-base.code',
         'typeVersion': 2,
@@ -178,7 +212,7 @@ nodes = [
             'operation': 'executeQuery',
             'query': postgres_query,
             'options': {
-                'queryReplacement': '={{ [ $json.unipile_account_id || $env.UNIPILE_ACCOUNT_ID || "", $json.linkedin_provider_id || "", $json.linkedin_public_identifier || "", $json.linkedin_profile_url || "" ] }}',
+                'queryReplacement': '={{ [ $json.unipile_account_id || $("Config").item.json.UNIPILE_ACCOUNT_ID || "", $json.linkedin_provider_id || "", $json.linkedin_public_identifier || "", $json.linkedin_profile_url || "" ] }}',
                 'queryBatching': 'independently',
             },
         },
@@ -217,6 +251,9 @@ nodes = [
 
 connections = {
     'Webhook - LinkedIn Acceptance': {
+        'main': [[{'node': 'Config', 'type': 'main', 'index': 0}]],
+    },
+    'Config': {
         'main': [[{'node': 'Normalize LinkedIn Acceptance Event', 'type': 'main', 'index': 0}]],
     },
     'Normalize LinkedIn Acceptance Event': {

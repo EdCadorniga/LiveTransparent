@@ -87,6 +87,7 @@ These are the exact keys the ingest and attribution layer should consume:
 - `contact.em_company_operating_state`
 - `contact.em_company_research_snippet`
 - `contact.em_cannabis_marketing_signal`
+- Janvi AI assessment result for cannabis-business qualification (authoritative field/tag to be confirmed before implementation)
 - `contact.em_email4_personalization_ready`
 - `contact.em_email4_personalization_reason`
 
@@ -134,6 +135,11 @@ These live workflow families create or mutate the records the report reads:
 - Regulated-booking handoff:
   - `WL - Webhook to Slack Channel Update`
   - regulated ads booking automation for `Regulated Ads On Social/Search`
+- AI qualification and SDR boundary:
+  - Janvi AI assessment workflow (live workflow and result field/tag to be confirmed)
+  - AI-qualified cannabis -> `Sales Outreach -> New` promotion
+  - Sales Outreach ownership alignment and Jason/Marc 50/50 fallback
+  - Vapi Warm verification queue for AI-pending/unverified contacts
 - Reporting support:
   - `LT - Report Config Sync`
   - `LT - GHL Daily Leads Ingest`
@@ -198,4 +204,8 @@ These live workflow families create or mutate the records the report reads:
 - LinkedIn outreach funnel (ready → requested → connected → DM active → completed) — added 2026-07-21
 - Vapi voice campaign breakdown (calls by campaign, queue distribution) — added 2026-07-21
 - MQL/SQL contact tracking (opportunities in MQL stage, contacts with SQL tag) — added 2026-07-21
+- AI-qualified cannabis contacts promoted to Sales Outreach
+- AI-pending/unverified contacts sent to Vapi
+- AI-rejected/non-cannabis contacts suppressed from Vapi
+- SDR assignment source, owner-alignment result, conflict count, and unassigned Sales Outreach records
 - Pool distribution (brands, dispensaries, vapi campaign pools) — added 2026-07-21

@@ -1,6 +1,6 @@
 # Intake Webhook Wiring TODO
 
-Last updated: 2026-06-30
+Last updated: 2026-07-25
 Owner location: `Live Transparent`
 Canonical n8n host: `https://automations.livetransparent.com`
 
@@ -12,6 +12,15 @@ Canonical n8n host: `https://automations.livetransparent.com`
   - `GHL Warm Intake - SMS Tag (Webhook)` (`5nYzp9DgQUopzWhR`) — active
   - `GHL Warm Intake - Referral Tag (Webhook)` (`6lp8sIS3YMB1t9Ri`) — active
 - `WL - Master Warm Intake and Routing` (GHL-side) remains active for tag-based routing.
+
+## Qualification and Ownership Boundary
+- Warm intake webhooks and channel micro-workflows must tag and record source metadata only; they must not assign Jason, Marc, or another SDR.
+- Janvi's AI assessment is the authoritative gate once its live workflow and result field/tag are confirmed.
+- Only an explicit `qualified cannabis business` result may promote a contact/opportunity to `Sales Outreach -> New`.
+- AI-pending/unverified contacts remain in Warm and may be sent to the Vapi verification queue.
+- AI-rejected/non-cannabis contacts must remain out of the Vapi queue unless a later policy explicitly changes this.
+- SDR ownership is resolved only at Sales Outreach entry: align a single existing owner, preserve matching owners, flag conflicts, or assign Jason/Marc 50/50 when neither record has an owner.
+- Keep contact native `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` aligned.
 
 ## 0) Preconditions
 - [ ] Confirm n8n access is healthy via `n8n-lt` MCP.

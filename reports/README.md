@@ -25,6 +25,8 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - LinkedIn outreach funnel metrics (`linkedinFunnel`) are now available, aggregated from `linkedin_connection_state` showing the full funnel: ready → requested → connected → DM active → completed.
 - Vapi voice campaign breakdown (`vapiCampaignBreakdown`) and queue distribution (`vapiQueueDistribution`) are now surfaced from `voice_call_attempt` and `voice_call_queue`.
 - MQL summary (`mqlSummary`) tracks active and total opportunities in the Warm pipeline Qualified (MQL) stage. SQL contacts (`sqlContacts`) counts contacts with the SQL tag.
+- AI qualification reporting must distinguish Janvi-qualified cannabis contacts promoted to Sales Outreach from AI-pending/unverified contacts remaining in Warm and Vapi.
+- SDR reporting must capture assignment source, owner-alignment result, conflicts, and unassigned Sales Outreach records.
 - Pool distribution (`poolDistribution`) shows brand, dispensary, and Vapi campaign pool tag counts.
 - Stage mover count was fixed (was 0) by resolving pipeline/stage names from GHL stage IDs when name fields are NULL and by removing the date filter from `opportunity_traces` to detect transitions across all history.
 - `LT - Report Executive Summary API` now uses a contact-safe cohort definition for `contactToOpportunityRate` so the embedded funnel is not inflated by multi-opportunity rollup semantics.

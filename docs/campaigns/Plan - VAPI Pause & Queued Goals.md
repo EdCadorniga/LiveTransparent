@@ -104,21 +104,13 @@ To bring marketing email workflows back online after a future agent session:
 3. Trigger a small test through the Emerald CSV -> GHL Import endpoint and confirm
    the contact lands in the expected stage and gets the email-outbound tag.
 
-To bring VAPI back online after a future agent session:
+Historical pause-plan note: this is no longer an activation procedure. The live voice system was reactivated and hardened; use `Project Status and Next Steps.md` and live n8n state instead.
 
 1. Review this plan and the `Project Status and Next Steps.md` voice section.
 2. Re-verify the Vapi dashboard still points all tools and the end-of-call webhook
    to `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
-3. Publish the 6 paused workflows in this order (each is independent but the order
-   matches the call lifecycle):
-   1. `KsBMFcz1YpBGrjDW` (Dequeue Next) — required for outbound
-   2. `XzcpOBi9YcIhJPck` (Enqueue) — required to feed Dequeue
-   3. `PUCfTZBANSPcgS0c` (Call Outcome Ingest) — required to close the loop
-   4. `fx4UvKUWbqJEY3LK` (Vapi Callback + Tools) — required for inbound callbacks
-   5. `bYk1Ai6MJLyhTsDZ` (Intake Poller) — feeds Enqueue from vapi_queue tag
-   6. `r7UjWLndmc6EqEUW` (Outbound Dialer) — places the actual calls
-4. Run the poller once manually and confirm it picks up a contact and routes it
-   through the dialer.
+3. Do not publish `KsBMFcz1YpBGrjDW` as an automatic call-start path. The current dialer atomically claims queue rows and advances within the same execution.
+4. If a future reactivation is needed, fetch live workflow details first, verify active versions, and follow the current queue/tag contract rather than the historical `vapi_queue` flow.
 
 ## Queued Goals (in priority order)
 

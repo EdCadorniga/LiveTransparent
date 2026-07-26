@@ -111,13 +111,8 @@ function contactName(contact) {
 function pickEmail(contact) { return clean(contact?.email || contact?.emailAddress || contact?.primaryEmail || ''); }
 function pickPhone(contact) { return clean(contact?.phone || contact?.phoneNumber || contact?.primaryPhone || ''); }
 function firstNonEmpty(...values) { for (const v of values) { const s = clean(v); if (s) return s; } return ''; }
-async function doHttpRequest(options) {
-  if (typeof $httpRequest === 'function') return await $httpRequest(options);
-  if (this?.helpers?.httpRequest) return await this.helpers.httpRequest(options);
-  throw new Error('HTTP helper not available');
-}
 async function apiGet(path) {
-  return await doHttpRequest.call(this, {
+  const options = {
     method: 'GET',
     url: \`\${apiBaseUrl}\${path}\`,
     headers: {
@@ -126,7 +121,18 @@ async function apiGet(path) {
       Accept: 'application/json',
     },
     json: true,
-  });
+  };
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      return await this.helpers.httpRequest(options);
+    } catch (error) {
+      const status = Number(error?.statusCode || error?.httpCode || error?.response?.status || error?.cause?.statusCode || 0);
+      if (status !== 429 || attempt === 3) throw error;
+      const retryAfter = Number(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after'] || 0);
+      const delayMs = retryAfter > 0 ? Math.max(1000, retryAfter * 1000) : 1000 * (2 ** attempt);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
 }
 function getContacts(data) {
   if (Array.isArray(data?.contacts)) return data.contacts;
@@ -219,6 +225,7 @@ for (let page = 0; page < maxPages; page += 1) {
   if (nextStartAfterId) startAfterId = nextStartAfterId;
   else if (contacts.length >= pageSize) startAfterId = clean(contacts[contacts.length - 1]?.id || contacts[contacts.length - 1]?._id || '');
   else break;
+  await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
 return rows.map((row) => ({ json: row }));`

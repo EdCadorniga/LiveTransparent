@@ -17,6 +17,16 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 - GHL: contact, opportunity, note, and tag system of record.
 - Postgres: call-attempt and transcript metadata store.
 
+### Qualification and SDR Boundary
+
+- Warm is the unassigned intake and verification layer.
+- Janvi's AI assessment is the promotion gate once its authoritative workflow and result field/tag are confirmed.
+- Only an explicit `qualified cannabis business` result may promote a contact/opportunity to `Sales Outreach -> New`.
+- SDR assignment happens only at Sales Outreach entry: align a single existing owner, preserve matching owners, flag conflicting owners, or assign Jason/Marc 50/50 when neither record has an owner.
+- Contact native `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` must remain aligned.
+- Vapi handles AI-pending/unverified contacts in Warm. AI-qualified and explicitly rejected/non-cannabis contacts are excluded from the Vapi queue.
+- A successful Vapi warm transfer is manually claimed by the answering SDR and promoted to Sales Outreach. Vapi booking remains on Cameron's Regulated Ads calendar.
+
 ### Scheduling Contract
 
 - Recurring n8n workflows must use n8n's native `Schedule Trigger` node.
@@ -44,7 +54,7 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 
 ### LinkedIn Timing
 
-- The current LinkedIn DM cadence is `0, 3, 4, 3, 4` days between sends.
+- The current LinkedIn DM cadence is approximately day 0, day 3, day 7, and day 10, with terminal completion at day 14.
 - The first message starts the clock by setting `dm_sequence_started_at`.
 - Sequence state is stored in `linkedin_connection_state`.
 
@@ -79,13 +89,15 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 
 ## Queue Contract
 
-Minimum `voice_call_queue` fields:
+Minimum live `voice_call_queue` fields:
 
 `queue_id`, `contact_id`, `phone_e164`, `campaign_id`, `status`, `attempt_count`, `max_attempts`, `next_attempt_at`, `dnc`, `first_name`, `lead_timezone`
 
 Injected Vapi variables:
 
 `contact_id`, `queue_id`, `campaign_id`, `lead_timezone`, `first_name`
+
+Planned qualification extension: add `ai_qualification_state` only after the authoritative qualification workflow and field/tag contract has been identified and migrated through the live queue, dialer, and callback paths.
 
 Normalized callback output:
 
@@ -105,6 +117,8 @@ Normalized callback output:
 - The native Schedule Trigger controls polling frequency; the workflow guard controls call eligibility.
 - Fall back to GHL contact timezone when queue timezone is missing; use CT 12-2pm safe window if neither is available.
 - Keep secrets in env/credentials; do not hardcode them in workflow JSON.
+- Do not enqueue AI-qualified or explicitly rejected/non-cannabis contacts for Vapi. Vapi queue eligibility is limited to AI-pending/unverified Warm contacts.
+- Keep Vapi warm transfer separate from Cameron calendar booking. Transfer uses the shared SDR number; booking uses Cameron's Regulated Ads calendar.
 - Preserve n8n graph integrity when editing workflows.
 - For social outreach, never send duplicate messages. Every send workflow must check and update shared state before and after send.
 - For social outreach, reply-handling workflows must mark the contact as in conversation so follow-up sequences stop.
@@ -116,6 +130,7 @@ Normalized callback output:
 - `add_to_dnc`: set `voice_call_queue.dnc=true` and add the GHL DNC tag.
 - `log_call_outcome`: upsert `voice_call_attempt` with disposition, notes, and follow-up time.
 - `notify_sales`: post lead name and summary into `#leads`.
+- Vapi API-managed `transferCall`: warm-transfer to the shared SDR number using neutral Sales Lead language.
 
 ## Voice Tags
 
@@ -140,6 +155,7 @@ Normalized callback output:
 4. Send a simulated callback payload.
 5. Confirm Postgres insert plus GHL note creation.
 6. Replay the callback and confirm no duplicate record.
+7. Confirm AI-qualified contacts are excluded from the Vapi queue and a successful warm transfer remains manually claimable by the answering SDR.
 
 ## Social Outreach Smoke Test
 

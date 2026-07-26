@@ -162,8 +162,8 @@ These are the main tags documented in our system and what they mean.
 
 ### Email Follow-Up Tags
 
-- `Email Open 3x - Pending Assign`: contact opened emails enough times to trigger a review, but assignment has not finished yet
-- `open email 3x`: tag used when the contact is assigned after the 3-open check
+- `Email Open 3x - Pending Assign`: contact opened emails enough times to trigger an engagement review
+- `open email 3x`: tag used after the 3-open engagement check; it does not independently assign an SDR
 
 ### Outreach and Sequence Tags
 
@@ -196,7 +196,8 @@ If a contact opens emails 3 times:
 
 - the system waits 45 minutes
 - the system checks if the lead already booked
-- if not booked, the contact is assigned to John
+- if not booked, the system records the engagement signal but does not assign an SDR or promote a Warm record
+- AI qualification and Sales Outreach entry determine when ownership is resolved
 
 This helps the team catch warm leads who are paying attention.
 

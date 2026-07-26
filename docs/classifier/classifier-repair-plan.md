@@ -34,6 +34,7 @@ while excluding:
 - contacts already called
 - contacts already queued
 - DNC or already-terminal Vapi outcomes
+- contacts with an authoritative qualification result that is qualified or rejected/non-cannabis; only explicitly pending/unverified contacts may enter Vapi
 - contacts without a usable linked `ghl_contact_id`
 - contacts without a callable phone path
 
@@ -46,12 +47,14 @@ Do not reuse the old broad `sso` substring heuristic.
 - linked `ghl_contact_id` present
 - not already called or queued
 - not DNC / not terminal Vapi tagged
+- qualification state is explicitly pending or unverified; qualified/rejected records are excluded
 
 ### Dispensary campaign candidates
 - `source_list = 'dispensaries'`
 - linked `ghl_contact_id` present
 - not already called or queued
 - not DNC / not terminal Vapi tagged
+- qualification state is explicitly pending or unverified; qualified/rejected records are excluded
 
 This is simpler and safer than role-tag inference, because the new imports are already split into Brand vs Dispensary source pools.
 

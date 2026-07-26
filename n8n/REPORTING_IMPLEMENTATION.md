@@ -27,6 +27,7 @@ The published Rollups workflow preserves GA-backed summary, channel, UTM, and la
 - **LinkedIn outreach funnel**: `linkedinFunnel` key in the Executive Report; aggregated from `linkedin_connection_state` (ready → requested → connected → DM active → completed).
 - **Vapi campaign breakdown**: `vapiCampaignBreakdown` (all-time call metrics by campaign) and `vapiQueueDistribution` (pending queue by campaign) from `voice_call_attempt` JOIN `voice_call_queue`.
 - **MQL/SQL tracking**: `mqlSummary` (opportunities in Warm pipeline Qualified (MQL) stage) and `sqlContacts` (contacts with SQL tag) surfaced in the report.
+- **AI qualification and SDR boundary**: report Janvi-qualified cannabis contacts promoted to Sales Outreach, AI-pending/unverified contacts remaining in Warm/Vapi, rejected contacts suppressed from Vapi, and Sales Outreach owner-alignment outcomes.
 - **Pool distribution**: `poolDistribution` with counts for brands_pool, dispensaries_pool, vapi_campaign_brand, vapi_campaign_dispensary.
 - **Stage name resolution**: Pipeline and stage names now resolved from GHL stage IDs via CASE mapping, fixing stagemover count (was 0, now 93+).
 - **Voice dialer**: `GHL - Create Call Note` node set to `onError: continueRegularOutput` to prevent execution errors from blocking calls.
@@ -78,6 +79,8 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - Use it to validate report shape before GA4 is connected.
   - The live workflow has been patched to derive `report_date` from source contact timestamps; rerun it before checking rollups.
   - The workflow has already been manually rerun after the patch.
+  - On 2026-07-25, the live `Fetch + Normalize Leads` node was hardened against GHL HTTP 429 responses with direct `this.helpers.httpRequest` calls, bounded `Retry-After`/exponential backoff, and a 500 ms delay between pagination pages.
+  - Validation execution `241894` completed successfully with 500 contacts and all downstream writes successful.
 
 ### 3. `LT - GHL Daily Sales Ingest`
 - Status: not blocked by GA4.

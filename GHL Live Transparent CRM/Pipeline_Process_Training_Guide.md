@@ -26,25 +26,25 @@ Use this pipeline for newly identified warm intent before full sales outreach or
 
 #### 1. `New`
 Definition:
-- Contact has a warm signal but has not been reviewed.
+- Contact has a warm signal but has not been verified by Janvi's AI assessment.
 Entry criteria:
 - New warm tag/source is captured.
 Exit criteria:
-- Qualified into MQL, routed to outreach, routed to nurture, or disqualified.
+- AI-qualified as a cannabis business and promoted to Sales Outreach, routed to nurture, or explicitly rejected.
 
 #### 2. `Qualified (MQL)`
 Definition:
-- Contact matches minimum quality criteria for sales attention.
+- Contact has an approved marketing-qualified signal. This stage is not, by itself, the SDR work-queue gate.
 Entry criteria:
 - Lead quality checks pass (fit + intent), and the contact came from an approved MQL path.
 Exit criteria:
-- Routed to outreach, nurture, or disqualified.
+- AI-qualified as a cannabis business and promoted to Sales Outreach, routed to nurture, or disqualified.
 
 #### 3. `Routed to Outreach`
 Definition:
-- Contact is approved for direct outreach and handed to outreach process.
+- Contact passed the AI cannabis-business gate and is approved for direct SDR outreach.
 Entry criteria:
-- Assigned to outreach owner/queue.
+- Janvi's AI result explicitly equals the approved cannabis qualification value, or an SDR manually claims a successful Vapi warm transfer.
 Exit criteria:
 - Opportunity moved to `Sales Outreach` pipeline.
 
@@ -71,9 +71,15 @@ Use this pipeline once a lead is approved for direct contact and meeting convers
 
 #### 1. `New`
 Definition:
-- Lead has entered outreach and is awaiting first touch.
+- AI-qualified cannabis lead has entered the SDR work queue and is awaiting first touch.
 Entry criteria:
-- Handoff from Warm pipeline.
+- Handoff from Warm after Janvi's AI qualification, or manual promotion after a successful Vapi warm transfer.
+- Resolve ownership on entry:
+  - one existing owner: align the other record;
+  - matching owners: preserve;
+  - conflicting owners: flag for review;
+  - no owners: assign Jason or Marc using the deterministic 50/50 allocator.
+- Keep contact native `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` aligned.
 Exit criteria:
 - First outreach attempt is completed.
 
@@ -220,11 +226,19 @@ Exit criteria:
 
 ## 6) Ownership and Accountability
 - Marketing/Automation owner:
-  - Keeps Warm pipeline clean and routed.
+  - Keeps Warm pipeline clean, unassigned, and verified through Janvi's AI assessment.
 - SDR/Outreach owner:
-  - Works `Sales Outreach` stages daily.
+  - Works `Sales Outreach` stages daily and manually claims successful Vapi warm transfers.
 - Sales owner:
   - Owns `Sales` stages and close outcomes.
+
+### Ownership Resolution at Sales Outreach Entry
+- Do not assign SDR ownership during ordinary Warm intake or Vapi queueing.
+- If exactly one of the contact or opportunity has an owner, align the other record to that owner.
+- If both owners match, make no ownership change.
+- If both owners differ, flag the conflict for review and do not overwrite automatically.
+- If neither has an owner, assign Jason or Marc with the deterministic 50/50 allocator.
+- The custom opportunity `Owner` field must mirror the native opportunity owner through the canonical SDR mapping.
 
 ## 7) Daily Usage Standard
 - Update stage immediately after each meaningful interaction.
@@ -235,6 +249,9 @@ Exit criteria:
 ## 8) Reporting Standard
 Track weekly:
 - Volume entering `Warm -> New`
+- AI-qualified cannabis contacts entering `Sales Outreach -> New`
+- AI-pending/unverified contacts sent to Vapi
+- AI-rejected/non-cannabis contacts suppressed from Vapi
 - Conversion `Warm Qualified -> Outreach Booked`
 - Conversion `Outreach Booked -> Sales Closed Won`
 - Loss reasons at `Closed Lost`
@@ -415,9 +432,8 @@ This process handles anonymous website-visitor enrichment events sent from RB2B 
 - Existing row is updated on conflict.
 
 ### E) Follow-Up Task Rule
-- Create one task on processed contact:
-- Title: `New RB2B contact - Call`
-- Assigned user: John
+- Do not create an SDR task while the RB2B contact remains in Warm.
+- After Janvi-qualified promotion into Sales Outreach, create the follow-up task using the resolved owner ID.
 
 ### F) Troubleshooting
 1. If task node returns `Cannot POST /contacts//tasks`, verify task node URL references `ghl_contact_id` from `Prepare + Upsert GHL Contact`.

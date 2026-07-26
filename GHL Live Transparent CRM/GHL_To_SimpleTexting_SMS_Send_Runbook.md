@@ -63,6 +63,15 @@ Use this when the user types the actual SMS body in GHL.
 }
 ```
 
+### Canned Template Sends
+
+For campaign messages, send `templateKey` instead of `message`. The live registry is maintained by `LT - SimpleTexting SMS Send (Webhook, Staged)` and currently supports `sms_1` through `sms_6`.
+
+- `sms_1`, `sms_3`, and `sms_5` were refreshed on 2026-07-26.
+- `sms_2`, `sms_4`, and `sms_6` were unchanged on 2026-07-26.
+- Preserve legacy `john_sms1` through `john_sms5` aliases because existing GHL workflow actions still reference them.
+- See [`docs/outreach/sms_edited_templatekeys.md`](../docs/outreach/sms_edited_templatekeys.md) for the current message bodies.
+
 ## Suggested GHL Custom Fields
 If the workflow needs the user to draft the message before sending, the only required custom field is:
 - `SimpleTexting SMS`

@@ -113,27 +113,37 @@ Flow:
 - The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
 4. Ensure minimum stage/pipeline:
 - Move to Warm pipeline + MQL stage only if contact is not already further in sales progression.
-5. Route by highest-priority channel:
-- Referral:
-  - Move to Sales pipeline at booked/pending stage.
-  - Assign owner using current default assignment behavior (no overwrite restriction in this phase).
-  - Notify sales admin.
-  - Do not enter nurture.
-- Lead forms (LinkedIn/Meta):
-  - Move to Sales Outreach pipeline, active outreach stage.
-  - Assign `sales_admin_user_id` using current default assignment behavior.
-  - Start 7-day outreach if `LT Outreach Active` absent.
-- Direct replies (Email/SMS/LinkedIn DM):
-  - Move to Sales Outreach pipeline.
-  - Start direct response follow-up if not active.
-- Website/Traffic/Remarketing:
-  - Add engaged visitor tag.
-  - Start 14-day nurture if `LT Nurture Active` absent.
+5. Preserve the channel signal while the contact remains in Warm:
+- Referral, lead forms, direct replies, website intent, traffic, and remarketing may set channel/source metadata and approved warm tags.
+- Do not assign an SDR or move to Sales Outreach from the channel micro-automation.
+- Do not start SDR outreach merely because a channel signal or `mql` tag exists.
+- Janvi's AI assessment must explicitly verify a qualified cannabis business before the promotion branch moves the contact/opportunity to `Sales Outreach -> New`.
+- Referral bookings that meet the regulated-calendar rule remain an explicit Sales handoff exception and must not be treated as ordinary Warm intake.
+- Website/traffic/remarketing contacts may enter nurture when `LT Nurture Active` is absent.
 6. Persist routing metadata fields and lock values.
 7. Add `LT Routed`.
 
+## 9A) AI Qualification Gate and SDR Boundary
+
+- Warm is the unassigned intake and verification layer.
+- Janvi's AI assessment is the authoritative gate for normal SDR promotion once its live workflow and result field/tag are confirmed.
+- Only an explicit result meaning `qualified cannabis business` may move the opportunity/contact to `Sales Outreach -> New`.
+- Contacts with AI status pending, unknown, or unverified remain in Warm and are eligible for the Vapi verification queue.
+- Contacts explicitly assessed as non-cannabis or otherwise rejected remain out of the Vapi queue unless a later policy says otherwise.
+- SDR allocation occurs only when the record enters `Sales Outreach -> New`.
+- At that boundary:
+  1. If only the contact or opportunity has an owner, align the other record to that owner.
+  2. If both owners match, preserve them.
+  3. If both owners differ, flag a conflict and do not overwrite automatically.
+  4. If neither has an owner, assign Jason or Marc using the deterministic 50/50 allocator.
+- Contact native `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` must remain aligned through the canonical SDR mapping.
+- Vapi warm transfer is an exception: the answering SDR manually claims the contact and opportunity and promotes the record into Sales Outreach.
+- Cameron's Regulated Ads calendar remains the booking destination; it is not the SDR ownership allocator.
+
 ## 10) Field-Level Collision Policy
-- `owner`: follow current default assignment behavior (owner protection deferred).
+- `owner`: do not assign in Warm. Resolve ownership at Sales Outreach entry using the AI gate and the four-case ownership alignment rule above.
+- `contact.assignedTo` and opportunity native `assignedTo`: use GHL user IDs as the operational owner values.
+- Custom opportunity `Owner`: mirror the canonical SDR display identity mapped from native `assignedTo`; flag mismatches instead of silently overwriting conflicting owners.
 - `pipeline/stage`: write only if target rank is higher than current rank.
 - `lead status`: safe overwrite to `Warm`.
 - `sequence enrollments`: check active enrollment/tag guard first.

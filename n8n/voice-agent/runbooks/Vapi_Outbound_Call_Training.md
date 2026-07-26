@@ -38,8 +38,9 @@ The assistant should:
 2. Confirm who is being called and whether it is a good time.
 3. Give a short high-level explanation of LiveTransparent.
 4. Qualify interest and fit.
-5. If qualified and interested, offer a meeting with Cameron.
-6. If not qualified or not interested, close politely.
+5. If the contact is still AI-pending/unverified and the conversation qualifies them, offer a meeting with Cameron.
+6. If the prospect asks for a human or a warm transfer, use the shared SDR transfer tool without naming Cameron.
+7. If not interested or explicitly rejected, close politely.
 
 ### Booking behavior
 
@@ -48,6 +49,7 @@ The outbound agent has tools to:
 - pull context from GHL
 - review Cameron’s calendar for `Regulated Ads`
 - create a new booking when the prospect fits and wants to meet
+- transfer a live call to the shared SDR number when a human handoff is required
 
 Booking should only happen after qualification and explicit interest.
 
@@ -99,6 +101,14 @@ Use this only after the prospect:
 - appears to fit the target profile
 - agrees to explore a meeting
 
+### Warm transfer to the SDR team
+
+- Vapi uses the live `transferCall` tool `86d380a3-34d2-41f8-96a0-acf5f0124ccb`.
+- The destination is the shared SDR number, not an individual Jason or Marc number.
+- Transfer language should say `our sales team` or `our Sales Lead`, not Cameron, Jason, Marc, John, or another named owner.
+- Warm transfer and Cameron booking are separate outcomes. A transfer does not book Cameron's calendar.
+- After a successful transfer, the answering SDR manually assigns the contact and opportunity to themselves and moves the record into Sales Outreach.
+
 ### Booking a meeting
 
 If the prospect is qualified and wants to meet:
@@ -112,25 +122,29 @@ If the prospect is qualified and wants to meet:
 ## End-to-End Call Flow
 
 1. The dialer runs every 2 minutes through n8n's native Schedule Trigger. No external cron job is used.
-2. It selects one queue row from `voice_call_queue` where:
+2. It selects the next queue row from `voice_call_queue` where:
    - `status = 'pending'`
    - `dnc = false`
    - `attempt_count < max_attempts`
    - `next_attempt_at` is due or empty
    - `locked_at` is either empty or stale enough to be reclaimed
 3. The dialer selects the lowest `attempt_count` tier first, then the oldest `created_at` row inside that tier.
-4. The dialer atomically claims that row by setting `locked_at`, `lock_owner`, `last_attempt_at`, and `next_attempt_at` before starting the Vapi call.
-5. The dialer sends a `POST` request to Vapi to create the outbound call.
-6. The dialer passes `assistantOverrides` so Vapi receives:
+4. The dialer atomically claims that row by setting `locked_at`, `lock_owner`, and the in-progress state before the contact lookup.
+5. If GHL shows a terminal Vapi/DNC block, the phone is invalid, or the contact is outside its local calling hours, the row is released and the dialer immediately checks the next row in the same execution.
+6. Same-run queue advancement is capped at 25 queue checks to prevent an unbounded execution or excessive GHL traffic. No call is placed unless an eligible contact passes the blocklist, phone, and timezone checks.
+7. The dialer sends a `POST` request to Vapi to create the outbound call.
+8. The dialer passes `assistantOverrides` so Vapi receives:
    - `contact_id`
    - `queue_id`
    - `campaign_id`
    - `lead_timezone`
    - `first_name`
-7. Vapi places the call using the configured assistant.
-8. During the live call, Vapi can call tools back into the merged callback webhook.
-9. When the call ends, Vapi posts the end-of-call payload to the same webhook.
-10. The callback workflow records the call result, adds GHL notes, and updates any tool-specific state.
+9. Vapi places the call using the configured assistant.
+10. During the live call, Vapi can call tools back into the merged callback webhook.
+11. When the call ends, Vapi posts the end-of-call payload to the same webhook.
+12. The callback workflow records the call result, adds GHL notes, and updates any tool-specific state.
+13. AI-qualified contacts are excluded from the Vapi queue; Vapi is the Warm verification path for AI-pending/unverified contacts.
+14. If a warm transfer is answered, the SDR manually claims the contact and opportunity and promotes the record to `Sales Outreach -> New`.
 
 ## 2026-07-23 Production Hardening
 
@@ -139,6 +153,13 @@ If the prospect is qualified and wants to meet:
 - Callback timer state uses a 60-second duplicate guard and is pruned after 30 minutes.
 - Queue insertion requires `X-LT-Voice-Queue-Secret` from `VOICE_QUEUE_ENQUEUE_SECRET`.
 - Apollo phone-request failures are counted for monitoring, and the timeout reaper Slack summary is connected.
+
+## 2026-07-25 Scheduler and Queue Recovery
+
+- Stale n8n execution records were removed after queued runs remained in “Starting soon” for multiple days. Legitimate `waiting` executions were preserved.
+- The dialer was unpublished and republished, then manually verified against four different queue contacts.
+- The native two-minute Schedule Trigger is healthy; no Redis, worker pool, OS cron, or Coolify cron is required for the current single-container deployment.
+- The old `End - No Phone` and `End - Outside Contact Hours` nodes are now disconnected because their branches feed the same-run loop. They are legacy display nodes and may be removed during a future cleanup.
 
 ## Dialer Workflow Walkthrough
 
@@ -161,8 +182,9 @@ The dialer workflow is intentionally simple.
   - `phone_e164`
   - `campaign_id`
   - `lead_timezone`
-  - `max_attempts`
-  - `attempt_count`
+   - `max_attempts`
+   - `attempt_count`
+   - AI qualification state/verification status when available
 
 ### Guard
 
@@ -217,6 +239,7 @@ Supported tools:
 - `add_to_dnc`
 - `log_call_outcome`
 - `notify_sales`
+- Vapi API-managed `transferCall` to the shared SDR number
 
 Tool behavior:
 

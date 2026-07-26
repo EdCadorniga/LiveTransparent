@@ -8,7 +8,7 @@ If a contact opens emails 3 times:
 
 - wait 45 minutes
 - if they already booked, do nothing
-- if they did not book, assign them to John
+- if they did not book, record the engagement signal without assigning an SDR
 
 ## Why This Matters
 
@@ -26,12 +26,14 @@ But three opens are strong enough to deserve a closer look.
 2. Waits 45 minutes
 3. Checks if the lead booked
 4. If not booked:
-- assigns the contact to John
-- assigns or creates the opportunity for John
+- records the engagement signal
+- leaves Warm ownership unchanged
+- defers SDR ownership to Sales Outreach entry after Janvi's AI qualification
 
 ## Current Owner
 
-- John
+- No owner is assigned by this engagement workflow.
+- Sales Outreach entry resolves existing ownership or applies the Jason/Marc 50/50 fallback.
 
 ## Key Tags
 

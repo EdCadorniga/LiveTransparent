@@ -23,6 +23,8 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 - Confirm archived workflows are not active in n8n.
 - Confirm n8n is running `2.31.5` and recurring workflows use native Schedule Trigger nodes.
 - Confirm `VOICE_QUEUE_ENQUEUE_SECRET` is configured for callers of `/webhook/voice-queue-enqueue`.
+- Verify the Vapi `transferCall` tool `86d380a3-34d2-41f8-96a0-acf5f0124ccb` uses the shared SDR number and neutral Sales Lead wording; it must not mention Jason, John, Marc, or Cameron.
+- Verify Vapi queue eligibility is limited to Warm contacts whose Janvi AI qualification is pending/unverified. AI-qualified and explicitly rejected/non-cannabis contacts must be excluded.
 
 ## Deployment sequence
 1. Restore or update `n8n-workflow/lt-voice-agent-vapi-callback-v1-merged.json` for the canonical callback/tool router if a rebuild is required.
@@ -60,6 +62,7 @@ Do not reintroduce the older split callback workflow into production.
 - Hard stop on DNC or invalid phone.
 - No direct legal/compliance answers.
 - Human handoff on complex objection/compliance path if that behavior is enabled later.
+- Warm transfer and Cameron booking are separate paths. A successful transfer is manually claimed by the answering SDR; booking uses Cameron's Regulated Ads calendar.
 
 ## Daily QA checklist
 - Sample 5 completed call summaries.
@@ -71,4 +74,8 @@ Do not reintroduce the older split callback workflow into production.
 - Verify callback timer records older than 30 minutes are pruned.
 - Verify unauthenticated enqueue requests fail closed before database insertion.
 - Verify the dialer selects the oldest contact within the lowest attempt tier before any repeat passes.
+- Verify blocked or invalid contacts are released and the same execution advances to another queue row, stopping after the 25-contact loop cap if no eligible contact is found.
+- Verify the n8n Executions view does not accumulate stale `new`/“Starting soon” records after a restart or deployment; do not delete legitimate `waiting` executions.
 - Spot-check that failed/null disposition calls did not receive auto tags (expected).
+- Verify AI-qualified contacts do not enter the Vapi queue.
+- Verify a successful warm transfer can be manually promoted to `Sales Outreach -> New` and claimed by the answering SDR.

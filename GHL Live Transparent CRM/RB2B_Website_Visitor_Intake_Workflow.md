@@ -1,14 +1,14 @@
 # RB2B Website Visitor Intake Workflow
 
 ## Purpose
-Capture RB2B webhook leads, reconcile/update contact data in GHL, apply qualification tags, store/update lead data in Postgres, and create a call task for John.
+Capture RB2B webhook leads, reconcile/update contact data in GHL, apply source/qualification tags, and store/update lead data in Postgres. RB2B remains a Warm signal and does not assign an SDR.
 
 ## Live Workflow
 - n8n workflow: `rb2b leads`
 - Workflow ID: `3kjsIUeoEQFx26cC`
 - Webhook path: `/webhook/rb2b_leads_v3`
 - Test webhook path: `/webhook-test/rb2b_leads_v3`
-- Platform note: n8n is now on `2.14.2`; no manual node-version refresh is planned unless post-upgrade review shows a real issue
+- Platform note: n8n target/runtime is `2.31.5`; recurring workflows use native Schedule Trigger nodes.
 
 ## Input Payload (RB2B)
 - `LinkedIn URL`
@@ -53,17 +53,16 @@ Capture RB2B webhook leads, reconcile/update contact data in GHL, apply qualific
 - Unique key: `lead_key`
 - Existing rows are updated on conflict.
 
-6. Create follow-up task in GHL.
-- Title: `New RB2B contact - Call`
-- Assigned to: John
-- Task is created against resolved `ghl_contact_id`.
+6. Defer follow-up task creation.
+- RB2B does not create an SDR task while the contact remains in Warm.
+- A follow-up task may be created after Sales Outreach promotion using the resolved owner ID.
 
 ## Data Stores
 - GHL contact record:
   - core contact fields updated from RB2B payload
   - name-only leads are created as new contacts when no existing exact-match contact is found
   - tags appended (`rb2b_website_visitor`, `mql`)
-  - task created for John
+   - no SDR task is created during Warm intake
 
 - Postgres table:
   - `RB2B_Leads`
@@ -73,7 +72,8 @@ Capture RB2B webhook leads, reconcile/update contact data in GHL, apply qualific
     - `updated_at`
 
 ## Node Flow (Current)
-- `Webhook` -> `Config` -> `Prepare + Upsert GHL Contact` -> `Upsert RB2B Lead Row` -> `Create Task - John Call` -> `Result`
+- `Webhook` -> `Config` -> `Prepare + Upsert GHL Contact` -> `Upsert RB2B Lead Row` -> `Result`
+- Legacy hardcoded task node is disconnected and disabled pending the Sales Outreach owner resolver.
 - `Config` also triggers `Ensure RB2B Leads Table` in a parallel branch.
 
 ## Known Guardrails

@@ -8,14 +8,19 @@
 - previously at `2.14.2` — see AGENTS.md for upgrade history
 
 ## Warm
-1. `New`: New warm signal captured, not reviewed yet.
-2. `Qualified (MQL)`: Meets minimum fit + intent.
-3. `Routed to Outreach`: Approved and handed to outreach.
+1. `New`: New warm signal captured and not verified by Janvi's AI assessment.
+2. `Qualified (MQL)`: Approved marketing-qualified signal; not sufficient by itself for SDR assignment.
+3. `Routed to Outreach`: Janvi verified an eligible cannabis business, or an SDR manually claimed a successful Vapi warm transfer.
 4. `Nurture Active`: Not ready for direct outreach; nurture running.
 5. `Disqualified`: Not currently viable.
 
+### AI Qualification Gate
+- Only an explicit Janvi AI result meaning `qualified cannabis business` promotes a contact/opportunity to `Sales Outreach -> New`.
+- AI-pending/unverified contacts remain in Warm and may enter the Vapi verification queue.
+- AI-rejected/non-cannabis contacts do not enter the Vapi queue unless explicitly approved by a later policy.
+
 ## Sales Outreach
-1. `New`: Entered outreach queue, no first touch yet.
+1. `New`: AI-qualified cannabis lead entered the SDR queue, no first touch yet.
 2. `Attempting Contact 1st Attempt`: Active outbound attempts in progress.
 3. `Engaged`: Two-way interaction confirmed.
 4. `Meeting Requested`: Scheduling discussion active.
@@ -66,7 +71,8 @@
 ## Required Actions Per Stage Change
 - Update stage immediately after meaningful interaction.
 - Add a note with reason for movement.
-- Confirm owner is assigned.
+- At Sales Outreach entry, resolve ownership: align a single existing owner, preserve matching owners, flag conflicts, or assign Jason/Marc 50/50 when neither record has an owner.
+- Keep contact `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` aligned.
 - Set next follow-up task if opportunity is still open.
 
 ## Daily Rep Checklist
@@ -75,6 +81,12 @@
 3. Push engaged leads toward `Meeting Requested` and `Booked`.
 4. Close stale opportunities to correct terminal stage (`Unresponsive` or `Closed Lost`).
 5. Verify no opportunity is left without owner or next action.
+
+## Vapi Verification Boundary
+- Vapi calls contacts that remain in Warm because Janvi's AI assessment is pending, unknown, or unverified.
+- Vapi must not call AI-qualified contacts or explicitly rejected/non-cannabis contacts.
+- A successful warm transfer is manually claimed by the answering SDR, then promoted into Sales Outreach.
+- Vapi bookings remain on Cameron's `Regulated Ads On Social/Search` calendar and do not determine SDR ownership.
 
 ## Warm Entry Channels (Last Known Rollout 2026-02-24)
 - Active/Configured in GHL UI: `LinkedIn`, `LinkedIn DM`, `LinkedIn Lead Form`, `Meta Lead Form`, `Email Inbound`, `Email Outbound`, `SMS`, `Referral`
@@ -132,4 +144,4 @@
 - upsert into `RB2B_Leads` by `lead_key`
 - Follow-up task:
 - title `New RB2B contact - Call`
-- assigned to John
+- leave unassigned until the qualification and Sales Outreach ownership gate is satisfied
