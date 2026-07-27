@@ -117,6 +117,7 @@ The live GHL build already has the key structures needed for reporting:
 - Contact drill-down fields already present in the CRM
 - Opportunity/pipeline data for sales and conversion reporting
 - The live custom menu record now exists in GHL and points to the embedded report host.
+- A native GHL custom report was created for the operational CRM view: report ID `6a67dce4a51a4360c60963a3`. It includes opportunity, email, SMS, and outbound-call widgets and is shared with the location team. Cross-channel Brands-vs-Dispensaries totals remain in the external Executive Report because native GHL widgets do not join the campaign source table.
 
 ### What Should Stay Outside GHL
 
