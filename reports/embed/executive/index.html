@@ -821,11 +821,19 @@
           var pct = num <= 1 ? num * 100 : num;
           return pct.toFixed(pct >= 10 ? 0 : 1) + "%";
         }
-        function formatCurrency(value) {
-          var num = Number(value);
-          if (!Number.isFinite(num)) return "$0";
-          return "$" + new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(num);
-        }
+         function formatCurrency(value) {
+           var num = Number(value);
+           if (!Number.isFinite(num)) return "$0";
+           return "$" + new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(num);
+         }
+         function normalizeLandingPage(value) {
+           var page = String(value || "").trim();
+           if (!page) return "/";
+           page = page.replace(/^https?:\/\/[^\/]+/i, "");
+           page = page.split(/[?#]/)[0] || "/";
+           try { page = decodeURIComponent(page); } catch (_) {}
+           return page || "/";
+         }
         function setActiveRange(nextRange) {
           rangeButtons.forEach(function (btn) { btn.classList.toggle("active", btn.dataset.range === nextRange); });
         }
@@ -1217,12 +1225,10 @@
           renderMetaAttribution(data);
           renderContactSources(data);
           renderAdUtmTraffic(data);
-          renderBars(document.getElementById("top-pages-list"), topPages.slice(0, 8).map(function (p) {
-            var page = String(p.landing_page || p.landingPage || "Unknown");
-            page = page.replace(/^https?:\/\/[^\/]+/i, "");
-            if (!page) page = "/";
-            return {
-              label: page,
+           renderBars(document.getElementById("top-pages-list"), topPages.slice(0, 8).map(function (p) {
+             var page = normalizeLandingPage(p.landing_page || p.landingPage || "Unknown");
+             return {
+               label: page,
               sessions: Number(p.sessions || 0),
               sub: "forms:" + formatNumber(Number(p.form_submissions || 0)) + " opps:" + formatNumber(Number(p.opportunities || 0)) + " revenue:" + formatCurrency(Number(p.closed_won_revenue || 0))
             };
@@ -1340,13 +1346,11 @@
           el = document.getElementById("st-users"); if (el) el.textContent = formatNumber(Number(summary.users || 0));
           el = document.getElementById("st-engaged"); if (el) el.textContent = formatNumber(Number(summary.engagedSessions || 0));
           el = document.getElementById("st-forms"); if (el) el.textContent = formatNumber(Number(summary.formSubmissions || 0));
-          el = document.getElementById("st-top-page");
-          if (el) {
-            var topPageLabel = topPages.length > 0 ? String(topPages[0].landing_page || topPages[0].landingPage || "Unknown") : "No page data yet";
-            topPageLabel = topPageLabel.replace(/^https?:\/\/[^\/]+/i, "");
-            if (!topPageLabel) topPageLabel = "/";
-            el.textContent = topPageLabel;
-          }
+           el = document.getElementById("st-top-page");
+           if (el) {
+             var topPageLabel = topPages.length > 0 ? normalizeLandingPage(topPages[0].landing_page || topPages[0].landingPage || "Unknown") : "No page data yet";
+             el.textContent = topPageLabel;
+           }
           el = document.getElementById("st-eng-rate"); if (el) el.textContent = formatPercent(Number(summary.engagementRate || 0));
           renderBars(document.getElementById("deals-pipeline-list"), opportunityStageBreakdown.slice(0, 10).map(function(s) {
             return { label: (s.pipeline || "?") + " → " + (s.stage || "?"), sessions: s.active_opportunities || 0, sub: "worked:" + formatNumber(s.worked_opportunities || 0) + " movers:" + formatNumber(s.stage_movers || 0) };

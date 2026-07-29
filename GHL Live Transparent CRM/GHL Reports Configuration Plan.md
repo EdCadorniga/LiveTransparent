@@ -116,7 +116,7 @@ The live GHL build already has the key structures needed for reporting:
 - Saved views for daily operational work
 - Contact drill-down fields already present in the CRM
 - Opportunity/pipeline data for sales and conversion reporting
-- The live custom menu record now exists in GHL and points to the embedded report host.
+- The live custom menu record exists in GHL and points to the embedded report host. The remaining deployment step is to publish the latest committed host build through Coolify and verify the iframe in GHL.
 - A native GHL custom report was created for the operational CRM view: report ID `6a67dce4a51a4360c60963a3`. It includes opportunity, email, SMS, and outbound-call widgets and is shared with the location team. Cross-channel Brands-vs-Dispensaries totals remain in the external Executive Report because native GHL widgets do not join the campaign source table.
 
 ### What Should Stay Outside GHL
@@ -159,10 +159,10 @@ These items can be done now without the GA4 property ID:
   - sale definition
   - attribution fallback behavior
 
-Blocked GHL action:
+Previously blocked GHL action:
 
 - Create the report entry menu item once agency-scope custom menu credentials are available.
-- The custom menu API is agency-scoped, so the current location-level PIT is not enough to finish this step.
+- The custom menu API is agency-scoped, so the current location-level PIT is not enough to finish this step. This is no longer an active blocker because the menu record was created through authenticated GHL access.
 
 ## GHL-Only Phased Checklist
 
