@@ -20,11 +20,11 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 ### Qualification and SDR Boundary
 
 - Warm is the unassigned intake and verification layer.
-- Janvi's AI assessment is the promotion gate once its authoritative workflow and result field/tag are confirmed.
-- Only an explicit `qualified cannabis business` result may promote a contact/opportunity to `Sales Outreach -> New`.
+- The canonical classification tags are `qualified` for a regulated business, including nicotine, cannabis, CBD, vape, hemp, and related verticals, and `not qualified` for a non-regulated business.
+- `qualified` is the regulated-business classification gate and routes qualified opportunities to `Sales Outreach -> Qualified`.
 - SDR assignment happens only at Sales Outreach entry: align a single existing owner, preserve matching owners, flag conflicting owners, or assign Jason/Marc 50/50 when neither record has an owner.
 - Contact native `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` must remain aligned.
-- Vapi handles AI-pending/unverified contacts in Warm. AI-qualified and explicitly rejected/non-cannabis contacts are excluded from the Vapi queue.
+- Vapi handles classified regulated-business contacts in Warm and excludes `not qualified` contacts. Raw pool tags must not bypass the canonical classification result.
 - A successful Vapi warm transfer is manually claimed by the answering SDR and promoted to Sales Outreach. Vapi booking remains on Cameron's Regulated Ads calendar.
 
 ### Scheduling Contract

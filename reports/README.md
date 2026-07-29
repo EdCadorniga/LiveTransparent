@@ -42,6 +42,8 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The embedded report now includes a metric glossary so the visible cards are defined where they appear.
 - The primary funnel cards now use Users as the denominator for conversion rates, while Recorded Visits remains traffic volume context.
 - `7d`, `30d`, and `90d` are trailing complete-day presets ending yesterday, not click-day-dependent calendar blocks.
+- The Executive Report also accepts explicit `from=YYYY-MM-DD` and `to=YYYY-MM-DD` windows. The UI exposes those controls and automatically loads the immediately preceding equal-length period for week-on-week comparison.
+- Week-on-week cards show the selected-period value, prior-period value, absolute change, and percentage change for contacts, opportunities, meetings, closed won, email opens, email clicks, and Vapi calls.
 - The `Acquisition Sources` sidebar entry opens the contact-level attribution view.
 - The `UTM / Campaign Breakdown` section shows observed traffic rows, not every UTM ever created in GHL.
 - `Active Opportunities Summary` and `John's Active Deals` are two presentations of the same opportunity payload, with the latter framed as a deal-centred view.

@@ -88,6 +88,7 @@ The executive report (`reports/embed/executive/index.html`) surfaces data from:
 - Vapi calls AI-pending/unverified Warm contacts and excludes AI-qualified or explicitly rejected/non-cannabis contacts.
 - A Vapi warm transfer is manually claimed by the answering SDR and then promoted into Sales Outreach.
 - Cameron's Regulated Ads calendar is used for bookings and does not determine SDR assignment.
+- Website demo CTAs and `/apply/` must use the direct GHL Regulated Ads booking widget (`https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK`), not the legacy Calendly embed or duplicate hero form.
 
 ---
 

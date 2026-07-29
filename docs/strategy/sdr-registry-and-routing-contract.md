@@ -74,7 +74,8 @@ Store the following on the assignment event or routing log:
 
 - The six Jason-named email templates now use `{{user.email_signature}}` and no longer hardcode the signature body.
 - The six template names remain Jason-specific to preserve existing sequence references; renaming them is a separate migration.
-- Live `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`) email actions now use `{{opportunity.owner}} from Transparent eCom` for From Name and `{{user.email}}` for From Email; workflow-level John sender fallbacks were cleared.
+- Live `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`) remains published at version 38. Authenticated inspection confirmed all 7 Send Email actions already use owner-driven sender fields: `From Name = {{opportunity.owner}} from Transparent eCom` and `From Email = {{user.email}}`.
+- The six templates in `Jason Follow Up Emails` still use `Jason from Transparent eCom <jason@livetransparent.com>` as literal fallback metadata. The remaining requirement is to verify or set Jason as the workflow-level fallback user in the UI. The template API rejects merge fields in `fromEmail`, so no template metadata change is needed.
 - DAN, Emerald, and other marketing templates still contain Cameron-specific signatures/sender configuration. They appear to be campaign-brand identity rather than SDR-owner identity, but that boundary must be explicitly confirmed before changing them.
 - SimpleTexting and some social/Vapi paths still contain channel-specific identity or compatibility literals and are not yet registry-driven.
 - The published `LT - Opportunity Owner Alignment` workflow (`b26326a5-77af-4df8-8d86-3f636e73afe0`, version 7) synchronizes contact owner, opportunity owner, custom opportunity owner, and routing audit fields for Jason and Marc. This is owner alignment, not a generic qualification allocator.

@@ -40,23 +40,26 @@ Run:
 - `postgres/select-vapi-seed-test-batch.sql`
 
 Manual review:
-- 5 Brand rows
-- 5 Dispensary rows
+- inspect a representative Brand and Dispensary sample
 - confirm in GHL they are correct and callable
+- note that production runs select up to 10 Brand + 10 Dispensary candidates
 
-## Step 5: Patch classifier workflow
+## Step 5: Verify classifier workflow
 
-Patch source:
-- `n8n/workflow-update-payloads/lt-campaign-contact-classifier-update-ops.json`
+Current behavior:
+- `docs/classifier/classifier-workflow-change-plan.md`
+- historical patch payloads must not be applied without fetching live state first
 
 Target workflow:
 - `IduCoT5YOs0g2faT`
 
-## Step 6: Run classifier manually
+## Step 6: Run or observe classifier
 
 Expected:
-- up to 5 Brand contacts tagged
-- up to 5 Dispensary contacts tagged
+- up to 10 Brand and 10 Dispensary candidates selected per run
+- only accepted AI/domain-list candidates tagged
+- suppressed contacts have stale campaign tags cleaned up
+- failed write count is zero
 
 ## Step 7: Validate tags in GHL
 
@@ -65,13 +68,13 @@ Check newly tagged contacts for:
 - correct company / persona fit
 - no obvious mis-tagged executive rows
 
-## Step 8: Run queue feeder manually
+## Step 8: Verify queue feeder
 
 Workflow:
 - `RFIZ9Bcfl3Yvms2b`
 
 Expected:
-- staged rows only for the reviewed cohort
+- staged rows only for accepted, tagged contacts
 - no unexpected candidates
 
 ## Step 9: Decide on voice activation

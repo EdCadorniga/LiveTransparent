@@ -72,6 +72,10 @@
       }
       .chip.active { background: rgba(79, 140, 255, 0.18); border-color: rgba(79, 140, 255, 0.36); }
       .button { background: linear-gradient(135deg, rgba(79, 140, 255, 0.18), rgba(143, 124, 255, 0.18)); }
+      .period-picker { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255, 255, 255, 0.025); }
+      .period-picker label { display: grid; gap: 5px; color: var(--muted); font-size: 0.76rem; }
+      .period-picker input { min-height: 38px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--text); padding: 8px 10px; font: inherit; }
+      .period-picker .period-note { margin-left: auto; color: var(--faint); font-size: 0.8rem; align-self: center; }
       .grid { display: grid; gap: 16px; }
       .kpi-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
       .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -129,12 +133,16 @@
       .warn { color: var(--amber); }
       .bad { color: var(--red); }
       .pending { color: var(--faint); }
+      .comparison-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+      .comparison-grid .mini div { font-size: 1.05rem; }
+      .comparison-grid .delta { display: block; margin-top: 5px; color: var(--muted); font-size: 0.76rem; font-weight: 500; }
       @media (max-width: 1100px) {
         .shell { grid-template-columns: 1fr; }
         .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
         .kpi-row { grid-template-columns: repeat(3, 1fr); }
         .three-col, .two-col { grid-template-columns: 1fr; }
         .mini-grid, .mini-grid-2, .mini-grid-4 { grid-template-columns: repeat(2, 1fr); }
+        .comparison-grid { grid-template-columns: repeat(3, 1fr); }
         .definition-grid { grid-template-columns: 1fr; }
         .bar-item { grid-template-columns: 1fr; }
         .bar-value { text-align: left; }
@@ -189,6 +197,31 @@
             <a class="chip" href="?view=overview&range=90d&embed=1" data-range="90d">90d</a>
           </div>
         </div>
+        <form class="period-picker" id="period-picker">
+          <label>Selected period<input type="date" id="period-from" aria-label="Selected period start date" required></label>
+          <span style="color:var(--muted);padding-bottom:10px;">to</span>
+          <label><span>&nbsp;</span><input type="date" id="period-to" aria-label="Selected period end date" required></label>
+          <button class="button" type="submit">Apply period</button>
+          <span class="period-note" id="period-note">Previous equal-length period will be compared automatically.</span>
+        </form>
+        <section class="panel" id="section-week-comparison" style="margin-bottom:16px;">
+          <div class="panel-head">
+            <h2>Week-on-Week Comparison</h2>
+            <span id="comparison-period-label">Loading periods...</span>
+          </div>
+          <div class="panel-body">
+            <div class="grid comparison-grid" id="comparison-grid">
+              <div class="mini"><strong>New Contacts</strong><div id="wow-contacts">—</div><span class="delta" id="wow-contacts-delta">—</span></div>
+              <div class="mini"><strong>Opps Created</strong><div id="wow-opportunities">—</div><span class="delta" id="wow-opportunities-delta">—</span></div>
+              <div class="mini"><strong>Meetings</strong><div id="wow-meetings">—</div><span class="delta" id="wow-meetings-delta">—</span></div>
+              <div class="mini"><strong>Closed Won</strong><div id="wow-closed-won">—</div><span class="delta" id="wow-closed-won-delta">—</span></div>
+              <div class="mini"><strong>Email Opens</strong><div id="wow-email-opened">—</div><span class="delta" id="wow-email-opened-delta">—</span></div>
+              <div class="mini"><strong>Email Clicks</strong><div id="wow-email-clicked">—</div><span class="delta" id="wow-email-clicked-delta">—</span></div>
+              <div class="mini"><strong>Vapi Calls</strong><div id="wow-vapi-calls">—</div><span class="delta" id="wow-vapi-calls-delta">—</span></div>
+            </div>
+            <div class="footer-note">The selected period is compared with the immediately preceding period of equal length. Dates follow the reporting API window.</div>
+          </div>
+        </section>
 
         <!-- KPI ROW -->
         <section class="grid kpi-row" style="margin-bottom:16px;">
@@ -725,7 +758,7 @@
     </div>
     <script>
       (function () {
-        var BUILD_STAMP = "2026-05-12-v11-top-pages";
+         var BUILD_STAMP = "2026-07-30-v12-selected-period-wow";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -757,10 +790,11 @@
         function resolveStage(id) { return STAGE_NAMES[id] || id; }
         var params = new URLSearchParams(window.location.search);
         var view = params.get("view") || "overview";
-        var validRanges = ["7d", "30d", "90d"];
-        var range = validRanges.indexOf(params.get("range")) >= 0 ? params.get("range") : "30d";
-        var from = params.get("from");
-        var to = params.get("to");
+         var validRanges = ["7d", "30d", "90d", "custom"];
+         var range = validRanges.indexOf(params.get("range")) >= 0 ? params.get("range") : "30d";
+         var from = params.get("from");
+         var to = params.get("to");
+         if (from && to) range = "custom";
         var section = params.get("section") || "";
         var channel = params.get("channel") || "";
         var subtitle = document.getElementById("subtitle");
@@ -769,10 +803,10 @@
         var sidebarButtons = Array.from(document.querySelectorAll(".nav-item[data-view]"));
         var parts = [];
         if (view) parts.push(view.charAt(0).toUpperCase() + view.slice(1));
-        if (range) parts.push(range);
-        if (from && to) parts.push(from + " to " + to);
-        parts.push("Sources: GHL, GA4, Meta attribution");
-        parts.push("Preset windows: trailing complete days ending yesterday");
+         if (range) parts.push(range === "custom" ? "custom period" : range);
+         if (from && to) parts.push(from + " to " + to);
+         parts.push("Sources: GHL, GA4, Meta attribution");
+         if (!from || !to) parts.push("Preset windows: trailing complete days ending yesterday");
         subtitle.textContent = parts.join(" \u00b7 ") || "Loading...";
         if (buildBadge) buildBadge.textContent = "build: " + BUILD_STAMP;
         function formatNumber(value, digits) {
@@ -802,9 +836,16 @@
           var ns = o.nextSection !== undefined ? o.nextSection : section || "";
           var nc = o.nextChannel !== undefined ? o.nextChannel : channel || "";
           var next = new URL(window.location.href);
-          next.searchParams.set("view", nv);
-          next.searchParams.set("range", nr);
-          next.searchParams.set("embed", "1");
+           next.searchParams.set("view", nv);
+           next.searchParams.set("range", nr);
+           next.searchParams.set("embed", "1");
+           if (nr === "custom" && from && to) {
+             next.searchParams.set("from", from);
+             next.searchParams.set("to", to);
+           } else {
+             next.searchParams.delete("from");
+             next.searchParams.delete("to");
+           }
           if (ns) next.searchParams.set("section", ns); else next.searchParams.delete("section");
           if (nc) next.searchParams.set("channel", nc); else next.searchParams.delete("channel");
           return next.toString();
@@ -852,7 +893,7 @@
             return "<div class=\"bar-item\"><div class=\"bar-label\">" + label + sub + "</div><div class=\"bar-track\"><div class=\"bar-fill\" style=\"--w:" + width + "%;--c1:var(--blue);--c2:var(--purple);\"></div></div><div class=\"bar-value\">" + formatNumber(value) + "</div></div>";
           }).join("");
         }
-        function renderMiniGrid(container, items, fallbackItems) {
+         function renderMiniGrid(container, items, fallbackItems) {
           if (!container) return;
           if (!Array.isArray(items) || items.length === 0) {
             if (fallbackItems) container.innerHTML = fallbackItems.map(function (i) {
@@ -967,23 +1008,95 @@
                "</tr>";
            }).join("");
          }
-         async function loadReport() {
-           var base = "/api/report/executive";
-           var url = base + "/summary?view=" + encodeURIComponent(view) + "&range=" + encodeURIComponent(range);
-           if (from) url += "&from=" + encodeURIComponent(from);
-           if (to) url += "&to=" + encodeURIComponent(to);
-           try {
-             var res = await fetch(url, { headers: { Accept: "application/json" } });
-             if (!res.ok) throw new Error("HTTP " + res.status);
-             var data = await res.json();
-             var campaignUrl = "https://automations.livetransparent.com/webhook/lt-report-campaign-channel-summary?range=" + encodeURIComponent(range);
-             if (from) campaignUrl += "&from=" + encodeURIComponent(from);
-             if (to) campaignUrl += "&to=" + encodeURIComponent(to);
-             var campaignRes = await fetch(campaignUrl, { headers: { Accept: "application/json" } }).catch(function () { return null; });
-             data.campaignChannelBreakdown = campaignRes && campaignRes.ok ? ((await campaignRes.json()).campaignChannelBreakdown || []) : [];
-             render(data);
-           } catch (err) { console.warn("Report load failed:", err); }
+         function addDays(value, days) {
+           var d = new Date(String(value) + "T00:00:00Z");
+           d.setUTCDate(d.getUTCDate() + days);
+           return d.toISOString().slice(0, 10);
          }
+         function getPreviousWindow(window) {
+           if (!window || !window.from || !window.to) return null;
+           var start = new Date(window.from + "T00:00:00Z");
+           var end = new Date(window.to + "T00:00:00Z");
+           if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end < start) return null;
+           var days = Math.round((end - start) / 86400000) + 1;
+           return { from: addDays(window.from, -days), to: addDays(window.from, -1) };
+         }
+         function windowLabel(window) {
+           return window && window.from && window.to ? window.from + " to " + window.to : "period unavailable";
+         }
+         function metricValue(data, key) {
+           var summary = data && data.summary ? data.summary : {};
+           var vapi = data && data.vapiWeeklyPerformance ? data.vapiWeeklyPerformance : {};
+           var values = {
+             contacts: Number(summary.contactsCreated || data.leadsNumeric || data.leads || 0),
+             opportunities: Number(summary.opportunitiesCreated || data.opportunitiesCreated || 0),
+             meetings: Number(summary.meetingsBooked || data.meetingsBooked || 0),
+             closedWon: Number(summary.closedWonCount || data.closedWonCount || 0),
+             emailOpened: Number(data.emailsOpened || 0),
+             emailClicked: Number(data.emailsClicked || 0),
+             vapiCalls: Number(vapi.totalCalls || vapi.total_calls || 0)
+           };
+           return values[key] || 0;
+         }
+         function renderWeekComparison(current, previous) {
+           var labels = [
+             ["contacts", "wow-contacts"], ["opportunities", "wow-opportunities"], ["meetings", "wow-meetings"],
+             ["closedWon", "wow-closed-won"], ["emailOpened", "wow-email-opened"], ["emailClicked", "wow-email-clicked"], ["vapiCalls", "wow-vapi-calls"]
+           ];
+           labels.forEach(function (entry) {
+             var currentValue = metricValue(current, entry[0]);
+             var previousValue = metricValue(previous, entry[0]);
+             var delta = currentValue - previousValue;
+             var pct = previousValue === 0 ? (currentValue === 0 ? 0 : null) : (delta / previousValue) * 100;
+             var valueEl = document.getElementById(entry[1]);
+             var deltaEl = document.getElementById(entry[1] + "-delta");
+             if (valueEl) valueEl.textContent = formatNumber(currentValue);
+             if (deltaEl) deltaEl.textContent = "prior " + formatNumber(previousValue) + " · " + (pct === null ? "new" : (delta >= 0 ? "+" : "") + formatNumber(delta) + " (" + (pct >= 0 ? "+" : "") + pct.toFixed(1) + "%)");
+           });
+         }
+         function setPeriodInputs(window) {
+           var fromEl = document.getElementById("period-from");
+           var toEl = document.getElementById("period-to");
+           if (fromEl && window && window.from) fromEl.value = window.from;
+           if (toEl && window && window.to) toEl.value = window.to;
+         }
+          async function loadJson(url) {
+            var res = await fetch(url, { headers: { Accept: "application/json" } });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+          }
+         function appendWindow(url, window) {
+           if (window && window.from && window.to) {
+              url = url.replace(/([?&])range=[^&]*/, "$1range=custom");
+              url += "&from=" + encodeURIComponent(window.from) + "&to=" + encodeURIComponent(window.to);
+            }
+            return url;
+         }
+          async function loadReport() {
+            var base = "/api/report/executive";
+            var url = base + "/summary?view=" + encodeURIComponent(view) + "&range=" + encodeURIComponent(range);
+            if (from) url += "&from=" + encodeURIComponent(from);
+            if (to) url += "&to=" + encodeURIComponent(to);
+            try {
+              var data = await loadJson(url);
+              var currentWindow = data.window || { from: from, to: to };
+              var previousWindow = getPreviousWindow(currentWindow);
+              setPeriodInputs(currentWindow);
+              var previousUrl = previousWindow ? appendWindow(base + "/summary?view=" + encodeURIComponent(view), previousWindow) : null;
+              var campaignUrl = appendWindow("https://automations.livetransparent.com/webhook/lt-report-campaign-channel-summary?range=" + encodeURIComponent(range), currentWindow);
+              var results = await Promise.all([
+                previousUrl ? loadJson(previousUrl).catch(function () { return {}; }) : Promise.resolve({}),
+                loadJson(campaignUrl).catch(function () { return {}; })
+              ]);
+              data.campaignChannelBreakdown = results[1].campaignChannelBreakdown || [];
+              render(data);
+              renderWeekComparison(data, results[0] || {});
+              var comparisonLabel = document.getElementById("comparison-period-label");
+              if (comparisonLabel) comparisonLabel.textContent = windowLabel(currentWindow) + " vs " + windowLabel(previousWindow);
+              var periodNote = document.getElementById("period-note");
+              if (periodNote) periodNote.textContent = "Comparing against " + windowLabel(previousWindow) + ".";
+            } catch (err) { console.warn("Report load failed:", err); }
+          }
          function render(data) {
            if (!data || typeof data !== "object") return;
            renderCampaignChannels(data.campaignChannelBreakdown || []);
@@ -1300,10 +1413,25 @@
             }
           });
         }
-        syncNavLinks();
-        setActiveRange(range);
-        setActiveSidebar(section || "section-kpis");
-        loadReport();
+         syncNavLinks();
+         setActiveRange(range);
+         setActiveSidebar(section || "section-kpis");
+         var periodForm = document.getElementById("period-picker");
+         if (periodForm) {
+           periodForm.addEventListener("submit", function (event) {
+             event.preventDefault();
+             var nextFrom = document.getElementById("period-from").value;
+             var nextTo = document.getElementById("period-to").value;
+             if (!nextFrom || !nextTo || nextFrom > nextTo) return;
+             var next = new URL(window.location.href);
+             next.searchParams.set("range", "custom");
+             next.searchParams.set("from", nextFrom);
+             next.searchParams.set("to", nextTo);
+             next.searchParams.set("embed", "1");
+             window.location.href = next.toString();
+           });
+         }
+         loadReport();
         if (section) window.setTimeout(function () { scrollToSection(section); }, 150);
       })();
     </script>

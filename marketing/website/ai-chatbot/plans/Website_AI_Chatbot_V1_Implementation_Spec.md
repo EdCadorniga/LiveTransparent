@@ -22,6 +22,8 @@ Build a custom website chatbot backed by n8n that answers only approved FAQ/serv
 
 ## Approved Booking Path
 - Primary booking calendar: `SrtXcFVyea7pFl3nTiIK`
+- Canonical direct booking URL: `https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK`
+- Website `Book a Call` / `Book a Demo` CTAs should open this GHL widget directly or embed it. Do not put the legacy hero form or Calendly embed in front of it.
 - Reuse the already verified downstream booking flow that:
   - adds tag `SQL`
   - moves or creates the opportunity in `Sales -> Discovery Scheduled`

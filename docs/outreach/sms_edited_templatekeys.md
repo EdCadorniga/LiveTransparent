@@ -4,7 +4,7 @@ This document lists the current SMS template keys and the full message bodies cu
 
 The keys stay unchanged because live GHL workflow payloads reference them. The canonical registry is maintained by `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) at `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`.
 
-On 2026-07-26, `sms_1`, `sms_3`, and `sms_5` were revised and the workflow was republished. `sms_2`, `sms_4`, and `sms_6` were left unchanged.
+On 2026-07-26, `sms_1`, `sms_3`, and `sms_5` were revised and the workflow was republished. On 2026-07-29, `sms_4` was revised and republished to remove cannabis product terms and the unreliable Facebook ad preview link while retaining neutral `regulated-industry` positioning. `sms_2` and `sms_6` remain unchanged.
 
 ## Jason SMS
 
@@ -208,9 +208,8 @@ Would it be helpful if I showed you what has worked for them?
 
 ```text
 Fun fact:
-We can run actual flower and pre-roll ads with regulated-industry mentions directly in the ad.
-Here's an example (you'll need to be logged into Facebook to preview):
-https://fb.me/adspreview/facebook/1SsU73bjDHg0XY1
+We can run product ads with regulated-industry mentions directly in the ad.
+Would you like me to send a short overview?
 ```
 
 ### `sms_5`

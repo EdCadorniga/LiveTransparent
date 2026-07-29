@@ -14,7 +14,7 @@ Use this if the first imported Brand / Dispensary cohort behaves incorrectly aft
 
 ## Immediate Containment
 
-1. Do not activate the paused dialer or intake poller.
+1. Disable or unpublish the classifier schedule if the bad cohort is still being selected.
 2. If classifier tags were just applied, stop before re-running `RFIZ9Bcfl3Yvms2b`.
 3. If the feeder already ran, do not activate downstream calling.
 
@@ -63,10 +63,10 @@ Check these in order:
 
 Do not resume until all are true:
 - the candidate query returns only expected Brand / Dispensary rows
-- the first 5+5 seed batch is manually approved
+- a representative Brand and Dispensary sample is manually approved
 - accidental tags are removed
 - accidental queue rows are cleared or neutralized
-- classifier cap remains in place for the retry
+- classifier cap remains at 10 Brand + 10 Dispensary per run for the retry
 
 ## Practical Rule
 
@@ -74,4 +74,5 @@ For the first imported-pool rollout, rollback should be surgical:
 - remove wrong tags
 - neutralize wrong pending queue rows
 - fix classifier selection
-- retry only with a tiny reviewed cohort
+- remove any incorrectly persisted domain rows before retrying
+- retry only after live workflow state and suppression checks are reviewed

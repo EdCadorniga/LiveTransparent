@@ -50,19 +50,19 @@ This becomes the basis for the rebuilt classifier workflow.
 - Run:
   - `postgres/select-vapi-seed-test-batch.sql`
 
-Use this to manually inspect the first 5 Brand and 5 Dispensary contacts before tagging or queueing.
+Use this to manually inspect a representative Brand and Dispensary sample before relying on the scheduled classifier. Production runs select up to 10 Brand + 10 Dispensary candidates.
 
-### 8. Repair classifier workflow
-- Follow:
-  - `classifier-workflow-change-plan.md`
-  - `classifier-repair-plan.md`
+### 8. Verify classifier workflow
+- Use `classifier-workflow-change-plan.md` for the current production design.
+- Use `classifier-repair-plan.md` only for historical repair context.
 
 Target workflow:
 - `IduCoT5YOs0g2faT`
 
-### 9. Manual tag application / tiny cohort validation
-- Apply `vapi_campaign_brand` / `vapi_campaign_dispensary` only to a tiny reviewed cohort first.
-- Let queue feeder workflow `RFIZ9Bcfl3Yvms2b` stage them gradually.
+### 9. Scheduled tag application / controlled validation
+- The published classifier runs every 15 minutes and selects up to 10 Brand + 10 Dispensary candidates per run.
+- It applies campaign tags only after DeepSeek acceptance or a prior qualified-domain match, with live GHL suppression checks.
+- Let queue feeder workflow `RFIZ9Bcfl3Yvms2b` stage accepted contacts gradually.
 
 ### 10. Controlled Vapi resume
 - Manual assistant test calls first

@@ -1,5 +1,7 @@
 # LT - Campaign Contact Classifier Patch Snippets
 
+> Historical patch snippets. They are not the current production contract. The live workflow now runs every 15 minutes, caps selection at 10 Brand + 10 Dispensary candidates, uses DeepSeek plus qualified-domain matching, and requires successful GHL tag writes before domain persistence.
+
 Target workflow:
 - `IduCoT5YOs0g2faT`
 

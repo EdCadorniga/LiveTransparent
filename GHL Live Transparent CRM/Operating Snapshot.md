@@ -1,6 +1,6 @@
 # Live Transparent CRM Operating Snapshot
 
-Updated: 2026-07-23
+Updated: 2026-07-29
 
 ## Purpose
 This is the live-state summary for the Live Transparent GHL sub-account.
@@ -22,7 +22,7 @@ Use it for current decisions. Use the deeper runbooks for implementation detail.
 - Current PIT/auth state:
   - `GHL_PIT` in root `.env` was updated and validated against location-scoped GHL contact/opportunity queries.
   - `GHL_API_KEY` is aliased to `GHL_PIT` in root `.env` for workflow compatibility.
-  - Both tokens `pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (LinkedIn) and the main PIT are valid.
+  - Both the LinkedIn PIT and the main PIT are valid and stored outside the repository.
 - If an MCP wrapper fails on a valid endpoint, verify through direct GHL API before assuming the PIT is invalid.
 - GA4/GSC traffic is not available natively in GHL and must be pulled into the report layer separately.
 
@@ -72,6 +72,15 @@ Keep these aligned with routing and report logic:
 - Exact field IDs live in `Warm_Lead_Conflict_Safe_Implementation_Spec.md`.
 
 ## Active Workflow Families
+
+### Follow-up Sender Routing Handoff - Fallback Verification Remaining
+- Workflow: `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`), published version 38.
+- Requirement: use the opportunity/contact owner for From Name and From Email; use Jason only when neither record has an owner.
+- Current workflow state: authenticated inspection of published version 38 confirmed all 7 Send Email actions use owner-driven sender fields (`{{opportunity.owner}} from Transparent eCom` and `{{user.email}}`).
+- Current template state: the six templates retain literal Jason sender defaults (`Jason from Transparent eCom`, `jason@livetransparent.com`) as safe fallback metadata.
+- Required next mutation: verify or set Jason as the workflow-level fallback user in the GHL UI, publish only if changed, then verify every action.
+- API boundary: public GHL APIs cannot write workflow action definitions. Template `fromEmail` rejects `{{user.email}}` with HTTP 422, so do not implement owner routing through template metadata.
+- No live test email has been sent.
 
 ### Warm Intake and Routing
 - `GHL Warm Intake - Add Intake Tag (Webhook)` — active

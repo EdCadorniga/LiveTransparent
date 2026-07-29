@@ -1,6 +1,6 @@
 # Emerald Workflow Mapping
 
-Last updated: `2026-03-27`
+Last updated: `2026-07-26`
 
 ## GHL Workflows
 
@@ -28,15 +28,34 @@ Last updated: `2026-03-27`
 - Trigger tag: `Enrollment Queue - Emerald - Marketing SSO`
 - Add tag: `Seq Emerald - Marketing SSO`
 
-### 5. Finance MSO (Planned)
+### 5. Finance MSO
 - Workflow: `WL - Seq - Cannabis Ads Emerald - Finance MSO`
 - Trigger tag: `enrollment queue - emerald - finance mso`
 - Add tag: `seq emerald - finance mso`
 
-### 6. Finance SSO (Planned)
+### 6. Finance SSO
 - Workflow: `WL - Seq - Cannabis Ads Emerald - Finance SSO`
 - Trigger tag: `enrollment queue - emerald - finance sso`
 - Add tag: `seq emerald - finance sso`
+
+### 7. Retail and Sales MSO
+- Workflow: `WL - Seq - Cannabis Ads Emerald - Retail and Sales MSO`
+- Trigger tag: `Enrollment Queue - Emerald - Retail and Sales MSO`
+- Add tag: `Seq Emerald - Retail and Sales MSO`
+
+### 8. Retail and Sales SSO
+- Workflow: `WL - Seq - Cannabis Ads Emerald - Retail and Sales SSO`
+- Trigger tag: `Enrollment Queue - Emerald - Retail and Sales SSO`
+- Add tag: `Seq Emerald - Retail and Sales SSO`
+
+## P2 Workflows
+
+The following P2 workflows are also active and must be covered by reply/booked suppression:
+
+- `WL - Seq - Cannabis Ads Emerald - Executives MSO - P2`
+- `WL - Seq - Cannabis Ads Emerald - Executives SSO - P2`
+- `WL - Seq - Cannabis Ads Emerald - Marketing MSO - P2`
+- `WL - Seq - Cannabis Ads Emerald - Marketing SSO - P2`
 
 ## Common Workflow Actions
 - Remove the matching Emerald queue tag on entry.
@@ -74,4 +93,17 @@ Last updated: `2026-03-27`
   - `WL - Seq - Cannabis Ads Emerald - Marketing MSO`
   - `WL - Seq - Cannabis Ads Emerald - Marketing SSO`
 - The direct workflow detail endpoint is not readable with the current PIT (`GET /workflow/:id` returned `401`), so use the list endpoint to confirm publish/state and inspect step wiring in the GHL UI.
-- Published does not mean enrolling: if the 4 workflows show `published` but enrollments remain at `0`, the queue-tag trigger path still needs attention.
+- Published does not mean enrolling: if an Emerald workflow shows `published` but enrollments remain at `0`, the queue-tag trigger path still needs attention.
+
+## Reply Suppression Contract
+
+- GHL workflow: `WL - Seq - Stop on Booked/Reply/Closed`
+- Workflow ID: `3dd33ec4-d8c2-40c6-b72f-d1cba57b8c39`
+- Published version: `17` (2026-07-26)
+- Reply trigger: `Customer Replied to Sequence Emails`, filtered to `Email`
+- Removal action: remove the contact from both legacy Variant A/B workflows and all 12 Emerald sequence workflows, including P2 variants.
+- The n8n `LT - Email Event Ingest` workflow is for event reporting only. It must not be treated as the suppression control.
+
+### Incident Record: Christy Essex (2026-07-26)
+
+An inbound reply was visible in GHL Conversations on 2026-07-23, but a later Emerald email still sent because the stop action did not include Emerald workflows. The contact was immediately removed from `seq enrolled - emerald` and `seq emerald - executives sso`; the stop workflow was then expanded and published as version 17.

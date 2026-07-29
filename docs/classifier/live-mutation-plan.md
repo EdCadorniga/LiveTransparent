@@ -50,22 +50,22 @@ Manual review:
 - inspect the returned Brand and Dispensary contacts in GHL
 - confirm they look correct for the campaign persona and are callable
 
-### Phase 5: Classifier workflow mutation
+### Phase 5: Classifier workflow verification
 
 Target workflow:
 - `IduCoT5YOs0g2faT`
 
-Patch source:
-- `classifier-workflow-mcp-update-ops.md`
+The workflow is already published. Do not apply the historical patch payload without first fetching live state.
 
-Apply in one atomic workflow update call.
+Confirm the live version has the 15-minute Schedule Trigger, DeepSeek gate, qualified-domain table, live-phone fallback, and successful-write domain guard.
 
-### Phase 6: Manual classifier execution
+### Phase 6: Classifier execution
 
 Run the classifier manually.
 
 Expected result:
-- at most 5 Brand + 5 Dispensary contacts tagged on first pass
+- at most 10 Brand + 10 Dispensary candidates selected per run
+- accepted tags and domain persistence only follow successful GHL writes
 
 Manual check:
 - confirm new GHL tags were applied correctly
@@ -76,8 +76,8 @@ Workflow:
 - `RFIZ9Bcfl3Yvms2b`
 
 Action:
-- run manually after the classifier tags are applied
-- verify queued results match expectation
+- run manually only when controlled verification is needed; the classifier is already scheduled
+- verify queued results match accepted/tagged contacts
 
 ### Phase 8: Controlled voice resume
 

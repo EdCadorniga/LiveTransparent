@@ -112,10 +112,21 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Prefer raw JSON import for dialer patches.
 - Use `={{ ... }}` expressions with `$('Node').item.json.field`.
 - Prefer runbooks in `GHL Live Transparent CRM/` before changing GHL/n8n workflows.
+- Website demo bookings must use the direct GHL Regulated Ads booking widget. Do not route website visitors through the legacy hero form or Calendly embed first.
 - Use `Config` nodes only when env or credential access is blocked.
 - LinkedIn outbound senders must fail closed on reply/inbound lookup errors. A failed reply check is a skip, not a send.
 - For any "stop LinkedIn DMs" request, suppress the contact in both places: add `linkedin_dm_sequence_completed` in GHL and mark the shared `linkedin_connection_state` row terminal (`connection_status = completed`, `sequence_step >= 4`, `dm_sequence_status = completed`/`dm_conversation_status = active` as applicable). The GHL tag alone is not enough because the live LinkedIn send paths select from shared state.
 - LinkedIn DM sequences must mark terminal contacts with `linkedin_dm_sequence_completed` and stop reselecting step-4 rows; the queue source is `LT - LinkedIn Connection State Sync (Unipile)` and the GHL connect dispatcher feeds 20 contacts at a time when healthy.
+
+### Follow-up Sender Routing Handoff (2026-07-29)
+
+- User requirement: follow-up email From Name and From Email must follow the opportunity/contact owner; if neither has an owner, default to Jason.
+- Affected GHL workflow: `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`), currently published version 39.
+- Six affected templates are in folder `Jason Follow Up Emails` (`69e0c9069af5986541802d88`) and currently have literal Jason sender defaults. Do not mistake those defaults for the final owner-routing implementation.
+- Current live artifact check: published version 39 has Jason workflow defaults (`Jason from Transparent eCom`, `jason@livetransparent.com`) and retains owner-driven sender fields on all 7 Send Email actions: `{{opportunity.owner}} from Transparent eCom` and `{{user.email}}`. Six templates are referenced, with one reused by multiple actions; their literal Jason sender values remain the safe template fallback.
+- Remaining GHL work: none for sender routing. Do not send a live test email unless explicitly requested.
+- Public GHL APIs cannot write workflow action definitions. The template PATCH API rejects `{{user.email}}` as `fromEmail`; do not attempt to solve owner routing by putting merge fields into template sender metadata.
+- Authenticated browser access was used to set and publish the workflow defaults. The published version 39 response confirms `senderAddress` and `status: published`; no live test email has been sent.
 
 ### LinkedIn DM Suppression — Production Automation
 
@@ -223,7 +234,7 @@ POST to `https://automations.livetransparent.com/webhook/lt-linkedin-connection-
 ## GHL REST API
 
 - **API base URL**: `https://services.leadconnectorhq.com` — NOT `rest.gohighlevel.com`.
-- **Auth header**: `Authorization: Bearer pit-b278b3ad-96bd-41fb-ba03-9f927039eb28` (PIT token from root `.env`). The `token:` header style does NOT work.
+- **Auth header**: `Authorization: Bearer <GHL_PIT_FROM_ENV>` (PIT token from root `.env`). The `token:` header style does NOT work.
 - **Required header**: `Version: 2021-07-28` on every request.
 - **Accept/Content-Type**: Always include `Accept: application/json` and `Content-Type: application/json`.
 
@@ -236,7 +247,7 @@ POST to `https://automations.livetransparent.com/webhook/lt-linkedin-connection-
 **Updating a template** (PATCH):
 ```bash
 curl.exe -s -X PATCH "https://services.leadconnectorhq.com/emails/builder/{templateId}" \
-  -H "Authorization: Bearer pit-b278b3ad-96bd-41fb-ba03-9f927039eb28" \
+  -H "Authorization: Bearer $env:GHL_PIT" \
   -H "Version: 2021-07-28" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -270,7 +281,7 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 
 | Workflow | ID | Status |
 |----------|----|--------|
-| LT - Campaign Contact Classifier | IduCoT5YOs0g2faT | Manual |
+| LT - Campaign Contact Classifier | IduCoT5YOs0g2faT | Active (native Schedule Trigger every 15 min; 10 Brand + 10 Dispensary candidates/run) |
 | LT - Vapi Campaign Queue Feeder | RFIZ9Bcfl3Yvms2b | Inactive helper |
 | LT - Emerging Pool Go Live Helper | OGnADUQKd5z5f905 | Manual helper |
 | LT - Voice Agent V1 Vapi Callback + Tools | fx4UvKUWbqJEY3LK | Active |
@@ -282,6 +293,14 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 | LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Active (hourly, no Slack reporting) |
 | LT - Voice Campaign Brand (Alex) | 1d7c5d42-f0a4-4b58-9494-dbda3be3c657 | Active (optimized 2026-07-20) |
 | LT - Voice Campaign Dispensary (Jordan) | 056f2e50-8bdf-4257-ac45-4d575600c39d | Active (optimized 2026-07-20) |
+
+### Campaign Contact Classifier Audit (2026-07-29)
+
+- `LT - Campaign Contact Classifier` is production-active, not manual-only. It runs every 15 minutes and selects up to 10 Brand and 10 Dispensary candidates per execution.
+- It reads `emerging_pool_contacts`, performs live GHL contact and suppression checks, and applies campaign tags only after DeepSeek acceptance or a prior qualified-domain match.
+- Qualified domains are persisted in `vapi_qualified_domains`. Common free-email domains are excluded, and a domain is written only after a successful GHL tag-add response.
+- DeepSeek uses a 600-token output budget with concise English reasoning. The SQL candidate filter accepts a live GHL phone fallback when the imported pool phone is blank.
+- Manual execution `268658` and scheduled execution `268659` passed after the audit patch with zero failed writes. The patch fixed model-output truncation, live-phone eligibility exclusion, and unsafe domain persistence on cleanup/failed writes.
 
 ### LT - Voice Queue Vapi Intake Poller (bYk1Ai6MJLyhTsDZ) — Details
 
@@ -356,21 +375,44 @@ vapi_call_attempted, vapi_dnc, vapi_human_answered, vapi_interested, vapi_not_in
 | Dispensary (Jordan) | 056f2e50 | claude-3-haiku | 300 | 0.5 | 0.88 | Nico |
 | V1 Inbound (Savannah) | 43f379ff | claude-3-haiku | 300 | 0.5 | 0.95 | Savannah |
 
-### AI Qualification and SDR Work Queue Boundary
+### Regulated-Business Classification and SDR Work Queue Boundary
 
 - Warm is the unassigned intake and verification layer.
-- Janvi's AI assessment is the intended gate for normal SDR promotion once its authoritative workflow and result field/tag are confirmed.
-- Only an explicit `qualified cannabis business` result moves a contact/opportunity to `Sales Outreach -> New`.
+- The canonical classifier result is the GHL tag `qualified` for a regulated business (including nicotine, cannabis, CBD, vape, hemp, and related regulated verticals), or `not qualified` for a non-regulated business.
+- `qualified` is the regulated-business classification gate; qualified opportunities belong in `Sales Outreach -> Qualified`, not `Sales Outreach -> New`.
 - SDR allocation occurs only at Sales Outreach entry:
   - one existing owner: align the other record;
   - matching owners: preserve;
   - conflicting owners: flag for review;
   - neither owner present: deterministic Jason/Marc 50/50 assignment.
 - Keep contact `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` aligned.
-- Vapi remains in Warm for AI-pending/unverified contacts and must exclude AI-qualified or explicitly rejected/non-cannabis contacts.
+- Vapi remains in Warm and must exclude contacts tagged `not qualified`; the intake path must not bypass the canonical classification result.
 - A successful Vapi warm transfer is manually claimed by the answering SDR, who then promotes the record to Sales Outreach.
 - Vapi booking remains on Cameron's Regulated Ads calendar; warm transfer uses the shared SDR number and neutral Sales Lead language.
 - Vapi transfer tool: `86d380a3-34d2-41f8-96a0-acf5f0124ccb` (`transferCall`); live human-facing wording is neutral Sales Lead language, while compatibility function name `ok_transfer_to_jason` and shared destination `+15622474600` remain unchanged.
+
+### Website Booking Path
+
+- Canonical calendar: `Regulated Ads On Social/Search`.
+- Calendar ID: `SrtXcFVyea7pFl3nTiIK`.
+- Direct booking URL: `https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK`.
+- Website `Book a Demo` CTAs should link directly to this widget or embed it in an iframe. Visitors should enter identity/contact fields once on the booking form.
+- The legacy GHL hero form `kxrHpS9bX16nzkIbr2py` must not appear before the booking form for the primary demo CTA; it duplicates name, email, and phone collection.
+- The `/apply/` page currently has a legacy Calendly embed and should replace it with:
+
+```html
+<div style="width:100%; max-width:1100px; margin:0 auto;">
+  <iframe
+    src="https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK?utm_source=website&amp;utm_medium=calendar&amp;utm_campaign=regulated_ads_booking&amp;utm_content=apply_page"
+    style="width:100%; min-height:900px; border:0;"
+    scrolling="no"
+    title="Book a Regulated Ads Strategy Call">
+  </iframe>
+</div>
+<script src="https://link.msgsndr.com/js/form_embed.js"></script>
+```
+
+- After any website booking change, verify the appointment is created on `SrtXcFVyea7pFl3nTiIK`, not a personal, interview, or Calendly calendar.
 
 ### Apollo Phone Enrichment Status (custom field rgYJ7UqoznGoe3WeUAtH)
 
@@ -822,8 +864,8 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 
 - **5 Event automations**: WL - Event - Emerald Email Event Ingest - {Opened,Clicked,Bounced,Complained,Unsubscribed} -- POST to n8n webhook /lt-email-event-ingest
 - **Bridge**: WL - Seq - Enrollment Queue Entry (v13)
-- **8 Emerald sequences**: WL - Seq - Cannabis Ads Emerald - {Bucket} + P2 per bucket
-- **Supporting**: WL - Seq - Cannabis Ads - Variant A/B, WL - Seq - Stop on Booked/Reply/Closed, WL - Micro - Email Inbound/Outbound/Open Counter
+- **12 Emerald sequences**: WL - Seq - Cannabis Ads Emerald - {Executives, Marketing, Finance, Retail and Sales} {MSO, SSO}, including the applicable P2 variants
+- **Supporting**: WL - Seq - Cannabis Ads - Variant A/B, WL - Seq - Stop on Booked/Reply/Closed (published version 17), WL - Micro - Email Inbound/Outbound/Open Counter
 
 ### Current State
 
@@ -847,6 +889,13 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 
 - **CRITICAL: In-flight capacity double-counting**: `Estimate InFlight Due Today` queried across 3 days (`CURRENT_DATE, -2d, -4d`), inflating `inFlightDueToday` to 285/sender and blocking all dispatches. Changed to `release_date = CURRENT_DATE` — counts only today's releases.
 - **Known unfixed**: Dispatch code uses `doHttpRequest` wrapper (HTTP 400 risk in task-runner loops). Write Release Log uses template-literal SQL injection. These are low-risk for Emerald's current low volume but should be migrated to match DAN's patterns.
+
+### Reply Suppression Repair (2026-07-26)
+
+- `WL - Seq - Stop on Booked/Reply/Closed` (`3dd33ec4-d8c2-40c6-b72f-d1cba57b8c39`) had the correct Email reply trigger, but its removal action only targeted the legacy Variant A/B workflows. It did not remove contacts from the Emerald sequences.
+- Added all 12 Emerald sequence workflows, including P2 variants, to the removal action through the GHL UI and published version 17.
+- n8n `LT - Email Event Ingest` is reporting-only and does not suppress sequence enrollment.
+- For the affected Christy Essex contact, removed `seq enrolled - emerald` and `seq emerald - executives sso` while preserving Warm/MQL state and the opportunity.
 
 ### Postgres Tables
 
@@ -1061,7 +1110,7 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`): `GHL - Create Call Note` node now has `onError: continueRegularOutput`. Previously the dialer errored on every run because deleted GHL contact `AX3wfQNpRwm6DG0HgUE2` (still in `voice_call_queue`) caused a 400 on the note creation endpoint. Calls go out successfully; note failure is cosmetic.
 ## Other Live Systems
 
-- **SimpleTexting**: Send, sequencer, delivery, inbound reply, unsubscribe, and idempotent-send workflows are live/available in n8n. The scheduled pool dispatcher is active as of 2026-07-18, targets GHL tag `sms_drip`, runs weekdays at `10:15am` and `3:00pm` ET, uses `candidateLimit=10`, and has `defaultDryRun=false` for live sends. Sequencer waits 2 days between SMS steps. Inbound replies add `simpletext_replied`, remove `simpletext_ongoing`, mark campaign state `replied`, and suppress future campaign/direct sends; `simpletext_stop` remains the opt-out hard stop. `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) posts a Slack alert through node `Post to Slack` with title `Inbound SimpleTexting Reply`, then posts the inbound message to GHL Conversations under `SimpleTexting SMS` via `Post to GHL Conversations` node using `type: "Custom"`, `conversationProviderId: "6a5b91913953360948dd59f1"`, and `altId`. Monitor first Monday executions and first real reply/unsubscribe closely before raising volume. On 2026-07-26, the send webhook's live registry updated `sms_1`, `sms_3`, and `sms_5` copy; `sms_2`, `sms_4`, and `sms_6` remained unchanged.
+- **SimpleTexting**: Send, sequencer, delivery, inbound reply, unsubscribe, and idempotent-send workflows are live/available in n8n. The scheduled pool dispatcher is active as of 2026-07-18, targets GHL tag `sms_drip`, runs weekdays at `10:15am` and `3:00pm` ET, uses `candidateLimit=10`, and has `defaultDryRun=false` for live sends. Sequencer waits 2 days between SMS steps. Inbound replies add `simpletext_replied`, remove `simpletext_ongoing`, mark campaign state `replied`, and suppress future campaign/direct sends; `simpletext_stop` remains the opt-out hard stop. `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) posts a Slack alert through node `Post to Slack` with title `Inbound SimpleTexting Reply`, then posts the inbound message to GHL Conversations under `SimpleTexting SMS` via `Post to GHL Conversations` node using `type: "Custom"`, `conversationProviderId: "6a5b91913953360948dd59f1`, and `altId`. Monitor first Monday executions and first real reply/unsubscribe closely before raising volume. On 2026-07-26, the send webhook's live registry updated `sms_1`, `sms_3`, and `sms_5` copy. On 2026-07-29, published `sms_4` was revised to remove `flower`, `pre-roll`, and the Facebook ad preview link while retaining neutral `regulated-industry` positioning; active version is `506303a9-8c6f-466d-9cb6-3e1f68cfc40c`.
 - **SimpleTexting GHL Conversations provider**: **LIVE** as of 2026-07-20. Separate GHL private app `LiveTransparent SimpleTexting SMS` with provider `SimpleTexting SMS` (`6a5b91913953360948dd59f1`). Delivery URL: `https://automations.livetransparent.com/webhook/lt-simpletexting-provider-outbound`. `LT - SimpleTexting Provider Outbound Router` (`f4VoO1lBWkYRcQai`) receives GHL outbound replies, validates provider ID, normalizes phone to E.164, checks `simpletext_stop` tag, and sends via the idempotent send workflow (`gwaEpWDpTIwsafi8`) → SimpleTexting API. Outbound campaign sends mirror into GHL Conversations via `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`). `simpletexting_conversation_map` table created in Postgres keyed by `(conversation_provider_id, alt_id)`. GHL Conversations is the primary operator inbox for SimpleTexting SMS; Slack alert for inbound replies is preserved.
 - **Unipile/Instagram**: Instagram DM Sequence (`iCnY6ccdHhfJg3sf`) is **unpublished**. It was misconfigured with the LinkedIn Unipile account ID and sent Instagram templates as LinkedIn DMs. Do not republish until it has a real Instagram Unipile account ID and account-type guard.
 - **Instagram inbound bridge**: `LT - Instagram Unipile New Messages` (`pISlgYUsyJIrLuJd`) is active at `/webhook/lt-unipile-instagram-new-messages`. It normalizes Unipile Instagram inbound payloads, conservatively resolves an existing GHL contact before creating one, persists `instagram_conversation_map`, converts the stored agency OAuth token to a location token via `POST /oauth/locationToken`, and posts inbound messages into GHL Conversations under the `Instagram via Unipile` tab. Post-merge cleanup on 2026-07-16 repointed `instagram_conversation_map.id = 1` for chat `yx-R-9J6XdWaFpGOQd1JFA` to canonical GHL contact `XZ4yChllGBdcsVxhFRDe`; the temporary duplicate `4V2oTmM7lWya3Nmtmp1Y` created during verification was deleted.
@@ -1224,11 +1273,11 @@ This stages key files into C:\TempRepomixStaging, runs npx repomix --style markd
 ````markdown
 # Emerald Vapi Classifier Repair Plan
 
-## Why This Needs Repair
+## Historical Repair Context
 
-- The documented classifier intent says `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) should classify Emerald candidates from Postgres and apply `vapi_campaign_brand` / `vapi_campaign_dispensary`.
-- The live workflow no longer matches that description. Its current `Called Contacts` node is hardcoded to 3 specific `voice_call_queue.contact_id` values, so it is not a general classifier anymore.
-- Once the imported Brand/Dispensary contacts are linked back into `emerging_pool_contacts`, the classifier should be rebuilt around that imported pool instead of the older executive-heavy `Emerald_Contacts` table.
+The original repair is complete. The old hardcoded `voice_call_queue` selection and executive-focused classifier path are no longer live. This document remains as design history; current production behavior is documented in `classifier-workflow-change-plan.md` and the audit note in `AGENTS.md`.
+
+The current workflow is built around `emerging_pool_contacts`, uses live GHL checks, and runs on a 15-minute native schedule with a 10 + 10 candidate cap.
 
 ## Target Data Source
 
@@ -1284,15 +1333,20 @@ This is simpler and safer than role-tag inference, because the new imports are a
 
 ## Recommended Workflow Shape
 
-Manual trigger first, then optionally scheduled later.
+Manual Start is retained for controlled tests; production uses a native 15-minute Schedule Trigger.
 
-1. `Manual Trigger`
+1. `Manual Trigger` or `Schedule Trigger 15m`
 2. `Postgres` select eligible rows from `emerging_pool_contacts`
 3. `Code` normalize campaign tag payloads
-4. `HTTP Request` add GHL tag to matching contacts
-5. `Code` summarize counts and sample IDs
+4. `AI Gate` and DeepSeek classification when no qualified domain exists
+5. `Merge AI and Cleanup Results`
+6. `HTTP Request` add/remove GHL campaign tags
+7. `Postgres` persist accepted non-free domains after successful tag writes
+8. `Code` summarize counts, writes, failures, and qualification sources
 
 ## Recommended Eligibility Query Shape
+
+The query below is the historical design skeleton. The live workflow deliberately lets candidates reach the live GHL lookup when imported/report phone fields are blank, then skips rows that remain uncallable.
 
 Pull rows from `emerging_pool_contacts` where:
 - `ghl_contact_id IS NOT NULL`
@@ -1340,11 +1394,11 @@ WHERE epc.ghl_contact_id IS NOT NULL
 
 Phase the classifier relaunch:
 
-1. Run once in dry/manual mode and return only a summary
-2. Spot-check 10 Brand + 10 Dispensary candidates
-3. Enable live tag application for a tiny cohort
-4. Let the queue feeder consume those tagged contacts
-5. Only then resume dialer/poller activation
+1. Execute the manual or scheduled path and confirm the run completes
+2. Confirm failed writes are zero and suppression cleanup is working
+3. Spot-check accepted Brand and Dispensary tags in GHL
+4. Confirm only successful accepted writes can create/update `vapi_qualified_domains`
+5. Let the queue feeder consume newly tagged contacts
 
 ## Dependency Order
 
@@ -1368,18 +1422,26 @@ Phase the classifier relaunch:
 Target workflow:
 - `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`)
 
-## Current Problem
+## Current Production State
 
-The live workflow currently does not act as a general Emerald classifier.
-Its `Called Contacts` Postgres node is hardcoded to 3 specific `voice_call_queue.contact_id` values.
+The old hardcoded queue-contact selection described below is historical and no longer represents the live graph. The workflow is now a published regulated-business campaign gate.
+
+Live behavior as of 2026-07-29:
+- native Schedule Trigger every 15 minutes, plus a Manual Start for controlled tests
+- up to 10 Brand and 10 Dispensary candidates per run
+- live GHL contact lookup and suppression cleanup
+- DeepSeek acceptance for candidates without a qualified domain
+- persistent qualified-domain bypass through `vapi_qualified_domains`
+- GHL writes only after an accepted classification or domain match
 
 ## New Purpose
 
-Repurpose the workflow into a manual or low-volume helper that:
+The workflow now:
 - selects eligible imported pool contacts from `emerging_pool_contacts`
 - maps `source_list` directly to campaign tag
 - applies `vapi_campaign_brand` or `vapi_campaign_dispensary` in GHL
 - returns a summary of what was tagged
+- records accepted non-free email domains only after a successful tag write
 
 ## Recommended Node Changes
 
@@ -1452,13 +1514,14 @@ Suggested summary fields:
 - `sample_companies`
 - `sample_emerging_pool_row_ids`
 
-## Recommended Safe Rollout Mode
+## Current Safety Controls
 
-For the first live pass, constrain the `Classify` node to:
-- max 5 Brand rows
-- max 5 Dispensary rows
-
-After spot-checking the actual contacts in GHL, remove or raise the cap.
+- `Called Contacts` selects up to 250 rows per source pool, while `Classify` caps the live run at 10 Brand and 10 Dispensary rows.
+- Candidate ranking prefers imported-pool/report phones, but the live GHL lookup can supply the phone when those fields are blank; candidates still without a live phone are skipped.
+- Suppression and terminal Vapi tags are checked in SQL and again against the live GHL contact.
+- DeepSeek reasoning is limited to concise English and the model output budget is 600 tokens.
+- Malformed model output is ignored by `Normalize AI Classification`; it cannot reach GHL tagging.
+- Qualified-domain upsert requires an accepted tag action, a recognized qualification source, and a successful GHL response containing the campaign tag.
 
 ## Why This Is Better
 
@@ -1472,14 +1535,17 @@ After spot-checking the actual contacts in GHL, remove or raise the cap.
 1. Run `postgres/select-emerging-pool-vapi-candidates.sql`
 2. Confirm there are eligible rows in both pools
 3. Update workflow `IduCoT5YOs0g2faT`
-4. Execute manually with a small cap
-5. Spot-check tags in GHL
-6. Let `RFIZ9Bcfl3Yvms2b` pick up the newly tagged rows
+4. Execute manually or wait for the native schedule
+5. Confirm the summary reports zero failed writes
+6. Spot-check tags and domain persistence in GHL/Postgres
+7. Let `RFIZ9Bcfl3Yvms2b` pick up the newly tagged rows
 ````
 
 ## File: classifier-workflow-mcp-update-ops.md
 ````markdown
 # LT - Campaign Contact Classifier MCP Update Ops
+
+> Historical mutation record. The live workflow is now published and active on a native 15-minute Schedule Trigger. Fetch live state before using any operation in this file. Current behavior is documented in `classifier-workflow-change-plan.md` and `AGENTS.md`.
 
 Target workflow:
 - `IduCoT5YOs0g2faT`
@@ -1538,13 +1604,15 @@ Pass the three operations in one atomic `update_workflow` call.
 
 After patching:
 - execute the workflow manually
-- verify it selects only up to 5 Brand + 5 Dispensary rows
+- historical seed example only: verify the current live cap from `get_workflow_details` (currently 10 Brand + 10 Dispensary rows)
 - spot-check those contact IDs in GHL before letting the queue feeder continue
 ````
 
 ## File: classifier-workflow-patch-snippets.md
 ````markdown
 # LT - Campaign Contact Classifier Patch Snippets
+
+> Historical patch snippets. They are not the current production contract. The live workflow now runs every 15 minutes, caps selection at 10 Brand + 10 Dispensary candidates, uses DeepSeek plus qualified-domain matching, and requires successful GHL tag writes before domain persistence.
 
 Target workflow:
 - `IduCoT5YOs0g2faT`
@@ -2012,19 +2080,19 @@ This becomes the basis for the rebuilt classifier workflow.
 - Run:
   - `postgres/select-vapi-seed-test-batch.sql`
 
-Use this to manually inspect the first 5 Brand and 5 Dispensary contacts before tagging or queueing.
+Use this to manually inspect a representative Brand and Dispensary sample before relying on the scheduled classifier. Production runs select up to 10 Brand + 10 Dispensary candidates.
 
-### 8. Repair classifier workflow
-- Follow:
-  - `classifier-workflow-change-plan.md`
-  - `classifier-repair-plan.md`
+### 8. Verify classifier workflow
+- Use `classifier-workflow-change-plan.md` for the current production design.
+- Use `classifier-repair-plan.md` only for historical repair context.
 
 Target workflow:
 - `IduCoT5YOs0g2faT`
 
-### 9. Manual tag application / tiny cohort validation
-- Apply `vapi_campaign_brand` / `vapi_campaign_dispensary` only to a tiny reviewed cohort first.
-- Let queue feeder workflow `RFIZ9Bcfl3Yvms2b` stage them gradually.
+### 9. Scheduled tag application / controlled validation
+- The published classifier runs every 15 minutes and selects up to 10 Brand + 10 Dispensary candidates per run.
+- It applies campaign tags only after DeepSeek acceptance or a prior qualified-domain match, with live GHL suppression checks.
+- Let queue feeder workflow `RFIZ9Bcfl3Yvms2b` stage accepted contacts gradually.
 
 ### 10. Controlled Vapi resume
 - Manual assistant test calls first
@@ -2095,23 +2163,26 @@ Run:
 - `postgres/select-vapi-seed-test-batch.sql`
 
 Manual review:
-- 5 Brand rows
-- 5 Dispensary rows
+- inspect a representative Brand and Dispensary sample
 - confirm in GHL they are correct and callable
+- note that production runs select up to 10 Brand + 10 Dispensary candidates
 
-## Step 5: Patch classifier workflow
+## Step 5: Verify classifier workflow
 
-Patch source:
-- `n8n/workflow-update-payloads/lt-campaign-contact-classifier-update-ops.json`
+Current behavior:
+- `docs/classifier/classifier-workflow-change-plan.md`
+- historical patch payloads must not be applied without fetching live state first
 
 Target workflow:
 - `IduCoT5YOs0g2faT`
 
-## Step 6: Run classifier manually
+## Step 6: Run or observe classifier
 
 Expected:
-- up to 5 Brand contacts tagged
-- up to 5 Dispensary contacts tagged
+- up to 10 Brand and 10 Dispensary candidates selected per run
+- only accepted AI/domain-list candidates tagged
+- suppressed contacts have stale campaign tags cleaned up
+- failed write count is zero
 
 ## Step 7: Validate tags in GHL
 
@@ -2120,13 +2191,13 @@ Check newly tagged contacts for:
 - correct company / persona fit
 - no obvious mis-tagged executive rows
 
-## Step 8: Run queue feeder manually
+## Step 8: Verify queue feeder
 
 Workflow:
 - `RFIZ9Bcfl3Yvms2b`
 
 Expected:
-- staged rows only for the reviewed cohort
+- staged rows only for accepted, tagged contacts
 - no unexpected candidates
 
 ## Step 9: Decide on voice activation
@@ -2153,7 +2224,7 @@ Stop if:
 ````markdown
 # LiveTransparent Executive Report
 ## Training Document and Quick Reference Guide
-Updated: July 21, 2026
+Updated: July 29, 2026
 
 This guide explains what each visible card in the Executive Report means, how to present it, and where the common interpretation risks are. It matches the live dashboard glossary, the users-based funnel cards, and the trailing-day range presets.
 
@@ -2184,6 +2255,7 @@ This section explains how the report is assembled, what the live API returns, an
 - Source status: GSC Daily Ingest is now live and verified in n8n. Older notes that describe Search Console as blocked are stale and should be treated as historical.
 - Attribution logic: Acquisition Sources, UTM / Campaign Breakdown, and Attribution Coverage all depend on observed traffic and bridge data. They should be read as live data quality and attribution outputs, not as a perfect campaign registry.
 - Operational rule: when a metric looks wrong, check Source Health first. The report separates stale data from business performance so the reader does not draw the wrong conclusion.
+- Vapi campaign-gating note: the Executive Report currently shows downstream Vapi campaign outcomes and queue distribution, but not the upstream classifier's AI/domain acceptance counts. For classifier operations, use `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) execution summaries and the Postgres table `vapi_qualified_domains`.
 
 ## Metric Definitions
 Use these definitions when presenting the dashboard. If a visible metric is not defined here, it should be treated as incomplete until the definition is added.
@@ -2201,8 +2273,9 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 | LinkedIn Funnel | Connection state distribution: ready, requested, connected, DM active, completed. | Tracks LinkedIn outreach pipeline health. |
 | Vapi Campaigns | Voice AI call outcomes by campaign. | Shows answered rate, qualified calls, and booked meetings per campaign. |
 | Vapi Queue | Pending outbound calls grouped by campaign. | Shows how many contacts are queued for each Vapi campaign. |
+| Vapi Campaign Eligibility | Upstream Brand/Dispensary campaign-gating workflow. | Not currently returned as a dashboard metric; inspect n8n classifier executions and `vapi_qualified_domains` for selection, acceptance, writes, and domain-match activity. |
 | MQL Summary | Active and total opportunities in the Warm pipeline Qualified (MQL) stage. | Tracks marketing-qualified lead volume. |
-| AI Qualification | Janvi assessment outcomes for cannabis-business verification. | Distinguishes qualified, pending/unverified, and rejected contacts. |
+| AI Qualification | Janvi assessment outcomes for cannabis-business verification. | Distinguishes qualified, pending/unverified, and rejected contacts. Do not confuse this with the separate DeepSeek Vapi campaign-eligibility gate. |
 | Sales Outreach Queue | Contacts/opportunities promoted after explicit AI cannabis qualification. | Measures SDR work-queue volume and owner assignment source. |
 | SQL Contacts | Contacts with the SQL (Sales Qualified Lead) tag. | Counts contacts promoted to sales-qualified status. |
 | Pool Distribution | Contact counts by pool tag (brands, dispensaries, Vapi campaigns). | Shows audience segment sizes. |
@@ -2376,22 +2449,22 @@ Manual review:
 - inspect the returned Brand and Dispensary contacts in GHL
 - confirm they look correct for the campaign persona and are callable
 
-### Phase 5: Classifier workflow mutation
+### Phase 5: Classifier workflow verification
 
 Target workflow:
 - `IduCoT5YOs0g2faT`
 
-Patch source:
-- `classifier-workflow-mcp-update-ops.md`
+The workflow is already published. Do not apply the historical patch payload without first fetching live state.
 
-Apply in one atomic workflow update call.
+Confirm the live version has the 15-minute Schedule Trigger, DeepSeek gate, qualified-domain table, live-phone fallback, and successful-write domain guard.
 
-### Phase 6: Manual classifier execution
+### Phase 6: Classifier execution
 
 Run the classifier manually.
 
 Expected result:
-- at most 5 Brand + 5 Dispensary contacts tagged on first pass
+- at most 10 Brand + 10 Dispensary candidates selected per run
+- accepted tags and domain persistence only follow successful GHL writes
 
 Manual check:
 - confirm new GHL tags were applied correctly
@@ -2402,8 +2475,8 @@ Workflow:
 - `RFIZ9Bcfl3Yvms2b`
 
 Action:
-- run manually after the classifier tags are applied
-- verify queued results match expectation
+- run manually only when controlled verification is needed; the classifier is already scheduled
+- verify queued results match accepted/tagged contacts
 
 ### Phase 8: Controlled voice resume
 
@@ -2487,6 +2560,11 @@ Both workflows published and running:
 - Register/confirm Unipile Instagram inbound webhook points to `https://automations.livetransparent.com/webhook/lt-unipile-instagram-new-messages`.
 - Move remaining secrets out of workflow Config nodes into credentials or env-backed config.
 - Monitor the next real Instagram inbound after GHL duplicate cleanup; map rows are repaired, but avoid further artificial inbound replays unless needed because they create visible conversation messages.
+- ~~Update `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) to apply canonical classification tags: `qualified` on regulated-business acceptance and `not qualified` on rejection, removing the opposite tag when reclassifying.~~ **Done 2026-07-30 — published active version `9eae8a33-319a-4c8a-9ee7-2b3b3d5fb45f`.**
+- ~~Update Vapi intake so raw pool tags cannot bypass classification; only `qualified` contacts with the required Warm opportunity may enter the Vapi path.~~ **Done 2026-07-30 — published active version `99244f60-3c68-4c08-9bcb-1cf5d8bf20d1`.**
+- ~~Update GHL promotion workflow `Move Contact's Opportunity to Sales Outreach New` (`cd29d8e6-5e0f-45f8-ba4f-c30804ad9b49`) so the destination is `Sales Outreach -> Qualified`.~~ **Done 2026-07-30 — GHL version 10 published; both opportunity actions target `Sales Outreach -> Qualified`.**
+- Implement the Jason/Marc no-owner allocator at Sales Outreach entry. Existing owner alignment is already handled separately; choose the final GHL-branch or fail-closed n8n resolver design before activating allocation.
+- Ownership audit result: the allocator should assign only the native opportunity owner, then let the published GHL `LT - Opportunity Owner Alignment` workflow assign the contact and mirror the custom opportunity `Owner`. Do not activate the staged n8n owner-sync workflow without removing its overlapping writes.
 - Verify Vapi dashboard still points all tools and end-of-call webhook to canonical callback URL. This remains a manual dashboard check because it cannot be safely simulated through n8n.
 - Run a controlled live Brand and Dispensary call after the 2026-07-25 prompt/variable patch and verify no unresolved placeholders, no disclosure in voicemail, and one-question turn-taking.
 - **Next run: verify SimpleTexting SMS fix**: inspect `usxYXSuc4ahw40V3`, `7mSiivR3NhtLIcNz`, `Q3Ivnwe4z2Y3cD7A`, and `gwaEpWDpTIwsafi8`. Confirm a real provider message ID, no `409`, no `Contact id not given`, correct `report_sms_sent.provider_response`, and no false `sent_step_1` state on provider failure.
@@ -2496,7 +2574,7 @@ Both workflows published and running:
 - Investigate Executive Report → Site Traffic → Top Page formatting/aggregation: the displayed page is showing the full email UTM URL (`/?utm_source=email&utm_medium=outreach&utm_campaign=wl_seq_cannabis_ads&utm_content=visit_site`) instead of the expected normalized top-page label/path, alongside `Eng. Rate 92%`.
 - Monitor LinkedIn outbound guardrails, completion tagging, and reply-state sync after the fail-closed patch.
 - Monitor the dialer's same-run queue loop and confirm eligible contacts are reached without exceeding the 25-contact safety cap.
-- Verify one controlled production call using the rotated GHL PIT; manual dialer smoke execution `242609` already succeeded.
+~~- Verify one controlled production call using the rotated GHL PIT; manual dialer smoke execution `242609` already succeeded.~~ **Done 2026-07-30 — full audit of all 67 active workflows confirmed old PIT purged. Intake Poller and Dialer Config nodes updated and published.**
 - Configure and enforce Vapi callback/server authentication before accepting forged tool or outcome requests.
 - Audit and authenticate public Warm intake and SimpleTexting send webhooks whose shared-secret configuration is empty.
 - Migrate active n8n Config-node secrets into credentials/protected runtime configuration and rotate exposed values.
@@ -2562,6 +2640,7 @@ Assignment Surfaces To Audit And Update:
 
 - `WL - Micro - Email Open Counter + Assignment to Jason` (`42aa5940`): email-open threshold, contact owner action, opportunity owner action, assignment state, retry/replay behavior, and notification recipient.
 - `GHL JohnFollowup Emails and SMS` (`f6b44e34`): all email/SMS actions, owner fields, sender fields, transfer/notification recipients, and legacy John/Jason names.
+- **Completed (2026-07-29)**: authenticated GHL UI inspection confirmed all 7 Send Email actions use owner-driven `From Name = {{opportunity.owner}} from Transparent eCom` and `From Email = {{user.email}}`. The workflow defaults were set to `Jason from Transparent eCom` / `jason@livetransparent.com`, saved, and published as version 39. The six referenced templates retain literal Jason sender metadata as safe fallback values. No live test email was sent.
 - Warm intake workflows for email inbound, email outbound, and SMS: `SmMf8QIfysuxQJbG`, `J4B0n0QeSeOeqAci`, and `5nYzp9DgQUopzWhR`. Confirm they only tag/intake contacts or whether they also assign owners.
 - Email enrollment and stop workflows for DAN and Emerald: sender selection, owner persistence, reply/booked stop logic, and any GHL sequence action that assigns or notifies Jason.
 - Vapi intake, queue, dialer, callback, and tool paths: `bYk1Ai6MJLyhTsDZ`, `XzcpOBi9YcIhJPck`, `r7UjWLndmc6EqEUW`, and `fx4UvKUWbqJEY3LK`. Carry the canonical SDR identity through queue metadata, Vapi variables, notes, callbacks, Slack alerts, transfers, and bookings.
@@ -2573,8 +2652,8 @@ Assignment Surfaces To Audit And Update:
 
 ### Revised Qualification and SDR Work Queue Model
 
-- Warm is the unassigned intake and verification layer. Contacts remain in Warm until Janvi's AI assessment verifies that the company is a cannabis business.
-- Only an explicit AI-qualified cannabis result may promote a contact/opportunity into `Sales Outreach -> New`.
+- Warm is the unassigned intake and regulated-business classification layer. Contacts receive `qualified` when their business is related to a regulated vertical, or `not qualified` when it is not.
+- `qualified` is the regulated-business classification gate and routes the opportunity into `Sales Outreach -> Qualified`.
 - SDR allocation occurs at the Sales Outreach promotion boundary, not during Warm intake, email opens, SMS sends, Vapi queueing, or other channel micro-automations.
 - When a contact enters Sales Outreach, resolve ownership in this order:
   1. If exactly one of the contact or opportunity has an owner, align the other record to that owner.
@@ -2583,12 +2662,12 @@ Assignment Surfaces To Audit And Update:
   4. If neither has an owner, assign Jason or Marc with the deterministic 50/50 allocator.
 - Every Sales Outreach assignment must keep contact `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` aligned through the canonical SDR mapping.
 - SDRs work from Sales Outreach. Warm contacts are not part of the normal SDR work queue.
-- Vapi remains in Warm and calls only contacts whose AI qualification is pending, unknown, or explicitly marked unverified. AI-qualified contacts must be excluded from the Vapi queue.
-- AI-rejected/non-cannabis contacts must not be sent to Vapi unless a future policy explicitly enables that path.
+- Vapi remains in Warm and must not call contacts tagged `not qualified` or contacts that have bypassed the canonical classification result.
+- The existing GHL promotion workflow should use the canonical `qualified` result to route the opportunity to `Sales Outreach -> Qualified`, while `not qualified` blocks promotion.
 - A Vapi warm transfer is an exception path: if an SDR answers the shared transfer number, the SDR manually claims the contact and opportunity and promotes the record into `Sales Outreach -> New`.
 - Vapi warm transfer uses the shared SDR number through the Vapi `transferCall` tool; it does not select Jason or Marc by phone number.
 - Vapi booking remains separate from transfer and uses Cameron's `Regulated Ads On Social/Search` calendar (`SrtXcFVyea7pFl3nTiIK`).
-- The exact Janvi AI assessment workflow, result field/tag, and qualified/unqualified values must be identified before implementation. No documented source currently names the authoritative field.
+- The authoritative classification contract is now the `qualified` / `not qualified` tag pair. The live classifier currently needs a write-path patch to apply both outcomes; its campaign tags remain downstream campaign labels.
 
 Rep-Specific Message And Channel Configuration:
 
@@ -2691,11 +2770,11 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 ### Qualification and SDR Boundary
 
 - Warm is the unassigned intake and verification layer.
-- Janvi's AI assessment is the promotion gate once its authoritative workflow and result field/tag are confirmed.
-- Only an explicit `qualified cannabis business` result may promote a contact/opportunity to `Sales Outreach -> New`.
+- The canonical classification tags are `qualified` for a regulated business, including nicotine, cannabis, CBD, vape, hemp, and related verticals, and `not qualified` for a non-regulated business.
+- `qualified` is the regulated-business classification gate and routes qualified opportunities to `Sales Outreach -> Qualified`.
 - SDR assignment happens only at Sales Outreach entry: align a single existing owner, preserve matching owners, flag conflicting owners, or assign Jason/Marc 50/50 when neither record has an owner.
 - Contact native `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` must remain aligned.
-- Vapi handles AI-pending/unverified contacts in Warm. AI-qualified and explicitly rejected/non-cannabis contacts are excluded from the Vapi queue.
+- Vapi handles classified regulated-business contacts in Warm and excludes `not qualified` contacts. Raw pool tags must not bypass the canonical classification result.
 - A successful Vapi warm transfer is manually claimed by the answering SDR and promoted to Sales Outreach. Vapi booking remains on Cameron's Regulated Ads calendar.
 
 ### Scheduling Contract
@@ -2844,7 +2923,7 @@ Normalized callback output:
 ````markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-26 (SimpleTexting template copy refresh, Vapi dialer scheduler recovery, neutral transfer hardening, RB2B assignment removal, n8n 2.31.5, reporting fixes)
+Updated: 2026-07-30 (regulated-business classification, Vapi eligibility, GHL Qualified-stage promotion, plus PIT token rotation and prior reliability hardening)
 
 ## Source Of Truth
 
@@ -2856,30 +2935,57 @@ This document is the canonical project status and next-steps reference. It super
 
 - **Voice stack**: ACTIVE since 2026-07-14, hardened 2026-07-16, optimized 2026-07-20, and call-path hardened 2026-07-23. All 3 outbound assistants (Jordan/Dispensary, Alex/Brand, Savannah/V1) updated: compliance disclosure removed from voicemail, discovery questions restructured to one-at-a-time with turn-taking enforcement, IVR/voicemail disambiguation added, stage-direction/throat-clearing ban, pronunciation fixes, `{{contact_name}}`→`{{first_name}}` variable corrected. On 2026-07-25, the Brand assistant and dialer were patched to remove the unresolved `{{company_name}}` opener dependency, pass `company_name` from GHL when available, and explicitly guard against missing placeholders. The dialer uses n8n's native Schedule Trigger every 2 minutes plus a timezone-aware business-hours guard; no external cron job is used. The callback webhook no longer automatically invokes the dequeue helper, and `LT - Voice Dequeue Next` is unpublished so it cannot start unscheduled calls. Callback metadata extraction, GHL note JSON handling, queue completion parameters, tag failure handling, and the 8-tag plus DNC suppression blocklist were hardened. The dialer now marks selected rows `in_progress` before the Vapi request, preventing ambiguous request failures from retrying the same contact; no-phone and outside-hours branches restore `pending`. Poller searches 4 tag pools with rotation, 30/cycle, and removes the source campaign tag after enqueueing. On 2026-07-25, the dialer was changed to continue fetching and filtering blocked/invalid contacts within the same execution, up to 25 queue checks, instead of waiting two minutes after every skipped contact.
 - **n8n runtime**: upgraded to target `2.31.5`. Native Schedule Trigger is the standard for recurring workflows. The Python task-runner warning during deployment is expected for JavaScript-only workflows; the transient database ping timeout recovered during startup. The stale queued-execution incident was resolved by deleting 745 orphaned `new` executions after the initial targeted cleanup, leaving legitimate `waiting` executions intact. The dialer was unpublished/republished, manually smoke-tested, and confirmed to select different queue contacts. It is active and published with the same-run queue loop.
-- **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences.
+- **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences. Reply suppression was repaired in GHL on 2026-07-26 after an inbound email continued into a later sequence step.
 - **DAN email campaign**: FULLY LIVE AND SENDING since 2026-07-14. 10 templates, 3 GHL workflows, n8n dispatcher active (65/run every 30 min, 1,560/day capacity). ghl_contact_id backfilled 2026-07-13 (13,705 IDs). 181+ contacts queued first day with verified email delivery.
 - **Apollo phone enrichment**: ACTIVE and hardened 2026-07-16. Production path is polling + V4 callback + reaper. Legacy staged webhook orphans were canceled, poller now re-discovers `queued_phone`, callback provider failures map to `callback_failed`, and known blank contacts were backfilled into `queued_phone`.
 - **LinkedIn**: Production path is dispatcher -> acceptance/state sync -> canonical 4-message DM sequence. Follower DM and misconfigured Instagram DM sender paths are unpublished. Guardrails include fail-closed reply checks, inbound/reply state sync, terminal DM completion tagging, and GHL `stop_linkedin_dms` suppression.
 - **Instagram**: old DM Sequence is unpublished after it was found using the LinkedIn Unipile account. New inbound bridge is active and posts messages into GHL Conversations under `Instagram via Unipile`.
 - **Social provider bridge**: Instagram and LinkedIn inbound both work through SMS-type custom conversation providers (`LinkedIn: 6a58a14ff3023bea3783c152`, `Instagram: 6a58a1193cdfc36997580a68`). Inbound uses `type: "Custom"`, not `SMS`, and avoids dummy phone/email data. GHL duplicate cleanup consolidated Edmundo Cadorniga to canonical contact `XZ4yChllGBdcsVxhFRDe`; both Instagram chat `yx-R-9J6XdWaFpGOQd1JFA` and LinkedIn chat `60Ult1SrWhOuvuZp1u7nXw` now map there. GHL Conversations is the operator-facing inbox; no dedicated macro dashboard or alert digest is live yet. Detailed handoff and operator runbook live in `docs/strategy/unipile-ghl-bidirectional-integration.md`.
 - **Reporting**: GA4, GHL, GSC ingestion live. Executive report live in GHL.
-- **SMS campaign**: SimpleTexting dispatcher is live as of 2026-07-18. On 2026-07-24, the send boundary was fixed and published: campaign messages now use SimpleTexting `AUTO` mode instead of hardcoded `SINGLE_SMS_STRICTLY`, failed provider claims are retryable, and GHL conversation mirroring requires a real provider message ID. On 2026-07-26, the live template registry in `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) was republished with updated `sms_1`, `sms_3`, and `sms_5` copy, including selective use of `https://livetransparent.com/`; `sms_2`, `sms_4`, and `sms_6` were unchanged.
+- **SMS campaign**: SimpleTexting dispatcher is live as of 2026-07-18. On 2026-07-24, the send boundary was fixed and published: campaign messages now use SimpleTexting `AUTO` mode instead of hardcoded `SINGLE_SMS_STRICTLY`, failed provider claims are retryable, and GHL conversation mirroring requires a real provider message ID. On 2026-07-26, the live template registry in `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) was republished with updated `sms_1`, `sms_3`, and `sms_5` copy, including selective use of `https://livetransparent.com/`. On 2026-07-29, `sms_4` was republished as neutral regulated-ads copy with the `flower`, `pre-roll`, and Facebook ad preview references removed. The active workflow version is `506303a9-8c6f-466d-9cb6-3e1f68cfc40c`.
 - **John->Jason migration**: Complete on n8n side. GHL workflows updated. Template keys preserved.
-- **AI qualification / SDR boundary (planned, blocked on live Janvi contract)**: Warm remains unassigned until Janvi explicitly verifies a qualified cannabis business. Only then does the record enter `Sales Outreach -> New`, where existing contact/opportunity ownership is aligned or Jason/Marc are assigned 50/50 when neither record has an owner. Vapi remains the Warm verification path for AI-pending/unverified contacts; successful warm transfers are manually claimed and promoted by the answering SDR. Cameron's Regulated Ads calendar remains the booking destination. No authoritative Janvi workflow, result field/tag, or exact result value has been found in live n8n/GHL metadata.
+- **Regulated-business classification / SDR boundary (contract clarified 2026-07-30)**: `qualified` means the contact's business is related to a regulated vertical such as nicotine, cannabis, CBD, vape, or hemp; `not qualified` means it is not a regulated business. The live classifier now writes the canonical classification tags and the Vapi intake is published with a `qualified` gate. Qualified opportunities now enter `Sales Outreach -> Qualified` through published GHL workflow version 10. Existing contact/opportunity ownership alignment is handled separately; Jason/Marc 50/50 allocation for records with neither owner remains to be implemented.
 - **SDR ownership synchronization**: Published GHL workflow `LT - Opportunity Owner Alignment` (`b26326a5-77af-4df8-8d86-3f636e73afe0`, version 7) now keeps contact owner, native opportunity owner, custom opportunity `Owner`, and routing audit fields aligned for Jason and Marc when the opportunity owner changes. It does not replace the unresolved Janvi qualification gate or allocate unowned Warm records.
-- **Jason follow-up sender identity**: Published GHL workflow `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`) email actions use `{{opportunity.owner}} from Transparent eCom` and `{{user.email}}`; workflow-level John sender fallbacks were cleared.
+- **Classification and promotion implementation (2026-07-30)**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) is published on version `9eae8a33-319a-4c8a-9ee7-2b3b3d5fb45f`; `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) is published on version `99244f60-3c68-4c08-9bcb-1cf5d8bf20d1`; and GHL workflow `Move Contact's Opportunity to Sales Outreach New` (`cd29d8e6-5e0f-45f8-ba4f-c30804ad9b49`) is published as version 10 with both opportunity actions targeting `Sales Outreach -> Qualified`.
+- **Ownership double-handling audit (2026-07-30)**: No active duplicate owner writer was found. The classifier writes tags only; Vapi intake writes queue/Apollo state only; the active n8n MQL workflow creates or updates Warm opportunities without owners; and the GHL promotion workflow changes pipeline stage only. The sole active owner-alignment path is GHL `LT - Opportunity Owner Alignment` (`b26326a5-77af-4df8-8d86-3f636e73afe0`, published version 7), triggered by an opportunity `assignedTo` change. It assigns the contact and updates the custom opportunity `Owner` plus routing fields, but does not assign the opportunity owner. The staged n8n workflow `VI39o4X954fYDjOQ` is inactive and must not be activated as-is because it would duplicate those contact/custom-field writes.
+- **Follow-up sender routing - COMPLETE (2026-07-29)**: Authenticated GHL UI inspection confirmed all 7 Send Email actions use `From Name = {{opportunity.owner}} from Transparent eCom` and `From Email = {{user.email}}`. Workflow `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`) now defaults to `Jason from Transparent eCom` / `jason@livetransparent.com` and is published as version 39. The six referenced templates retain literal Jason sender metadata as safe fallback values. No live email test was sent.
 - **Vapi transfer hardening**: Live transfer tool `86d380a3-34d2-41f8-96a0-acf5f0124ccb` and all four assistants now use neutral Sales Lead wording while preserving the compatibility function name `ok_transfer_to_jason` and shared destination `+15622474600`.
 - **RB2B assignment hardening**: Live workflow `3kjsIUeoEQFx26cC` no longer runs its hardcoded Kevin task during Warm intake. The legacy task node is disconnected/disabled and the workflow is published with contact persistence ending at `Result`.
-
+- **PIT token rotation (2026-07-30)**: Full GHL PIT token rotation completed and verified. The old token was replaced with the rotated PIT across both Config nodes that embedded it (Intake Poller `bYk1Ai6MJLyhTsDZ`, Dialer `r7UjWLndmc6EqEUW`). Full REST API audit of all 67 active n8n workflows confirmed zero occurrences of the old token remain in live production paths. Both modified workflows were published with matching `versionId === activeVersionId`. Documentation (`AGENTS.md`, `repomix-output.md`, `Operating Snapshot.md`) updated. Archive/backup files in `n8n/backups/`, `n8n/voice-agent/`, and `scripts/` retain historical snapshots.
+ 
 ## Newly Confirmed Gaps
 
-- **Dialer credential rotation**: the new `.env` GHL PIT was verified against GHL, propagated to all active n8n workflows, and confirmed on the dialer, Apollo poller, and Vapi callback. Dialer smoke execution `242609` succeeded; continue monitoring the first controlled live call.
-- **Callback authentication**: Vapi assistant server URL secrets are not configured, so the callback/tool webhook is not globally authenticated. Configure a Vapi server secret and enforce it before callback/tool routing.
+### Follow-up Sender Routing Handoff
+
+- **User requirement**: follow-up email sender name and email must follow the opportunity/contact owner; if neither record has an owner, use Jason.
+- **Workflow**: `Jason Followup Emails and SMS`, ID `f6b44e34-779e-4959-b41d-b05641f134e7`, currently published version `38`.
+- **Template folder**: `Jason Follow Up Emails`, ID `69e0c9069af5986541802d88`.
+- **Affected template IDs**:
+  - `69e0d86b9af59801b580f4b5`
+  - `69e0db27d6a707bbf190d022`
+  - `69e0db9ab02114c1ba3c29d3`
+  - `69e0dc56d6a707c0ac90e074`
+  - `69e0dcad8ffabf47b4d987c5`
+  - `69e0ddd0b021145bab3c4569`
+- **Current template state**: all six have literal `fromName = Jason from Transparent eCom` and `fromEmail = jason@livetransparent.com`. Keep this as a safe fallback; the live workflow actions already override it for owned records.
+- **Current workflow state**: all 7 Send Email actions use owner-driven sender fields. Verify or set Jason as the no-owner fallback user in the workflow UI. Do not hard-code Jason as the sender for owned opportunities/contacts.
+- **API limitation**: `PATCH /emails/builder/{templateId}` accepts literal sender emails but rejects `{{user.email}}` with HTTP 422 (`fromEmail must be an email`). The public `GET /workflows/` endpoint confirms metadata/status/version only; workflow action definitions are not writable through the public API.
+- **Browser status**: authenticated GHL workflow access was used to set and publish the Jason defaults. The published version 39 API response confirms `senderAddress` and `status: published`.
+- **No test send**: no live email was sent during this investigation or patch.
+- **Next session exact order**:
+  1. Open the authenticated GHL workflow URL from the user-provided link.
+  2. Monitor the next normal follow-up execution; do not send a live test email solely for sender verification.
+  5. Reopen the workflow and verify all 7 Send Email actions and the published version.
+  6. Do not change template HTML or send a live test without explicit approval.
+
+- ~~**Dialer credential rotation**: verified against GHL, full audit of 67 active workflows confirmed PIT rotation complete. Both Config nodes updated and published.~~ **Done 2026-07-30**
+- **Callback authentication**: Vapi server authentication is configured on all four tracked assistants and enforced at the callback boundary with `X-Vapi-Secret`. Unauthorized callback, status, and tool payloads are rejected before routing.
 - **SMS and Warm webhook authentication**: several live intake/send webhooks have empty shared-secret configuration and require an authentication pass before continued public use.
 - **Credential storage**: active n8n Config nodes still contain API keys and webhook secrets. Migrate to n8n credentials or protected runtime configuration, then rotate exposed values.
 - **Reporting owner dimensions**: contact owner, opportunity custom `Owner`, owner conflicts, and canonical SDR identity are not normalized into the reporting read model.
-- **Vapi correlation**: queue rows do not consistently persist provider call IDs/idempotency keys, and missing callback correlation can strand `in_progress` rows. A stale-lock reconciliation pass is required.
+- **Vapi correlation**: end-of-call callbacks now recover missing `queue_id` values from prior `voice_call_attempt` records when possible. The dialer also reclaims stale `in_progress` locks after 15 minutes, while unresolved provider correlation remains observable through the callback execution path.
 - **Gap fixes applied 2026-07-25**: silent human Vapi answers now classify as `interest_unknown`; dialer global hours are 9am-5pm CT; invalid campaign tags fail closed; source-tag cleanup is dynamic; report config/publish schedules are connected and tested; superseded Apollo Sheet First webhook is unpublished.
+- **Vapi hardening applied 2026-07-27**: intake, direct enqueue, and dialer paths require the `not qualified` suppression guard plus an open Warm → New opportunity; callback requests require the Vapi server secret; tool outcomes complete queue rows; timer scheduling uses an atomic Postgres claim; stale queue locks are reclaimed; timer and GHL cleanup requests retry transient failures. The intake still needs to require positive `qualified` classification so raw pool tags cannot bypass the classifier.
 
 ## Email Campaign — Emerald (Active 2026-07-07)
 
@@ -2903,8 +3009,8 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 
 - **5 Event automations**: WL - Event - Emerald Email Event Ingest - {Opened,Clicked,Bounced,Complained,Unsubscribed}
 - **Bridge**: WL - Seq - Enrollment Queue Entry (v13)
-- **8 Emerald sequences**: WL - Seq - Cannabis Ads Emerald - {Bucket} + P2 per bucket
-- **Supporting**: WL - Seq - Cannabis Ads - Variant A/B, WL - Seq - Stop on Booked/Reply/Closed, WL - Micro - Email Inbound/Outbound/Open Counter
+- **12 Emerald sequences**: WL - Seq - Cannabis Ads Emerald - {Executives, Marketing, Finance, Retail and Sales} {MSO, SSO}, including the applicable P2 variants
+- **Supporting**: WL - Seq - Cannabis Ads - Variant A/B, WL - Seq - Stop on Booked/Reply/Closed (published version 17), WL - Micro - Email Inbound/Outbound/Open Counter
 
 ### Dispatch State
 
@@ -2912,6 +3018,14 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 - 4 senders: cameron@livetransparent.{com,co,agency,org}, 300/day each Week 1
 - Backlog: ~10,618 unreleased after DNC/DND SQL filtering
 - Email events flowing within 3 min of dispatch
+
+### Reply Suppression Repair (2026-07-26)
+
+- **Incident**: Christy Essex replied on 2026-07-23 that she had left Vangst and referred new/current-project questions to Logan Humiston. An automated Emerald follow-up was still sent on 2026-07-26.
+- **Root cause**: `WL - Seq - Stop on Booked/Reply/Closed` had the correct `Customer Replied to Sequence Emails` trigger filtered to Email, but its `Remove from Workflow` action only removed the legacy Variant A/B workflows. It did not include the Emerald sequence workflows.
+- **Fix**: Through the GHL UI, added all 12 Emerald sequence workflows, including P2 variants, to the removal action. Published as version 17.
+- **Immediate containment**: Removed Christy's `seq enrolled - emerald` and `seq emerald - executives sso` tags. Her Warm/MQL context and opportunity were preserved.
+- **Boundary**: n8n `LT - Email Event Ingest` remains reporting-only; it stores events in `Email_Events` and is not the sequence suppression mechanism.
 
 ### Postgres Tables
 
@@ -2998,11 +3112,18 @@ Callback webhook: https://automations.livetransparent.com/webhook/lt-voice-agent
 | LT - Voice Dequeue Next | KsBMFcz1YpBGrjDW | Unpublished helper |
 | LT - Voice Queue Enqueue | XzcpOBi9YcIhJPck | Webhook |
 | LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Hourly (monitors queued + queued_phone) |
-| LT - Campaign Contact Classifier | IduCoT5YOs0g2faT | Manual |
+| LT - Campaign Contact Classifier | IduCoT5YOs0g2faT | Active (native Schedule Trigger every 15 min; 10 Brand + 10 Dispensary candidates/run) |
 | LT - Vapi Campaign Queue Feeder | RFIZ9Bcfl3Yvms2b | Inactive helper |
 | LT - Emerging Pool Go Live Helper | OGnADUQKd5z5f905 | Manual helper |
 | LT - Voice Agent V1 Outbound Dialer (Vapi) | r7UjWLndmc6EqEUW | Active (native Schedule Trigger every 2 minutes; business-hours guard) |
 | LT - Voice Queue Vapi Intake Poller | bYk1Ai6MJLyhTsDZ | Active (native Schedule Trigger every 10 min, 30 contacts/cycle, tag rotation) |
+
+### Campaign Contact Classifier Audit (2026-07-29)
+
+- `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) is active on a native 15-minute Schedule Trigger.
+- It selects up to 10 Brand and 10 Dispensary candidates per run, uses live GHL suppression checks, and applies Vapi campaign tags only after DeepSeek acceptance or a qualified-domain match.
+- `vapi_qualified_domains` is updated only after a successful campaign-tag write; free-email domains, cleanup rows, failed writes, and rejected model output are excluded.
+- Manual execution `268658` and scheduled execution `268659` passed after the audit patch with zero failed writes.
 
 ### Fixes Applied — Original (2026-07-14)
 
@@ -3257,7 +3378,8 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - Send webhook: `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`.
 - Canonical keys: `sms_1` through `sms_6`.
 - Updated 2026-07-26: `sms_1`, `sms_3`, and `sms_5`.
-- Unchanged 2026-07-26: `sms_2`, `sms_4`, and `sms_6`.
+- Unchanged 2026-07-26: `sms_2` and `sms_6`.
+- Updated 2026-07-29: `sms_4` removed cannabis product terms and the unreliable Facebook ad preview link while retaining `regulated-industry` positioning. The published active version is `506303a9-8c6f-466d-9cb6-3e1f68cfc40c`.
 - Existing `john_sms1` through `john_sms5` payload aliases remain in place for compatibility and were not renamed.
 
 ### 2026-07-24 Fix And Next-Run Check
@@ -3631,7 +3753,7 @@ Use this if the first imported Brand / Dispensary cohort behaves incorrectly aft
 
 ## Immediate Containment
 
-1. Do not activate the paused dialer or intake poller.
+1. Disable or unpublish the classifier schedule if the bad cohort is still being selected.
 2. If classifier tags were just applied, stop before re-running `RFIZ9Bcfl3Yvms2b`.
 3. If the feeder already ran, do not activate downstream calling.
 
@@ -3680,10 +3802,10 @@ Check these in order:
 
 Do not resume until all are true:
 - the candidate query returns only expected Brand / Dispensary rows
-- the first 5+5 seed batch is manually approved
+- a representative Brand and Dispensary sample is manually approved
 - accidental tags are removed
 - accidental queue rows are cleared or neutralized
-- classifier cap remains in place for the retry
+- classifier cap remains at 10 Brand + 10 Dispensary per run for the retry
 
 ## Practical Rule
 
@@ -3691,7 +3813,8 @@ For the first imported-pool rollout, rollback should be surgical:
 - remove wrong tags
 - neutralize wrong pending queue rows
 - fix classifier selection
-- retry only with a tiny reviewed cohort
+- remove any incorrectly persisted domain rows before retrying
+- retry only after live workflow state and suppression checks are reviewed
 ````
 
 ## File: Sales and Marketing Roadmap.md
@@ -3786,6 +3909,7 @@ The executive report (`reports/embed/executive/index.html`) surfaces data from:
 - Vapi calls AI-pending/unverified Warm contacts and excludes AI-qualified or explicitly rejected/non-cannabis contacts.
 - A Vapi warm transfer is manually claimed by the answering SDR and then promoted into Sales Outreach.
 - Cameron's Regulated Ads calendar is used for bookings and does not determine SDR assignment.
+- Website demo CTAs and `/apply/` must use the direct GHL Regulated Ads booking widget (`https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK`), not the legacy Calendly embed or duplicate hero form.
 
 ---
 
@@ -3919,7 +4043,7 @@ This document lists the current SMS template keys and the full message bodies cu
 
 The keys stay unchanged because live GHL workflow payloads reference them. The canonical registry is maintained by `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) at `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`.
 
-On 2026-07-26, `sms_1`, `sms_3`, and `sms_5` were revised and the workflow was republished. `sms_2`, `sms_4`, and `sms_6` were left unchanged.
+On 2026-07-26, `sms_1`, `sms_3`, and `sms_5` were revised and the workflow was republished. On 2026-07-29, `sms_4` was revised and republished to remove cannabis product terms and the unreliable Facebook ad preview link while retaining neutral `regulated-industry` positioning. `sms_2` and `sms_6` remain unchanged.
 
 ## Jason SMS
 
@@ -4123,9 +4247,8 @@ Would it be helpful if I showed you what has worked for them?
 
 ```text
 Fun fact:
-We can run actual flower and pre-roll ads with regulated-industry mentions directly in the ad.
-Here's an example (you'll need to be logged into Facebook to preview):
-https://fb.me/adspreview/facebook/1SsU73bjDHg0XY1
+We can run product ads with regulated-industry mentions directly in the ad.
+Would you like me to send a short overview?
 ```
 
 ### `sms_5`

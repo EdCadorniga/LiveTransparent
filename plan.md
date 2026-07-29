@@ -33,6 +33,11 @@ Both workflows published and running:
 - Register/confirm Unipile Instagram inbound webhook points to `https://automations.livetransparent.com/webhook/lt-unipile-instagram-new-messages`.
 - Move remaining secrets out of workflow Config nodes into credentials or env-backed config.
 - Monitor the next real Instagram inbound after GHL duplicate cleanup; map rows are repaired, but avoid further artificial inbound replays unless needed because they create visible conversation messages.
+- ~~Update `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) to apply canonical classification tags: `qualified` on regulated-business acceptance and `not qualified` on rejection, removing the opposite tag when reclassifying.~~ **Done 2026-07-30 — published active version `9eae8a33-319a-4c8a-9ee7-2b3b3d5fb45f`.**
+- ~~Update Vapi intake so raw pool tags cannot bypass classification; only `qualified` contacts with the required Warm opportunity may enter the Vapi path.~~ **Done 2026-07-30 — published active version `99244f60-3c68-4c08-9bcb-1cf5d8bf20d1`.**
+- ~~Update GHL promotion workflow `Move Contact's Opportunity to Sales Outreach New` (`cd29d8e6-5e0f-45f8-ba4f-c30804ad9b49`) so the destination is `Sales Outreach -> Qualified`.~~ **Done 2026-07-30 — GHL version 10 published; both opportunity actions target `Sales Outreach -> Qualified`.**
+- Implement the Jason/Marc no-owner allocator at Sales Outreach entry. Existing owner alignment is already handled separately; choose the final GHL-branch or fail-closed n8n resolver design before activating allocation.
+- Ownership audit result: the allocator should assign only the native opportunity owner, then let the published GHL `LT - Opportunity Owner Alignment` workflow assign the contact and mirror the custom opportunity `Owner`. Do not activate the staged n8n owner-sync workflow without removing its overlapping writes.
 - Verify Vapi dashboard still points all tools and end-of-call webhook to canonical callback URL. This remains a manual dashboard check because it cannot be safely simulated through n8n.
 - Run a controlled live Brand and Dispensary call after the 2026-07-25 prompt/variable patch and verify no unresolved placeholders, no disclosure in voicemail, and one-question turn-taking.
 - **Next run: verify SimpleTexting SMS fix**: inspect `usxYXSuc4ahw40V3`, `7mSiivR3NhtLIcNz`, `Q3Ivnwe4z2Y3cD7A`, and `gwaEpWDpTIwsafi8`. Confirm a real provider message ID, no `409`, no `Contact id not given`, correct `report_sms_sent.provider_response`, and no false `sent_step_1` state on provider failure.
@@ -42,7 +47,7 @@ Both workflows published and running:
 - Investigate Executive Report → Site Traffic → Top Page formatting/aggregation: the displayed page is showing the full email UTM URL (`/?utm_source=email&utm_medium=outreach&utm_campaign=wl_seq_cannabis_ads&utm_content=visit_site`) instead of the expected normalized top-page label/path, alongside `Eng. Rate 92%`.
 - Monitor LinkedIn outbound guardrails, completion tagging, and reply-state sync after the fail-closed patch.
 - Monitor the dialer's same-run queue loop and confirm eligible contacts are reached without exceeding the 25-contact safety cap.
-- Verify one controlled production call using the rotated GHL PIT; manual dialer smoke execution `242609` already succeeded.
+~~- Verify one controlled production call using the rotated GHL PIT; manual dialer smoke execution `242609` already succeeded.~~ **Done 2026-07-30 — full audit of all 67 active workflows confirmed old PIT purged. Intake Poller and Dialer Config nodes updated and published.**
 - Configure and enforce Vapi callback/server authentication before accepting forged tool or outcome requests.
 - Audit and authenticate public Warm intake and SimpleTexting send webhooks whose shared-secret configuration is empty.
 - Migrate active n8n Config-node secrets into credentials/protected runtime configuration and rotate exposed values.
@@ -108,6 +113,7 @@ Assignment Surfaces To Audit And Update:
 
 - `WL - Micro - Email Open Counter + Assignment to Jason` (`42aa5940`): email-open threshold, contact owner action, opportunity owner action, assignment state, retry/replay behavior, and notification recipient.
 - `GHL JohnFollowup Emails and SMS` (`f6b44e34`): all email/SMS actions, owner fields, sender fields, transfer/notification recipients, and legacy John/Jason names.
+- **Completed (2026-07-29)**: authenticated GHL UI inspection confirmed all 7 Send Email actions use owner-driven `From Name = {{opportunity.owner}} from Transparent eCom` and `From Email = {{user.email}}`. The workflow defaults were set to `Jason from Transparent eCom` / `jason@livetransparent.com`, saved, and published as version 39. The six referenced templates retain literal Jason sender metadata as safe fallback values. No live test email was sent.
 - Warm intake workflows for email inbound, email outbound, and SMS: `SmMf8QIfysuxQJbG`, `J4B0n0QeSeOeqAci`, and `5nYzp9DgQUopzWhR`. Confirm they only tag/intake contacts or whether they also assign owners.
 - Email enrollment and stop workflows for DAN and Emerald: sender selection, owner persistence, reply/booked stop logic, and any GHL sequence action that assigns or notifies Jason.
 - Vapi intake, queue, dialer, callback, and tool paths: `bYk1Ai6MJLyhTsDZ`, `XzcpOBi9YcIhJPck`, `r7UjWLndmc6EqEUW`, and `fx4UvKUWbqJEY3LK`. Carry the canonical SDR identity through queue metadata, Vapi variables, notes, callbacks, Slack alerts, transfers, and bookings.
@@ -119,8 +125,8 @@ Assignment Surfaces To Audit And Update:
 
 ### Revised Qualification and SDR Work Queue Model
 
-- Warm is the unassigned intake and verification layer. Contacts remain in Warm until Janvi's AI assessment verifies that the company is a cannabis business.
-- Only an explicit AI-qualified cannabis result may promote a contact/opportunity into `Sales Outreach -> New`.
+- Warm is the unassigned intake and regulated-business classification layer. Contacts receive `qualified` when their business is related to a regulated vertical, or `not qualified` when it is not.
+- `qualified` is the regulated-business classification gate and routes the opportunity into `Sales Outreach -> Qualified`.
 - SDR allocation occurs at the Sales Outreach promotion boundary, not during Warm intake, email opens, SMS sends, Vapi queueing, or other channel micro-automations.
 - When a contact enters Sales Outreach, resolve ownership in this order:
   1. If exactly one of the contact or opportunity has an owner, align the other record to that owner.
@@ -129,12 +135,12 @@ Assignment Surfaces To Audit And Update:
   4. If neither has an owner, assign Jason or Marc with the deterministic 50/50 allocator.
 - Every Sales Outreach assignment must keep contact `assignedTo`, opportunity native `assignedTo`, and custom opportunity `Owner` aligned through the canonical SDR mapping.
 - SDRs work from Sales Outreach. Warm contacts are not part of the normal SDR work queue.
-- Vapi remains in Warm and calls only contacts whose AI qualification is pending, unknown, or explicitly marked unverified. AI-qualified contacts must be excluded from the Vapi queue.
-- AI-rejected/non-cannabis contacts must not be sent to Vapi unless a future policy explicitly enables that path.
+- Vapi remains in Warm and must not call contacts tagged `not qualified` or contacts that have bypassed the canonical classification result.
+- The existing GHL promotion workflow should use the canonical `qualified` result to route the opportunity to `Sales Outreach -> Qualified`, while `not qualified` blocks promotion.
 - A Vapi warm transfer is an exception path: if an SDR answers the shared transfer number, the SDR manually claims the contact and opportunity and promotes the record into `Sales Outreach -> New`.
 - Vapi warm transfer uses the shared SDR number through the Vapi `transferCall` tool; it does not select Jason or Marc by phone number.
 - Vapi booking remains separate from transfer and uses Cameron's `Regulated Ads On Social/Search` calendar (`SrtXcFVyea7pFl3nTiIK`).
-- The exact Janvi AI assessment workflow, result field/tag, and qualified/unqualified values must be identified before implementation. No documented source currently names the authoritative field.
+- The authoritative classification contract is now the `qualified` / `not qualified` tag pair. The live classifier currently needs a write-path patch to apply both outcomes; its campaign tags remain downstream campaign labels.
 
 Rep-Specific Message And Channel Configuration:
 

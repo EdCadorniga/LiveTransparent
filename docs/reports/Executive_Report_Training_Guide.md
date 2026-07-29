@@ -1,6 +1,6 @@
 # LiveTransparent Executive Report
 ## Training Document and Quick Reference Guide
-Updated: July 21, 2026
+Updated: July 29, 2026
 
 This guide explains what each visible card in the Executive Report means, how to present it, and where the common interpretation risks are. It matches the live dashboard glossary, the users-based funnel cards, and the trailing-day range presets.
 
@@ -31,6 +31,7 @@ This section explains how the report is assembled, what the live API returns, an
 - Source status: GSC Daily Ingest is now live and verified in n8n. Older notes that describe Search Console as blocked are stale and should be treated as historical.
 - Attribution logic: Acquisition Sources, UTM / Campaign Breakdown, and Attribution Coverage all depend on observed traffic and bridge data. They should be read as live data quality and attribution outputs, not as a perfect campaign registry.
 - Operational rule: when a metric looks wrong, check Source Health first. The report separates stale data from business performance so the reader does not draw the wrong conclusion.
+- Vapi campaign-gating note: the Executive Report currently shows downstream Vapi campaign outcomes and queue distribution, but not the upstream classifier's AI/domain acceptance counts. For classifier operations, use `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) execution summaries and the Postgres table `vapi_qualified_domains`.
 
 ## Metric Definitions
 Use these definitions when presenting the dashboard. If a visible metric is not defined here, it should be treated as incomplete until the definition is added.
@@ -48,8 +49,9 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 | LinkedIn Funnel | Connection state distribution: ready, requested, connected, DM active, completed. | Tracks LinkedIn outreach pipeline health. |
 | Vapi Campaigns | Voice AI call outcomes by campaign. | Shows answered rate, qualified calls, and booked meetings per campaign. |
 | Vapi Queue | Pending outbound calls grouped by campaign. | Shows how many contacts are queued for each Vapi campaign. |
+| Vapi Campaign Eligibility | Upstream Brand/Dispensary campaign-gating workflow. | Not currently returned as a dashboard metric; inspect n8n classifier executions and `vapi_qualified_domains` for selection, acceptance, writes, and domain-match activity. |
 | MQL Summary | Active and total opportunities in the Warm pipeline Qualified (MQL) stage. | Tracks marketing-qualified lead volume. |
-| AI Qualification | Janvi assessment outcomes for cannabis-business verification. | Distinguishes qualified, pending/unverified, and rejected contacts. |
+| AI Qualification | Janvi assessment outcomes for cannabis-business verification. | Distinguishes qualified, pending/unverified, and rejected contacts. Do not confuse this with the separate DeepSeek Vapi campaign-eligibility gate. |
 | Sales Outreach Queue | Contacts/opportunities promoted after explicit AI cannabis qualification. | Measures SDR work-queue volume and owner assignment source. |
 | SQL Contacts | Contacts with the SQL (Sales Qualified Lead) tag. | Counts contacts promoted to sales-qualified status. |
 | Pool Distribution | Contact counts by pool tag (brands, dispensaries, Vapi campaigns). | Shows audience segment sizes. |

@@ -1,10 +1,10 @@
 # Emerald Vapi Classifier Repair Plan
 
-## Why This Needs Repair
+## Historical Repair Context
 
-- The documented classifier intent says `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) should classify Emerald candidates from Postgres and apply `vapi_campaign_brand` / `vapi_campaign_dispensary`.
-- The live workflow no longer matches that description. Its current `Called Contacts` node is hardcoded to 3 specific `voice_call_queue.contact_id` values, so it is not a general classifier anymore.
-- Once the imported Brand/Dispensary contacts are linked back into `emerging_pool_contacts`, the classifier should be rebuilt around that imported pool instead of the older executive-heavy `Emerald_Contacts` table.
+The original repair is complete. The old hardcoded `voice_call_queue` selection and executive-focused classifier path are no longer live. This document remains as design history; current production behavior is documented in `classifier-workflow-change-plan.md` and the audit note in `AGENTS.md`.
+
+The current workflow is built around `emerging_pool_contacts`, uses live GHL checks, and runs on a 15-minute native schedule with a 10 + 10 candidate cap.
 
 ## Target Data Source
 
@@ -60,15 +60,20 @@ This is simpler and safer than role-tag inference, because the new imports are a
 
 ## Recommended Workflow Shape
 
-Manual trigger first, then optionally scheduled later.
+Manual Start is retained for controlled tests; production uses a native 15-minute Schedule Trigger.
 
-1. `Manual Trigger`
+1. `Manual Trigger` or `Schedule Trigger 15m`
 2. `Postgres` select eligible rows from `emerging_pool_contacts`
 3. `Code` normalize campaign tag payloads
-4. `HTTP Request` add GHL tag to matching contacts
-5. `Code` summarize counts and sample IDs
+4. `AI Gate` and DeepSeek classification when no qualified domain exists
+5. `Merge AI and Cleanup Results`
+6. `HTTP Request` add/remove GHL campaign tags
+7. `Postgres` persist accepted non-free domains after successful tag writes
+8. `Code` summarize counts, writes, failures, and qualification sources
 
 ## Recommended Eligibility Query Shape
+
+The query below is the historical design skeleton. The live workflow deliberately lets candidates reach the live GHL lookup when imported/report phone fields are blank, then skips rows that remain uncallable.
 
 Pull rows from `emerging_pool_contacts` where:
 - `ghl_contact_id IS NOT NULL`
@@ -116,11 +121,11 @@ WHERE epc.ghl_contact_id IS NOT NULL
 
 Phase the classifier relaunch:
 
-1. Run once in dry/manual mode and return only a summary
-2. Spot-check 10 Brand + 10 Dispensary candidates
-3. Enable live tag application for a tiny cohort
-4. Let the queue feeder consume those tagged contacts
-5. Only then resume dialer/poller activation
+1. Execute the manual or scheduled path and confirm the run completes
+2. Confirm failed writes are zero and suppression cleanup is working
+3. Spot-check accepted Brand and Dispensary tags in GHL
+4. Confirm only successful accepted writes can create/update `vapi_qualified_domains`
+5. Let the queue feeder consume newly tagged contacts
 
 ## Dependency Order
 

@@ -1,5 +1,7 @@
 # LT - Campaign Contact Classifier MCP Update Ops
 
+> Historical mutation record. The live workflow is now published and active on a native 15-minute Schedule Trigger. Fetch live state before using any operation in this file. Current behavior is documented in `classifier-workflow-change-plan.md` and `AGENTS.md`.
+
 Target workflow:
 - `IduCoT5YOs0g2faT`
 
@@ -57,5 +59,5 @@ Pass the three operations in one atomic `update_workflow` call.
 
 After patching:
 - execute the workflow manually
-- verify it selects only up to 5 Brand + 5 Dispensary rows
+- historical seed example only: verify the current live cap from `get_workflow_details` (currently 10 Brand + 10 Dispensary rows)
 - spot-check those contact IDs in GHL before letting the queue feeder continue

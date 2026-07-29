@@ -54,6 +54,16 @@ The website hero form uses GHL's built-in consent elements.
 
 ## Booking Rule
 
+### Website Booking URL
+
+The website must send demo visitors directly to the approved GHL booking widget so they enter their contact details once:
+
+```text
+https://api.leadconnectorhq.com/widget/booking/SrtXcFVyea7pFl3nTiIK
+```
+
+The `/apply/` page should embed the same widget instead of the legacy Calendly URL. Do not place the GHL hero form `kxrHpS9bX16nzkIbr2py` before the booking widget because it duplicates name, email, and phone collection.
+
 If a contact books the right meeting:
 
 - calendar must be `Regulated Ads On Social/Search`

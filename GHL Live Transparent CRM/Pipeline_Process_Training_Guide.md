@@ -439,3 +439,31 @@ This process handles anonymous website-visitor enrichment events sent from RB2B 
 1. If task node returns `Cannot POST /contacts//tasks`, verify task node URL references `ghl_contact_id` from `Prepare + Upsert GHL Contact`.
 2. If contact write fails in code node, verify `Config` node still passes `locationId`, `apiBaseUrl`, `apiKey`, and `rb2bTag`.
 3. If row upsert fails with null key, verify `lead_key` is present before Postgres node execution.
+
+## 16) Vapi Campaign Eligibility Classifier (Current)
+
+This is a cold-campaign eligibility gate for the Vapi Brand and Dispensary pools. It is separate from Janvi's CRM qualification gate and does not promote contacts into Sales Outreach.
+
+### A) Runtime
+- n8n workflow: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`)
+- Schedule: native n8n Schedule Trigger every 15 minutes
+- Selection: up to 10 Brand and 10 Dispensary candidates per execution
+- Source: `emerging_pool_contacts`, with live GHL contact and suppression checks
+
+### B) Acceptance Rules
+- Brand candidates receive `vapi_campaign_brand` only when DeepSeek accepts the regulated-business fit or the email domain is already in `vapi_qualified_domains`.
+- Dispensary candidates receive `vapi_campaign_dispensary` under the same rule.
+- Suppressed, terminal, already-called, queued, or already-tagged contacts are excluded or cleaned up.
+- A live GHL phone is an allowed fallback when the imported pool phone is blank.
+- Common free-email domains are never added to the qualified-domain list.
+
+### C) Domain Persistence
+- Table: `vapi_qualified_domains`
+- A domain is written only after the GHL response confirms the campaign tag was added.
+- Cleanup responses, failed writes, and rejected model outputs cannot qualify a domain.
+
+### D) Operator Checks
+1. Confirm the latest execution is successful.
+2. Confirm `failed_write_count = 0` in the `Summarize Tags` output.
+3. Review accepted contacts and campaign tags in GHL before allowing the queue feeder to stage them.
+4. Treat this workflow's acceptance as Vapi campaign eligibility, not Janvi's authoritative cannabis qualification or Sales Outreach ownership assignment.

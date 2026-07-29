@@ -3,18 +3,26 @@
 Target workflow:
 - `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`)
 
-## Current Problem
+## Current Production State
 
-The live workflow currently does not act as a general Emerald classifier.
-Its `Called Contacts` Postgres node is hardcoded to 3 specific `voice_call_queue.contact_id` values.
+The old hardcoded queue-contact selection described below is historical and no longer represents the live graph. The workflow is now a published regulated-business campaign gate.
+
+Live behavior as of 2026-07-29:
+- native Schedule Trigger every 15 minutes, plus a Manual Start for controlled tests
+- up to 10 Brand and 10 Dispensary candidates per run
+- live GHL contact lookup and suppression cleanup
+- DeepSeek acceptance for candidates without a qualified domain
+- persistent qualified-domain bypass through `vapi_qualified_domains`
+- GHL writes only after an accepted classification or domain match
 
 ## New Purpose
 
-Repurpose the workflow into a manual or low-volume helper that:
+The workflow now:
 - selects eligible imported pool contacts from `emerging_pool_contacts`
 - maps `source_list` directly to campaign tag
 - applies `vapi_campaign_brand` or `vapi_campaign_dispensary` in GHL
 - returns a summary of what was tagged
+- records accepted non-free email domains only after a successful tag write
 
 ## Recommended Node Changes
 
@@ -87,13 +95,14 @@ Suggested summary fields:
 - `sample_companies`
 - `sample_emerging_pool_row_ids`
 
-## Recommended Safe Rollout Mode
+## Current Safety Controls
 
-For the first live pass, constrain the `Classify` node to:
-- max 5 Brand rows
-- max 5 Dispensary rows
-
-After spot-checking the actual contacts in GHL, remove or raise the cap.
+- `Called Contacts` selects up to 250 rows per source pool, while `Classify` caps the live run at 10 Brand and 10 Dispensary rows.
+- Candidate ranking prefers imported-pool/report phones, but the live GHL lookup can supply the phone when those fields are blank; candidates still without a live phone are skipped.
+- Suppression and terminal Vapi tags are checked in SQL and again against the live GHL contact.
+- DeepSeek reasoning is limited to concise English and the model output budget is 600 tokens.
+- Malformed model output is ignored by `Normalize AI Classification`; it cannot reach GHL tagging.
+- Qualified-domain upsert requires an accepted tag action, a recognized qualification source, and a successful GHL response containing the campaign tag.
 
 ## Why This Is Better
 
@@ -107,6 +116,7 @@ After spot-checking the actual contacts in GHL, remove or raise the cap.
 1. Run `postgres/select-emerging-pool-vapi-candidates.sql`
 2. Confirm there are eligible rows in both pools
 3. Update workflow `IduCoT5YOs0g2faT`
-4. Execute manually with a small cap
-5. Spot-check tags in GHL
-6. Let `RFIZ9Bcfl3Yvms2b` pick up the newly tagged rows
+4. Execute manually or wait for the native schedule
+5. Confirm the summary reports zero failed writes
+6. Spot-check tags and domain persistence in GHL/Postgres
+7. Let `RFIZ9Bcfl3Yvms2b` pick up the newly tagged rows
