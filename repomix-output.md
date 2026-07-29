@@ -102,6 +102,18 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Canonical MCP: `n8n-lt`.
 - Root `.env` is the reference copy; Coolify env vars are the deployed source of truth.
 
+### Reporting Execution Contract (2026-07-30)
+
+- The spreadsheet at `1AbLdIhQiEoJhdx3l6yeAppNxbYbAIYhcZfoKhy68VZw` is the requirements reference for the MQL, email, LinkedIn, and social report layout.
+- Native GHL Custom Report: `6a67dce4a51a4360c60963a3`. Use it for CRM contacts/opportunities, MQL detail, pipeline, email, SMS, calls, appointments, and custom-metric rates.
+- Native GHL Social Planner is the source for Facebook, Instagram, and LinkedIn Page post analytics. LinkedIn personal-profile analytics are not supported by the platform API.
+- Keep Brands-versus-Dispensaries joins, Unipile LinkedIn DM state, Vapi campaign state, trigger-link detail, and cross-channel comparison in the Executive Report unless the underlying data is intentionally synchronized into GHL objects.
+- The Executive Report accepts `range=7d|30d|90d|custom` plus `from=YYYY-MM-DD` and `to=YYYY-MM-DD`. For every selected period it loads the immediately preceding equal-length period and shows current value, prior value, absolute change, and percentage change.
+- Reporting weeks use the report API's returned date window and the sub-account reporting timezone. Do not mix widget-level date overrides with the shared selected-period comparison unless the metric definition explicitly requires it.
+- Campaign summary workflow: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published. Its selected-window endpoint is `/webhook/lt-report-campaign-channel-summary`.
+- The official GHL API/SDK does not expose Custom Report widget-layout mutation. Do not guess undocumented report-builder endpoints; native widget changes require authenticated GHL UI access or an explicitly approved internal API path.
+- Never commit GHL PITs, Firebase signed URLs, OAuth tokens, or captured response artifacts containing credentials. Use environment placeholders in documentation and leave sensitive captures untracked.
+
 ## Working Rules
 
 - Check the live state before and after every mutation.
@@ -2532,6 +2544,10 @@ Use that file for the current state and priority order so reporting work stays a
 - Canonical status: [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
 - Active work now spans the **Emerald email campaign** (activated 2026-07-07), **DAN email campaign** (backfilled ghl_contact_id 2026-07-13, 5,373 eligible for dispatch), **Apollo phone enrichment** (repaired 2026-07-14, new polling workflow), voice, reporting, LinkedIn outreach (canonical sender path and suppression guardrails hardened), the **LinkedIn/Instagram via Unipile -> GHL bidirectional conversation provider integration**, and the SimpleTexting SMS campaign stack (dispatcher live at low volume as of 2026-07-18).
 - Social provider integration handoff: [docs/strategy/unipile-ghl-bidirectional-integration.md](./docs/strategy/unipile-ghl-bidirectional-integration.md)
+- Reporting implementation handoff: native GHL report `6a67dce4a51a4360c60963a3` plus the read-only Executive Report at `reports/embed/executive/index.html`.
+- Reporting contract: use native GHL for CRM/email/SMS/call facts and custom metrics; use Social Planner for native social analytics; use the Executive Report for Brands-versus-Dispensaries joins, Unipile, Vapi, trigger-link detail, and cross-channel reporting.
+- Date contract: selected `from`/`to` windows are supported by the Executive Report and campaign summary endpoint. Every selected period must compare with the immediately preceding equal-length period, including absolute and percentage changes. Default weekly interpretation is Monday-Sunday in the reporting timezone.
+- Native GHL limitation: the official API/SDK exposes no supported Custom Report widget-layout mutation. Do not use undocumented endpoints or browser automation as a substitute without explicit approval.
 - SimpleTexting provider handoff is live (2026-07-20). On 2026-07-24, fixed the campaign send boundary: use SimpleTexting `AUTO` mode for multi-segment messages, reclaim provider-failed idempotency claims, and mirror to GHL Conversations only after a real provider message ID. Safe simulations passed; live confirmation remains pending after the next dispatcher run.
 - Vapi Brand prompt/variable hardening completed 2026-07-25: removed the unresolved `{{company_name}}` opener dependency, added GHL `company_name` propagation through the outbound dialer, and tightened live prompt handling for missing variables, IVR/voicemail detection, one-question turn-taking, and stage directions. Brand assistant and dialer are live/published; callback execution `241581` confirmed successful voicemail outcome processing.
 
@@ -2565,6 +2581,7 @@ Both workflows published and running:
 - ~~Update GHL promotion workflow `Move Contact's Opportunity to Sales Outreach New` (`cd29d8e6-5e0f-45f8-ba4f-c30804ad9b49`) so the destination is `Sales Outreach -> Qualified`.~~ **Done 2026-07-30 — GHL version 10 published; both opportunity actions target `Sales Outreach -> Qualified`.**
 - Implement the Jason/Marc no-owner allocator at Sales Outreach entry. Existing owner alignment is already handled separately; choose the final GHL-branch or fail-closed n8n resolver design before activating allocation.
 - Ownership audit result: the allocator should assign only the native opportunity owner, then let the published GHL `LT - Opportunity Owner Alignment` workflow assign the contact and mirror the custom opportunity `Owner`. Do not activate the staged n8n owner-sync workflow without removing its overlapping writes.
+- ~~Complete legacy-owner migration for open Sales Outreach opportunities whose custom `Owner` was John or Kevin.~~ **Done 2026-07-30 — authoritative opportunity search returned zero remaining John/Kevin custom-owner records; native ownership cascaded through the published GHL alignment workflow.**
 - Verify Vapi dashboard still points all tools and end-of-call webhook to canonical callback URL. This remains a manual dashboard check because it cannot be safely simulated through n8n.
 - Run a controlled live Brand and Dispensary call after the 2026-07-25 prompt/variable patch and verify no unresolved placeholders, no disclosure in voicemail, and one-question turn-taking.
 - **Next run: verify SimpleTexting SMS fix**: inspect `usxYXSuc4ahw40V3`, `7mSiivR3NhtLIcNz`, `Q3Ivnwe4z2Y3cD7A`, and `gwaEpWDpTIwsafi8`. Confirm a real provider message ID, no `409`, no `Contact id not given`, correct `report_sms_sent.provider_response`, and no false `sent_step_1` state on provider failure.
@@ -2572,6 +2589,11 @@ Both workflows published and running:
 - Retry blocked GSC ingest workflow.
 - Build Meta Ads ingest for spend, clicks, impressions, and cost metrics.
 - Investigate Executive Report → Site Traffic → Top Page formatting/aggregation: the displayed page is showing the full email UTM URL (`/?utm_source=email&utm_medium=outreach&utm_campaign=wl_seq_cannabis_ads&utm_content=visit_site`) instead of the expected normalized top-page label/path, alongside `Eng. Rate 92%`.
+- Complete the native GHL report configuration through an approved authenticated GHL UI/API path: MQL table, Brands/Dispensaries email widgets, open/click/response custom metrics, pipeline context, and shared date/comparison settings.
+- Add remaining spreadsheet-only metrics to the Executive Report: per-campaign rates, trigger-link views/clicks, Unipile LinkedIn campaign metrics, and social impressions/reach/clicks/top-post detail where the source API supports the selected period.
+- ~~Publish selected-window metadata and derived email rates from `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`).~~ **Done 2026-07-30 — published version `d9fdec1b-6fcb-4962-8d85-28a94f859370`; live manual execution `269138` succeeded.**
+- ~~Validate campaign email sent counts against DAN/Emerald release logs and `Email_Events`; zero sent with nonzero opened/clicked is a reporting defect, not a valid result.~~ **Checked 2026-07-30 — the selected 2026-07-20 to 2026-07-26 window has no `LT - Email Event Ingest` executions, so its zero engagement counts reflect missing historical event coverage. Later events are ingesting and aggregate correctly; retain this as a source-coverage limitation rather than altering the query.**
+- Deploy the selected-period Executive Report host change through the normal Coolify path, then verify the live embed and both current/prior API windows.
 - Monitor LinkedIn outbound guardrails, completion tagging, and reply-state sync after the fail-closed patch.
 - Monitor the dialer's same-run queue loop and confirm eligible contacts are reached without exceeding the 25-contact safety cap.
 ~~- Verify one controlled production call using the rotated GHL PIT; manual dialer smoke execution `242609` already succeeded.~~ **Done 2026-07-30 — full audit of all 67 active workflows confirmed old PIT purged. Intake Poller and Dialer Config nodes updated and published.**
@@ -2590,14 +2612,16 @@ New sales rep:
 - Email: marc@livetransparent.com
 - GHL user ID: `sqGx5rp3oAUG610NXyjU`
 
-Required pre-cutover cleanup for any legacy-owner migration:
+Required pre-cutover cleanup for any future legacy-owner migration:
 
-- Before enabling any Jason/Marc round-robin, identify all contacts currently owned by former staff Kevin or John using their live GHL user IDs. Do not infer user IDs from display names or historical records.
+- Before enabling any Jason/Marc round-robin, identify any contacts currently owned by former staff using their live GHL user IDs. Do not infer user IDs from display names or historical records.
 - Reassign those contacts to Jason Bornillo (`yU85G6kfhtW4vUtx3QE6`) first, with a record-level audit of previous owner, new owner, timestamp, source, and reason.
 - Preserve contact tags, custom fields, conversations, notes, tasks, DND/opt-out status, and existing attribution during the owner transfer.
 - Inventory opportunities associated with those contacts separately. Do not silently change existing opportunity owners as part of the contact cleanup; apply the documented opportunity ownership and Sales-pipeline handoff rules deliberately.
-- Verify the cleanup count before proceeding. No former Kevin/John-owned contact should remain unless it is explicitly excluded and documented.
+- Verify the cleanup count before proceeding. No former-staff-owned contact should remain unless it is explicitly excluded and documented.
 - This cleanup is separate from the qualification gate. Do not enable a new allocator or make Warm assignments until the Janvi gate and Sales Outreach boundary are implemented.
+
+The 2026-07-30 migration is complete. The initial audit identified 307 open Sales Outreach opportunities with custom owner John or Kevin (305 John, 2 Kevin); the final authoritative search found zero remaining records. The migration changed native opportunity ownership and allowed the published GHL alignment workflow to cascade contact ownership and the custom opportunity `Owner`; no direct duplicate writer was activated.
 
 Before executing any live changes, audit and map every Jason-specific reference across GHL and n8n:
 
@@ -2948,6 +2972,7 @@ This document is the canonical project status and next-steps reference. It super
 - **SDR ownership synchronization**: Published GHL workflow `LT - Opportunity Owner Alignment` (`b26326a5-77af-4df8-8d86-3f636e73afe0`, version 7) now keeps contact owner, native opportunity owner, custom opportunity `Owner`, and routing audit fields aligned for Jason and Marc when the opportunity owner changes. It does not replace the unresolved Janvi qualification gate or allocate unowned Warm records.
 - **Classification and promotion implementation (2026-07-30)**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) is published on version `9eae8a33-319a-4c8a-9ee7-2b3b3d5fb45f`; `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) is published on version `99244f60-3c68-4c08-9bcb-1cf5d8bf20d1`; and GHL workflow `Move Contact's Opportunity to Sales Outreach New` (`cd29d8e6-5e0f-45f8-ba4f-c30804ad9b49`) is published as version 10 with both opportunity actions targeting `Sales Outreach -> Qualified`.
 - **Ownership double-handling audit (2026-07-30)**: No active duplicate owner writer was found. The classifier writes tags only; Vapi intake writes queue/Apollo state only; the active n8n MQL workflow creates or updates Warm opportunities without owners; and the GHL promotion workflow changes pipeline stage only. The sole active owner-alignment path is GHL `LT - Opportunity Owner Alignment` (`b26326a5-77af-4df8-8d86-3f636e73afe0`, published version 7), triggered by an opportunity `assignedTo` change. It assigns the contact and updates the custom opportunity `Owner` plus routing fields, but does not assign the opportunity owner. The staged n8n workflow `VI39o4X954fYDjOQ` is inactive and must not be activated as-is because it would duplicate those contact/custom-field writes.
+- **Legacy-owner migration (2026-07-30)**: Migrated the open Sales Outreach opportunities whose custom opportunity `Owner` was John or Kevin. The initial scope was 307 records (305 John, 2 Kevin). The final authoritative opportunity search returned zero remaining John/Kevin custom-owner records; native opportunity owners and the published GHL alignment cascade are now the source of truth. The staged n8n owner-sync workflow remains inactive.
 - **Follow-up sender routing - COMPLETE (2026-07-29)**: Authenticated GHL UI inspection confirmed all 7 Send Email actions use `From Name = {{opportunity.owner}} from Transparent eCom` and `From Email = {{user.email}}`. Workflow `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`) now defaults to `Jason from Transparent eCom` / `jason@livetransparent.com` and is published as version 39. The six referenced templates retain literal Jason sender metadata as safe fallback values. No live email test was sent.
 - **Vapi transfer hardening**: Live transfer tool `86d380a3-34d2-41f8-96a0-acf5f0124ccb` and all four assistants now use neutral Sales Lead wording while preserving the compatibility function name `ok_transfer_to_jason` and shared destination `+15622474600`.
 - **RB2B assignment hardening**: Live workflow `3kjsIUeoEQFx26cC` no longer runs its hardcoded Kevin task during Warm intake. The legacy task node is disconnected/disabled and the workflow is published with contact persistence ending at `Result`.

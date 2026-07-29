@@ -663,8 +663,8 @@
              <div class="panel-body">
                <div class="table-scroll">
                  <table class="campaign-table">
-                   <thead><tr><th>Campaign</th><th>SMS Sent</th><th>SMS Replies</th><th>Email Sent</th><th>Opened</th><th>Clicked</th><th>Email Replies</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
-                   <tbody id="campaign-channel-table"><tr><td colspan="11" class="loading">Loading campaign channel data...</td></tr></tbody>
+                    <thead><tr><th>Campaign</th><th>SMS Sent</th><th>SMS Replies</th><th>Email Sent</th><th>Opened</th><th>Open Rate</th><th>Clicked</th><th>Click Rate</th><th>Email Replies</th><th>Response Rate</th><th>Bounced</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
+                    <tbody id="campaign-channel-table"><tr><td colspan="15" class="loading">Loading campaign channel data...</td></tr></tbody>
                  </table>
                </div>
                <div class="footer-note">Date range follows the report selector. Email engagement will populate for new events after the timestamp fallback fix; older GHL events that arrived without timestamps cannot be reliably backdated.</div>
@@ -989,19 +989,23 @@
            var body = document.getElementById("campaign-channel-table");
            if (!body) return;
            if (!Array.isArray(rows) || rows.length === 0) {
-             body.innerHTML = '<tr><td colspan="11" class="loading">No campaign channel data yet.</td></tr>';
+              body.innerHTML = '<tr><td colspan="15" class="loading">No campaign channel data yet.</td></tr>';
              return;
            }
            body.innerHTML = rows.map(function (r) {
              return "<tr>" +
                "<td>" + (r.campaign || "Unknown") + "</td>" +
                "<td>" + formatNumber(r.sms_sent || 0) + "</td>" +
-               "<td>" + formatNumber(r.sms_replies || 0) + "</td>" +
-               "<td>" + formatNumber(r.email_sent || 0) + "</td>" +
-               "<td>" + formatNumber(r.email_opened || 0) + "</td>" +
-               "<td>" + formatNumber(r.email_clicked || 0) + "</td>" +
-               "<td>" + formatNumber(r.email_replies || 0) + "</td>" +
-               "<td>" + formatNumber(r.vapi_calls || 0) + "</td>" +
+                "<td>" + formatNumber(r.sms_replies || 0) + "</td>" +
+                "<td>" + formatNumber(r.email_sent || 0) + "</td>" +
+                "<td>" + formatNumber(r.email_opened || 0) + "</td>" +
+                "<td>" + (r.email_open_rate === null || r.email_open_rate === undefined ? "—" : formatPercent(r.email_open_rate)) + "</td>" +
+                "<td>" + formatNumber(r.email_clicked || 0) + "</td>" +
+                "<td>" + (r.email_click_rate === null || r.email_click_rate === undefined ? "—" : formatPercent(r.email_click_rate)) + "</td>" +
+                "<td>" + formatNumber(r.email_replies || 0) + "</td>" +
+                "<td>" + (r.email_response_rate === null || r.email_response_rate === undefined ? "—" : formatPercent(r.email_response_rate)) + "</td>" +
+                "<td>" + formatNumber(r.email_bounced || 0) + "</td>" +
+                "<td>" + formatNumber(r.vapi_calls || 0) + "</td>" +
                "<td>" + formatNumber(r.vapi_answered || 0) + "</td>" +
                "<td>" + formatNumber(r.vapi_qualified || 0) + "</td>" +
                "<td>" + formatNumber(r.vapi_booked || 0) + "</td>" +
