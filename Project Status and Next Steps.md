@@ -30,7 +30,23 @@ This document is the canonical project status and next-steps reference. It super
 - **Vapi transfer hardening**: Live transfer tool `86d380a3-34d2-41f8-96a0-acf5f0124ccb` and all four assistants now use neutral Sales Lead wording while preserving the compatibility function name `ok_transfer_to_jason` and shared destination `+15622474600`.
 - **RB2B assignment hardening**: Live workflow `3kjsIUeoEQFx26cC` no longer runs its hardcoded Kevin task during Warm intake. The legacy task node is disconnected/disabled and the workflow is published with contact persistence ending at `Result`.
 - **PIT token rotation (2026-07-30)**: Full GHL PIT token rotation completed and verified. The old token was replaced with the rotated PIT across both Config nodes that embedded it (Intake Poller `bYk1Ai6MJLyhTsDZ`, Dialer `r7UjWLndmc6EqEUW`). Full REST API audit of all 67 active n8n workflows confirmed zero occurrences of the old token remain in live production paths. Both modified workflows were published with matching `versionId === activeVersionId`. Documentation (`AGENTS.md`, `repomix-output.md`, `Operating Snapshot.md`) updated. Archive/backup files in `n8n/backups/`, `n8n/voice-agent/`, and `scripts/` retain historical snapshots.
- 
+
+## Prioritized Next Steps
+
+1. **Deploy and verify the Executive Report**: deploy the committed `reports/` changes through Coolify, then verify the live embed, selected-period controls, prior-period comparison, and campaign-channel endpoint for both a historical window and a current event-bearing window.
+2. **Complete native GHL report configuration**: use authenticated GHL UI access or an explicitly approved internal API path to configure the MQL table, Brands/Dispensaries email widgets, custom open/click/response metrics, pipeline context, and shared date behavior. Do not use undocumented API guesses.
+3. **Verify SimpleTexting in production**: inspect the next dispatcher run and confirm a real provider message ID, no `409`, no `Contact id not given`, correct `report_sms_sent.provider_response`, and no false `sent_step_1` state. Then complete E.164 normalization and the STOP-tag guard.
+4. **Run controlled Vapi verification**: manually verify the Vapi dashboard callback/tools and complete one controlled Brand call and one Dispensary call. Confirm no unresolved placeholders, no voicemail disclosure, correct one-question turn-taking, and correct outcome/queue completion.
+5. **Implement Jason/Marc no-owner allocation**: confirm the final deterministic 50/50 allocator design, assign only native opportunity ownership, and rely on the published GHL alignment workflow for contact/custom-owner synchronization. Test existing-owner, matching-owner, conflicting-owner, and no-owner cases before activation.
+6. **Harden remaining public boundaries**: authenticate Warm intake and SimpleTexting send webhooks, migrate active Config-node secrets into protected credentials/runtime configuration, and rotate any values exposed during the migration.
+7. **Finish reporting backlog**: retry GSC ingest, add approved Meta Ads spend/click/impression ingest, normalize Top Page formatting, and add remaining trigger-link, Unipile, and social metrics where source data supports the selected period.
+
+### Explicit Reporting Notes
+
+- The campaign summary workflow is live and published as `d9fdec1b-6fcb-4962-8d85-28a94f859370`.
+- The `2026-07-20` through `2026-07-26` email engagement gap is a historical `Email_Events` coverage gap; no event-ingest executions existed in that window. Do not change valid aggregation logic or fabricate rates.
+- Four credential-bearing response captures remain intentionally untracked and must not be committed.
+
 ## Newly Confirmed Gaps
 
 ### Follow-up Sender Routing Handoff
