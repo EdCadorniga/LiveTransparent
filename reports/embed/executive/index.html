@@ -670,6 +670,24 @@
                <div class="footer-note">Date range follows the report selector. Email engagement will populate for new events after the timestamp fallback fix; older GHL events that arrived without timestamps cannot be reliably backdated.</div>
              </div>
            </div>
+           <div class="panel">
+             <div class="panel-head">
+               <h2>MQL &amp; LinkedIn State Snapshot</h2>
+               <span>Current CRM state</span>
+             </div>
+             <div class="panel-body">
+               <div class="mini-grid-4">
+                 <div class="mini"><strong>Active MQLs</strong><div id="snapshot-mql-active">—</div></div>
+                 <div class="mini"><strong>Total MQLs</strong><div id="snapshot-mql-total">—</div></div>
+                 <div class="mini"><strong>SQL Contacts</strong><div id="snapshot-sql">—</div></div>
+                 <div class="mini"><strong>LinkedIn Ready</strong><div id="snapshot-li-ready">—</div></div>
+                 <div class="mini"><strong>LinkedIn Connected</strong><div id="snapshot-li-connected">—</div></div>
+                 <div class="mini"><strong>LinkedIn DM Active</strong><div id="snapshot-li-active">—</div></div>
+                 <div class="mini"><strong>LinkedIn DM Completed</strong><div id="snapshot-li-completed">—</div></div>
+               </div>
+               <div class="footer-note">These are current CRM/state-table snapshots, not counts limited to the selected reporting period.</div>
+             </div>
+           </div>
          </section>
 
          <!-- CHELLA'S SOCIAL -->
@@ -1340,8 +1358,18 @@
           el = document.getElementById("sp-published"); if (el) el.textContent = formatNumber(sp.publishedCount || 0);
           el = document.getElementById("sp-failed"); if (el) el.textContent = formatNumber(sp.failedCount || 0);
           
-          // Site traffic from summary
-          el = document.getElementById("st-sessions"); if (el) el.textContent = formatNumber(sessions);
+           // Site traffic from summary
+           var mqlSummary = data.mqlSummary || {};
+           var sqlContacts = data.sqlContacts || {};
+           var linkedinFunnel = data.linkedinFunnel || {};
+           el = document.getElementById("snapshot-mql-active"); if (el) el.textContent = formatNumber(mqlSummary.active || 0);
+           el = document.getElementById("snapshot-mql-total"); if (el) el.textContent = formatNumber(mqlSummary.totalEver || 0);
+           el = document.getElementById("snapshot-sql"); if (el) el.textContent = formatNumber(sqlContacts.totalCount || 0);
+           el = document.getElementById("snapshot-li-ready"); if (el) el.textContent = formatNumber(linkedinFunnel.readyCount || 0);
+           el = document.getElementById("snapshot-li-connected"); if (el) el.textContent = formatNumber(linkedinFunnel.connectedCount || 0);
+           el = document.getElementById("snapshot-li-active"); if (el) el.textContent = formatNumber(linkedinFunnel.dmActiveCount || 0);
+           el = document.getElementById("snapshot-li-completed"); if (el) el.textContent = formatNumber(linkedinFunnel.dmCompletedCount || 0);
+           el = document.getElementById("st-sessions"); if (el) el.textContent = formatNumber(sessions);
           el = document.getElementById("st-users"); if (el) el.textContent = formatNumber(Number(summary.users || 0));
           el = document.getElementById("st-engaged"); if (el) el.textContent = formatNumber(Number(summary.engagedSessions || 0));
           el = document.getElementById("st-forms"); if (el) el.textContent = formatNumber(Number(summary.formSubmissions || 0));
@@ -1384,9 +1412,16 @@
             var label = (u.source === "direct") ? u.medium : (u.source || "?") + " / " + (u.medium || "?");
             return { label: label, sessions: u.sessions || 0, sub: "contacts:" + formatNumber(u.leads || 0) + " opps:" + formatNumber(u.opportunities || 0) };
           }), "No UTM data yet.");
-          health.forEach(function (h) {
-            var key = h.source_system || h.source || "";
-            var idMap = {
+           var healthByKey = {};
+           health.forEach(function (h) {
+             var key = String(h.source_system || h.source || "").replace(/^"+|"+$/g, "").trim();
+             if (!key) return;
+             var existing = healthByKey[key];
+             if (!existing || (h.last_success_at && !existing.last_success_at) || (h.last_attempt_at && !existing.last_attempt_at)) healthByKey[key] = h;
+           });
+           Object.keys(healthByKey).forEach(function (key) {
+             var h = healthByKey[key];
+             var idMap = {
               "ghl": "hl-ghl",
               "ga4": "hl-ga4",
               "gsc": "hl-gsc",
