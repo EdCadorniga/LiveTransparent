@@ -1036,18 +1036,17 @@
          function windowLabel(window) {
            return window && window.from && window.to ? window.from + " to " + window.to : "period unavailable";
          }
-         function metricValue(data, key) {
-           var summary = data && data.summary ? data.summary : {};
-           var vapi = data && data.vapiWeeklyPerformance ? data.vapiWeeklyPerformance : {};
-           var values = {
-             contacts: Number(summary.contactsCreated || data.leadsNumeric || data.leads || 0),
-             opportunities: Number(summary.opportunitiesCreated || data.opportunitiesCreated || 0),
-             meetings: Number(summary.meetingsBooked || data.meetingsBooked || 0),
-             closedWon: Number(summary.closedWonCount || data.closedWonCount || 0),
-             emailOpened: Number(data.emailsOpened || 0),
-             emailClicked: Number(data.emailsClicked || 0),
-             vapiCalls: Number(vapi.totalCalls || vapi.total_calls || 0)
-           };
+          function metricValue(data, key) {
+            var summary = data && data.summary ? data.summary : {};
+            var values = {
+              contacts: Number(summary.contactsCreated || data.leadsNumeric || data.leads || 0),
+              opportunities: Number(summary.opportunitiesCreated || data.opportunitiesCreated || 0),
+              meetings: Number(summary.meetingsBooked || data.meetingsBooked || 0),
+              closedWon: Number(summary.closedWonCount || data.closedWonCount || 0),
+              emailOpened: Number(data.emailsOpened || 0),
+              emailClicked: Number(data.emailsClicked || 0),
+              vapiCalls: Number(summary.callTotal || data.callTotal || 0)
+            };
            return values[key] || 0;
          }
          function renderWeekComparison(current, previous) {
