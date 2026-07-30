@@ -35,6 +35,17 @@
 5. `Closed Won`: Deal accepted.
 6. `Closed Lost`: Deal not moving forward.
 
+## Partnership Pipeline (`tQkFYrHjALgoLz6oq0uz`)
+Independent pipeline for content partnership outreach.
+1. `New Partner Lead`: Contact replied to email or LinkedIn DM — opportunity auto-created.
+2. `Contacted`: Active conversation in progress.
+3. `Proposal Sent`: Partnership proposal delivered.
+4. `Closed`: Partnership confirmed or declined.
+- Owner: Janvi (`ck6TRlU3wnTmMxuVpn5F`)
+- 131 contacts: 98 email + 33 LinkedIn-only
+- Email dispatcher: 60/day, 11am ET Mon-Fri. LinkedIn dispatcher: 30/day, 3pm CT Mon-Fri.
+- Terminal tags: `partner_replied`, `partner_not_interested`, `partner_do_not_contact`
+
 ## Stage Movement Rules
 - Move forward only.
 - Do not skip stages without manager approval.

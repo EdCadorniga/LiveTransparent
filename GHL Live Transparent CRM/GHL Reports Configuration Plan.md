@@ -233,7 +233,7 @@ Once the GA4 property ID is available:
 - `LT - Report Config Sync` is live in n8n as the first real reporting workflow.
 - `LT - Report QA and Alerts` is live in n8n as a real starter chain.
 - `LT - Report Publish Refresh` is live in n8n as a real starter chain.
-- The report embed target is present in GHL and the host is reachable, but the public host currently serves the older `2026-05-11-v9-active-opps` build. The current local campaign/channel UI still requires Coolify deployment and live iframe verification.
+- The report embed target is present in GHL and the host is reachable. The public host serves `2026-07-31-v10-partnership`; live iframe behavior and campaign rows have been verified. Native report configuration remains blocked by the authenticated GHL report page returning 404.
 - The executive summary webhook is live and serves the dashboard JSON from Postgres.
 - The report host scaffold now exists in `reports/` with a Dockerfile and nginx config.
 

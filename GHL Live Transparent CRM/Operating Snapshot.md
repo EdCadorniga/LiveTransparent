@@ -49,6 +49,11 @@ Use it for current decisions. Use the deeper runbooks for implementation detail.
   - `Negotiation`
   - `Closed Won`
   - `Closed Lost`
+- `Partnership Pipeline` (`tQkFYrHjALgoLz6oq0uz`)
+  - `New Partner Lead`
+  - `Contacted`
+  - `Proposal Sent`
+  - `Closed`
 
 ## Reporting-Critical Field Families
 Keep these aligned with routing and report logic:
@@ -137,6 +142,20 @@ Keep these aligned with routing and report logic:
 - `LT - Instagram Unipile New Messages` (`pISlgYUsyJIrLuJd`) — active; receives Instagram inbound payloads at `/webhook/lt-unipile-instagram-new-messages`, conservatively resolves existing GHL contacts before creating, posts messages into GHL Conversations, and persists `instagram_conversation_map`. Post-merge map repair verified row `1` points chat `yx-R-9J6XdWaFpGOQd1JFA` to canonical GHL contact `XZ4yChllGBdcsVxhFRDe`.
 - `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`) — unpublished; was misconfigured with the LinkedIn Unipile account ID.
 - `LT - LinkedIn Follower DM Sequence (Unipile)` (`pq7XVajNFnnwMUTr`) — unpublished; redundant with canonical LinkedIn DM sequence.
+
+### Partnership Marketing (LIVE 2026-07-31)
+- 131 content partnership contacts: 98 email + 33 LinkedIn-only. Owner: Janvi (`ck6TRlU3wnTmMxuVpn5F`).
+- Independent pipeline, Postgres tables, and n8n workflows — fully isolated from DAN/Emerald.
+- `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`) — active, 60/day, 11am ET Mon-Fri, 2-weekday intervals
+- `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`) — active, 30/day, 3pm CT Mon-Fri
+- `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`) — active, 4-step DM cadence
+- `LT - Partnership Reply Handler` (`mRDw57IHtnQe4wOo`) — active webhook, tags `partner_replied` + creates opportunity
+- `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`) — active, every 5 min, polls GHL for email replies
+- `LT - Partnership Bulk Import` (`zmrYrUjVcyXaS7PJ`) — active webhook (one-time import)
+- `LT - Partnership LinkedIn URL Update` (`ew6uQQnAjgCbjeGn`) — active webhook (one-time URL update)
+- 3 existing LinkedIn workflows patched to query `partnership_linkedin_connection_state` (Acceptance Checker, Reply Backfill, New Messages)
+- Reporting: Campaign Channel Summary includes "Partnership emails" row; Executive Report renders campaign table. Postgres tables bootstrapped 2026-07-31.
+- GHL Custom Report partnership widgets pending (requires authenticated browser session)
 
 ### Emerald (Staged — Marketing Email Paused 2026-06-05)
 - All 7 Emerald workflows are inactive (staged by design since pause):

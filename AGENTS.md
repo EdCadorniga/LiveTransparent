@@ -41,7 +41,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Reporting weeks use the report API's returned date window and the sub-account reporting timezone. Do not mix widget-level date overrides with the shared selected-period comparison unless the metric definition explicitly requires it.
 - Campaign summary workflow: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published. Its selected-window endpoint is `/webhook/lt-report-campaign-channel-summary`.
 - Campaign summary version `64641979-71f3-466c-8a09-36013be6bc0e` returns named channel/campaign rows. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn uses `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi uses queue campaign IDs. Catalog rows for `General outbound`, `Partnership emails`, `xyz`, and `abc` remain zero until matching source events exist.
-- The local Executive Report UI includes the campaign/channel table and LinkedIn columns, but `https://reports.livetransparent.com` still serves the older build `2026-05-11-v9-active-opps`; deploy and verify through Coolify before calling the host current.
+- The Executive Report is live at `https://reports.livetransparent.com` as build `2026-07-31-v10-partnership`; it includes the campaign/channel table, LinkedIn columns, selected-period controls, and prior-period comparison.
 - The native GHL report URL must be verified through an authenticated GHL UI session. The last browser check returned 404 plus Firebase token/permission errors, so native widget configuration is not currently confirmed.
 - The official GHL API/SDK does not expose Custom Report widget-layout mutation. Do not guess undocumented report-builder endpoints; native widget changes require authenticated GHL UI access or an explicitly approved internal API path.
 - Never commit GHL PITs, Firebase signed URLs, OAuth tokens, or captured response artifacts containing credentials. Use environment placeholders in documentation and leave sensitive captures untracked.
@@ -52,7 +52,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) is published on `4f3e8068-8864-4b4d-9286-ba4d618cc3a8`. Snapshot/history rows use ingest date, raw rows preserve source timestamps, retries/cursor guards are bounded, finalization errors fail closed, and sales health uses `ghl_opportunities` while raw compatibility remains `source_system = 'ghl'`. Verification: execution `276626` processed 7,683 opportunities and 7,683 history rows.
 - `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) is published on `fa1a5dfe-d00c-47b3-98d3-862ea6f912a7`. It uses direct `this.helpers.httpRequest`, bounded contact/API budgets, retry/timeouts, explicit error reporting, and terminal/reply-state preservation.
 - `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`) is published on `bd385c89-0678-4301-84e6-abc63fea3c28`. It reads Config explicitly, atomically claims `ready` rows as `requested_pending`, and performs live suppression/reply checks before invites. Do not manually execute it without explicit approval because it can send LinkedIn invites.
-- `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) is published on `bf814307-a235-4416-abaa-9c8329f76130`; terminal payloads promote state to `completed` and active replies remain preserved. Its webhook still has no protected credential because none is currently available; provision one before adding caller authentication.
+- `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) is published on `d9168bbc-9c96-44fd-a356-12e645a2ec3d`; its webhook requires the protected `X-LT-LinkedIn-State-Secret` header. All discovered callers, including the partnership dispatcher/DM path, were updated and published. Unauthorized requests return `403`; malformed authorized requests reach the workflow and fail validation without a state write.
 
 ## Working Rules
 
@@ -168,6 +168,7 @@ POST to `https://automations.livetransparent.com/webhook/lt-linkedin-connection-
 - Codex config: `C:\Users\edmon\.codex\config.toml`.
 - **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans / `options`. Use `setNodeParameter` for single-path edits on Set v3.4 nodes. If that also fails, use direct n8n REST `PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` (note: PUT auto-publishes and validates all node credentials). For Code nodes, both `updateNodeParameters` and `setNodeParameter` are safe. Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
 - **`setNodeParameter` silent failure (observed 2026-07-06):** On Code nodes and HTTP Request nodes, `setNodeParameter` may report success without modifying parameters. **Use `updateNodeParameters` with `replace: true`** as the primary mutation method for both. Always verify with a fresh `GET` after mutation.
+- n8n Code nodes cannot access managed credentials by design. Do not attempt `$getCredentials()` or `this.getCredentials()` in Code nodes. Credential migration for direct API calls requires credentialed HTTP Request nodes, or an explicitly approved protected runtime-variable path.
 - **Historical n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` returned fields that violated the MCP output schema. The deployment target is now n8n `2.31.5`; retain the REST workaround if the MCP schema issue recurs:
   ```bash
   curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows?active=true&limit=100"
@@ -1121,6 +1122,20 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 
 - **GHL Custom Report**: Add partnership metrics to native report `6a67dce4a51a4360c60963a3` — requires authenticated browser session
 - **Re-import 14 excluded contacts** after corrected company names provided
+- **Reply Poller API gap**: `GET /conversations/search` may not be supported by GHL API (standard is POST). Monitor first real reply detection; if replies aren't detected, switch to POST with body payload.
+
+### Audit (2026-07-31)
+
+Full audit passed:
+- All 7 partnership workflows published and active (versionId == activeVersionId for all)
+- 3 patched LinkedIn workflows verified: correct SQL UNION/UNION ALL queries, source_table routing, and dedicated partnership update nodes in Reply Backfill and New Messages
+- Campaign Channel Summary (`MvPLbUAN9IIQikxb`) published with `partnership_release_log` UNION ALL in `email_sent` CTE (version `6641aa9a`). Endpoint confirmed returning "Partnership emails" row.
+- Postgres tables `partnership_release_log` and `partnership_linkedin_connection_state` bootstrapped on live VPS (both had 0 rows as expected before dispatcher first run)
+- Executive Report frontend deployed as build `2026-07-31-v10-partnership` to reports.livetransparent.com. Footer note updated to mention partnerships. Frontend directly fetches campaign channel data — no API change needed for rendering.
+- GHL contacts verified: 98 `partner_candidate_email`, 127 `partner_candidate_linkedin` (94 overlap + 33 LinkedIn-only), 131 total. All assigned to Janvi.
+- 4 email templates confirmed in folder `Partnership Email Campaign` (`6a6b768aa43d24a7ce1514f1`)
+- Partnership Pipeline (`tQkFYrHjALgoLz6oq0uz`) with 4 stages confirmed in GHL
+- No regressions detected — all existing DAN/Emerald/LinkedIn/Vapi workflows unaffected
 
 ## Other Live Systems
 

@@ -67,7 +67,7 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 - If someone responds on LinkedIn, immediately suppress them from all remaining automated LinkedIn DMs and persist that suppression in the shared state.
 - State sync must use bounded direct HTTP calls with explicit retry/error reporting; API failures must not be reported as an empty healthy scan.
 - Connection dispatch must atomically claim a `ready` row before an invite and perform a live GHL suppression/reply check immediately before sending.
-- The state-upsert boundary must use a protected n8n credential or approved shared-secret mechanism before it is treated as production-secure. Do not reuse an unrelated webhook secret.
+- The state-upsert boundary uses the protected n8n `httpHeaderAuth` credential `LT LinkedIn State Upsert Webhook` and requires `X-LT-LinkedIn-State-Secret`. Callers must send the shared header; do not reuse an unrelated webhook secret. The secret is not stored in the repository.
 
 ### SMS Campaign Scope
 

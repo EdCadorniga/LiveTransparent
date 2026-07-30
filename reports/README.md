@@ -9,7 +9,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 ## Current Status
 
 - The host shell is prepared in repo.
-- The public host currently serves the older build stamp `2026-05-11-v9-active-opps`; the local `embed/executive/index.html` contains the newer campaign/channel table and must be deployed through Coolify before the host is considered current.
+- The public host serves build stamp `2026-07-31-v10-partnership`; the campaign/channel table, selected-period controls, prior-period comparison, and partnership attribution are live.
 - The report host is now deployment-ready with `docker-compose.yml`, `Dockerfile`, `nginx.conf`, and `index.html`.
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.

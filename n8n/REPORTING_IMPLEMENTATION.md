@@ -47,7 +47,7 @@ The live workflows in this repo generally follow this shape:
 
 The executive summary workflow currently returns the live dashboard JSON payload from Postgres and serves it through the report host proxy.
 
-The local Executive Report UI now renders the named campaign/channel rows and LinkedIn DM/reply columns. The public report host is not yet synchronized with that local build; it still serves build `2026-05-11-v9-active-opps` until the normal Coolify deployment is completed.
+The Executive Report UI now renders the named campaign/channel rows and LinkedIn DM/reply columns. The public report host serves build `2026-07-31-v10-partnership`.
 
 Keep that structure for reporting workflows so the nodes stay easy to inspect and patch.
 

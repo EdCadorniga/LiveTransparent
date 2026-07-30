@@ -19,6 +19,43 @@ This process applies to:
 - Recurring workflows use native n8n `Schedule Trigger` nodes; do not add OS, Coolify, or external cron jobs.
 - If a workflow looks different after the upgrade, verify live behavior before editing node fields.
 
+## 3B) Partnership Pipeline
+Use this pipeline for content partnership outreach — independent of the main sales funnel.
+
+### `Partnership Pipeline` (`tQkFYrHjALgoLz6oq0uz`)
+- Purpose: Track content partnership conversations (guest spots, co-written pieces, newsletter features). This pipeline runs alongside the main sales pipelines and is not a qualification gate for Warm/Sales Outreach.
+- Owner: Janvi (`ck6TRlU3wnTmMxuVpn5F`)
+- Contacts: 131 total — 98 via email + 33 LinkedIn-only
+- All contacts are tagged `partner_candidate_email` or `partner_candidate_linkedin` (or both)
+
+#### Pipeline Stages
+1. **New Partner Lead** (`ccc3d423-ff86-46b4-bd53-064458910eba`): Initial entry when a contact replies to email or LinkedIn DM. Opportunity is automatically created by the Reply Handler workflow.
+2. **Contacted**: Actively engaged in conversation.
+3. **Proposal Sent**: Partnership proposal delivered.
+4. **Closed**: Partnership confirmed or declined.
+
+#### Outbound Sequences
+- **Email**: 4-step sequence from `cameron@livetransparent.com`, 60/day max, 11am ET Mon-Fri, 2-weekday intervals. Managed by `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`).
+- **LinkedIn**: 30 connection requests/day, 3pm CT Mon-Fri, handled by `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`). Connected contacts receive 4-step DM cadence via `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`).
+
+#### Reply Detection
+- Email replies: polled every 5 minutes by `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`). On detection, the Reply Handler tags the contact `partner_replied`, creates a Partnership Pipeline opportunity, and posts to Slack.
+- LinkedIn replies: detected by the patched `LT - LinkedIn Reply Backfill` and `LT - LinkedIn Unipile New Messages` workflows, which now query `partnership_linkedin_connection_state`.
+
+#### Terminal Tags
+- `partner_replied`: Stops all outbound sequences, creates opportunity
+- `partner_not_interested`: Manual override
+- `partner_do_not_contact`: Manual override
+- `partner_email_sequence_completed`: All 4 emails sent
+- `partner_linkedin_sequence_completed`: All 4 LinkedIn DMs sent
+
+#### Reporting
+- Campaign Channel Summary includes "Partnership emails" row via `partnership_release_log`
+- Executive Report renders the campaign channel table with partnership metrics
+- GHL Custom Report partnership widgets pending (browser-only)
+
+## 3C) Original Pipelines
+
 ## 4) Pipeline Definitions and Stage Criteria
 
 ### A) Warm Pipeline
