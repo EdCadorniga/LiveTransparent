@@ -31,7 +31,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Canonical MCP: `n8n-lt`.
 - Root `.env` is the reference copy; Coolify env vars are the deployed source of truth.
 
-### Reporting Execution Contract (2026-07-30)
+### Reporting Execution Contract (2026-07-31)
 
 - The spreadsheet at `1AbLdIhQiEoJhdx3l6yeAppNxbYbAIYhcZfoKhy68VZw` is the requirements reference for the MQL, email, LinkedIn, and social report layout.
 - Native GHL Custom Report: `6a67dce4a51a4360c60963a3`. Use it for CRM contacts/opportunities, MQL detail, pipeline, email, SMS, calls, appointments, and custom-metric rates.
@@ -40,8 +40,19 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - The Executive Report accepts `range=7d|30d|90d|custom` plus `from=YYYY-MM-DD` and `to=YYYY-MM-DD`. For every selected period it loads the immediately preceding equal-length period and shows current value, prior value, absolute change, and percentage change.
 - Reporting weeks use the report API's returned date window and the sub-account reporting timezone. Do not mix widget-level date overrides with the shared selected-period comparison unless the metric definition explicitly requires it.
 - Campaign summary workflow: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published. Its selected-window endpoint is `/webhook/lt-report-campaign-channel-summary`.
+- Campaign summary version `64641979-71f3-466c-8a09-36013be6bc0e` returns named channel/campaign rows. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn uses `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi uses queue campaign IDs. Catalog rows for `General outbound`, `Partnership emails`, `xyz`, and `abc` remain zero until matching source events exist.
+- The local Executive Report UI includes the campaign/channel table and LinkedIn columns, but `https://reports.livetransparent.com` still serves the older build `2026-05-11-v9-active-opps`; deploy and verify through Coolify before calling the host current.
+- The native GHL report URL must be verified through an authenticated GHL UI session. The last browser check returned 404 plus Firebase token/permission errors, so native widget configuration is not currently confirmed.
 - The official GHL API/SDK does not expose Custom Report widget-layout mutation. Do not guess undocumented report-builder endpoints; native widget changes require authenticated GHL UI access or an explicitly approved internal API path.
 - Never commit GHL PITs, Firebase signed URLs, OAuth tokens, or captured response artifacts containing credentials. Use environment placeholders in documentation and leave sensitive captures untracked.
+
+### Ingest and LinkedIn Hardening (2026-07-31)
+
+- `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`) is published on `8f4c63ea-dd33-4c7f-93a5-b3cbb5c8e7fa`. Empty responses finalize as `empty`; malformed data is `partial`; fetch failures finalize run/health state, do not advance the watermark, and then fail the execution. Verification: success `276731`, pinned failure `276747`.
+- `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) is published on `4f3e8068-8864-4b4d-9286-ba4d618cc3a8`. Snapshot/history rows use ingest date, raw rows preserve source timestamps, retries/cursor guards are bounded, finalization errors fail closed, and sales health uses `ghl_opportunities` while raw compatibility remains `source_system = 'ghl'`. Verification: execution `276626` processed 7,683 opportunities and 7,683 history rows.
+- `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) is published on `fa1a5dfe-d00c-47b3-98d3-862ea6f912a7`. It uses direct `this.helpers.httpRequest`, bounded contact/API budgets, retry/timeouts, explicit error reporting, and terminal/reply-state preservation.
+- `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`) is published on `bd385c89-0678-4301-84e6-abc63fea3c28`. It reads Config explicitly, atomically claims `ready` rows as `requested_pending`, and performs live suppression/reply checks before invites. Do not manually execute it without explicit approval because it can send LinkedIn invites.
+- `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) is published on `bf814307-a235-4416-abaa-9c8329f76130`; terminal payloads promote state to `completed` and active replies remain preserved. Its webhook still has no protected credential because none is currently available; provision one before adding caller authentication.
 
 ## Working Rules
 
@@ -1051,6 +1062,66 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 ### Voice Dialer Fix (2026-07-21)
 
 `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`): `GHL - Create Call Note` node now has `onError: continueRegularOutput`. Previously the dialer errored on every run because deleted GHL contact `AX3wfQNpRwm6DG0HgUE2` (still in `voice_call_queue`) caused a 400 on the note creation endpoint. Calls go out successfully; note failure is cosmetic.
+
+## Partnership Marketing Pipeline (LIVE 2026-07-31)
+
+131 content partnership contacts imported. Two parallel sequences from Cameron's accounts: a 4-step email sequence and a 4-step LinkedIn DM cadence. All infrastructure isolated from DAN/Emerald (separate Postgres tables, workflows, GHL pipeline).
+
+### Pipeline
+
+- **GHL Pipeline**: `Partnership Pipeline` (`tQkFYrHjALgoLz6oq0uz`) — New Partner Lead → Contacted → Proposal Sent → Closed
+- **Contacts**: 98 email + 33 LinkedIn-only, all assigned to Janvi (`ck6TRlU3wnTmMxuVpn5F`)
+- **Tags**: `partner_candidate_email`, `partner_candidate_linkedin`, `partner_email_queued`, `partner_linkedin_requested`, `partner_email_sequence_completed`, `partner_replied`, `partner_not_interested`, `partner_do_not_contact`
+- **GHL API key**: `pit-48a3b580-6906-418b-8215-3257599fd551` (embedded in dispatcher Config nodes + Reply Poller via `$env.GHL_PIT`)
+- **14 contacts excluded** from original CSVs due to wrong company/email domain mismatches — awaiting corrections
+
+### Email Templates
+
+4 templates in GHL folder `Partnership Email Campaign` (`6a6b768aa43d24a7ce1514f1`):
+
+| # | ID | Name |
+|---|----|------|
+| 1 | 6a6b8dfba3c113f06dee9e26 | Partnership - Email 1: Initial Outreach |
+| 2 | 6a6b8e05264ebab67f776e9c | Partnership - Email 2: Follow Up |
+| 3 | 6a6b8e06a3c113f06dee9ee6 | Partnership - Email 3: Value Proposition |
+| 4 | 6a6b8e07a4bd9f4493fc536e | Partnership - Email 4: Breakup |
+
+**Important**: The Email Dispatcher sends via `POST /conversations/messages` with inline HTML, not through GHL templates. The Code node HTML is the canonical message content; templates exist for open tracking and deliverability.
+
+### Postgres Tables
+
+| Table | Purpose |
+|-------|---------|
+| `partnership_linkedin_connection_state` | Mirrors `linkedin_connection_state` with `source_key = 'partnership'` |
+| `partnership_release_log` | Tracks every sent email. UNIQUE on `(ghl_contact_id, email_step)`. |
+
+### n8n Workflows
+
+| Workflow | ID | Status | Role |
+|----------|----|--------|------|
+| LT - Partnership Email Dispatcher | Xshck23cKo1yXL9D | Active | 60/day, 11am ET Mon-Fri, 2-weekday intervals |
+| LT - Partnership LinkedIn Dispatcher | crKIsaL5k3YBfqDZ | Active | 30 connection requests/day, 3pm CT Mon-Fri, atomic claim |
+| LT - Partnership LinkedIn DM Sequence | nspggypNF245xzeL | Active | 4-step DM cadence, 2-weekday intervals |
+| LT - Partnership Reply Handler | mRDw57IHtnQe4wOo | Active webhook | `/webhook/lt-partnership-reply` — tags `partner_replied`, creates opportunity, Slack alert |
+| LT - Partnership Reply Poller | 0SQ7tTk03okegp9V | Active | Every 5 min — polls GHL for inbound email replies, triggers Reply Handler |
+| LT - Partnership Bulk Import | zmrYrUjVcyXaS7PJ | Active webhook | `/webhook/lt-partnership-bulk-import` |
+| LT - Partnership LinkedIn URL Update | ew6uQQnAjgCbjeGn | Active webhook | Set LinkedIn URLs on LinkedIn-only contacts |
+
+### LinkedIn Workflow Patches
+
+3 existing LinkedIn workflows query `partnership_linkedin_connection_state` in addition to main table:
+
+| Workflow | ID | Patch |
+|----------|----|-------|
+| LT - LinkedIn Connection Acceptance Checker | 3ttEvr5NMcQCS4Hp | SQL UNION + `source_table` routing |
+| LT - LinkedIn Reply Backfill | QfJ2EZcc7lZwNgxj | UNION ALL + separate Update node |
+| LT - LinkedIn Unipile New Messages | 7o5EBdvwAuIaWW7k | UNION ALL + routing + separate update node |
+
+### Remaining
+
+- **GHL Custom Report**: Add partnership metrics to native report `6a67dce4a51a4360c60963a3` — requires authenticated browser session
+- **Re-import 14 excluded contacts** after corrected company names provided
+
 ## Other Live Systems
 
 - **SimpleTexting**: Send, sequencer, delivery, inbound reply, unsubscribe, and idempotent-send workflows are live/available in n8n. The scheduled pool dispatcher is active as of 2026-07-18, targets GHL tag `sms_drip`, runs weekdays at `10:15am` and `3:00pm` ET, uses `candidateLimit=10`, and has `defaultDryRun=false` for live sends. Sequencer waits 2 days between SMS steps. Inbound replies add `simpletext_replied`, remove `simpletext_ongoing`, mark campaign state `replied`, and suppress future campaign/direct sends; `simpletext_stop` remains the opt-out hard stop. `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) posts a Slack alert through node `Post to Slack` with title `Inbound SimpleTexting Reply`, then posts the inbound message to GHL Conversations under `SimpleTexting SMS` via `Post to GHL Conversations` node using `type: "Custom"`, `conversationProviderId: "6a5b91913953360948dd59f1`, and `altId`. Monitor first Monday executions and first real reply/unsubscribe closely before raising volume. On 2026-07-26, the send webhook's live registry updated `sms_1`, `sms_3`, and `sms_5` copy. On 2026-07-29, published `sms_4` was revised to remove `flower`, `pre-roll`, and the Facebook ad preview link while retaining neutral `regulated-industry` positioning; active version is `506303a9-8c6f-466d-9cb6-3e1f68cfc40c`.
@@ -1137,6 +1208,13 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - marketing/email-marketing/emerald-email-campaign/plan.md
 - marketing/email-marketing/emerald-email-campaign/dispatcher-plan.md
 - marketing/email-marketing/emerald-email-campaign/workflow-mapping.md
+- Partnership Marketing/partnership_master.json
+- Partnership Marketing/Content Partnerships - Email - Consolidated List.csv
+- Partnership Marketing/Content Partnerships - Linkedln - Consolidated List.csv
+- Partnership Marketing/Email Partnership Outreach Sequence.docx
+- Partnership Marketing/Linkedln Partnership Outreach Sequence.docx
+- scripts/clean_partnership_data.py
+- postgres/partnership-bootstrap.sql
 
 ## VPS SSH Access
 

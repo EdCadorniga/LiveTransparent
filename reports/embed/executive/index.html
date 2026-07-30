@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-05-11-v9-active-opps -->
+    <!-- build-stamp: 2026-07-31-v10-partnership -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -659,17 +659,17 @@
          <section class="grid" style="margin-bottom:16px;">
            <div class="panel">
              <div class="panel-head">
-               <h2>Brands vs Dispensaries</h2>
-               <span>SMS + Email + VAPI</span>
+                <h2>Campaign Channels</h2>
+                <span>Email + LinkedIn + SMS + VAPI</span>
              </div>
              <div class="panel-body">
                <div class="table-scroll">
                  <table class="campaign-table">
-                    <thead><tr><th>Campaign</th><th>SMS Sent</th><th>SMS Replies</th><th>Email Sent</th><th>Opened</th><th>Open Rate</th><th>Clicked</th><th>Click Rate</th><th>Email Replies</th><th>Response Rate</th><th>Bounced</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
-                    <tbody id="campaign-channel-table"><tr><td colspan="15" class="loading">Loading campaign channel data...</td></tr></tbody>
+                     <thead><tr><th>Channel</th><th>Campaign</th><th>SMS Sent</th><th>SMS Replies</th><th>Email Sent</th><th>Opened</th><th>Open Rate</th><th>Clicked</th><th>Click Rate</th><th>Email Replies</th><th>Response Rate</th><th>Bounced</th><th>LI DMs</th><th>LI Replies</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
+                     <tbody id="campaign-channel-table"><tr><td colspan="18" class="loading">Loading campaign channel data...</td></tr></tbody>
                  </table>
                </div>
-               <div class="footer-note">Date range follows the report selector. Email engagement will populate for new events after the timestamp fallback fix; older GHL events that arrived without timestamps cannot be reliably backdated.</div>
+                <div class="footer-note">Date range follows the report selector. DAN, Emerald, and Partnership rows use enrollment/release attribution; SMS uses campaign keys; LinkedIn uses stored activity events joined to Brand/Dispensary source pools. Older events without campaign metadata remain unattributed.</div>
              </div>
            </div>
            <div class="panel">
@@ -1023,12 +1023,13 @@
            var body = document.getElementById("campaign-channel-table");
            if (!body) return;
            if (!Array.isArray(rows) || rows.length === 0) {
-              body.innerHTML = '<tr><td colspan="15" class="loading">No campaign channel data yet.</td></tr>';
+               body.innerHTML = '<tr><td colspan="18" class="loading">No campaign channel data yet.</td></tr>';
              return;
            }
            body.innerHTML = rows.map(function (r) {
              return "<tr>" +
-               "<td>" + (r.campaign || "Unknown") + "</td>" +
+                "<td>" + (r.channel || "Unknown") + "</td>" +
+                "<td>" + (r.campaign || "Unknown") + "</td>" +
                "<td>" + formatNumber(r.sms_sent || 0) + "</td>" +
                 "<td>" + formatNumber(r.sms_replies || 0) + "</td>" +
                 "<td>" + formatNumber(r.email_sent || 0) + "</td>" +
@@ -1039,6 +1040,8 @@
                 "<td>" + formatNumber(r.email_replies || 0) + "</td>" +
                 "<td>" + (r.email_response_rate === null || r.email_response_rate === undefined ? "—" : formatPercent(r.email_response_rate)) + "</td>" +
                 "<td>" + formatNumber(r.email_bounced || 0) + "</td>" +
+                "<td>" + formatNumber(r.linkedin_dms || 0) + "</td>" +
+                "<td>" + formatNumber(r.linkedin_replies || 0) + "</td>" +
                 "<td>" + formatNumber(r.vapi_calls || 0) + "</td>" +
                "<td>" + formatNumber(r.vapi_answered || 0) + "</td>" +
                "<td>" + formatNumber(r.vapi_qualified || 0) + "</td>" +

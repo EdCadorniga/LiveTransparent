@@ -117,7 +117,8 @@ The live GHL build already has the key structures needed for reporting:
 - Contact drill-down fields already present in the CRM
 - Opportunity/pipeline data for sales and conversion reporting
 - The live custom menu record exists in GHL and points to the embedded report host. The remaining deployment step is to publish the latest committed host build through Coolify and verify the iframe in GHL.
-- A native GHL custom report was created for the operational CRM view: report ID `6a67dce4a51a4360c60963a3`. It includes opportunity, email, SMS, and outbound-call widgets and is shared with the location team. Cross-channel Brands-vs-Dispensaries totals remain in the external Executive Report because native GHL widgets do not join the campaign source table.
+- A native GHL custom report was created for the operational CRM view: report ID `6a67dce4a51a4360c60963a3`. It is intended to include opportunity, email, SMS, and outbound-call widgets and is shared with the location team. Its current widget configuration is not verified: the latest authenticated browser check returned 404 plus Firebase token/permission errors. Cross-channel campaign joins remain in the external Executive Report because native GHL widgets do not join the campaign source tables.
+- The external campaign summary endpoint is live at `/webhook/lt-report-campaign-channel-summary`, published as n8n version `64641979-71f3-466c-8a09-36013be6bc0e`. It returns named DAN, Emerald, SMS, LinkedIn, and Vapi campaign rows for the selected date window. This backend result must not be confused with the native GHL widget state or the older public report-host build.
 
 ### What Should Stay Outside GHL
 
@@ -232,7 +233,7 @@ Once the GA4 property ID is available:
 - `LT - Report Config Sync` is live in n8n as the first real reporting workflow.
 - `LT - Report QA and Alerts` is live in n8n as a real starter chain.
 - `LT - Report Publish Refresh` is live in n8n as a real starter chain.
-- The report embed target is live in GHL, and the embedded report host is deployed and secure.
+- The report embed target is present in GHL and the host is reachable, but the public host currently serves the older `2026-05-11-v9-active-opps` build. The current local campaign/channel UI still requires Coolify deployment and live iframe verification.
 - The executive summary webhook is live and serves the dashboard JSON from Postgres.
 - The report host scaffold now exists in `reports/` with a Dockerfile and nginx config.
 

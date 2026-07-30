@@ -1,6 +1,6 @@
 # LiveTransparent Executive Report
 ## Training Document and Quick Reference Guide
-Updated: July 29, 2026
+Updated: July 31, 2026
 
 This guide explains what each visible card in the Executive Report means, how to present it, and where the common interpretation risks are. It matches the live dashboard glossary, the users-based funnel cards, and the trailing-day range presets.
 
@@ -16,6 +16,7 @@ Use this section when reviewing the report with someone who needs the fastest po
 - Capture Gaps: This is an absolute-volume panel. It shows Recorded Visits, Forms, Contacts, Opportunities, Meetings, and Closed Won side by side. Do not read it as a perfectly linear funnel because contacts can arrive from routing, manual CRM entry, imports, and follow-up as well as forms.
 - Sales and Pipeline: This section provides the company-wide pipeline summary and active-opportunity view. It covers open deals, worked deals, stage movement, velocity, and sales quality. Use it when discussing pipeline health, not acquisition quality.
 - UTM / Campaign Breakdown: This panel shows observed traffic rows by source, medium, campaign, content, term, and landing page. It is not a master list of every UTM ever created in GHL. A campaign will only appear here once the traffic or bridge data actually sees it.
+- Campaign Channels: This table is the cross-channel campaign view. It shows named channel/campaign rows for DAN, Emerald, SMS, LinkedIn, and Vapi, with channel-specific sends, engagement, replies, DMs, calls, qualification, and booked metrics where the source data exists.
 - Sales Detail / SDR Owner View: These cards use the same opportunity payload as the team summary. The owner view should be driven by canonical GHL user ID, not a hardcoded rep name.
 - Social and Site: The Social Posts card shows the status of GHL Social Planner posts. Failed means the latest status is failed or error. The Site Traffic card shows GA4 traffic and engagement for the selected window.
 - Source Health: This panel tells you whether the integrations are healthy, stale, blocked, or failed. Use it whenever you need to explain why a metric is zero or missing.
@@ -23,10 +24,11 @@ Use this section when reviewing the report with someone who needs the fastest po
 # Part 2: Part 2: Technical Deep Dive
 This section explains how the report is assembled, what the live API returns, and how to read the payload without inventing new assumptions.
 
-- Architecture: the dashboard is a static HTML and JavaScript SPA at reports.livetransparent.com. It calls a single n8n webhook at `/api/report/executive/summary` and renders the response client-side.
+- Architecture: the dashboard is a static HTML and JavaScript SPA at reports.livetransparent.com. It calls the n8n executive summary proxy at `/api/report/executive/summary` and a separate campaign summary webhook at `/webhook/lt-report-campaign-channel-summary`; both render client-side. The local UI contains the current campaign table, but the public host still serves the older build until Coolify deployment is completed.
 - Request contract: the report reads `view`, `range`, `from`, `to`, `embed`, and `locationId` query parameters. The current preset ranges are trailing complete days ending yesterday.
 - Response shape: the API returns `summary`, `channelBreakdown`, `utmBreakdown`, `metaAttribution`, `contactSources`, `topPages`, `pipelineDropoff`, `stageDropoff`, `stageVelocity`, `appointments`, `health`, `linkedinFunnel`, `vapiCampaignBreakdown`, `vapiQueueDistribution`, `mqlSummary`, `sqlContacts`, `poolDistribution`, `emailsSent`, `emailsOpened`, `emailsClicked`, `emailsBounced`, `emailsUnsubscribed`, `emailsComplained`, `emailOpenRate`, `emailClickRate`, and `emailBounceRate`.
 - Response shape: the API also returns the active-opportunity fields used by the report, including `activeOpportunityCount`, `workedOpportunityCount`, `stageMoverCount`, and `opportunityStageBreakdown`.
+- Campaign response shape: the campaign summary returns `window` and `campaignChannelBreakdown` rows containing `channel`, `campaign`, SMS metrics, email metrics and rates, LinkedIn DM/reply metrics, and Vapi outcome metrics. DAN attribution uses release logs; Emerald uses bucket/enrollment data; SMS uses `campaign_key`; LinkedIn uses activity events joined to Brand/Dispensary source pools; and Vapi uses queue campaign IDs.
 - Funnel basis: the primary funnel rates now use Users as the denominator where possible. This means the dashboard is treating unique visitors as the main traffic audience, not raw GA4 session counts.
 - Source status: GSC Daily Ingest is now live and verified in n8n. Older notes that describe Search Console as blocked are stale and should be treated as historical.
 - Attribution logic: Acquisition Sources, UTM / Campaign Breakdown, and Attribution Coverage all depend on observed traffic and bridge data. They should be read as live data quality and attribution outputs, not as a perfect campaign registry.
@@ -56,6 +58,7 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 | SQL Contacts | Contacts with the SQL (Sales Qualified Lead) tag. | Counts contacts promoted to sales-qualified status. |
 | Pool Distribution | Contact counts by pool tag (brands, dispensaries, Vapi campaigns). | Shows audience segment sizes. |
 | Email Campaigns | Sent, opened, clicked, bounced, unsubscribed, and spam complaint counts. | Tracks email campaign performance across all senders. |
+| Campaign Channels | Named campaign rows across email, LinkedIn, SMS, and Vapi. | Use this for cross-channel campaign comparisons; zero or null values can indicate missing source events rather than no business activity. |
 | Email Rates | Open rate, click rate, and bounce rate. | Computed from email event metrics. |
 | Meetings | Booked appointments or discovery calls in the selected window. | These are GHL appointments when available. |
 | Calls | GHL conversation call logs and status breakdown. | Use this for answered, missed, voicemail, inbound, and outbound call activity. |

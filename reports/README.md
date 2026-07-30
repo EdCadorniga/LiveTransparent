@@ -9,6 +9,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 ## Current Status
 
 - The host shell is prepared in repo.
+- The public host currently serves the older build stamp `2026-05-11-v9-active-opps`; the local `embed/executive/index.html` contains the newer campaign/channel table and must be deployed through Coolify before the host is considered current.
 - The report host is now deployment-ready with `docker-compose.yml`, `Dockerfile`, `nginx.conf`, and `index.html`.
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.
@@ -24,10 +25,11 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The Executive Report now surfaces email campaign metrics (sent, opened, clicked, bounced, unsubscribed, complained) with computed engagement rates. Data sourced from `report_daily_summary` (emails_* columns), populated from `DAN_Release_Log`, `Emerald_Release_Log`, and `Email_Events`.
 - LinkedIn outreach funnel metrics (`linkedinFunnel`) are now available, aggregated from `linkedin_connection_state` showing the full funnel: ready → requested → connected → DM active → completed.
 - Vapi voice campaign breakdown (`vapiCampaignBreakdown`) and queue distribution (`vapiQueueDistribution`) are now surfaced from `voice_call_attempt` and `voice_call_queue`.
-- A separate live campaign-channel endpoint (`/webhook/lt-report-campaign-channel-summary`) returns date-filtered Brands vs Dispensaries totals for SMS, DAN email, and VAPI calls. The embedded report uses it for the Campaign Channels table.
-- The campaign-channel endpoint now returns its selected `window` plus campaign email open, click, and response rates. Rates are deliberately `null` when the campaign sent denominator is unavailable; the report renders those as `—` rather than inventing a percentage.
+- A separate live campaign-channel endpoint (`/webhook/lt-report-campaign-channel-summary`) returns date-filtered named rows for DAN, Emerald, SMS, LinkedIn, and Vapi. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `campaign_key`, LinkedIn uses append-only activity events joined to Brand/Dispensary source pools, and Vapi uses queue campaign IDs.
+- The campaign-channel endpoint returns its selected `window`, channel, campaign, SMS metrics, email metrics/rates, LinkedIn DM/reply metrics, and Vapi metrics. Rates are deliberately `null` when the campaign sent denominator is unavailable; the report renders those as `—` rather than inventing a percentage.
+- Catalog rows for `General outbound`, `Partnership emails`, `xyz`, and `abc` are intentionally present but remain zero until matching source events exist. Historical email events can also have opens/clicks without a matching send row; those are retained as source-coverage limitations.
 - Historical campaign engagement is limited by `Email_Events` coverage. The event-ingest path had no executions for the tested 2026-07-20 through 2026-07-26 window, while later windows contain live opened/bounced events. The report therefore preserves zero counts for periods with no stored events instead of fabricating rates.
-- A parallel native GHL custom report was created at report ID `6a67dce4a51a4360c60963a3`. It is shared with the location and includes Campaign Opportunities, Accepted emails, Opened emails, SMS by status, and Outgoing calls by status. GHL's native report builder does not join the campaign source table, so the Brands-vs-Dispensaries channel comparison remains in the external report.
+- A parallel native GHL custom report was created at report ID `6a67dce4a51a4360c60963a3`. It is intended for Campaign Opportunities, Accepted emails, Opened emails, SMS by status, and Outgoing calls by status. Its current widget configuration has not been verified because the authenticated browser URL returned 404 plus Firebase token/permission errors. Do not treat the native report as campaign-level verified until an authenticated GHL UI session confirms the widgets.
 - MQL summary (`mqlSummary`) tracks active and total opportunities in the Warm pipeline Qualified (MQL) stage. SQL contacts (`sqlContacts`) counts contacts with the SQL tag.
 - AI qualification reporting must distinguish Janvi-qualified cannabis contacts promoted to Sales Outreach from AI-pending/unverified contacts remaining in Warm and Vapi.
 - SDR reporting must capture assignment source, owner-alignment result, conflicts, and unassigned Sales Outreach records.

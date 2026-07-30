@@ -102,7 +102,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Canonical MCP: `n8n-lt`.
 - Root `.env` is the reference copy; Coolify env vars are the deployed source of truth.
 
-### Reporting Execution Contract (2026-07-30)
+### Reporting Execution Contract (2026-07-31)
 
 - The spreadsheet at `1AbLdIhQiEoJhdx3l6yeAppNxbYbAIYhcZfoKhy68VZw` is the requirements reference for the MQL, email, LinkedIn, and social report layout.
 - Native GHL Custom Report: `6a67dce4a51a4360c60963a3`. Use it for CRM contacts/opportunities, MQL detail, pipeline, email, SMS, calls, appointments, and custom-metric rates.
@@ -111,8 +111,19 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - The Executive Report accepts `range=7d|30d|90d|custom` plus `from=YYYY-MM-DD` and `to=YYYY-MM-DD`. For every selected period it loads the immediately preceding equal-length period and shows current value, prior value, absolute change, and percentage change.
 - Reporting weeks use the report API's returned date window and the sub-account reporting timezone. Do not mix widget-level date overrides with the shared selected-period comparison unless the metric definition explicitly requires it.
 - Campaign summary workflow: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published. Its selected-window endpoint is `/webhook/lt-report-campaign-channel-summary`.
+- Campaign summary version `64641979-71f3-466c-8a09-36013be6bc0e` returns named channel/campaign rows. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn uses `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi uses queue campaign IDs. Catalog rows for `General outbound`, `Partnership emails`, `xyz`, and `abc` remain zero until matching source events exist.
+- The local Executive Report UI includes the campaign/channel table and LinkedIn columns, but `https://reports.livetransparent.com` still serves the older build `2026-05-11-v9-active-opps`; deploy and verify through Coolify before calling the host current.
+- The native GHL report URL must be verified through an authenticated GHL UI session. The last browser check returned 404 plus Firebase token/permission errors, so native widget configuration is not currently confirmed.
 - The official GHL API/SDK does not expose Custom Report widget-layout mutation. Do not guess undocumented report-builder endpoints; native widget changes require authenticated GHL UI access or an explicitly approved internal API path.
 - Never commit GHL PITs, Firebase signed URLs, OAuth tokens, or captured response artifacts containing credentials. Use environment placeholders in documentation and leave sensitive captures untracked.
+
+### Ingest and LinkedIn Hardening (2026-07-31)
+
+- `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`) is published on `8f4c63ea-dd33-4c7f-93a5-b3cbb5c8e7fa`. Empty responses finalize as `empty`; malformed data is `partial`; fetch failures finalize run/health state, do not advance the watermark, and then fail the execution. Verification: success `276731`, pinned failure `276747`.
+- `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) is published on `4f3e8068-8864-4b4d-9286-ba4d618cc3a8`. Snapshot/history rows use ingest date, raw rows preserve source timestamps, retries/cursor guards are bounded, finalization errors fail closed, and sales health uses `ghl_opportunities` while raw compatibility remains `source_system = 'ghl'`. Verification: execution `276626` processed 7,683 opportunities and 7,683 history rows.
+- `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) is published on `fa1a5dfe-d00c-47b3-98d3-862ea6f912a7`. It uses direct `this.helpers.httpRequest`, bounded contact/API budgets, retry/timeouts, explicit error reporting, and terminal/reply-state preservation.
+- `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`) is published on `bd385c89-0678-4301-84e6-abc63fea3c28`. It reads Config explicitly, atomically claims `ready` rows as `requested_pending`, and performs live suppression/reply checks before invites. Do not manually execute it without explicit approval because it can send LinkedIn invites.
+- `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) is published on `bf814307-a235-4416-abaa-9c8329f76130`; terminal payloads promote state to `completed` and active replies remain preserved. Its webhook still has no protected credential because none is currently available; provision one before adding caller authentication.
 
 ## Working Rules
 
@@ -2238,7 +2249,7 @@ Stop if:
 ````markdown
 # LiveTransparent Executive Report
 ## Training Document and Quick Reference Guide
-Updated: July 29, 2026
+Updated: July 31, 2026
 
 This guide explains what each visible card in the Executive Report means, how to present it, and where the common interpretation risks are. It matches the live dashboard glossary, the users-based funnel cards, and the trailing-day range presets.
 
@@ -2254,6 +2265,7 @@ Use this section when reviewing the report with someone who needs the fastest po
 - Capture Gaps: This is an absolute-volume panel. It shows Recorded Visits, Forms, Contacts, Opportunities, Meetings, and Closed Won side by side. Do not read it as a perfectly linear funnel because contacts can arrive from routing, manual CRM entry, imports, and follow-up as well as forms.
 - Sales and Pipeline: This section provides the company-wide pipeline summary and active-opportunity view. It covers open deals, worked deals, stage movement, velocity, and sales quality. Use it when discussing pipeline health, not acquisition quality.
 - UTM / Campaign Breakdown: This panel shows observed traffic rows by source, medium, campaign, content, term, and landing page. It is not a master list of every UTM ever created in GHL. A campaign will only appear here once the traffic or bridge data actually sees it.
+- Campaign Channels: This table is the cross-channel campaign view. It shows named channel/campaign rows for DAN, Emerald, SMS, LinkedIn, and Vapi, with channel-specific sends, engagement, replies, DMs, calls, qualification, and booked metrics where the source data exists.
 - Sales Detail / SDR Owner View: These cards use the same opportunity payload as the team summary. The owner view should be driven by canonical GHL user ID, not a hardcoded rep name.
 - Social and Site: The Social Posts card shows the status of GHL Social Planner posts. Failed means the latest status is failed or error. The Site Traffic card shows GA4 traffic and engagement for the selected window.
 - Source Health: This panel tells you whether the integrations are healthy, stale, blocked, or failed. Use it whenever you need to explain why a metric is zero or missing.
@@ -2261,10 +2273,11 @@ Use this section when reviewing the report with someone who needs the fastest po
 # Part 2: Part 2: Technical Deep Dive
 This section explains how the report is assembled, what the live API returns, and how to read the payload without inventing new assumptions.
 
-- Architecture: the dashboard is a static HTML and JavaScript SPA at reports.livetransparent.com. It calls a single n8n webhook at `/api/report/executive/summary` and renders the response client-side.
+- Architecture: the dashboard is a static HTML and JavaScript SPA at reports.livetransparent.com. It calls the n8n executive summary proxy at `/api/report/executive/summary` and a separate campaign summary webhook at `/webhook/lt-report-campaign-channel-summary`; both render client-side. The local UI contains the current campaign table, but the public host still serves the older build until Coolify deployment is completed.
 - Request contract: the report reads `view`, `range`, `from`, `to`, `embed`, and `locationId` query parameters. The current preset ranges are trailing complete days ending yesterday.
 - Response shape: the API returns `summary`, `channelBreakdown`, `utmBreakdown`, `metaAttribution`, `contactSources`, `topPages`, `pipelineDropoff`, `stageDropoff`, `stageVelocity`, `appointments`, `health`, `linkedinFunnel`, `vapiCampaignBreakdown`, `vapiQueueDistribution`, `mqlSummary`, `sqlContacts`, `poolDistribution`, `emailsSent`, `emailsOpened`, `emailsClicked`, `emailsBounced`, `emailsUnsubscribed`, `emailsComplained`, `emailOpenRate`, `emailClickRate`, and `emailBounceRate`.
 - Response shape: the API also returns the active-opportunity fields used by the report, including `activeOpportunityCount`, `workedOpportunityCount`, `stageMoverCount`, and `opportunityStageBreakdown`.
+- Campaign response shape: the campaign summary returns `window` and `campaignChannelBreakdown` rows containing `channel`, `campaign`, SMS metrics, email metrics and rates, LinkedIn DM/reply metrics, and Vapi outcome metrics. DAN attribution uses release logs; Emerald uses bucket/enrollment data; SMS uses `campaign_key`; LinkedIn uses activity events joined to Brand/Dispensary source pools; and Vapi uses queue campaign IDs.
 - Funnel basis: the primary funnel rates now use Users as the denominator where possible. This means the dashboard is treating unique visitors as the main traffic audience, not raw GA4 session counts.
 - Source status: GSC Daily Ingest is now live and verified in n8n. Older notes that describe Search Console as blocked are stale and should be treated as historical.
 - Attribution logic: Acquisition Sources, UTM / Campaign Breakdown, and Attribution Coverage all depend on observed traffic and bridge data. They should be read as live data quality and attribution outputs, not as a perfect campaign registry.
@@ -2294,6 +2307,7 @@ Use these definitions when presenting the dashboard. If a visible metric is not 
 | SQL Contacts | Contacts with the SQL (Sales Qualified Lead) tag. | Counts contacts promoted to sales-qualified status. |
 | Pool Distribution | Contact counts by pool tag (brands, dispensaries, Vapi campaigns). | Shows audience segment sizes. |
 | Email Campaigns | Sent, opened, clicked, bounced, unsubscribed, and spam complaint counts. | Tracks email campaign performance across all senders. |
+| Campaign Channels | Named campaign rows across email, LinkedIn, SMS, and Vapi. | Use this for cross-channel campaign comparisons; zero or null values can indicate missing source events rather than no business activity. |
 | Email Rates | Open rate, click rate, and bounce rate. | Computed from email event metrics. |
 | Meetings | Booked appointments or discovery calls in the selected window. | These are GHL appointments when available. |
 | Calls | GHL conversation call logs and status breakdown. | Use this for answered, missed, voicemail, inbound, and outbound call activity. |
@@ -2546,15 +2560,16 @@ Use that file for the current state and priority order so reporting work stays a
 - Canonical status: [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
 - Active work now spans the **Emerald email campaign** (activated 2026-07-07), **DAN email campaign** (backfilled ghl_contact_id 2026-07-13, 5,373 eligible for dispatch), **Apollo phone enrichment** (repaired 2026-07-14, new polling workflow), voice, reporting, LinkedIn outreach (canonical sender path and suppression guardrails hardened), the **LinkedIn/Instagram via Unipile -> GHL bidirectional conversation provider integration**, and the SimpleTexting SMS campaign stack (dispatcher live at low volume as of 2026-07-18).
 - Social provider integration handoff: [docs/strategy/unipile-ghl-bidirectional-integration.md](./docs/strategy/unipile-ghl-bidirectional-integration.md)
-- Reporting implementation handoff: native GHL report `6a67dce4a51a4360c60963a3` plus the read-only Executive Report at `reports/embed/executive/index.html`.
+- Reporting implementation handoff: native GHL report `6a67dce4a51a4360c60963a3` plus the read-only Executive Report at `reports/embed/executive/index.html`. The local report UI is ahead of the deployed host and must be deployed through Coolify.
 - Reporting contract: use native GHL for CRM/email/SMS/call facts and custom metrics; use Social Planner for native social analytics; use the Executive Report for Brands-versus-Dispensaries joins, Unipile, Vapi, trigger-link detail, and cross-channel reporting.
 - Date contract: selected `from`/`to` windows are supported by the Executive Report and campaign summary endpoint. Every selected period must compare with the immediately preceding equal-length period, including absolute and percentage changes. Default weekly interpretation is Monday-Sunday in the reporting timezone.
 - Native GHL limitation: the official API/SDK exposes no supported Custom Report widget-layout mutation. Do not use undocumented endpoints or browser automation as a substitute without explicit approval.
 - **Execution order (2026-07-30)**: deploy and verify the Executive Report; complete native GHL report configuration through an approved authenticated path; verify SimpleTexting live delivery; run controlled Brand/Dispensary Vapi checks; implement the deterministic Jason/Marc no-owner allocator; harden public webhook/secret boundaries; then finish the remaining reporting backlog.
-- **Current blockers**: the live report host still serves build `2026-05-12-v11-top-pages`; corrected reporting is now on `main` at `3ed39a5` and requires the next Coolify redeploy. Native GHL widget configuration requires an available authenticated UI session or an approved internal API path; the four credential-bearing response captures in the worktree must remain untracked.
+- **Current blockers**: the live report host still serves build `2026-05-11-v9-active-opps`; the current campaign/channel UI is present locally but has not been deployed through Coolify. Native GHL widget configuration requires an available authenticated UI session or an approved internal API path; the last browser check returned 404 plus Firebase token/permission errors. Credential-bearing response captures must remain untracked.
 - **Resolved 2026-07-30**: outbound dialer and Call Outcome Ingest crash fixes. Root causes: (1) GHL `Version` header `2023-02-21` rejected by the API (mandate is `2021-07-28`); (2) dialer loop guard read Postgres `RETURNING` columns that n8n's Postgres v2 node never delivers (only `{"success":true}` is visible); (3) empty-queue fetches produced phantom `GET /contacts/`→403 requests; (4) Call Outcome Ingest used invalid `new Date()` in `queryReplacement`. Fixes applied: Version header corrected on both dialer HTTP nodes, loop guard rewritten to read from Code-node item data, empty-queue guard added before GHL lookup, ingest expression fixed. All three workflows published and verified. Queue reset: 1,051 contacts (1,047 failed + 4 cooling_down) → `status='pending'`. End-to-end verification passed for a real GHL contact lookup.
 - SimpleTexting provider handoff is live (2026-07-20). On 2026-07-24, fixed the campaign send boundary: use SimpleTexting `AUTO` mode for multi-segment messages, reclaim provider-failed idempotency claims, and mirror to GHL Conversations only after a real provider message ID. On 2026-07-29/30, published the bounded step runner and phone backfill, verified retry-safe `send_failed` state, captured provider HTTP 409 diagnostics, confirmed the token/sender/contact/opt-in through non-sending API checks, and published E.164 normalization. Live success remains blocked by provider-side message acceptance.
 - Vapi Brand prompt/variable hardening completed 2026-07-25: removed the unresolved `{{company_name}}` opener dependency, added GHL `company_name` propagation through the outbound dialer, and tightened live prompt handling for missing variables, IVR/voicemail detection, one-question turn-taking, and stage directions. Brand assistant and dialer are live/published; callback execution `241581` confirmed successful voicemail outcome processing.
+- Reporting and LinkedIn hardening completed 2026-07-31: GA4 `6pCSGzFmrMDFL5Yq` is published on `8f4c63ea-dd33-4c7f-93a5-b3cbb5c8e7fa` with explicit success/empty/partial/failed finalization, transactional health/run writes, stable named-dimension keys, and no watermark advancement on fetch failure. GA4 success execution `276731` and pinned failure execution `276747` passed. Sales `aYT5oHcgmBALzHy5` is published on `4f3e8068-8864-4b4d-9286-ba4d618cc3a8` with ingest-date snapshots, cursor/retry guards, fail-closed writes, and `ghl_opportunities` source health; execution `276626` passed with 7,683 opportunities and 7,683 history rows. LinkedIn sync `ceaKnz6E3onQrZpt` is published on `fa1a5dfe-d00c-47b3-98d3-862ea6f912a7` with direct HTTP calls, bounded budgets, retries, and terminal/reply preservation. Dispatcher `fXxw5lanZcDmUrst` is published on `bd385c89-0678-4301-84e6-abc63fea3c28` with explicit Config reads, atomic `ready -> requested_pending` claims, and pre-invite suppression checks. State upsert `Old7ZvyVYgFaJgDr` is published on `bf814307-a235-4416-abaa-9c8329f76130` with terminal promotion and active-reply preservation. LinkedIn sync/dispatcher were not live-executed to avoid writes/invites. The remaining security blocker is provisioning protected authentication for the state-upsert webhook and migrating embedded Config secrets.
 
 ## Vapi Campaign Rollout
 
@@ -2595,10 +2610,23 @@ Both workflows published and running:
 - Build Meta Ads ingest for spend, clicks, impressions, and cost metrics.
 - ~~Investigate Executive Report → Site Traffic → Top Page formatting/aggregation: the displayed page is showing the full email UTM URL instead of the expected normalized top-page label/path.~~ **Fixed locally 2026-07-30 — the Executive Report now strips host, query, fragment, session, and trigger-link parameters; deploy and verify through Coolify remains.**
 - Complete the native GHL report configuration through an approved authenticated GHL UI/API path: MQL table, Brands/Dispensaries email widgets, open/click/response custom metrics, pipeline context, and shared date/comparison settings.
+- **Add campaign-level reporting to the native GHL report and Executive Report.** Initial implementation completed 2026-07-30 in `LT - Report Campaign Channel Summary` version `64641979-71f3-466c-8a09-36013be6bc0e`; the live endpoint now returns named channel/campaign rows and the local Executive Report table renders them. Native GHL widget configuration, host deployment, and remaining source coverage are still pending. Do not stop at date-level totals. Define a canonical campaign dimension and show each campaign separately for the selected period and immediately preceding equal-length period.
+  - Email campaigns: `New attribution model - brands`, `New attribution model - dispensaries`, `General outbound`, `Partnership emails`, and any additional active email campaign discovered from release logs, GHL workflow/sequence metadata, or event attribution.
+  - LinkedIn campaigns: `New attribution model - brands`, `New attribution model - dispensaries`, and other named LinkedIn outreach campaigns, using Unipile/state activity where GHL-native data is unavailable.
+  - SMS campaigns: each named campaign, including `xyz`, `abc`, and any current SimpleTexting campaign identifiers or template registries.
+  - Required campaign metrics: sends, delivered/provider success, opens, clicks, replies, bounces, unsubscribes/complaints, calls or DMs where applicable, booked meetings, qualified outcomes, opportunities, and closed-won revenue.
+  - Required dimensions: campaign, channel, audience (`Brands`/`Dispensaries` where applicable), source/medium, workflow or sequence, template/message key, sender/owner, and date window. Preserve unknown/unattributed values instead of silently dropping them.
+  - Reconcile campaign totals to the corresponding overall channel totals and surface source-coverage gaps, especially historical email events and LinkedIn activity events.
+  - **Tag attribution rules:** use queue/enrollment tags as campaign evidence, source-pool tags as audience evidence, and lifecycle/outcome tags only for status or conversion metrics. Do not treat `seq enrolled - dan`, `seq enrolled - emerald`, `simpletext_ongoing`, `simpletext_finished`, `simpletext_stop`, `linkedin_connected`, or `linkedin_dm_sequence_completed` as campaign names by themselves.
+    - DAN: `Enrollment Queue - DAN - Brands` and `Enrollment Queue - DAN - Dispensaries` are definitive campaign triggers; `brands_pool` and `dispensaries_pool` are supporting audience/source tags. The `DAN_Release_Log.campaign` and `enrollment_tag` fields are preferred because queue tags may be removed after enrollment.
+    - Emerald: the eight `Enrollment Queue - Emerald - {Executives,Marketing,Finance,Retail and Sales} {MSO,SSO}` tags and matching `Seq Emerald - ...` tags identify the campaign bucket. The source tags `cannabis-retail-{mso,sso}-{executive,marketing,finance}-1/2` are fallback routing evidence; generic `emerald` is insufficient. Prefer `Emerald_Campaign_Contacts.bucket`, `email_campaign`, and `Emerald_Release_Log.bucket` when available.
+    - SMS: `sms_drip` identifies the eligibility pool, while `simpletext_start`, `simpletext_ongoing`, `simpletext_finished`, `simpletext_stop`, and `simpletext_sms_1` through `simpletext_sms_6` are lifecycle/template tags. Prefer `SimpleTexting_Campaign_State.campaign_key` and `SimpleTexting_Campaign_Event_Log.campaign_key`; `xyz`/`abc` must be registered campaign keys or explicit campaign tags before they are reported as named campaigns.
+    - LinkedIn: current tags (`linkedin_connection_requested`, `linkedin_connected`, `linkedin_state_queued`, `linkedin_dm_sequence_completed`, and `stop_linkedin_dms`) are lifecycle/suppression tags, not campaign identifiers. Use `emerging_pool_contacts.source_list` or historical `brands_pool`/`dispensaries_pool` observations as an audience fallback, then add a durable LinkedIn campaign key/tag at state enqueue for future exact attribution.
+    - General outbound and Partnership emails: no reliable campaign-specific tag was found in the current runbooks/live workflow definitions. Report them as `unattributed` until a sequence/workflow/tag mapping is registered; do not infer them from generic engagement or completion tags.
 - Add remaining spreadsheet-only metrics to the Executive Report: per-campaign rates, trigger-link views/clicks, Unipile LinkedIn campaign metrics, and social impressions/reach/clicks/top-post detail where the source API supports the selected period.
-- ~~Publish selected-window metadata and derived email rates from `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`).~~ **Done 2026-07-30 — published version `d9fdec1b-6fcb-4962-8d85-28a94f859370`; live manual execution `269138` succeeded.**
+- ~~Publish selected-window metadata and derived email rates from `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`).~~ **Done 2026-07-30 — initial version `d9fdec1b-6fcb-4962-8d85-28a94f859370`; expanded named campaign/channel attribution published 2026-07-30 as version `64641979-71f3-466c-8a09-36013be6bc0e`; manual execution `276517` and live 7-day/30-day endpoint checks succeeded.**
 - ~~Validate campaign email sent counts against DAN/Emerald release logs and `Email_Events`; zero sent with nonzero opened/clicked is a reporting defect, not a valid result.~~ **Checked 2026-07-30 — the selected 2026-07-20 to 2026-07-26 window has no `LT - Email Event Ingest` executions, so its zero engagement counts reflect missing historical event coverage. Later events are ingesting and aggregate correctly; retain this as a source-coverage limitation rather than altering the query.**
-- Deploy the selected-period Executive Report host change through the normal Coolify path, then verify the live embed and both current/prior API windows.
+- Deploy the selected-period and campaign-channel Executive Report host change through the normal Coolify path, then verify the live build stamp, campaign table, selected-period controls, prior-period comparison, and both historical/current API windows.
 - Monitor LinkedIn outbound guardrails, completion tagging, and reply-state sync after the fail-closed patch.
 - Monitor the dialer's same-run queue loop and confirm eligible contacts are reached without exceeding the 25-contact safety cap.
 ~~- Verify one controlled production call using the rotated GHL PIT; manual dialer smoke execution `242609` already succeeded.~~ **Done 2026-07-30 — full audit of all 67 active workflows confirmed old PIT purged. Intake Poller and Dialer Config nodes updated and published.**
@@ -2847,6 +2875,9 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 - Preserve reply state when a contact enters active conversation.
 - Never send duplicate LinkedIn DMs once a reply is detected.
 - If someone responds on LinkedIn, immediately suppress them from all remaining automated LinkedIn DMs and persist that suppression in the shared state.
+- State sync must use bounded direct HTTP calls with explicit retry/error reporting; API failures must not be reported as an empty healthy scan.
+- Connection dispatch must atomically claim a `ready` row before an invite and perform a live GHL suppression/reply check immediately before sending.
+- The state-upsert boundary must use a protected n8n credential or approved shared-secret mechanism before it is treated as production-secure. Do not reuse an unrelated webhook secret.
 
 ### SMS Campaign Scope
 
@@ -2955,7 +2986,7 @@ Normalized callback output:
 ````markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-07-30 (SimpleTexting provider diagnostics and E.164 send-boundary hardening, outbound dialer and call-outcome-ingest crash fixes, 1,051-contact queue recovery, regulated-business classification, Vapi eligibility, GHL Qualified-stage promotion, plus PIT token rotation)
+Updated: 2026-07-31 (partnership marketing pipeline activated, campaign-level reporting attribution, live host verification, native GHL report access check, plus prior SimpleTexting, voice, classification, ownership, and PIT-rotation work)
 
 ## Source Of Truth
 
@@ -2970,10 +3001,10 @@ This document is the canonical project status and next-steps reference. It super
 - **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences. Reply suppression was repaired in GHL on 2026-07-26 after an inbound email continued into a later sequence step.
 - **DAN email campaign**: FULLY LIVE AND SENDING since 2026-07-14. 10 templates, 3 GHL workflows, n8n dispatcher active (65/run every 30 min, 1,560/day capacity). ghl_contact_id backfilled 2026-07-13 (13,705 IDs). 181+ contacts queued first day with verified email delivery.
 - **Apollo phone enrichment**: ACTIVE and hardened 2026-07-16. Production path is polling + V4 callback + reaper. Legacy staged webhook orphans were canceled, poller now re-discovers `queued_phone`, callback provider failures map to `callback_failed`, and known blank contacts were backfilled into `queued_phone`.
-- **LinkedIn**: Production path is dispatcher -> acceptance/state sync -> canonical 4-message DM sequence. Follower DM and misconfigured Instagram DM sender paths are unpublished. Guardrails include fail-closed reply checks, inbound/reply state sync, terminal DM completion tagging, and GHL `stop_linkedin_dms` suppression.
+- **LinkedIn**: Production path is dispatcher -> acceptance/state sync -> canonical 4-message DM sequence. Follower DM and misconfigured Instagram DM sender paths are unpublished. The dispatcher now explicitly reads Config, atomically claims `ready` rows as `requested_pending`, performs immediate GHL tag/reply checks, and fails closed on provider/state errors. State sync uses direct HTTP requests, bounded contact/API budgets, retries/timeouts, explicit error reporting, and preserves terminal/replied state. The shared state-upsert workflow promotes explicit terminal payloads to `completed` and preserves active replies. The state-upsert webhook remains unauthenticated because no protected n8n credential is currently available; this is an open security task, not a logic failure.
 - **Instagram**: old DM Sequence is unpublished after it was found using the LinkedIn Unipile account. New inbound bridge is active and posts messages into GHL Conversations under `Instagram via Unipile`.
 - **Social provider bridge**: Instagram and LinkedIn inbound both work through SMS-type custom conversation providers (`LinkedIn: 6a58a14ff3023bea3783c152`, `Instagram: 6a58a1193cdfc36997580a68`). Inbound uses `type: "Custom"`, not `SMS`, and avoids dummy phone/email data. GHL duplicate cleanup consolidated Edmundo Cadorniga to canonical contact `XZ4yChllGBdcsVxhFRDe`; both Instagram chat `yx-R-9J6XdWaFpGOQd1JFA` and LinkedIn chat `60Ult1SrWhOuvuZp1u7nXw` now map there. GHL Conversations is the operator-facing inbox; no dedicated macro dashboard or alert digest is live yet. Detailed handoff and operator runbook live in `docs/strategy/unipile-ghl-bidirectional-integration.md`.
-- **Reporting**: GA4, GHL, GSC ingestion live. The Executive Report is live in GHL; the latest local host patch normalizes Top Pages and is pending Coolify deployment/verification. Native GHL report `6a67dce4a51a4360c60963a3` remains the operational CRM view; cross-channel joins remain external.
+- **Reporting**: GA4, GHL, and GSC ingestion are live. `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`) is published on version `8f4c63ea-dd33-4c7f-93a5-b3cbb5c8e7fa`; it finalizes success, empty, partial, and failed fetch states, does not advance watermarks on fetch failure, and preserves raw-row idempotency. The reconnected GA4 credential was verified by execution `276731`; pinned failure execution `276747` confirmed health finalization followed by an intentional n8n error. `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) is published on version `4f3e8068-8864-4b4d-9286-ba4d618cc3a8`; it uses ingest-date snapshots, bounded cursor/retry guards, fail-closed finalization, and health key `ghl_opportunities` to avoid collision with leads. Execution `276626` processed 7,683 opportunities and 7,683 history rows successfully. The local Executive Report patch normalizes Top Pages and adds named campaign/channel columns, but the public host still serves build `2026-05-11-v9-active-opps`, so Coolify deployment remains outstanding. Native GHL report `6a67dce4a51a4360c60963a3` remains the operational CRM view, but its widget configuration was not verified because the authenticated browser URL returned 404 with Firebase token/permission errors. The live campaign summary endpoint is published as version `64641979-71f3-466c-8a09-36013be6bc0e` and returns named DAN, Emerald, SMS, LinkedIn, and Vapi rows.
 - **SMS campaign**: SimpleTexting dispatcher is live as of 2026-07-18. On 2026-07-24, the send boundary was fixed and published: campaign messages use `AUTO` mode, failed provider claims are retryable, and GHL conversation mirroring requires a real provider message ID. On 2026-07-29/30, the campaign runner (`dUyOfxllvkxZavaw`) and phone backfill (`8hQKQi1PooYDFxNR`) were published and verified. The backfill is recovering 10 phones every 2 minutes; runner failures correctly finalize as `send_failed` without false sent tags, notes, or provider IDs. SimpleTexting still returns HTTP `409` on sends. Diagnostics confirmed the bearer token, provisioned primary number, and target contact/opt-in are valid; the remaining blocker is provider-side message acceptance/account policy. The idempotent boundary (`gwaEpWDpTIwsafi8`) is published as `a56d28c0-11f1-4938-8eea-08c6d665c3d8` with E.164 normalization and safe provider-error capture. Do not resume success-volume testing until the provider 409 is resolved.
 - **John->Jason migration**: Complete on n8n side. GHL workflows updated. Template keys preserved.
 - **Regulated-business classification / SDR boundary (contract clarified 2026-07-30)**: `qualified` means the contact's business is related to a regulated vertical such as nicotine, cannabis, CBD, vape, or hemp; `not qualified` means it is not a regulated business. The live classifier now writes the canonical classification tags and the Vapi intake is published with a `qualified` gate. Qualified opportunities now enter `Sales Outreach -> Qualified` through published GHL workflow version 10. Existing contact/opportunity ownership alignment is handled separately; the live Jason/Marc allocator handles records entering that stage without a native owner.
@@ -2989,17 +3020,18 @@ This document is the canonical project status and next-steps reference. It super
 
 ## Prioritized Next Steps
 
-1. **Deploy and verify the Executive Report**: redeploy `main` at commit `3ed39a5` through Coolify, then verify the live embed, selected-period controls, prior-period comparison, and campaign-channel endpoint for both a historical window and a current event-bearing window. The live host currently still serves `2026-05-12-v11-top-pages`.
-2. **Complete native GHL report configuration**: use an available authenticated GHL UI session or an explicitly approved internal API path to configure the MQL table, Brands/Dispensaries email widgets, custom open/click/response metrics, pipeline context, and shared date behavior. Do not use undocumented API guesses. The native report baseline exists, but no additional widget mutation was performed from the locked browser/API session.
+1. **Deploy and verify the Executive Report**: deploy the current local `reports/` build through Coolify, then verify the live build stamp, campaign/channel table, selected-period controls, prior-period comparison, and campaign endpoint for historical and current event-bearing windows. The live host currently still serves `2026-05-11-v9-active-opps`.
+2. **Complete native GHL report configuration**: restore a valid authenticated GHL UI session or obtain an explicitly approved internal API path, then verify/configure the MQL table, Brands/Dispensaries email widgets, custom open/click/response metrics, pipeline context, campaign rows, and shared date behavior. Do not use undocumented API guesses. The native report baseline exists, but its current page and widgets are not verified.
 3. **Resolve SimpleTexting provider 409**: coordinate with SimpleTexting support/account settings or test the account through an approved provider console/API path. The n8n boundary, token, primary sender number, recipient contact, opt-in status, E.164 normalization, retry state, and GHL mirroring guards are verified. After the provider accepts one controlled message with a real provider ID, resume low-volume production verification and then complete the STOP-tag guard audit.
 4. **Run controlled Vapi verification (dialer now operational)**: the 1,051 pending contacts are being processed. Monitor a live Brand call and a live Dispensary call from the next few dialer executions; confirm the Vapi dashboard callback/tools are present, no unresolved placeholders, no voicemail disclosure, correct one-question turn-taking, and correct outcome/queue completion via the repaired Call Outcome Ingest workflow.
 5. ~~Implement Jason/Marc no-owner allocation~~ **Done 2026-07-30** — workflow `eeksgD0fbGHUqh4r` is active, 73 records assigned in first run, remaining unowned Qualified records draining in bounded batches.
 6. **Harden remaining public boundaries**: authenticate Warm intake and SimpleTexting send webhooks, migrate active Config-node secrets into protected credentials/runtime configuration, and rotate any values exposed during the migration.
 7. **Finish reporting backlog**: retry GSC ingest, add approved Meta Ads spend/click/impression ingest, normalize Top Page formatting, and add remaining trigger-link, Unipile, and social metrics where source data supports the selected period.
+8. **Secure the LinkedIn state-upsert boundary**: provision an n8n header/basic-auth credential or approved shared-secret mechanism, update every state-upsert caller, then publish and verify unauthorized requests fail closed. Do not invent or reuse an unrelated webhook secret.
 
 ### Explicit Reporting Notes
 
-- The campaign summary workflow is live and published as `d9fdec1b-6fcb-4962-8d85-28a94f859370`.
+- The campaign summary workflow is live and published as `64641979-71f3-466c-8a09-36013be6bc0e`; manual execution `276517` succeeded, and live 7-day/30-day endpoint checks returned named rows.
 - The `2026-07-20` through `2026-07-26` email engagement gap is a historical `Email_Events` coverage gap; no event-ingest executions existed in that window. Do not change valid aggregation logic or fabricate rates.
 - Four credential-bearing response captures remain intentionally untracked and must not be committed.
 
@@ -3032,7 +3064,11 @@ This document is the canonical project status and next-steps reference. It super
 - **Callback authentication**: Vapi server authentication is configured on all four tracked assistants and enforced at the callback boundary with `X-Vapi-Secret`. Unauthorized callback, status, and tool payloads are rejected before routing.
 - **SMS and Warm webhook authentication**: several live intake/send webhooks have empty shared-secret configuration and require an authentication pass before continued public use.
 - **Credential storage**: active n8n Config nodes still contain API keys and webhook secrets. Migrate to n8n credentials or protected runtime configuration, then rotate exposed values.
+- **LinkedIn state-upsert boundary**: `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) is published on version `bf814307-a235-4416-abaa-9c8329f76130` with terminal-state promotion and reply preservation, but its webhook still reports no credentials required. A protected credential must be provisioned before adding caller authentication.
+- **Ingest hardening (2026-07-31)**: GA4 empty/failure finalization, sales snapshot-date and cursor guards, sales `ghl_opportunities` health isolation, LinkedIn sync budgets/retries, dispatcher pre-invite claims, and terminal-state promotion are live and published. Dispatcher and sync were not live-executed during verification because they can mutate LinkedIn state or send invites.
 - **Reporting owner dimensions**: contact owner, opportunity custom `Owner`, owner conflicts, and canonical SDR identity are not normalized into the reporting read model.
+- **Campaign-level reporting dimensions**: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`, published `64641979-71f3-466c-8a09-36013be6bc0e`) now returns named campaign/channel rows. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn uses `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi uses queue campaign IDs. `General outbound`, `Partnership emails`, `xyz`, and `abc` are present as catalog rows but remain zero until matching source events exist. Emerald event attribution still has an `Emerald - attributed` fallback, and LinkedIn rows currently show zero in the tested window because no attributable activity events were stored.
+- **Tag-based attribution audit (2026-07-30)**: DAN has reliable queue tags (`Enrollment Queue - DAN - Brands/Dispensaries`) plus `DAN_Release_Log.campaign` and `enrollment_tag`; `brands_pool`/`dispensaries_pool` should remain supporting audience evidence. Emerald has eight bucket-specific queue tags and matching `Seq Emerald - ...` tags, with stronger backend fields in `Emerald_Campaign_Contacts.bucket/email_campaign` and `Emerald_Release_Log.bucket`. SMS has lifecycle tags but its durable campaign identifier is `SimpleTexting_Campaign_State/Event_Log.campaign_key`; `sms_drip` is only the eligibility pool. LinkedIn has lifecycle/suppression tags but no durable campaign tag, so current Brand/Dispensary attribution must use `emerging_pool_contacts.source_list` or historical pool-tag observations until a campaign key is added to state.
 - **Vapi correlation**: end-of-call callbacks now recover missing `queue_id` values from prior `voice_call_attempt` records when possible. The dialer also reclaims stale `in_progress` locks after 15 minutes, while unresolved provider correlation remains observable through the callback execution path.
 - **Gap fixes applied 2026-07-25**: silent human Vapi answers now classify as `interest_unknown`; dialer global hours are 9am-5pm CT; invalid campaign tags fail closed; source-tag cleanup is dynamic; report config/publish schedules are connected and tested; superseded Apollo Sheet First webhook is unpublished.
 - **Vapi hardening applied 2026-07-27**: intake, direct enqueue, and dialer paths require the `not qualified` suppression guard plus an open Warm → New opportunity; callback requests require the Vapi server secret; tool outcomes complete queue rows; timer scheduling uses an atomic Postgres claim; stale queue locks are reclaimed; timer and GHL cleanup requests retry transient failures. The intake still needs to require positive `qualified` classification so raw pool tags cannot bypass the classifier.
@@ -3440,6 +3476,92 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - Safe checks passed: idempotent `simulate:true` execution `241272`; campaign dry run `241275` stopped before the mirror node.
 - **Next scheduled dispatcher check:** confirm at least one `status = sent` result with a real SimpleTexting provider message ID, no HTTP `409`, no GHL `Contact id not given` errors, and a matching `report_sms_sent.provider_response` record. Then confirm the campaign state advances to `sent_step_1` only for an actual provider send.
 
+## Partnership Marketing Pipeline (LIVE 2026-07-31)
+
+131 content partnership contacts imported from two CSV lists ("Email" and "LinkedIn") and merged/deduplicated. Two parallel outbound sequences run from Cameron's accounts: a 4-step email sequence (60/day, 11am ET Mon-Fri) and a 4-step LinkedIn DM cadence dispatched through Unipile (30 connection requests/day, 3pm CT Mon-Fri). Both sequences use 2-weekday intervals between steps. All infrastructure is fully isolated from the main DAN/Emerald pipelines (separate Postgres tables, separate n8n workflows, separate GHL pipeline).
+
+### Import
+
+- 131 unique contacts after dedup/merge (script: `scripts/clean_partnership_data.py`)
+- 98 email contacts imported via n8n batch workflow (`zmrYrUjVcyXaS7PJ`, webhook `/webhook/lt-partnership-bulk-import`)
+- 33 LinkedIn-only contacts created in GHL via MCP (no email; LinkedIn URLs set via `ew6uQQnAjgCbjeGn` webhook)
+- All contacts assigned to Janvi (`ck6TRlU3wnTmMxuVpn5F`)
+- Tags: `partner_candidate_email` (email contacts), `partner_candidate_linkedin` (LinkedIn contacts), or both
+- 14 contacts excluded from original CSV due to wrong company/email domain mismatches — awaiting corrections from user
+- Test contact `NVAp2GdpbWXLheyUgVf2` (edmundocadorniga@gmail.com) cleaned — partnership tags removed
+
+### GHL Pipeline
+
+- Pipeline: `Partnership Pipeline` (`tQkFYrHjALgoLz6oq0uz`)
+- Stages: New Partner Lead (`ccc3d423-ff86-46b4-bd53-064458910eba`) → Contacted → Proposal Sent → Closed
+- Opportunities created automatically by Reply Handler when a contact replies (email or LinkedIn)
+
+### Email Templates
+
+4 templates created in GHL folder `Partnership Email Campaign` (`6a6b768aa43d24a7ce1514f1`), populated with HTML via PATCH API and `{{contact.first_name}}` merge fields:
+
+| # | ID | Name |
+|---|----|------|
+| 1 | 6a6b8dfba3c113f06dee9e26 | Partnership - Email 1: Initial Outreach |
+| 2 | 6a6b8e05264ebab67f776e9c | Partnership - Email 2: Follow Up |
+| 3 | 6a6b8e06a3c113f06dee9ee6 | Partnership - Email 3: Value Proposition |
+| 4 | 6a6b8e07a4bd9f4493fc536e | Partnership - Email 4: Breakup |
+
+**Important**: The Email Dispatcher currently sends via `POST /conversations/messages` with inline HTML, not through GHL templates. The templates exist for open tracking and deliverability but are not the primary send path. The dispatcher's inline HTML in the Code node is the canonical message content.
+
+### Postgres Tables
+
+| Table | Purpose |
+|-------|---------|
+| `partnership_linkedin_connection_state` | Mirrors `linkedin_connection_state` with `source_key = 'partnership'`. Tracks connection status, sequence step, and DM state. |
+| `partnership_release_log` | Tracks every sent email (contact, step, status, message ID). UNIQUE on `(ghl_contact_id, email_step)`. |
+
+### GHL API Key
+
+PIT token `pit-48a3b580-6906-418b-8215-3257599fd551` is the live API key for this pipeline, embedded in dispatcher Config nodes and used by the Reply Poller via `$env.GHL_PIT`.
+
+### Tags
+
+| Tag | Purpose |
+|-----|---------|
+| `partner_candidate_email` | Import tag — marks contact for email sequence |
+| `partner_candidate_linkedin` | Import tag — marks contact for LinkedIn sequence |
+| `partner_email_queued` | Applied after first email send — marks contact as active in email sequence |
+| `partner_linkedin_requested` | Applied after LinkedIn connection request sent |
+| `partner_email_sequence_completed` | Terminal — all 4 emails sent |
+| `partner_replied` | Terminal — contact replied (stops all sequences, creates opportunity) |
+| `partner_not_interested` | Terminal — manual override |
+| `partner_do_not_contact` | Terminal — manual override |
+
+### n8n Workflows
+
+| Workflow | ID | Status | Role |
+|----------|----|--------|------|
+| LT - Partnership Email Dispatcher | Xshck23cKo1yXL9D | Active | Sends 4-step email sequence via GHL Conversations API. 60/day cap, 11am ET Mon-Fri, 2-weekday intervals. |
+| LT - Partnership LinkedIn Dispatcher | crKIsaL5k3YBfqDZ | Active | Sends LinkedIn connection requests via Unipile. 30/day cap, 3pm CT Mon-Fri. Atomic ready→requested_pending claim. |
+| LT - Partnership LinkedIn DM Sequence | nspggypNF245xzeL | Active | 4-step LinkedIn DM cadence for connected partnership contacts. 2-weekday intervals. |
+| LT - Partnership Reply Handler | mRDw57IHtnQe4wOo | Active webhook | POST `/webhook/lt-partnership-reply`. Tags contact `partner_replied`, creates opportunity in Partnership Pipeline → New Partner Lead, posts Slack alert. |
+| LT - Partnership Reply Poller | 0SQ7tTk03okegp9V | Active | Schedule Trigger every 5 min. Polls GHL for inbound email replies from `partner_email_queued` contacts, triggers Reply Handler on detection. |
+| LT - Partnership Bulk Import | zmrYrUjVcyXaS7PJ | Active webhook | Bulk-imported 98 email contacts into GHL. |
+| LT - Partnership LinkedIn URL Update | ew6uQQnAjgCbjeGn | Active webhook | Set LinkedIn URLs on 33 LinkedIn-only contacts. |
+
+### LinkedIn Workflow Patches
+
+3 existing LinkedIn workflows were patched to also query `partnership_linkedin_connection_state`:
+
+| Workflow | ID | Patch |
+|----------|----|-------|
+| LT - LinkedIn Connection Acceptance Checker | 3ttEvr5NMcQCS4Hp | SQL UNION to include partnership rows; `source_table` routing |
+| LT - LinkedIn Reply Backfill | QfJ2EZcc7lZwNgxj | UNION ALL select + separate Update node for partnership table |
+| LT - LinkedIn Unipile New Messages | 7o5EBdvwAuIaWW7k | UNION ALL + routing node + separate partnership update |
+
+### Remaining
+
+- **GHL Custom Report**: Add partnership metrics (email sends, LinkedIn connections, opportunities) to native report `6a67dce4a51a4360c60963a3` — requires authenticated browser session
+- **Missing source attribution**: The campaign summary endpoint (`MvPLbUAN9IIQikxb`) has a catalog row for "Partnership emails" but it will remain zero until matching source events exist in the reporting tables
+- **14 excluded contacts**: User to provide corrected company names; re-import when available
+- **Marc-owned follow-up sender routing**: Untested — zero Marc-owned opportunities exist in trigger stages
+
 ## Reporting
 
 ### Active Workflows
@@ -3527,7 +3649,17 @@ Monitor first week of dispatcher runs. Verify Email_Events data quality. Increas
 - **ACTIVE MONITORING**: Confirm polling `Queued At` dates flow correctly so Reaper aging works
 - **ACTIVE MONITORING**: Watch for Apollo API rate limits / Apollo credit exhaustion on async phone callback requests; V4 now maps provider failures to `callback_failed`
 
-### 8. LinkedIn Dispatcher Monitoring
+### 8. Partnership Marketing Monitoring
+
+- Monitor first Partnership Email Dispatcher run at 11am ET — confirm emails send, release log writes, and `partner_email_queued` tag applied
+- Monitor first Partnership LinkedIn Dispatcher run at 3pm CT — confirm connection requests send, state table updated, `partner_linkedin_requested` applied
+- Verify Partnership Reply Poller detects any inbound replies and triggers Reply Handler correctly
+- Confirm Partnership LinkedIn DM Sequence picks up connected contacts after Acceptance Checker processes them
+- Verify 3 patched LinkedIn workflows (Acceptance Checker, Reply Backfill, Unipile New Messages) handle partnership rows correctly
+- Monitor for GHL rate limiting on per-contact API calls (250ms delay between contacts)
+- After first email sends complete, verify the campaign summary endpoint reflects non-zero "Partnership emails" catalog row (may lag until reporting rollup runs)
+
+### 9. LinkedIn Dispatcher Monitoring
 
 - Monitor first dispatcher runs to confirm Fetch Ready Queue picks up the 14,987 `ready` contacts
 - Verify dispatcher sends invites (successTag: `linkedin_connection_requested`) and updates state table correctly
@@ -3547,7 +3679,8 @@ Monitor first week of dispatcher runs. Verify Email_Events data quality. Increas
 
 ## Working Order
 
-1. **LinkedIn dispatcher** — monitor first runs now that 14,987 `ready` contacts are queued. Verify invites send, tags apply, state table updates.
+1. **Partnership Marketing** — monitor first email dispatcher at 11am ET, LinkedIn dispatcher at 3pm CT. Verify both sequences fire, release logs write, reply polling works.
+2. **LinkedIn dispatcher** — monitor first runs now that 14,987 `ready` contacts are queued. Verify invites send, tags apply, state table updates.
 2. **DAN ramp** — active dispatching (5 fixes applied 2026-07-15), monitor deliverability, track pool exhaustion (~4 days at 1,200/day)
 3. **Vapi monitoring** — verify dialer fires, calls route to correct assistants
 4. **Apollo enrichment** — monitor polling runs, verify V4 callback receiving phones

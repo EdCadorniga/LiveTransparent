@@ -1,24 +1,25 @@
 # LiveTransparent Reporting Implementation
 
 ## Purpose
-This document is the build scaffold for the reporting stack in n8n.
-It is operational, phase-based, and safe to use before the GA4 property ID arrives.
+This document is the operational scaffold for the reporting stack in n8n.
+It records the live workflow contracts, hardening decisions, verification evidence, and remaining deployment work.
 
 ## Build Order
 1. Lock report config sync and identifiers.
 2. Stand up the GHL report shell and storage path.
 3. Wire GHL leads and sales ingest.
-4. Wire GA4 ingest once the property ID is available.
+4. Maintain and monitor the live GA4 ingest and traffic bridge.
 5. Wire Search Console ingest.
 6. Build the bridge and rollups.
 7. Add QA and publish refresh.
 
-Current live status as of 2026-07-21:
+Current live status as of 2026-07-31:
 - **Active**: `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report Executive Summary API`, `LT - Report QA and Alerts`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, `LT - Report Postgres Bootstrap Apply`.
 - **GA4 Active**: `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`), `LT - GA4 Traffic Rollup Bridge` (`0P2AZcQYWYZjXbRi`).
 - **GSC Active**: `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) writes raw query/page/site rows.
 - **Email Events Active**: `LT - Email Event Ingest` (`ZrqFN8qLKO8eVHDc`) receives GHL email event webhooks (opens, clicks, bounces, unsubscribes, spam) and stores in `Email_Events`. Email campaign metrics (sent, opened, clicked, bounced) are now rolled into `report_daily_summary` and surfaced in the Executive Report.
 - **Inactive/deferred**: `LT - GHL Executive Report Menu Sync` (one-time provision, inactive).
+- **Campaign Summary Active**: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published as version `64641979-71f3-466c-8a09-36013be6bc0e`. Its endpoint is `/webhook/lt-report-campaign-channel-summary`; manual execution `276517` succeeded, and live 7-day/30-day checks returned named rows.
 Current status: GA4 is live, GSC raw ingest is live, the rollups draft has been restored from the active workflow definition, and the published Rollups workflow now includes the daily-summary correction logic directly.
 The published Rollups workflow preserves GA-backed summary, channel, UTM, and landing-page rows so Channel Breakdown and traffic totals survive the CRM rollup pass. GSC search metrics now render in the Executive Report, with GA4 Organic Search users used as the unique-visitor proxy.
 
@@ -31,6 +32,7 @@ The published Rollups workflow preserves GA-backed summary, channel, UTM, and la
 - **Pool distribution**: `poolDistribution` with counts for brands_pool, dispensaries_pool, vapi_campaign_brand, vapi_campaign_dispensary.
 - **Stage name resolution**: Pipeline and stage names now resolved from GHL stage IDs via CASE mapping, fixing stagemover count (was 0, now 93+).
 - **Voice dialer**: `GHL - Create Call Note` node set to `onError: continueRegularOutput` to prevent execution errors from blocking calls.
+- **Named campaign/channel rows**: the campaign summary maps DAN through `DAN_Release_Log`, Emerald through bucket/enrollment data, SMS through `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn through `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi through queue campaign IDs. `General outbound`, `Partnership emails`, `xyz`, and `abc` are catalog rows that remain zero until matching source events exist.
 
 ## Live Pattern To Reuse
 The live workflows in this repo generally follow this shape:
@@ -44,6 +46,8 @@ The live workflows in this repo generally follow this shape:
 8. Alert output on failure
 
 The executive summary workflow currently returns the live dashboard JSON payload from Postgres and serves it through the report host proxy.
+
+The local Executive Report UI now renders the named campaign/channel rows and LinkedIn DM/reply columns. The public report host is not yet synchronized with that local build; it still serves build `2026-05-11-v9-active-opps` until the normal Coolify deployment is completed.
 
 Keep that structure for reporting workflows so the nodes stay easy to inspect and patch.
 
@@ -90,10 +94,13 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - raw opportunity rows
   - stage history rows
   - sales outcome rows
-- Notes:
-  - This can run now.
+ - Notes:
+   - This can run now.
    - Keep sales ingest separate from lead ingest.
-   - The live workflow is active and derives row dates from opportunity timestamps.
+    - The live workflow is active and uses the ingest/reporting date for snapshot and history rows while preserving opportunity `createdAt` in the source dimensions.
+    - Raw rows, sync runs, and watermarks retain `source_system = 'ghl'` for compatibility with existing consumers. Because `report_source_health` is keyed only by `source_system`, sales health uses `ghl_opportunities`; leads health remains `ghl`.
+     - Published live version `4f3e8068-8864-4b4d-9286-ba4d618cc3a8` fails closed on raw/finalization errors, skips watermark advancement and `ready` health on empty results, includes bounded cursor/retry guards, and sends `Content-Type: application/json` to GHL.
+     - Verification execution `276626` completed with 7,683 opportunities and 7,683 pipeline-history rows.
 
 ### 4. `LT - GA4 Daily Ingest`
 - Status: active in production.
@@ -104,9 +111,12 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - traffic by day
   - traffic by channel
   - landing page and event rows
-- Notes:
-  - Build the workflow shell now.
-  - Leave the property id field empty or disabled until Cameron provides it.
+ - Notes:
+   - Published live version: `8f4c63ea-dd33-4c7f-93a5-b3cbb5c8e7fa`.
+   - GA4 property `434472183` is active and the reconnected Google Analytics credential was verified by execution `276731`.
+   - Empty responses finalize as `empty`; malformed rows are reported as `partial`; fetch failures finalize health/run state, do not advance the watermark, and then fail the n8n execution.
+   - Raw row keys use named dimensions (`date`, channel grouping, and page location) and remain idempotent through the existing conflict key.
+   - Pinned failure execution `276747` verified the failure-finalization path without writing a fabricated production failure.
 
 ### 5. `LT - GSC Daily Ingest`
 - Status: active raw ingest; summary surfacing is still pending.
