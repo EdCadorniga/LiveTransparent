@@ -11,7 +11,7 @@ The Partnership Marketing pipeline was fully deployed on 2026-07-31: 131 contact
 This deeper audit verifies the pipeline end-to-end across three layers: n8n execution, Postgres data integrity, and reporting (Executive Report API, Campaign Channel Summary endpoint, frontend deployment, GHL native report, and GHL assets).
 
 **Key known risks:**
-- Reply Poller uses \GET /conversations/search\ -- GHL API may require \POST\.
+- Reply Poller was hardened to use `POST /conversations/search` and fail closed on lookup errors; published version `04cf007e-0ed1-41c7-abf5-4d1174b4bc9f` passed manual execution `277923`.
 - Postgres tables were bootstrapped but may have 0 rows (dispatchers hadn't fired at deployment).
 - Two API keys: \pit-48a3b580\ (partnership) and \\.GHL_PIT\ (patched workflows).
 

@@ -1193,7 +1193,7 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 
 - **GHL Custom Report**: Add partnership metrics to native report `6a67dce4a51a4360c60963a3` — requires authenticated browser session
 - **Re-import 14 excluded contacts** after corrected company names provided
-- **Reply Poller API gap**: `GET /conversations/search` may not be supported by GHL API (standard is POST). Monitor first real reply detection; if replies aren't detected, switch to POST with body payload.
+- **Reply Poller API gap resolved 2026-07-31**: `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`) now uses `POST /conversations/search`, records lookup failures, and fails closed instead of treating an ambiguous lookup as no reply. Published version `04cf007e-0ed1-41c7-abf5-4d1174b4bc9f`; manual execution `277923` succeeded with no active partnership email queue.
 
 ### Audit (2026-07-31)
 
@@ -2888,7 +2888,7 @@ Implementation order after plan approval:
   - Verified changed workflows are published and smoke-tested authenticated and unauthenticated enqueue behavior.
 
 - **2026-07-31 — Partnership Marketing pipeline activated and fully audited**: 131 content partnership contacts imported into GHL (98 email + 33 LinkedIn-only) from two CSV lists, deduplicated/cleaned by `scripts/clean_partnership_data.py`. Built 7 n8n workflows: Email Dispatcher (`Xshck23cKo1yXL9D`, 60/day 11am ET), LinkedIn Dispatcher (`crKIsaL5k3YBfqDZ`, 30/day 3pm CT), LinkedIn DM Sequence (`nspggypNF245xzeL`), Reply Handler (`mRDw57IHtnQe4wOo`, webhook), Reply Poller (`0SQ7tTk03okegp9V`, every 5 min), Bulk Import (`zmrYrUjVcyXaS7PJ`), and LinkedIn URL Update (`ew6uQQnAjgCbjeGn`). Created GHL Partnership Pipeline (`tQkFYrHjALgoLz6oq0uz`) with 4 stages. Created 4 GHL email templates in folder `6a6b768aa43d24a7ce1514f1` with HTML content via PATCH API. Patched 3 existing LinkedIn workflows (Acceptance Checker `3ttEvr5NMcQCS4Hp`, Reply Backfill `QfJ2EZcc7lZwNgxj`, Unipile New Messages `7o5EBdvwAuIaWW7k`) to also query `partnership_linkedin_connection_state`. All infrastructure isolated from DAN/Emerald pipelines (separate Postgres tables, separate state tracking).
-- **2026-07-31 — Partnership reporting integration**: Campaign Channel Summary (`MvPLbUAN9IIQikxb`) SQL updated with `partnership_release_log` UNION ALL in `email_sent` CTE (published version `6641aa9a`). Postgres tables `partnership_release_log` and `partnership_linkedin_connection_state` bootstrapped via `postgres/partnership-bootstrap.sql`. Executive Report frontend deployed as build `2026-07-31-v10-partnership` to reports.livetransparent.com with updated footer note. Full 9-point audit completed: 7 partnership workflows confirmed published/active, 3 patched LinkedIn workflows verified with correct queries/routing, GHL contacts verified (131 total), email templates confirmed, pipeline confirmed, Campaign Channel Summary confirmed returning "Partnership emails" row. No regressions detected. Remaining: GHL Custom Report integration (browser-only), Reply Poller API gap (GET vs POST), 14 excluded contacts to re-import after corrections.
+- **2026-07-31 — Partnership reporting integration**: Campaign Channel Summary (`MvPLbUAN9IIQikxb`) SQL updated with `partnership_release_log` UNION ALL in `email_sent` CTE (published version `6641aa9a`). Postgres tables `partnership_release_log` and `partnership_linkedin_connection_state` bootstrapped via `postgres/partnership-bootstrap.sql`. Executive Report frontend deployed as build `2026-07-31-v10-partnership` to reports.livetransparent.com with updated footer note. Full audit completed: 7 partnership workflows confirmed published/active, 3 patched LinkedIn workflows verified with correct queries/routing, all 131 GHL contacts assigned to Janvi, email templates confirmed, pipeline confirmed, Campaign Channel Summary confirmed returning "Partnership emails" row, and the Executive Summary API includes partnership release/state data. Reply Poller version `04cf007e-0ed1-41c7-abf5-4d1174b4bc9f` now uses POST conversation lookup and fails closed; manual execution `277923` passed. Remaining: GHL Custom Report integration (browser-only), provider-side SimpleTexting HTTP 409, and 14 excluded contacts awaiting corrected company names.
 ````
 
 ## File: Project Specifications.md
@@ -3656,7 +3656,7 @@ Full post-build audit completed:
 ### Remaining
 
 - **GHL Custom Report**: Add partnership metrics to native report `6a67dce4a51a4360c60963a3` — requires authenticated browser session
-- **Reply Poller API gap**: `GET /conversations/search` may not be supported by GHL API (standard is POST). Monitor first real reply detection; if replies aren't detected, switch to POST.
+- **Reply Poller API gap resolved 2026-07-31**: `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`) now uses `POST /conversations/search`, records lookup failures, and fails closed instead of treating an ambiguous lookup as no reply. Published version `04cf007e-0ed1-41c7-abf5-4d1174b4bc9f`; manual execution `277923` succeeded with no active partnership email queue.
 - **14 excluded contacts**: User to provide corrected company names; re-import when available
 - **Marc-owned follow-up sender routing**: Untested — zero Marc-owned opportunities exist in trigger stages
 

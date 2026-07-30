@@ -5,7 +5,8 @@ import paramiko
 
 HOST = "89.117.21.29"
 APP_DIR = "/data/coolify/applications/v3ud1lum1svamymuor21upog"
-IMAGE = "v3ud1lum1svamymuor21upog:8620a18"
+IMAGE = "v3ud1lum1svamymuor21upog:71ac648"
+SOURCE_COMMIT = "71ac648"
 SOURCE_DIR = "/tmp/livetransparent-report-8620"
 
 
@@ -34,6 +35,7 @@ try:
     run(client, "build", f"docker build -t {IMAGE} {SOURCE_DIR}/reports")
     run(client, "backup-compose", f"cp {APP_DIR}/docker-compose.yaml {APP_DIR}/docker-compose.yaml.pre-8620a18")
     run(client, "select-image", f"sed -E -i \"s#^        image: .*#        image: '{IMAGE}'#\" {APP_DIR}/docker-compose.yaml")
+    run(client, "record-source-commit", f"sed -E -i \"s#^SOURCE_COMMIT=.*#SOURCE_COMMIT={SOURCE_COMMIT}#\" {APP_DIR}/.env")
     run(client, "recreate", f"docker compose -f {APP_DIR}/docker-compose.yaml up -d --force-recreate")
     run(client, "verify", "docker ps --filter name=reports-livetransparent --format '{{.ID}}\\t{{.Image}}\\t{{.Status}}'")
 finally:

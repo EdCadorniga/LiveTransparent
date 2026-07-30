@@ -1122,7 +1122,7 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 
 - **GHL Custom Report**: Add partnership metrics to native report `6a67dce4a51a4360c60963a3` — requires authenticated browser session
 - **Re-import 14 excluded contacts** after corrected company names provided
-- **Reply Poller API gap**: `GET /conversations/search` may not be supported by GHL API (standard is POST). Monitor first real reply detection; if replies aren't detected, switch to POST with body payload.
+- **Reply Poller API gap resolved 2026-07-31**: `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`) now uses `POST /conversations/search`, records lookup failures, and fails closed instead of treating an ambiguous lookup as no reply. Published version `04cf007e-0ed1-41c7-abf5-4d1174b4bc9f`; manual execution `277923` succeeded with no active partnership email queue.
 
 ### Audit (2026-07-31)
 
