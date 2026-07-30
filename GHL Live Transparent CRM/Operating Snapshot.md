@@ -73,13 +73,14 @@ Keep these aligned with routing and report logic:
 
 ## Active Workflow Families
 
-### Follow-up Sender Routing Handoff - Fallback Verification Remaining
-- Workflow: `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`), published version 38.
-- Requirement: use the opportunity/contact owner for From Name and From Email; use Jason only when neither record has an owner.
-- Current workflow state: authenticated inspection of published version 38 confirmed all 7 Send Email actions use owner-driven sender fields (`{{opportunity.owner}} from Transparent eCom` and `{{user.email}}`).
-- Current template state: the six templates retain literal Jason sender defaults (`Jason from Transparent eCom`, `jason@livetransparent.com`) as safe fallback metadata.
-- Required next mutation: verify or set Jason as the workflow-level fallback user in the GHL UI, publish only if changed, then verify every action.
-- API boundary: public GHL APIs cannot write workflow action definitions. Template `fromEmail` rejects `{{user.email}}` with HTTP 422, so do not implement owner routing through template metadata.
+### Follow-up Sender Routing Handoff - Complete (audited 2026-07-30)
+- Workflow: `Jason Followup Emails and SMS` (`f6b44e34-779e-4959-b41d-b05641f134e7`), published version 39.
+- Requirement: use the opportunity/contact owner for From Name and From Email; use Jason when neither record has an owner.
+- Current workflow state: published version 39 with Jason workflow defaults (`Jason from Transparent eCom` / `jason@livetransparent.com`) confirmed via `senderAddress` API field. All 7 Send Email actions use owner-driven sender fields (`{{opportunity.owner}} from Transparent eCom` and `{{user.email}}`). The workflow triggers on 5 Sales Outreach stages: New, Attempting Contact 1st Attempt, 2nd Attempt, 3rd Attempt, Engaged.
+- Current template state: six templates (one reused by 2 actions) retain literal Jason sender defaults (`Jason from Transparent eCom`, `jason@livetransparent.com`) as safe fallback metadata. Template signatures use `{{user.email_signature}}` (dynamic).
+- Marc routing path: configured but untested in production. As of 2026-07-30, zero Marc-owned (`sqGx5rp3oAUG610NXyjU`) opportunities exist in any trigger stage — all Marc-owned opportunities are in Qualified.
+- API boundary: public GHL APIs cannot write workflow action definitions. Template `fromEmail` rejects `{{user.email}}` with HTTP 422, so owner routing is implemented at the workflow-action level.
+- Do not send a live test email unless explicitly requested.
 - No live test email has been sent.
 
 ### Warm Intake and Routing

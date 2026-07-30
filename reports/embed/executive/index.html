@@ -218,6 +218,8 @@
               <div class="mini"><strong>Email Opens</strong><div id="wow-email-opened">—</div><span class="delta" id="wow-email-opened-delta">—</span></div>
               <div class="mini"><strong>Email Clicks</strong><div id="wow-email-clicked">—</div><span class="delta" id="wow-email-clicked-delta">—</span></div>
               <div class="mini"><strong>Vapi Calls</strong><div id="wow-vapi-calls">—</div><span class="delta" id="wow-vapi-calls-delta">—</span></div>
+              <div class="mini"><strong>LinkedIn DMs</strong><div id="wow-linkedin-dms">—</div><span class="delta" id="wow-linkedin-dms-delta">—</span></div>
+              <div class="mini"><strong>LinkedIn Replies</strong><div id="wow-linkedin-replies">—</div><span class="delta" id="wow-linkedin-replies-delta">—</span></div>
             </div>
             <div class="footer-note">The selected period is compared with the immediately preceding period of equal length. Dates follow the reporting API window.</div>
           </div>
@@ -684,8 +686,14 @@
                  <div class="mini"><strong>LinkedIn Connected</strong><div id="snapshot-li-connected">—</div></div>
                  <div class="mini"><strong>LinkedIn DM Active</strong><div id="snapshot-li-active">—</div></div>
                  <div class="mini"><strong>LinkedIn DM Completed</strong><div id="snapshot-li-completed">—</div></div>
-               </div>
-               <div class="footer-note">These are current CRM/state-table snapshots, not counts limited to the selected reporting period.</div>
+                </div>
+                <div class="mini-grid-4" style="margin-top:12px;">
+                  <div class="mini"><strong>Weekly Requests</strong><div id="linkedin-weekly-requests">—</div></div>
+                  <div class="mini"><strong>Weekly Accepts</strong><div id="linkedin-weekly-accepts">—</div></div>
+                  <div class="mini"><strong>Weekly DMs Sent</strong><div id="linkedin-weekly-dms">—</div></div>
+                  <div class="mini"><strong>Weekly Replies</strong><div id="linkedin-weekly-replies">—</div></div>
+                </div>
+                <div class="footer-note">The funnel values are current CRM/state-table snapshots. The activity row follows the selected reporting period and is sourced from the append-only LinkedIn activity ledger.</div>
              </div>
            </div>
          </section>
@@ -1063,14 +1071,17 @@
               closedWon: Number(summary.closedWonCount || data.closedWonCount || 0),
               emailOpened: Number(data.emailsOpened || 0),
               emailClicked: Number(data.emailsClicked || 0),
-              vapiCalls: Number(summary.callTotal || data.callTotal || 0)
+              vapiCalls: Number(summary.callTotal || data.callTotal || 0),
+              linkedinDms: Number((data.linkedinWeeklyActivity || {}).dmsSent || 0),
+              linkedinReplies: Number((data.linkedinWeeklyActivity || {}).inboundReplies || 0)
             };
            return values[key] || 0;
          }
          function renderWeekComparison(current, previous) {
            var labels = [
              ["contacts", "wow-contacts"], ["opportunities", "wow-opportunities"], ["meetings", "wow-meetings"],
-             ["closedWon", "wow-closed-won"], ["emailOpened", "wow-email-opened"], ["emailClicked", "wow-email-clicked"], ["vapiCalls", "wow-vapi-calls"]
+              ["closedWon", "wow-closed-won"], ["emailOpened", "wow-email-opened"], ["emailClicked", "wow-email-clicked"], ["vapiCalls", "wow-vapi-calls"],
+              ["linkedinDms", "wow-linkedin-dms"], ["linkedinReplies", "wow-linkedin-replies"]
            ];
            labels.forEach(function (entry) {
              var currentValue = metricValue(current, entry[0]);
@@ -1362,13 +1373,18 @@
            var mqlSummary = data.mqlSummary || {};
            var sqlContacts = data.sqlContacts || {};
            var linkedinFunnel = data.linkedinFunnel || {};
+           var linkedinWeeklyActivity = data.linkedinWeeklyActivity || {};
            el = document.getElementById("snapshot-mql-active"); if (el) el.textContent = formatNumber(mqlSummary.active || 0);
            el = document.getElementById("snapshot-mql-total"); if (el) el.textContent = formatNumber(mqlSummary.totalEver || 0);
            el = document.getElementById("snapshot-sql"); if (el) el.textContent = formatNumber(sqlContacts.totalCount || 0);
            el = document.getElementById("snapshot-li-ready"); if (el) el.textContent = formatNumber(linkedinFunnel.readyCount || 0);
            el = document.getElementById("snapshot-li-connected"); if (el) el.textContent = formatNumber(linkedinFunnel.connectedCount || 0);
-           el = document.getElementById("snapshot-li-active"); if (el) el.textContent = formatNumber(linkedinFunnel.dmActiveCount || 0);
-           el = document.getElementById("snapshot-li-completed"); if (el) el.textContent = formatNumber(linkedinFunnel.dmCompletedCount || 0);
+            el = document.getElementById("snapshot-li-active"); if (el) el.textContent = formatNumber(linkedinFunnel.dmActiveCount || 0);
+            el = document.getElementById("snapshot-li-completed"); if (el) el.textContent = formatNumber(linkedinFunnel.dmCompletedCount || 0);
+            el = document.getElementById("linkedin-weekly-requests"); if (el) el.textContent = formatNumber(linkedinWeeklyActivity.connectionRequestsSent || 0);
+            el = document.getElementById("linkedin-weekly-accepts"); if (el) el.textContent = formatNumber(linkedinWeeklyActivity.connectionsAccepted || 0);
+            el = document.getElementById("linkedin-weekly-dms"); if (el) el.textContent = formatNumber(linkedinWeeklyActivity.dmsSent || 0);
+            el = document.getElementById("linkedin-weekly-replies"); if (el) el.textContent = formatNumber(linkedinWeeklyActivity.inboundReplies || 0);
            el = document.getElementById("st-sessions"); if (el) el.textContent = formatNumber(sessions);
           el = document.getElementById("st-users"); if (el) el.textContent = formatNumber(Number(summary.users || 0));
           el = document.getElementById("st-engaged"); if (el) el.textContent = formatNumber(Number(summary.engagedSessions || 0));
