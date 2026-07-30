@@ -1,0 +1,56 @@
+{
+  "_id": "f6b44e34-779e-4959-b41d-b05641f134e7",
+  "locationId": "Zwz4relUXVPxx8uohnjV",
+  "companyId": "7vMmm4at5OrjQplRN3EO",
+  "companyAge": 3,
+  "name": "Jason Followup Emails and SMS",
+  "status": "published",
+  "version": 39,
+  "dataVersion": 7,
+  "allowMultiple": true,
+  "timezone": "contact",
+  "removeContactFromLastStep": true,
+  "filePath": "location/Zwz4relUXVPxx8uohnjV/workflows/f6b44e34-779e-4959-b41d-b05641f134e7/39",
+  "fileUrl": "https://firebasestorage.googleapis.com/v0/b/automation-workflows-production/o/location%2FZwz4relUXVPxx8uohnjV%2Fworkflows%2Ff6b44e34-779e-4959-b41d-b05641f134e7%2F39?alt=media\\u0026token=<REDACTED>",
+  "stopOnResponse": false,
+  "autoMarkAsRead": false,
+  "permission": 380,
+  "type": "workflow",
+  "parentId": null,
+  "meta": {
+    "advanceCanvasMeta": {
+      "enabled": true,
+      "enabledAt": "2026-04-16T11:38:33.402Z"
+    }
+  },
+  "updatedBy": "gePIeuHOEsAiPVA1mfOR",
+  "createdAt": "2026-04-16T11:38:33.792Z",
+  "updatedAt": "2026-07-29T15:24:28.710Z",
+  "deleted": false,
+  "allowMultipleOpportunity": true,
+  "creationSource": "builder",
+  "isTriggerBucketMigrated": true,
+  "originType": "user",
+  "__v": 0,
+  "eventStartDate": null,
+  "senderAddress": {
+    "from_email": "jason@livetransparent.com",
+    "from_name": "Jason from Transparent eCom"
+  },
+  "window": {
+    "condition": "when",
+    "start": "08:00",
+    "end": "17:00",
+    "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "workflowNote": null,
+  "triggersFilePath": "location/Zwz4relUXVPxx8uohnjV/workflow-triggers/f6b44e34-779e-4959-b41d-b05641f134e7/38",
+  "id": "f6b44e34-779e-4959-b41d-b05641f134e7",
+  "assetWarnings": []
+}

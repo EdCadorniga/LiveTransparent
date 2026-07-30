@@ -1,0 +1,552 @@
+{
+  "_id": "b26326a5-77af-4df8-8d86-3f636e73afe0",
+  "locationId": "Zwz4relUXVPxx8uohnjV",
+  "companyId": "7vMmm4at5OrjQplRN3EO",
+  "companyAge": 6,
+  "name": "LT - Opportunity Owner Alignment",
+  "status": "published",
+  "version": 7,
+  "dataVersion": 7,
+  "allowMultiple": true,
+  "timezone": "account",
+  "removeContactFromLastStep": true,
+  "filePath": "location/Zwz4relUXVPxx8uohnjV/workflows/b26326a5-77af-4df8-8d86-3f636e73afe0/7",
+  "fileUrl": "https://firebasestorage.googleapis.com/v0/b/automation-workflows-production/o/location%2FZwz4relUXVPxx8uohnjV%2Fworkflows%2Fb26326a5-77af-4df8-8d86-3f636e73afe0%2F7?alt=media\\u0026token=<REDACTED>",
+  "stopOnResponse": false,
+  "autoMarkAsRead": false,
+  "permission": 380,
+  "type": "workflow",
+  "parentId": null,
+  "meta": {
+    "advanceCanvasMeta": {
+      "enabled": true,
+      "enabledAt": "2026-07-26T12:49:43.535Z"
+    }
+  },
+  "updatedBy": "gePIeuHOEsAiPVA1mfOR",
+  "createdAt": "2026-07-26T12:49:43.219Z",
+  "updatedAt": "2026-07-26T13:48:49.877Z",
+  "deleted": false,
+  "allowMultipleOpportunity": true,
+  "creationSource": "builder",
+  "isTriggerBucketMigrated": true,
+  "originType": "user",
+  "__v": 0,
+  "eventStartDate": null,
+  "triggersFilePath": "location/Zwz4relUXVPxx8uohnjV/workflow-triggers/b26326a5-77af-4df8-8d86-3f636e73afe0/4",
+  "window": null,
+  "workflowNote": null,
+  "id": "b26326a5-77af-4df8-8d86-3f636e73afe0",
+  "workflowData": {
+    "templates": [
+      {
+        "id": "aa8f2d37-25b6-4afb-bbed-7609ce128871",
+        "order": 0,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+              "name": "Jason",
+              "segments": [
+                {
+                  "__segmentId": "0c297765-0937-422d-9a80-efa3ed790d9e",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "assignedTo",
+                      "conditionOperator": "index-of-true",
+                      "conditionValue": [
+                        "yU85G6kfhtW4vUtx3QE6"
+                      ],
+                      "__conditionId": "9e16a186-de5c-4984-9b48-45c5ff76e65a",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            },
+            {
+              "id": "aba97d26-3fee-479a-a3a8-a25fa61cf913",
+              "name": "Marc",
+              "segments": [
+                {
+                  "__segmentId": "0c297765-0937-422d-9a80-efa3ed790d9e",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "assignedTo",
+                      "conditionOperator": "index-of-true",
+                      "conditionValue": [
+                        "sqGx5rp3oAUG610NXyjU"
+                      ],
+                      "__conditionId": "9e16a186-de5c-4984-9b48-45c5ff76e65a",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Owner is Jason",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+          "aba97d26-3fee-479a-a3a8-a25fa61cf913",
+          "17da5c77-bbae-4a02-b44b-28af38d6df94"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 302,
+            "y": 304.5
+          }
+        }
+      },
+      {
+        "id": "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+        "parent": "aa8f2d37-25b6-4afb-bbed-7609ce128871",
+        "parentKey": "aa8f2d37-25b6-4afb-bbed-7609ce128871",
+        "order": 1,
+        "name": "Jason",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "27276022-df38-45ac-afd8-ca327427b51e",
+        "sibling": [
+          "aba97d26-3fee-479a-a3a8-a25fa61cf913",
+          "17da5c77-bbae-4a02-b44b-28af38d6df94"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 532,
+            "y": 74.5
+          }
+        }
+      },
+      {
+        "id": "aba97d26-3fee-479a-a3a8-a25fa61cf913",
+        "parent": "aa8f2d37-25b6-4afb-bbed-7609ce128871",
+        "order": 2,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Marc",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "34b86237-67a6-4c7f-8d61-50eeda0eac7f",
+        "sibling": [
+          "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+          "17da5c77-bbae-4a02-b44b-28af38d6df94"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "aa8f2d37-25b6-4afb-bbed-7609ce128871",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 532,
+            "y": 304.5
+          }
+        }
+      },
+      {
+        "id": "27276022-df38-45ac-afd8-ca327427b51e",
+        "parent": "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+        "order": 4,
+        "attributes": {
+          "only_unassigned_contact": false,
+          "total_index": 1,
+          "traffic_split": "equally",
+          "traffic_weightage": {
+            "yU85G6kfhtW4vUtx3QE6": 1
+          },
+          "traffic_index": [
+            {
+              "id": "yU85G6kfhtW4vUtx3QE6",
+              "indexes": [
+                1
+              ]
+            }
+          ],
+          "user_list": [
+            "yU85G6kfhtW4vUtx3QE6"
+          ],
+          "type": "assign_user"
+        },
+        "name": "Assign Contact to Jason",
+        "type": "assign_user",
+        "next": "bd152cab-278d-4433-a3b3-2cdda05bff60",
+        "parentKey": "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 969.502284787824,
+            "y": -63.84551886839576
+          }
+        }
+      },
+      {
+        "id": "bd152cab-278d-4433-a3b3-2cdda05bff60",
+        "parent": "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+        "order": 6,
+        "attributes": {
+          "allowBackward": false,
+          "type": "internal_update_opportunity",
+          "__customInputFields__": [
+            {
+              "__customInputs__": {},
+              "dataType": "TEXT",
+              "filterField": "custom_fields.Wpg7FGrQTgAY1GoKcdEJ",
+              "value": "Jason",
+              "valueFieldType": "string"
+            }
+          ],
+          "__customInputs__": {}
+        },
+        "name": "Set Opportunity Owner Name",
+        "type": "internal_update_opportunity",
+        "next": "99e7fd1a-41c3-486f-abbb-ccbe1092ab67",
+        "workflowsActionType": "INTERNAL",
+        "parentKey": "27276022-df38-45ac-afd8-ca327427b51e",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1199.502284787824,
+            "y": -63.84551886839576
+          }
+        }
+      },
+      {
+        "id": "99e7fd1a-41c3-486f-abbb-ccbe1092ab67",
+        "parent": "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+        "order": 8,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "FQv9wyl2JrMkpf1GPprP",
+              "value": "opportunity_owner_sync",
+              "title": "LT Last Routing Reason",
+              "type": "string",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Set Owner Sync Reason",
+        "type": "update_contact_field",
+        "next": "672fca23-4aaf-4cf2-b424-03ab96885143",
+        "parentKey": "bd152cab-278d-4433-a3b3-2cdda05bff60",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1429.502284787824,
+            "y": -63.84551886839576
+          }
+        }
+      },
+      {
+        "id": "672fca23-4aaf-4cf2-b424-03ab96885143",
+        "parent": "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+        "order": 10,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "IPzJpFLekz9TDi4nWBaV",
+              "value": "opportunity_owner_change",
+              "title": "LT Last Routing Channel",
+              "type": "string",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Set Owner Sync Channel",
+        "type": "update_contact_field",
+        "next": "9270c4dd-6ec2-4883-8ee8-8048c2b01fbb",
+        "parentKey": "99e7fd1a-41c3-486f-abbb-ccbe1092ab67",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1659.502284787824,
+            "y": -63.84551886839576
+          }
+        }
+      },
+      {
+        "id": "9270c4dd-6ec2-4883-8ee8-8048c2b01fbb",
+        "parent": "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+        "order": 12,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "aJ3LMhy5fZzh10WoykZ6",
+              "value": "",
+              "title": "LT Last Routed At",
+              "type": "date",
+              "date": "currentDate"
+            }
+          ]
+        },
+        "name": "Set Owner Sync Timestamp",
+        "type": "update_contact_field",
+        "parentKey": "672fca23-4aaf-4cf2-b424-03ab96885143",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1889.502284787824,
+            "y": -63.84551886839576
+          }
+        }
+      },
+      {
+        "id": "17da5c77-bbae-4a02-b44b-28af38d6df94",
+        "parent": "aa8f2d37-25b6-4afb-bbed-7609ce128871",
+        "parentKey": "aa8f2d37-25b6-4afb-bbed-7609ce128871",
+        "order": 3,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "sibling": [
+          "c259cb0e-2be7-4b54-9ebf-a311a20f7f42",
+          "aba97d26-3fee-479a-a3a8-a25fa61cf913"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 532,
+            "y": 534.5
+          }
+        }
+      },
+      {
+        "id": "34b86237-67a6-4c7f-8d61-50eeda0eac7f",
+        "order": 5,
+        "attributes": {
+          "only_unassigned_contact": false,
+          "total_index": 1,
+          "traffic_split": "equally",
+          "traffic_weightage": {
+            "sqGx5rp3oAUG610NXyjU": 1
+          },
+          "traffic_index": [
+            {
+              "id": "sqGx5rp3oAUG610NXyjU",
+              "indexes": [
+                1
+              ]
+            }
+          ],
+          "user_list": [
+            "sqGx5rp3oAUG610NXyjU"
+          ],
+          "type": "assign_user"
+        },
+        "name": "Assign Contact to Marc",
+        "type": "assign_user",
+        "next": "4537fa02-c3d6-4794-9291-97f12aa0fd63",
+        "parentKey": "aba97d26-3fee-479a-a3a8-a25fa61cf913",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1005.6312084147769,
+            "y": 178.49618035250995
+          }
+        }
+      },
+      {
+        "id": "4537fa02-c3d6-4794-9291-97f12aa0fd63",
+        "order": 7,
+        "attributes": {
+          "allowBackward": false,
+          "__customInputFields__": [
+            {
+              "__customInputs__": {},
+              "dataType": "TEXT",
+              "filterField": "custom_fields.Wpg7FGrQTgAY1GoKcdEJ",
+              "value": "Marc",
+              "valueFieldType": "string"
+            }
+          ],
+          "type": "internal_update_opportunity",
+          "__customInputs__": {}
+        },
+        "name": "Set Opportunity Owner Name",
+        "type": "internal_update_opportunity",
+        "next": "a06c45a6-df07-4374-a3ee-ab04983f6ff6",
+        "workflowsActionType": "INTERNAL",
+        "parentKey": "34b86237-67a6-4c7f-8d61-50eeda0eac7f",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1235.631208414777,
+            "y": 178.49618035250995
+          }
+        }
+      },
+      {
+        "id": "a06c45a6-df07-4374-a3ee-ab04983f6ff6",
+        "order": 9,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "FQv9wyl2JrMkpf1GPprP",
+              "value": "opportunity_owner_sync",
+              "title": "LT Last Routing Reason",
+              "type": "string",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Set Owner Sync Reason",
+        "type": "update_contact_field",
+        "next": "986c5fd5-eb50-4773-84a1-8373ad781b15",
+        "parentKey": "4537fa02-c3d6-4794-9291-97f12aa0fd63",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1465.631208414777,
+            "y": 178.49618035250995
+          }
+        }
+      },
+      {
+        "id": "986c5fd5-eb50-4773-84a1-8373ad781b15",
+        "order": 11,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "IPzJpFLekz9TDi4nWBaV",
+              "value": "opportunity_owner_change",
+              "title": "LT Last Routing Channel",
+              "type": "string",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Set Owner Sync Channel",
+        "type": "update_contact_field",
+        "next": "6ea97413-5ddf-48a7-b98b-3375b9457597",
+        "parentKey": "a06c45a6-df07-4374-a3ee-ab04983f6ff6",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1695.631208414777,
+            "y": 178.49618035250995
+          }
+        }
+      },
+      {
+        "id": "6ea97413-5ddf-48a7-b98b-3375b9457597",
+        "order": 13,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "aJ3LMhy5fZzh10WoykZ6",
+              "value": "",
+              "title": "LT Last Routed At",
+              "type": "date",
+              "date": "currentDate"
+            }
+          ]
+        },
+        "name": "Set Owner Sync Timestamp",
+        "type": "update_contact_field",
+        "parentKey": "986c5fd5-eb50-4773-84a1-8373ad781b15",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1925.631208414777,
+            "y": 178.49618035250995
+          }
+        }
+      }
+    ]
+  },
+  "permissionMeta": {
+    "canRead": true,
+    "canWrite": true
+  },
+  "scheduledPauseDates": []
+}

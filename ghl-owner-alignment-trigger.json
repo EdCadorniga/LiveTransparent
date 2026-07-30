@@ -1,0 +1,36 @@
+[
+  {
+    "id": "2ajsVWIi3F6dZCNcjKt9",
+    "date_added": "2026-07-26T12:53:08.766Z",
+    "deleted": false,
+    "actions": [
+      {
+        "workflow_id": "b26326a5-77af-4df8-8d86-3f636e73afe0",
+        "type": "add_to_workflow"
+      }
+    ],
+    "conditions": [
+      {
+        "operator": "has-changed",
+        "field": "opportunity.assignedTo",
+        "title": "Assigned to",
+        "type": "select"
+      }
+    ],
+    "type": "opportunity_changed",
+    "masterType": "highlevel",
+    "workflow_id": "b26326a5-77af-4df8-8d86-3f636e73afe0",
+    "location_id": "Zwz4relUXVPxx8uohnjV",
+    "name": "Opportunity Owner Changed - Align Contact Owner",
+    "belongs_to": "workflow",
+    "schedule_config": {},
+    "advanceCanvasMeta": {
+      "position": {
+        "x": 12,
+        "y": 304.5
+      }
+    },
+    "date_updated": "2026-07-26T13:37:59.252Z",
+    "active": true
+  }
+]

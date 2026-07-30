@@ -1,0 +1,5466 @@
+{
+  "_id": "f6b44e34-779e-4959-b41d-b05641f134e7",
+  "locationId": "Zwz4relUXVPxx8uohnjV",
+  "companyId": "7vMmm4at5OrjQplRN3EO",
+  "companyAge": 3,
+  "name": "Jason Followup Emails and SMS",
+  "status": "published",
+  "version": 38,
+  "dataVersion": 7,
+  "allowMultiple": true,
+  "timezone": "contact",
+  "removeContactFromLastStep": true,
+  "filePath": "location/Zwz4relUXVPxx8uohnjV/workflows/f6b44e34-779e-4959-b41d-b05641f134e7/38",
+  "fileUrl": "https://firebasestorage.googleapis.com/v0/b/automation-workflows-production/o/location%2FZwz4relUXVPxx8uohnjV%2Fworkflows%2Ff6b44e34-779e-4959-b41d-b05641f134e7%2F38?alt=media\\u0026token=<REDACTED>",
+  "stopOnResponse": false,
+  "autoMarkAsRead": false,
+  "permission": 380,
+  "type": "workflow",
+  "parentId": null,
+  "meta": {
+    "advanceCanvasMeta": {
+      "enabled": true,
+      "enabledAt": "2026-04-16T11:38:33.402Z"
+    }
+  },
+  "updatedBy": "gePIeuHOEsAiPVA1mfOR",
+  "createdAt": "2026-04-16T11:38:33.792Z",
+  "updatedAt": "2026-07-26T13:58:44.819Z",
+  "deleted": false,
+  "allowMultipleOpportunity": true,
+  "creationSource": "builder",
+  "isTriggerBucketMigrated": true,
+  "originType": "user",
+  "__v": 0,
+  "eventStartDate": null,
+  "window": {
+    "condition": "when",
+    "start": "08:00",
+    "end": "17:00",
+    "days": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "workflowNote": null,
+  "triggersFilePath": "location/Zwz4relUXVPxx8uohnjV/workflow-triggers/f6b44e34-779e-4959-b41d-b05641f134e7/38",
+  "id": "f6b44e34-779e-4959-b41d-b05641f134e7",
+  "workflowData": {
+    "templates": [
+      {
+        "id": "a8fcbcdf-2401-4414-83d7-65c5c0fe219f",
+        "order": 0,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "977bf36a-9f35-40c5-96f4-9fb26151a874",
+              "name": "YES",
+              "segments": [
+                {
+                  "__segmentId": "d1d8621b-aed9-4fa2-a296-eced48671589",
+                  "operator": "or",
+                  "conditions": [
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "3529dd3d-cab0-4279-967c-1aea203de4fb",
+                      "__conditionId": "63750683-a2b6-4edc-af76-e3c460ab6ea3",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "b97e42b1-b4c2-4759-8212-33596a085cf2",
+                      "__conditionId": "e4e40e5b-9dc5-4c26-8940-213999bdfd43",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "c46c3be3-a216-4489-8ae3-c4284cfc747f",
+                      "__conditionId": "c8ed2c31-8911-4e77-bd75-05c827759d72",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "c8b7a450-462a-497d-ab86-65f9a8e9b082",
+                      "__conditionId": "45d39888-4784-4890-9620-0215349df3e6",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "9ced8010-dfd7-4d5b-aa9c-c2eb58fca94d",
+                      "__conditionId": "2c263673-7bbc-40de-b801-5e6164b485c0",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Is it one of the Outreach Stages where we want emails and sms sent?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "977bf36a-9f35-40c5-96f4-9fb26151a874",
+          "68c9ba70-afe1-498b-85fe-d450aef8b14b"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 302,
+            "y": 1393.6666666666665
+          }
+        }
+      },
+      {
+        "id": "977bf36a-9f35-40c5-96f4-9fb26151a874",
+        "parent": "a8fcbcdf-2401-4414-83d7-65c5c0fe219f",
+        "parentKey": "a8fcbcdf-2401-4414-83d7-65c5c0fe219f",
+        "order": 1,
+        "name": "YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "f7ec2f51-3d1b-4ddc-a489-a693a621dbaf",
+        "sibling": [
+          "68c9ba70-afe1-498b-85fe-d450aef8b14b"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 562,
+            "y": 1271.1666666666665
+          }
+        }
+      },
+      {
+        "id": "68c9ba70-afe1-498b-85fe-d450aef8b14b",
+        "parent": "a8fcbcdf-2401-4414-83d7-65c5c0fe219f",
+        "parentKey": "a8fcbcdf-2401-4414-83d7-65c5c0fe219f",
+        "order": 2,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "sibling": [
+          "977bf36a-9f35-40c5-96f4-9fb26151a874"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 532,
+            "y": 1501.1666666666665
+          }
+        }
+      },
+      {
+        "id": "f7ec2f51-3d1b-4ddc-a489-a693a621dbaf",
+        "order": 3,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "b31e5773-84f5-483c-8cd6-561b6b00d4a5",
+              "name": "Stage is NEW",
+              "segments": [
+                {
+                  "__segmentId": "c4ed0be4-997e-401c-bf72-787bbe2a52e3",
+                  "operator": "or",
+                  "conditions": [
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "3529dd3d-cab0-4279-967c-1aea203de4fb",
+                      "__conditionId": "94a2e61f-02c6-4cf2-9c7a-71a2a95ea622",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "STAGE is NEW?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "b31e5773-84f5-483c-8cd6-561b6b00d4a5",
+          "c6fd7aee-ad61-407b-9da3-09268cb6e204"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 982,
+            "y": 1278.6666666666665
+          }
+        },
+        "parentKey": "977bf36a-9f35-40c5-96f4-9fb26151a874"
+      },
+      {
+        "id": "b31e5773-84f5-483c-8cd6-561b6b00d4a5",
+        "parent": "f7ec2f51-3d1b-4ddc-a489-a693a621dbaf",
+        "parentKey": "f7ec2f51-3d1b-4ddc-a489-a693a621dbaf",
+        "order": 4,
+        "name": "Stage is NEW",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "sibling": [
+          "c6fd7aee-ad61-407b-9da3-09268cb6e204"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1212,
+            "y": 22.833333333333485
+          }
+        },
+        "next": "609283f4-cd81-4b5b-9552-606731fdb95f"
+      },
+      {
+        "id": "c6fd7aee-ad61-407b-9da3-09268cb6e204",
+        "parent": "f7ec2f51-3d1b-4ddc-a489-a693a621dbaf",
+        "parentKey": "f7ec2f51-3d1b-4ddc-a489-a693a621dbaf",
+        "order": 5,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "a0ca28ce-809a-43bc-a951-41f980267f9a",
+        "sibling": [
+          "b31e5773-84f5-483c-8cd6-561b6b00d4a5"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1212,
+            "y": 1612.4166666666663
+          }
+        }
+      },
+      {
+        "id": "a0ca28ce-809a-43bc-a951-41f980267f9a",
+        "order": 7,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "888a73f8-d91f-4725-82f2-e2f8698b9213",
+              "name": "YES",
+              "segments": [
+                {
+                  "__segmentId": "0749ef0e-f316-4c17-8982-5378b110ec1c",
+                  "operator": "or",
+                  "conditions": [
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "b97e42b1-b4c2-4759-8212-33596a085cf2",
+                      "__conditionId": "d4c58dfd-f99d-44cf-be44-6b7d067aad0a",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Stage is Attempting Contact 1st attempt",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "888a73f8-d91f-4725-82f2-e2f8698b9213",
+          "0d767828-9bd9-4205-a710-9f8c155b651b"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1602,
+            "y": 1619.9166666666663
+          }
+        },
+        "parentKey": "c6fd7aee-ad61-407b-9da3-09268cb6e204"
+      },
+      {
+        "id": "888a73f8-d91f-4725-82f2-e2f8698b9213",
+        "parent": "a0ca28ce-809a-43bc-a951-41f980267f9a",
+        "parentKey": "a0ca28ce-809a-43bc-a951-41f980267f9a",
+        "order": 9,
+        "name": "YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "sibling": [
+          "0d767828-9bd9-4205-a710-9f8c155b651b"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1832,
+            "y": 694.5
+          }
+        },
+        "next": "fd2d8bed-727a-46a8-870a-21e1fe28408a"
+      },
+      {
+        "id": "0d767828-9bd9-4205-a710-9f8c155b651b",
+        "parent": "a0ca28ce-809a-43bc-a951-41f980267f9a",
+        "parentKey": "a0ca28ce-809a-43bc-a951-41f980267f9a",
+        "order": 10,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "1ccf28da-77e2-4e8e-a9b1-9a26118e1078",
+        "sibling": [
+          "888a73f8-d91f-4725-82f2-e2f8698b9213"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1832,
+            "y": 1953.6666666666665
+          }
+        }
+      },
+      {
+        "id": "1ccf28da-77e2-4e8e-a9b1-9a26118e1078",
+        "order": 14,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "05765b53-3fea-4161-8047-a3a818d30b94",
+              "name": "YES",
+              "segments": [
+                {
+                  "__segmentId": "765d1e84-f7c2-48f2-9a9a-7531cfe2823d",
+                  "operator": "or",
+                  "conditions": [
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "c46c3be3-a216-4489-8ae3-c4284cfc747f",
+                      "__conditionId": "d2a8b8fe-b015-4b93-8b2e-cdd22bce084a",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "2nd Attempt",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "05765b53-3fea-4161-8047-a3a818d30b94",
+          "2c66eb25-e93e-4069-b262-8fd1d237ec65"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2328.6666666666665,
+            "y": 1961.1666666666665
+          }
+        },
+        "parentKey": "0d767828-9bd9-4205-a710-9f8c155b651b"
+      },
+      {
+        "id": "05765b53-3fea-4161-8047-a3a818d30b94",
+        "parent": "1ccf28da-77e2-4e8e-a9b1-9a26118e1078",
+        "parentKey": "1ccf28da-77e2-4e8e-a9b1-9a26118e1078",
+        "order": 18,
+        "name": "YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "sibling": [
+          "2c66eb25-e93e-4069-b262-8fd1d237ec65"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2612,
+            "y": 1261.9999999999995
+          }
+        },
+        "next": "c6f0addd-09de-4308-954f-5f8e65b09836"
+      },
+      {
+        "id": "2c66eb25-e93e-4069-b262-8fd1d237ec65",
+        "parent": "1ccf28da-77e2-4e8e-a9b1-9a26118e1078",
+        "parentKey": "1ccf28da-77e2-4e8e-a9b1-9a26118e1078",
+        "order": 19,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "4ba3d7ee-0fa0-4b5d-be94-c43ed510f14e",
+        "sibling": [
+          "05765b53-3fea-4161-8047-a3a818d30b94"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2612,
+            "y": 2294.9166666666665
+          }
+        }
+      },
+      {
+        "id": "4ba3d7ee-0fa0-4b5d-be94-c43ed510f14e",
+        "order": 25,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "b8e4e171-b071-4fa7-96f3-cd867907e885",
+              "name": "YES",
+              "segments": [
+                {
+                  "__segmentId": "595df729-b573-42de-b884-9adea7302fef",
+                  "operator": "or",
+                  "conditions": [
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "c8b7a450-462a-497d-ab86-65f9a8e9b082",
+                      "__conditionId": "3004d2c9-299d-4c20-afe4-efaae8172252",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "3rd Attempt",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "b8e4e171-b071-4fa7-96f3-cd867907e885",
+          "4b922200-b8a0-4cbd-bad3-6592c6b411e7"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3108.6666666666665,
+            "y": 2302.4166666666665
+          }
+        },
+        "parentKey": "2c66eb25-e93e-4069-b262-8fd1d237ec65"
+      },
+      {
+        "id": "b8e4e171-b071-4fa7-96f3-cd867907e885",
+        "parent": "4ba3d7ee-0fa0-4b5d-be94-c43ed510f14e",
+        "parentKey": "4ba3d7ee-0fa0-4b5d-be94-c43ed510f14e",
+        "order": 30,
+        "name": "YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "sibling": [
+          "4b922200-b8a0-4cbd-bad3-6592c6b411e7"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3392,
+            "y": 1829.4999999999998
+          }
+        },
+        "next": "04d26910-2cd9-44f3-8c0d-682e89fb2534"
+      },
+      {
+        "id": "4b922200-b8a0-4cbd-bad3-6592c6b411e7",
+        "parent": "4ba3d7ee-0fa0-4b5d-be94-c43ed510f14e",
+        "parentKey": "4ba3d7ee-0fa0-4b5d-be94-c43ed510f14e",
+        "order": 31,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "507bb11a-f904-4c8a-b855-02f8bfc5bcdd",
+        "sibling": [
+          "b8e4e171-b071-4fa7-96f3-cd867907e885"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3392,
+            "y": 2793.458333333333
+          }
+        }
+      },
+      {
+        "id": "507bb11a-f904-4c8a-b855-02f8bfc5bcdd",
+        "order": 39,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "7ed1d9fc-7f53-4a48-a1e3-3c49c78d686f",
+              "name": "YES",
+              "segments": [
+                {
+                  "__segmentId": "02c08291-dbcc-4ce9-bac7-b3cba76ee7c1",
+                  "operator": "or",
+                  "conditions": [
+                    {
+                      "conditionType": "opportunities",
+                      "conditionSubType": "pipelineStageId",
+                      "conditionOperator": "==",
+                      "conditionValue": "9ced8010-dfd7-4d5b-aa9c-c2eb58fca94d",
+                      "__conditionId": "8abe91fa-9aec-4423-a037-2009dca720ab",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Engaged?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "7ed1d9fc-7f53-4a48-a1e3-3c49c78d686f",
+          "96557d9e-29c2-4a12-ae37-88c8c9d03d2b"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3928.6666666666665,
+            "y": 2800.958333333333
+          }
+        },
+        "parentKey": "4b922200-b8a0-4cbd-bad3-6592c6b411e7"
+      },
+      {
+        "id": "7ed1d9fc-7f53-4a48-a1e3-3c49c78d686f",
+        "parent": "507bb11a-f904-4c8a-b855-02f8bfc5bcdd",
+        "parentKey": "507bb11a-f904-4c8a-b855-02f8bfc5bcdd",
+        "order": 45,
+        "name": "YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "sibling": [
+          "96557d9e-29c2-4a12-ae37-88c8c9d03d2b"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4262,
+            "y": 2678.458333333333
+          }
+        },
+        "next": "d6d8acf8-1849-4ba6-bf01-6817383bf25f"
+      },
+      {
+        "id": "96557d9e-29c2-4a12-ae37-88c8c9d03d2b",
+        "parent": "507bb11a-f904-4c8a-b855-02f8bfc5bcdd",
+        "parentKey": "507bb11a-f904-4c8a-b855-02f8bfc5bcdd",
+        "order": 46,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "sibling": [
+          "7ed1d9fc-7f53-4a48-a1e3-3c49c78d686f"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4232,
+            "y": 2908.458333333333
+          }
+        }
+      },
+      {
+        "name": "Send email",
+        "attributes": {
+          "from_email": "{{user.email}}",
+          "from_name": "{{opportunity.owner}} from Transparent eCom",
+          "subject": "The Real Reason Meta Isnt Working For You",
+          "preHeader": "",
+          "template_id": "69e0d86b9af59801b580f4b5",
+          "trackingOptions": {
+            "hasTrackingLinks": true,
+            "hasUtmTracking": true,
+            "hasTags": true,
+            "sourceId": "f6b44e34-779e-4959-b41d-b05641f134e7:609283f4-cd81-4b5b-9552-606731fdb95f"
+          },
+          "conditions": [],
+          "templatesource": "email-builder",
+          "previewUrl": "https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/location%2FZwz4relUXVPxx8uohnjV%2Femails%2F69e0d86b9af59801b580f4b5%2Findex.html?alt=media\\u0026token=<REDACTED>",
+          "createdAt": "2026-04-16T12:39:08.317Z",
+          "templateCreationMode": "existing",
+          "attachments": [],
+          "syncEnabled": true,
+          "fieldDefaults": {},
+          "updatedAt": "2026-07-25T03:06:43.225Z"
+        },
+        "id": "609283f4-cd81-4b5b-9552-606731fdb95f",
+        "type": "email",
+        "next": "9282f7ca-8926-4c8e-afbf-0392c1928ea1",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1602,
+            "y": 30.333333333333485
+          }
+        },
+        "order": 6,
+        "disableSourceHandle": false,
+        "parentKey": "b31e5773-84f5-483c-8cd6-561b6b00d4a5"
+      },
+      {
+        "name": "Send email",
+        "attributes": {
+          "from_email": "{{user.email}}",
+          "from_name": "{{opportunity.owner}} from Transparent eCom",
+          "subject": "Most Cannabis Brands Are Locked Out (Including You)",
+          "preHeader": "",
+          "trackingOptions": {
+            "hasTrackingLinks": true,
+            "hasUtmTracking": true,
+            "hasTags": true,
+            "sourceId": "f6b44e34-779e-4959-b41d-b05641f134e7:fd2d8bed-727a-46a8-870a-21e1fe28408a"
+          },
+          "conditions": [],
+          "previewUrl": "https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/location%2FZwz4relUXVPxx8uohnjV%2Femails%2F69e0db27d6a707bbf190d022%2Findex.html?alt=media\\u0026token=<REDACTED>",
+          "createdAt": "2026-04-16T12:50:47.845Z",
+          "templateCreationMode": "existing",
+          "syncEnabled": true,
+          "template_id": "69e0db27d6a707bbf190d022",
+          "templatesource": "email-builder",
+          "attachments": [],
+          "fieldDefaults": {},
+          "updatedAt": "2026-07-25T03:06:44.472Z"
+        },
+        "id": "fd2d8bed-727a-46a8-870a-21e1fe28408a",
+        "type": "email",
+        "next": "a4b8dab3-1dbf-40f5-b207-50025e1c88c1",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2302,
+            "y": 702
+          }
+        },
+        "order": 13,
+        "disableSourceHandle": false,
+        "parentKey": "888a73f8-d91f-4725-82f2-e2f8698b9213"
+      },
+      {
+        "name": "Send email",
+        "attributes": {
+          "from_email": "{{user.email}}",
+          "from_name": "{{opportunity.owner}} from Transparent eCom",
+          "subject": "How Brands Like Mood Are Scaling Ads",
+          "preHeader": "",
+          "trackingOptions": {
+            "hasTrackingLinks": true,
+            "hasUtmTracking": true,
+            "hasTags": true,
+            "sourceId": "f6b44e34-779e-4959-b41d-b05641f134e7:c6f0addd-09de-4308-954f-5f8e65b09836"
+          },
+          "conditions": [],
+          "previewUrl": "https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/location%2FZwz4relUXVPxx8uohnjV%2Femails%2F69e0db9ab02114c1ba3c29d3%2Findex.html?alt=media\\u0026token=<REDACTED>",
+          "createdAt": "2026-04-16T12:52:43.042Z",
+          "templateCreationMode": "existing",
+          "syncEnabled": true,
+          "template_id": "69e0db9ab02114c1ba3c29d3",
+          "templatesource": "email-builder",
+          "attachments": [],
+          "fieldDefaults": {},
+          "updatedAt": "2026-07-25T03:06:45.951Z"
+        },
+        "id": "c6f0addd-09de-4308-954f-5f8e65b09836",
+        "type": "email",
+        "next": "1d4a0f96-7646-4fc4-8f63-f62c4bacd06b",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3082,
+            "y": 1269.4999999999995
+          }
+        },
+        "order": 24,
+        "disableSourceHandle": false,
+        "parentKey": "05765b53-3fea-4161-8047-a3a818d30b94"
+      },
+      {
+        "id": "d6d8acf8-1849-4ba6-bf01-6817383bf25f",
+        "order": 54,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "a4d08e51-c642-4c1e-9588-c40f25080900",
+              "name": "Executive",
+              "segments": [
+                {
+                  "__segmentId": "55ee97ad-9252-400f-ac8d-86651447ace3",
+                  "operator": "or",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "tags",
+                      "conditionOperator": "index-of-true",
+                      "conditionValue": [
+                        "mso_executive"
+                      ],
+                      "__conditionId": "2f4e2bc2-16ce-4bdf-ac55-0e9fa04a6426",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "tags",
+                      "conditionOperator": "index-of-true",
+                      "conditionValue": [
+                        "sso_executive"
+                      ],
+                      "__conditionId": "b1c018f8-4a0d-4f0b-8a3e-6500ea619b79",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            },
+            {
+              "id": "c7601e57-5c68-4d33-99c7-84bb6df629f9",
+              "name": "Marketing",
+              "segments": [
+                {
+                  "__segmentId": "a9efdbfa-17a4-475c-8643-b7bedd504001",
+                  "operator": "or",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "tags",
+                      "conditionOperator": "index-of-true",
+                      "conditionValue": [
+                        "mso_marketing"
+                      ],
+                      "__conditionId": "8ab12da0-17ab-4efe-b0ca-1ca70a314f41",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "tags",
+                      "conditionOperator": "index-of-true",
+                      "conditionValue": [
+                        "sso_marketing"
+                      ],
+                      "__conditionId": "097dbcdd-1e84-4e75-8bc1-87db0eb39a1d",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Marketing or Executive?",
+          "version": 2,
+          "noneBranchName": "None of the above - We send Executive"
+        },
+        "next": [
+          "a4d08e51-c642-4c1e-9588-c40f25080900",
+          "c7601e57-5c68-4d33-99c7-84bb6df629f9",
+          "e680a4b9-1c41-49dc-9bc4-c7c4712541dd"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4847,
+            "y": 2685.958333333333
+          }
+        },
+        "parentKey": "7ed1d9fc-7f53-4a48-a1e3-3c49c78d686f"
+      },
+      {
+        "id": "a4d08e51-c642-4c1e-9588-c40f25080900",
+        "parent": "d6d8acf8-1849-4ba6-bf01-6817383bf25f",
+        "parentKey": "d6d8acf8-1849-4ba6-bf01-6817383bf25f",
+        "order": 60,
+        "name": "Executive",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "sibling": [
+          "c7601e57-5c68-4d33-99c7-84bb6df629f9",
+          "e680a4b9-1c41-49dc-9bc4-c7c4712541dd"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5132,
+            "y": 2404.5
+          }
+        },
+        "next": "f95f2f37-9436-4079-a04d-0dc18adab2d5"
+      },
+      {
+        "id": "c7601e57-5c68-4d33-99c7-84bb6df629f9",
+        "parent": "d6d8acf8-1849-4ba6-bf01-6817383bf25f",
+        "order": 61,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Marketing",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "da4be7e4-d1f4-4d23-9610-57abe7584f8c",
+        "sibling": [
+          "a4d08e51-c642-4c1e-9588-c40f25080900",
+          "e680a4b9-1c41-49dc-9bc4-c7c4712541dd"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "d6d8acf8-1849-4ba6-bf01-6817383bf25f",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5132,
+            "y": 2745.75
+          }
+        }
+      },
+      {
+        "id": "e680a4b9-1c41-49dc-9bc4-c7c4712541dd",
+        "parent": "d6d8acf8-1849-4ba6-bf01-6817383bf25f",
+        "parentKey": "d6d8acf8-1849-4ba6-bf01-6817383bf25f",
+        "order": 62,
+        "name": "None of the above - We send Executive",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "sibling": [
+          "a4d08e51-c642-4c1e-9588-c40f25080900",
+          "c7601e57-5c68-4d33-99c7-84bb6df629f9"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5132,
+            "y": 3203.666666666666
+          }
+        },
+        "next": "7ae24b9c-91f9-4fa7-ac7a-e484f7fadacb"
+      },
+      {
+        "name": "Send email",
+        "attributes": {
+          "from_email": "{{user.email}}",
+          "from_name": "{{opportunity.owner}} from Transparent eCom",
+          "subject": "Cannabis Ads: Next Steps",
+          "preHeader": "",
+          "trackingOptions": {
+            "hasTrackingLinks": true,
+            "hasUtmTracking": true,
+            "hasTags": true,
+            "sourceId": "f6b44e34-779e-4959-b41d-b05641f134e7:f95f2f37-9436-4079-a04d-0dc18adab2d5"
+          },
+          "conditions": [],
+          "previewUrl": "https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/location%2FZwz4relUXVPxx8uohnjV%2Femails%2F69e0dcad8ffabf47b4d987c5%2Findex.html?alt=media\\u0026token=<REDACTED>",
+          "createdAt": "2026-04-16T12:57:17.969Z",
+          "templateCreationMode": "existing",
+          "syncEnabled": true,
+          "template_id": "69e0dcad8ffabf47b4d987c5",
+          "templatesource": "email-builder",
+          "attachments": [],
+          "fieldDefaults": {},
+          "updatedAt": "2026-07-25T03:06:48.564Z"
+        },
+        "id": "f95f2f37-9436-4079-a04d-0dc18adab2d5",
+        "type": "email",
+        "next": "13e02907-4543-474c-b659-84c5d9fe2019",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5632,
+            "y": 2412
+          }
+        },
+        "order": 68,
+        "disableSourceHandle": false,
+        "parentKey": "a4d08e51-c642-4c1e-9588-c40f25080900"
+      },
+      {
+        "name": "Send email",
+        "attributes": {
+          "from_email": "{{user.email}}",
+          "from_name": "{{opportunity.owner}} from Transparent eCom",
+          "subject": "Cannabis Ads: Next Steps",
+          "preHeader": "",
+          "trackingOptions": {
+            "hasTrackingLinks": true,
+            "hasUtmTracking": true,
+            "hasTags": true,
+            "sourceId": "f6b44e34-779e-4959-b41d-b05641f134e7:7ae24b9c-91f9-4fa7-ac7a-e484f7fadacb"
+          },
+          "conditions": [],
+          "previewUrl": "https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/location%2FZwz4relUXVPxx8uohnjV%2Femails%2F69e0dcad8ffabf47b4d987c5%2Findex.html?alt=media\\u0026token=<REDACTED>",
+          "createdAt": "2026-04-16T12:57:17.969Z",
+          "templateCreationMode": "existing",
+          "syncEnabled": true,
+          "template_id": "69e0dcad8ffabf47b4d987c5",
+          "templatesource": "email-builder",
+          "attachments": [],
+          "fieldDefaults": {},
+          "updatedAt": "2026-07-25T03:06:48.564Z"
+        },
+        "id": "7ae24b9c-91f9-4fa7-ac7a-e484f7fadacb",
+        "type": "email",
+        "next": "859589fc-e488-44b8-bf6d-7f792f67aedb",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5632,
+            "y": 3211.166666666666
+          }
+        },
+        "order": 70,
+        "disableSourceHandle": false,
+        "parentKey": "e680a4b9-1c41-49dc-9bc4-c7c4712541dd"
+      },
+      {
+        "name": "Send email",
+        "attributes": {
+          "from_email": "{{user.email}}",
+          "from_name": "{{opportunity.owner}} from Transparent eCom",
+          "subject": "Cannabis Ads - Next Steps",
+          "preHeader": "",
+          "trackingOptions": {
+            "hasTrackingLinks": true,
+            "hasUtmTracking": true,
+            "hasTags": true,
+            "sourceId": "f6b44e34-779e-4959-b41d-b05641f134e7:da4be7e4-d1f4-4d23-9610-57abe7584f8c"
+          },
+          "conditions": [],
+          "previewUrl": "https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/location%2FZwz4relUXVPxx8uohnjV%2Femails%2F69e0ddd0b021145bab3c4569%2Findex.html?alt=media\\u0026token=<REDACTED>",
+          "createdAt": "2026-04-16T13:02:08.711Z",
+          "templateCreationMode": "existing",
+          "syncEnabled": true,
+          "template_id": "69e0ddd0b021145bab3c4569",
+          "templatesource": "email-builder",
+          "attachments": [],
+          "fieldDefaults": {},
+          "updatedAt": "2026-07-25T03:06:49.797Z"
+        },
+        "id": "da4be7e4-d1f4-4d23-9610-57abe7584f8c",
+        "type": "email",
+        "next": "0ebc87b5-7407-4cbb-a70e-7aa2a4959a28",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5632,
+            "y": 2753.25
+          }
+        },
+        "order": 69,
+        "disableSourceHandle": false,
+        "parentKey": "c7601e57-5c68-4d33-99c7-84bb6df629f9"
+      },
+      {
+        "id": "41c44928-dac5-4e84-aec5-3785fe13a3b1",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms2\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 71,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5972,
+            "y": 701.9999999999995
+          }
+        },
+        "parentKey": "2f860095-2e0f-4386-a343-d6ccd136bb09"
+      },
+      {
+        "id": "ff5f9b5d-6adc-47e1-8689-fa6578086ca5",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms3\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 50,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4682,
+            "y": 1154.4999999999995
+          }
+        },
+        "parentKey": "e7a3c43d-e207-48dc-a784-d8b0d8723d00"
+      },
+      {
+        "id": "1d193229-4485-4ac2-bb46-3210477e8f17",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms5\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 82,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6262,
+            "y": 2753.25
+          }
+        },
+        "parentKey": "0ebc87b5-7407-4cbb-a70e-7aa2a4959a28"
+      },
+      {
+        "id": "8c5c1516-42a5-42f0-8556-2e30668666e8",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms1\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 20,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3002,
+            "y": 19.5
+          }
+        },
+        "parentKey": "7da7f7a1-3b8f-43db-b1cf-0fc80a69dfaa"
+      },
+      {
+        "name": "Send email",
+        "attributes": {
+          "from_email": "{{user.email}}",
+          "from_name": "{{opportunity.owner}} from Transparent eCom",
+          "subject": "Appropriate Marketing Contact",
+          "preHeader": "",
+          "trackingOptions": {
+            "hasTrackingLinks": true,
+            "hasUtmTracking": true,
+            "hasTags": true,
+            "sourceId": "f6b44e34-779e-4959-b41d-b05641f134e7:04d26910-2cd9-44f3-8c0d-682e89fb2534"
+          },
+          "conditions": [],
+          "previewUrl": "https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/location%2FZwz4relUXVPxx8uohnjV%2Femails%2F69e0dc56d6a707c0ac90e074%2Findex.html?alt=media\\u0026token=<REDACTED>",
+          "createdAt": "2026-04-16T12:55:51.086Z",
+          "templateCreationMode": "existing",
+          "syncEnabled": true,
+          "template_id": "69e0dc56d6a707c0ac90e074",
+          "templatesource": "email-builder",
+          "attachments": [],
+          "fieldDefaults": {},
+          "updatedAt": "2026-07-25T03:06:47.209Z"
+        },
+        "id": "04d26910-2cd9-44f3-8c0d-682e89fb2534",
+        "type": "email",
+        "next": "43f5abb2-1179-4ee8-ae7c-dae9dc337627",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3892,
+            "y": 1836.9999999999998
+          }
+        },
+        "order": 38,
+        "disableSourceHandle": false,
+        "parentKey": "b8e4e171-b071-4fa7-96f3-cd867907e885"
+      },
+      {
+        "id": "4c855862-1b3d-48e2-9638-b3e51ec0ec9d",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms4\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 96,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7292,
+            "y": 1836.9999999999998
+          }
+        },
+        "parentKey": "d07d4f68-d500-4f4a-aed9-64bd5fad46cc"
+      },
+      {
+        "id": "0ebc87b5-7407-4cbb-a70e-7aa2a4959a28",
+        "type": "drip",
+        "category": "actions",
+        "name": "Drip Mode",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 1
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "order": 75,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6002,
+            "y": 2753.25
+          }
+        },
+        "parentKey": "da4be7e4-d1f4-4d23-9610-57abe7584f8c",
+        "next": "1d193229-4485-4ac2-bb46-3210477e8f17"
+      },
+      {
+        "id": "9282f7ca-8926-4c8e-afbf-0392c1928ea1",
+        "order": 8,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "eb8e1a1f-9f7f-4710-839f-279484735e07",
+              "name": "Apollo Ready - YES",
+              "segments": [
+                {
+                  "__segmentId": "683f761b-e751-4020-9a8e-6cc8d802002f",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "gdJDuZelIxEBE6n9i5Q6",
+                      "conditionOperator": "==",
+                      "conditionValue": "Yes",
+                      "__conditionId": "39dd2ff2-9fc2-4c74-b42d-a76bd1a0330b",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "cdd57bc3-61ee-4989-95c4-e85fb7badb0e",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Ready?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "eb8e1a1f-9f7f-4710-839f-279484735e07",
+          "038ee418-1208-4668-ae53-ccd1076998a2"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 1938.6666666666667,
+            "y": 30.333333333333485
+          }
+        },
+        "parentKey": "609283f4-cd81-4b5b-9552-606731fdb95f"
+      },
+      {
+        "id": "eb8e1a1f-9f7f-4710-839f-279484735e07",
+        "parent": "9282f7ca-8926-4c8e-afbf-0392c1928ea1",
+        "parentKey": "9282f7ca-8926-4c8e-afbf-0392c1928ea1",
+        "order": 11,
+        "name": "Apollo Ready - YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "7da7f7a1-3b8f-43db-b1cf-0fc80a69dfaa",
+        "sibling": [
+          "038ee418-1208-4668-ae53-ccd1076998a2"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2222,
+            "y": 12
+          }
+        }
+      },
+      {
+        "id": "038ee418-1208-4668-ae53-ccd1076998a2",
+        "parent": "9282f7ca-8926-4c8e-afbf-0392c1928ea1",
+        "parentKey": "9282f7ca-8926-4c8e-afbf-0392c1928ea1",
+        "order": 12,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "dd52942e-dbbe-4b7f-9cd5-67133ef8d5a6",
+        "sibling": [
+          "eb8e1a1f-9f7f-4710-839f-279484735e07"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2222,
+            "y": 242
+          }
+        }
+      },
+      {
+        "id": "dd52942e-dbbe-4b7f-9cd5-67133ef8d5a6",
+        "parent": "038ee418-1208-4668-ae53-ccd1076998a2",
+        "order": 16,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "gdJDuZelIxEBE6n9i5Q6",
+              "value": "Yes",
+              "title": "Enrich Phone via Apollo",
+              "type": "select",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Enrich Phone via Apollo",
+        "type": "update_contact_field",
+        "next": "eecbeea0-f4ad-4eaf-9d47-147d120e66f6",
+        "parentKey": "038ee418-1208-4668-ae53-ccd1076998a2",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2692,
+            "y": 249.5
+          }
+        }
+      },
+      {
+        "id": "eecbeea0-f4ad-4eaf-9d47-147d120e66f6",
+        "parentKey": "dd52942e-dbbe-4b7f-9cd5-67133ef8d5a6",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 21,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3082,
+            "y": 249.5
+          }
+        },
+        "next": "13b2530f-ea65-4b38-9799-8425c5416da5"
+      },
+      {
+        "id": "13b2530f-ea65-4b38-9799-8425c5416da5",
+        "order": 26,
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "830e1955-6fd6-4967-bc68-3e18688fc9ba",
+              "name": "Yes",
+              "segments": [
+                {
+                  "__segmentId": "04c30379-765e-4bbd-b16e-0aebf197e236",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "b7bbd3eb-0970-43a1-b10e-ca8df9483b61",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Enrichment Worked?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": [
+          "830e1955-6fd6-4967-bc68-3e18688fc9ba",
+          "2bcd215f-3c4e-4a5b-8ec4-69819852adab"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "parentKey": "eecbeea0-f4ad-4eaf-9d47-147d120e66f6",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3498.6666666666665,
+            "y": 249.5
+          }
+        }
+      },
+      {
+        "id": "830e1955-6fd6-4967-bc68-3e18688fc9ba",
+        "parent": "13b2530f-ea65-4b38-9799-8425c5416da5",
+        "order": 32,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "c112a8ed-429c-43a5-ad4d-ce4b0612cc56",
+        "sibling": [
+          "2bcd215f-3c4e-4a5b-8ec4-69819852adab"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "13b2530f-ea65-4b38-9799-8425c5416da5",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3812,
+            "y": 127
+          }
+        }
+      },
+      {
+        "id": "2bcd215f-3c4e-4a5b-8ec4-69819852adab",
+        "parent": "13b2530f-ea65-4b38-9799-8425c5416da5",
+        "order": 33,
+        "attributes": {
+          "else": true
+        },
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "sibling": [
+          "830e1955-6fd6-4967-bc68-3e18688fc9ba"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "parentKey": "13b2530f-ea65-4b38-9799-8425c5416da5",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3782,
+            "y": 357
+          }
+        }
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "c112a8ed-429c-43a5-ad4d-ce4b0612cc56",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4342,
+            "y": 134.5
+          }
+        },
+        "order": 40,
+        "disableSourceHandle": false,
+        "parentKey": "830e1955-6fd6-4967-bc68-3e18688fc9ba",
+        "next": "1f617d6b-5631-447d-8dbd-40820ac9f861"
+      },
+      {
+        "id": "1f617d6b-5631-447d-8dbd-40820ac9f861",
+        "parentKey": "c112a8ed-429c-43a5-ad4d-ce4b0612cc56",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "window": {
+            "condition": "when",
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "09:00",
+            "end": "17:00"
+          },
+          "windowCondition": {
+            "field": "",
+            "operator": "",
+            "value": ""
+          },
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 47,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4792,
+            "y": 134.5
+          }
+        },
+        "next": "cdf601c3-7e85-422a-8629-377822e97817"
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "7da7f7a1-3b8f-43db-b1cf-0fc80a69dfaa",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2692,
+            "y": 19.5
+          }
+        },
+        "order": 15,
+        "disableSourceHandle": false,
+        "parentKey": "eb8e1a1f-9f7f-4710-839f-279484735e07",
+        "next": "8c5c1516-42a5-42f0-8556-2e30668666e8"
+      },
+      {
+        "id": "cdf601c3-7e85-422a-8629-377822e97817",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms1\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 55,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5132,
+            "y": 134.5
+          }
+        },
+        "parentKey": "1f617d6b-5631-447d-8dbd-40820ac9f861"
+      },
+      {
+        "id": "a4b8dab3-1dbf-40f5-b207-50025e1c88c1",
+        "order": 17,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "1f191d4f-f81a-4910-9fa7-61e488c76fb9",
+              "name": "Apollo Ready - YES",
+              "segments": [
+                {
+                  "__segmentId": "a9a2cbb5-6948-479a-ac14-1d213ef51751",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "gdJDuZelIxEBE6n9i5Q6",
+                      "conditionOperator": "==",
+                      "conditionValue": "Yes",
+                      "__conditionId": "598d5fa2-50b8-4fa7-aa93-d64f9134348d",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "5456d93e-24c5-477f-9f2e-1d7760ae72db",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Ready?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "1f191d4f-f81a-4910-9fa7-61e488c76fb9",
+          "2a6dc805-9652-4c7c-ad8b-d37685318250"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 2718.6666666666665,
+            "y": 702
+          }
+        },
+        "parentKey": "fd2d8bed-727a-46a8-870a-21e1fe28408a"
+      },
+      {
+        "id": "1f191d4f-f81a-4910-9fa7-61e488c76fb9",
+        "parent": "a4b8dab3-1dbf-40f5-b207-50025e1c88c1",
+        "parentKey": "a4b8dab3-1dbf-40f5-b207-50025e1c88c1",
+        "order": 22,
+        "name": "Apollo Ready - YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "eb9c9ac5-ef37-4dcc-96f0-2434a0151562",
+        "sibling": [
+          "2a6dc805-9652-4c7c-ad8b-d37685318250"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3002,
+            "y": 579.5
+          }
+        }
+      },
+      {
+        "id": "2a6dc805-9652-4c7c-ad8b-d37685318250",
+        "parent": "a4b8dab3-1dbf-40f5-b207-50025e1c88c1",
+        "parentKey": "a4b8dab3-1dbf-40f5-b207-50025e1c88c1",
+        "order": 23,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "9ee84749-4555-4afe-ae56-2074d110cffb",
+        "sibling": [
+          "1f191d4f-f81a-4910-9fa7-61e488c76fb9"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3002,
+            "y": 809.5
+          }
+        }
+      },
+      {
+        "id": "9ee84749-4555-4afe-ae56-2074d110cffb",
+        "parent": "2a6dc805-9652-4c7c-ad8b-d37685318250",
+        "order": 28,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "gdJDuZelIxEBE6n9i5Q6",
+              "value": "Yes",
+              "title": "Enrich Phone via Apollo",
+              "type": "select",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Enrich Phone via Apollo",
+        "type": "update_contact_field",
+        "next": "4c3b9053-f88e-4253-9dcd-2549ed3600cd",
+        "parentKey": "2a6dc805-9652-4c7c-ad8b-d37685318250",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3472,
+            "y": 817
+          }
+        }
+      },
+      {
+        "id": "4c3b9053-f88e-4253-9dcd-2549ed3600cd",
+        "parentKey": "9ee84749-4555-4afe-ae56-2074d110cffb",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 35,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3892,
+            "y": 817
+          }
+        },
+        "next": "54e26d28-b105-4f4c-93eb-70ebcef1b3c3"
+      },
+      {
+        "id": "54e26d28-b105-4f4c-93eb-70ebcef1b3c3",
+        "order": 41,
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "2e4b01db-fbd7-49e2-920c-a163ff9775e0",
+              "name": "Yes",
+              "segments": [
+                {
+                  "__segmentId": "6b772397-816e-43eb-8c68-cb19f9f875c3",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "37667896-8a77-4774-8a5f-d738262d0449",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Enrichment Worked?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": [
+          "2e4b01db-fbd7-49e2-920c-a163ff9775e0",
+          "2465972a-2ca2-4b7b-919f-99bef35aeda0"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "parentKey": "4c3b9053-f88e-4253-9dcd-2549ed3600cd",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4378.666666666667,
+            "y": 817
+          }
+        }
+      },
+      {
+        "id": "2e4b01db-fbd7-49e2-920c-a163ff9775e0",
+        "parent": "54e26d28-b105-4f4c-93eb-70ebcef1b3c3",
+        "order": 48,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "0b41d088-3e4e-4732-9b57-5e2bc8dd0806",
+        "sibling": [
+          "2465972a-2ca2-4b7b-919f-99bef35aeda0"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "54e26d28-b105-4f4c-93eb-70ebcef1b3c3",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4712,
+            "y": 694.4999999999995
+          }
+        }
+      },
+      {
+        "id": "2465972a-2ca2-4b7b-919f-99bef35aeda0",
+        "parent": "54e26d28-b105-4f4c-93eb-70ebcef1b3c3",
+        "order": 49,
+        "attributes": {
+          "else": true
+        },
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "sibling": [
+          "2e4b01db-fbd7-49e2-920c-a163ff9775e0"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "parentKey": "54e26d28-b105-4f4c-93eb-70ebcef1b3c3",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4682,
+            "y": 924.4999999999995
+          }
+        }
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "0b41d088-3e4e-4732-9b57-5e2bc8dd0806",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5212,
+            "y": 701.9999999999995
+          }
+        },
+        "order": 56,
+        "disableSourceHandle": false,
+        "parentKey": "2e4b01db-fbd7-49e2-920c-a163ff9775e0",
+        "next": "2f860095-2e0f-4386-a343-d6ccd136bb09"
+      },
+      {
+        "id": "2f860095-2e0f-4386-a343-d6ccd136bb09",
+        "parentKey": "0b41d088-3e4e-4732-9b57-5e2bc8dd0806",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "window": {
+            "condition": "when",
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "09:00",
+            "end": "17:00"
+          },
+          "windowCondition": {
+            "field": "",
+            "operator": "",
+            "value": ""
+          },
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 63,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5632,
+            "y": 701.9999999999995
+          }
+        },
+        "next": "41c44928-dac5-4e84-aec5-3785fe13a3b1"
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "eb9c9ac5-ef37-4dcc-96f0-2434a0151562",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3472,
+            "y": 587
+          }
+        },
+        "order": 27,
+        "disableSourceHandle": false,
+        "parentKey": "1f191d4f-f81a-4910-9fa7-61e488c76fb9",
+        "next": "7b103f36-4372-4abb-ab0f-0fac65d78493"
+      },
+      {
+        "id": "7b103f36-4372-4abb-ab0f-0fac65d78493",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms2\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 34,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3782,
+            "y": 587
+          }
+        },
+        "parentKey": "eb9c9ac5-ef37-4dcc-96f0-2434a0151562"
+      },
+      {
+        "id": "1d4a0f96-7646-4fc4-8f63-f62c4bacd06b",
+        "order": 29,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "b63352ec-49d7-47a4-80f1-0abc50b893b7",
+              "name": "Apollo Ready - YES",
+              "segments": [
+                {
+                  "__segmentId": "ed2bea95-ba57-4782-8e0f-6cfba0b8b3f3",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "gdJDuZelIxEBE6n9i5Q6",
+                      "conditionOperator": "==",
+                      "conditionValue": "Yes",
+                      "__conditionId": "49275e0c-8f91-47a0-afb3-34edbda99e09",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "63baf25e-34fe-4dc4-9d37-0e2057ca1142",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Ready?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "b63352ec-49d7-47a4-80f1-0abc50b893b7",
+          "547dfe62-cd59-42c6-ac50-245a17e93060"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3498.6666666666665,
+            "y": 1269.4999999999995
+          }
+        },
+        "parentKey": "c6f0addd-09de-4308-954f-5f8e65b09836"
+      },
+      {
+        "id": "b63352ec-49d7-47a4-80f1-0abc50b893b7",
+        "parent": "1d4a0f96-7646-4fc4-8f63-f62c4bacd06b",
+        "parentKey": "1d4a0f96-7646-4fc4-8f63-f62c4bacd06b",
+        "order": 36,
+        "name": "Apollo Ready - YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "e7a3c43d-e207-48dc-a784-d8b0d8723d00",
+        "sibling": [
+          "547dfe62-cd59-42c6-ac50-245a17e93060"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3812,
+            "y": 1146.9999999999995
+          }
+        }
+      },
+      {
+        "id": "547dfe62-cd59-42c6-ac50-245a17e93060",
+        "parent": "1d4a0f96-7646-4fc4-8f63-f62c4bacd06b",
+        "parentKey": "1d4a0f96-7646-4fc4-8f63-f62c4bacd06b",
+        "order": 37,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "9aae1e45-bf17-4811-bb78-c4082ee992d6",
+        "sibling": [
+          "b63352ec-49d7-47a4-80f1-0abc50b893b7"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 3812,
+            "y": 1376.9999999999995
+          }
+        }
+      },
+      {
+        "id": "9aae1e45-bf17-4811-bb78-c4082ee992d6",
+        "parent": "547dfe62-cd59-42c6-ac50-245a17e93060",
+        "order": 43,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "gdJDuZelIxEBE6n9i5Q6",
+              "value": "Yes",
+              "title": "Enrich Phone via Apollo",
+              "type": "select",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Enrich Phone via Apollo",
+        "type": "update_contact_field",
+        "next": "3a774f6a-5b0b-4e70-945e-2fca7957b98f",
+        "parentKey": "547dfe62-cd59-42c6-ac50-245a17e93060",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4342,
+            "y": 1384.4999999999995
+          }
+        }
+      },
+      {
+        "id": "3a774f6a-5b0b-4e70-945e-2fca7957b98f",
+        "parentKey": "9aae1e45-bf17-4811-bb78-c4082ee992d6",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 51,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4792,
+            "y": 1384.4999999999995
+          }
+        },
+        "next": "97f4a9b5-17e9-472e-b7ac-3f8b236c7149"
+      },
+      {
+        "id": "97f4a9b5-17e9-472e-b7ac-3f8b236c7149",
+        "order": 57,
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "8854c7c5-544d-4e0a-9263-6b5c5c757dcc",
+              "name": "Yes",
+              "segments": [
+                {
+                  "__segmentId": "c231998a-3189-40cc-8b0f-34a95fef618b",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "be62641e-093a-456d-9cae-bdf224f2d183",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Enrichment Worked?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": [
+          "8854c7c5-544d-4e0a-9263-6b5c5c757dcc",
+          "cbf4b55b-c0c3-4a43-9660-739cf8d292fc"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "parentKey": "3a774f6a-5b0b-4e70-945e-2fca7957b98f",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5238.666666666667,
+            "y": 1384.4999999999995
+          }
+        }
+      },
+      {
+        "id": "8854c7c5-544d-4e0a-9263-6b5c5c757dcc",
+        "parent": "97f4a9b5-17e9-472e-b7ac-3f8b236c7149",
+        "order": 64,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "24bdd990-921e-4e24-bade-20781edd8dc3",
+        "sibling": [
+          "cbf4b55b-c0c3-4a43-9660-739cf8d292fc"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "97f4a9b5-17e9-472e-b7ac-3f8b236c7149",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5552,
+            "y": 1261.9999999999998
+          }
+        }
+      },
+      {
+        "id": "cbf4b55b-c0c3-4a43-9660-739cf8d292fc",
+        "parent": "97f4a9b5-17e9-472e-b7ac-3f8b236c7149",
+        "order": 65,
+        "attributes": {
+          "else": true
+        },
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "sibling": [
+          "8854c7c5-544d-4e0a-9263-6b5c5c757dcc"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "parentKey": "97f4a9b5-17e9-472e-b7ac-3f8b236c7149",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5522,
+            "y": 1491.9999999999998
+          }
+        }
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "24bdd990-921e-4e24-bade-20781edd8dc3",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6002,
+            "y": 1269.4999999999998
+          }
+        },
+        "order": 72,
+        "disableSourceHandle": false,
+        "parentKey": "8854c7c5-544d-4e0a-9263-6b5c5c757dcc",
+        "next": "bef653b0-abef-4fb0-9514-01858948fab7"
+      },
+      {
+        "id": "bef653b0-abef-4fb0-9514-01858948fab7",
+        "parentKey": "24bdd990-921e-4e24-bade-20781edd8dc3",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "window": {
+            "condition": "when",
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "09:00",
+            "end": "17:00"
+          },
+          "windowCondition": {
+            "field": "",
+            "operator": "",
+            "value": ""
+          },
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 77,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6372,
+            "y": 1269.4999999999998
+          }
+        },
+        "next": "4e89f0e0-f495-4c44-afca-63f852c40ace"
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "e7a3c43d-e207-48dc-a784-d8b0d8723d00",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4342,
+            "y": 1154.4999999999995
+          }
+        },
+        "order": 42,
+        "disableSourceHandle": false,
+        "parentKey": "b63352ec-49d7-47a4-80f1-0abc50b893b7",
+        "next": "ff5f9b5d-6adc-47e1-8689-fa6578086ca5"
+      },
+      {
+        "id": "4e89f0e0-f495-4c44-afca-63f852c40ace",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms3\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 85,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6712,
+            "y": 1269.4999999999998
+          }
+        },
+        "parentKey": "bef653b0-abef-4fb0-9514-01858948fab7"
+      },
+      {
+        "id": "43f5abb2-1179-4ee8-ae7c-dae9dc337627",
+        "order": 44,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "90ce28b5-bf19-4453-b822-67de32fd06e1",
+              "name": "Apollo Ready - YES",
+              "segments": [
+                {
+                  "__segmentId": "1e021a8f-1be3-40af-aa41-dd9a3f9bc5e4",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "gdJDuZelIxEBE6n9i5Q6",
+                      "conditionOperator": "==",
+                      "conditionValue": "Yes",
+                      "__conditionId": "4670161f-efac-4e5a-b98f-1d27e5206c2c",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "d586244d-4bad-4853-be36-4fe7ab2349d7",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Ready?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "90ce28b5-bf19-4453-b822-67de32fd06e1",
+          "05211c17-759c-4188-af9c-10b2d908f592"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4378.666666666667,
+            "y": 1836.9999999999998
+          }
+        },
+        "parentKey": "04d26910-2cd9-44f3-8c0d-682e89fb2534"
+      },
+      {
+        "id": "90ce28b5-bf19-4453-b822-67de32fd06e1",
+        "parent": "43f5abb2-1179-4ee8-ae7c-dae9dc337627",
+        "parentKey": "43f5abb2-1179-4ee8-ae7c-dae9dc337627",
+        "order": 52,
+        "name": "Apollo Ready - YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "fada745d-7637-4003-9b56-403043274ade",
+        "sibling": [
+          "05211c17-759c-4188-af9c-10b2d908f592"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4712,
+            "y": 1714.4999999999998
+          }
+        }
+      },
+      {
+        "id": "05211c17-759c-4188-af9c-10b2d908f592",
+        "parent": "43f5abb2-1179-4ee8-ae7c-dae9dc337627",
+        "parentKey": "43f5abb2-1179-4ee8-ae7c-dae9dc337627",
+        "order": 53,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "c94d66d9-ff92-4c3c-8e88-f2d6bf014b56",
+        "sibling": [
+          "90ce28b5-bf19-4453-b822-67de32fd06e1"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 4712,
+            "y": 1944.4999999999998
+          }
+        }
+      },
+      {
+        "id": "c94d66d9-ff92-4c3c-8e88-f2d6bf014b56",
+        "parent": "05211c17-759c-4188-af9c-10b2d908f592",
+        "order": 59,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "gdJDuZelIxEBE6n9i5Q6",
+              "value": "Yes",
+              "title": "Enrich Phone via Apollo",
+              "type": "select",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Enrich Phone via Apollo",
+        "type": "update_contact_field",
+        "next": "bd0c20ff-443a-4f2e-91e7-662805f9dff4",
+        "parentKey": "05211c17-759c-4188-af9c-10b2d908f592",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5212,
+            "y": 1951.9999999999998
+          }
+        }
+      },
+      {
+        "id": "bd0c20ff-443a-4f2e-91e7-662805f9dff4",
+        "parentKey": "c94d66d9-ff92-4c3c-8e88-f2d6bf014b56",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 67,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5632,
+            "y": 1951.9999999999998
+          }
+        },
+        "next": "7b19dbfa-cc05-43d1-8711-3ea05cc44ef4"
+      },
+      {
+        "id": "7b19dbfa-cc05-43d1-8711-3ea05cc44ef4",
+        "order": 73,
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "1e82eaa7-0532-427d-ab3c-011096d00e26",
+              "name": "Yes",
+              "segments": [
+                {
+                  "__segmentId": "dbeb74fb-5258-4b00-bcae-49e56d33d2ca",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "5dac8564-6a87-4051-a7ae-e90b08d28a5d",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Enrichment Worked?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": [
+          "1e82eaa7-0532-427d-ab3c-011096d00e26",
+          "8e99b522-bcc4-4d41-93b8-1c7dba607b18"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "parentKey": "bd0c20ff-443a-4f2e-91e7-662805f9dff4",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6012,
+            "y": 1951.9999999999998
+          }
+        }
+      },
+      {
+        "id": "1e82eaa7-0532-427d-ab3c-011096d00e26",
+        "parent": "7b19dbfa-cc05-43d1-8711-3ea05cc44ef4",
+        "order": 78,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "8e22f42f-570b-4d69-a602-21f1680cd650",
+        "sibling": [
+          "8e99b522-bcc4-4d41-93b8-1c7dba607b18"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "7b19dbfa-cc05-43d1-8711-3ea05cc44ef4",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6292,
+            "y": 1829.4999999999998
+          }
+        }
+      },
+      {
+        "id": "8e99b522-bcc4-4d41-93b8-1c7dba607b18",
+        "parent": "7b19dbfa-cc05-43d1-8711-3ea05cc44ef4",
+        "order": 79,
+        "attributes": {
+          "else": true
+        },
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "sibling": [
+          "1e82eaa7-0532-427d-ab3c-011096d00e26"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "parentKey": "7b19dbfa-cc05-43d1-8711-3ea05cc44ef4",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6262,
+            "y": 2059.5
+          }
+        }
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "8e22f42f-570b-4d69-a602-21f1680cd650",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6742,
+            "y": 1836.9999999999998
+          }
+        },
+        "order": 86,
+        "disableSourceHandle": false,
+        "parentKey": "1e82eaa7-0532-427d-ab3c-011096d00e26",
+        "next": "d07d4f68-d500-4f4a-aed9-64bd5fad46cc"
+      },
+      {
+        "id": "d07d4f68-d500-4f4a-aed9-64bd5fad46cc",
+        "parentKey": "8e22f42f-570b-4d69-a602-21f1680cd650",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "window": {
+            "condition": "when",
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "09:00",
+            "end": "17:00"
+          },
+          "windowCondition": {
+            "field": "",
+            "operator": "",
+            "value": ""
+          },
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 91,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7032,
+            "y": 1836.9999999999998
+          }
+        },
+        "next": "4c855862-1b3d-48e2-9638-b3e51ec0ec9d"
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "fada745d-7637-4003-9b56-403043274ade",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5212,
+            "y": 1721.9999999999998
+          }
+        },
+        "order": 58,
+        "disableSourceHandle": false,
+        "parentKey": "90ce28b5-bf19-4453-b822-67de32fd06e1",
+        "next": "07525ed1-83ae-4502-80e8-d054843f8f00"
+      },
+      {
+        "id": "07525ed1-83ae-4502-80e8-d054843f8f00",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms4\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 66,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 5522,
+            "y": 1721.9999999999998
+          }
+        },
+        "parentKey": "fada745d-7637-4003-9b56-403043274ade"
+      },
+      {
+        "id": "13e02907-4543-474c-b659-84c5d9fe2019",
+        "order": 74,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "fab5ab04-b1b5-4782-a14d-aec686419fe3",
+              "name": "Apollo Ready - YES",
+              "segments": [
+                {
+                  "__segmentId": "8a53c5c8-52bc-440c-90ba-982f2b30eabc",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "gdJDuZelIxEBE6n9i5Q6",
+                      "conditionOperator": "==",
+                      "conditionValue": "Yes",
+                      "__conditionId": "b0fa532a-131b-4469-b0a2-d1fd15170ef1",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "bd6ae401-e145-43c4-8c45-737bf92c7531",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Ready?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "fab5ab04-b1b5-4782-a14d-aec686419fe3",
+          "acbc38d6-7b08-4663-bdfa-23dbc2d92b30"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6012,
+            "y": 2412
+          }
+        },
+        "parentKey": "f95f2f37-9436-4079-a04d-0dc18adab2d5"
+      },
+      {
+        "id": "fab5ab04-b1b5-4782-a14d-aec686419fe3",
+        "parent": "13e02907-4543-474c-b659-84c5d9fe2019",
+        "parentKey": "13e02907-4543-474c-b659-84c5d9fe2019",
+        "order": 80,
+        "name": "Apollo Ready - YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "89354635-97b7-4e02-8f7a-998823054520",
+        "sibling": [
+          "acbc38d6-7b08-4663-bdfa-23dbc2d92b30"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6292,
+            "y": 2289.5
+          }
+        }
+      },
+      {
+        "id": "acbc38d6-7b08-4663-bdfa-23dbc2d92b30",
+        "parent": "13e02907-4543-474c-b659-84c5d9fe2019",
+        "parentKey": "13e02907-4543-474c-b659-84c5d9fe2019",
+        "order": 81,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "ef7a93b4-ab40-4b59-bf1c-c604b10a2702",
+        "sibling": [
+          "fab5ab04-b1b5-4782-a14d-aec686419fe3"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6292,
+            "y": 2519.5
+          }
+        }
+      },
+      {
+        "id": "ef7a93b4-ab40-4b59-bf1c-c604b10a2702",
+        "parent": "acbc38d6-7b08-4663-bdfa-23dbc2d92b30",
+        "order": 88,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "gdJDuZelIxEBE6n9i5Q6",
+              "value": "Yes",
+              "title": "Enrich Phone via Apollo",
+              "type": "select",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Enrich Phone via Apollo",
+        "type": "update_contact_field",
+        "next": "34010938-0bba-4fe8-aa55-b42bf5b235d8",
+        "parentKey": "acbc38d6-7b08-4663-bdfa-23dbc2d92b30",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6742,
+            "y": 2527
+          }
+        }
+      },
+      {
+        "id": "34010938-0bba-4fe8-aa55-b42bf5b235d8",
+        "parentKey": "ef7a93b4-ab40-4b59-bf1c-c604b10a2702",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 93,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7032,
+            "y": 2527
+          }
+        },
+        "next": "3014b806-55e2-4f4c-957e-5bd755121486"
+      },
+      {
+        "id": "3014b806-55e2-4f4c-957e-5bd755121486",
+        "order": 97,
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "d34f7597-792c-4c91-b459-3b774a091e51",
+              "name": "Yes",
+              "segments": [
+                {
+                  "__segmentId": "d668020a-7e7a-4463-8c17-274175a8cae2",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "89bdb358-e99f-4f79-a8e2-07fcf02d8df1",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Enrichment Worked?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": [
+          "d34f7597-792c-4c91-b459-3b774a091e51",
+          "cffee94b-8759-4b5e-809d-e200b534d988"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "parentKey": "34010938-0bba-4fe8-aa55-b42bf5b235d8",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7398.666666666667,
+            "y": 2527
+          }
+        }
+      },
+      {
+        "id": "d34f7597-792c-4c91-b459-3b774a091e51",
+        "parent": "3014b806-55e2-4f4c-957e-5bd755121486",
+        "order": 101,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "d3d883e0-1df5-418b-86d6-9f786aaaada8",
+        "sibling": [
+          "cffee94b-8759-4b5e-809d-e200b534d988"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "3014b806-55e2-4f4c-957e-5bd755121486",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7712,
+            "y": 2404.4999999999995
+          }
+        }
+      },
+      {
+        "id": "cffee94b-8759-4b5e-809d-e200b534d988",
+        "parent": "3014b806-55e2-4f4c-957e-5bd755121486",
+        "order": 102,
+        "attributes": {
+          "else": true
+        },
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "sibling": [
+          "d34f7597-792c-4c91-b459-3b774a091e51"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "parentKey": "3014b806-55e2-4f4c-957e-5bd755121486",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7682,
+            "y": 2634.4999999999995
+          }
+        }
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "d3d883e0-1df5-418b-86d6-9f786aaaada8",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8162,
+            "y": 2411.9999999999995
+          }
+        },
+        "order": 107,
+        "disableSourceHandle": false,
+        "parentKey": "d34f7597-792c-4c91-b459-3b774a091e51",
+        "next": "f931d231-81d6-4119-ac7c-e92adcf9928e"
+      },
+      {
+        "id": "f931d231-81d6-4119-ac7c-e92adcf9928e",
+        "parentKey": "d3d883e0-1df5-418b-86d6-9f786aaaada8",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "window": {
+            "condition": "when",
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "09:00",
+            "end": "17:00"
+          },
+          "windowCondition": {
+            "field": "",
+            "operator": "",
+            "value": ""
+          },
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 111,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8422,
+            "y": 2411.9999999999995
+          }
+        },
+        "next": "dc082656-e3a4-466e-94af-8179f5f409c7"
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "89354635-97b7-4e02-8f7a-998823054520",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6742,
+            "y": 2297
+          }
+        },
+        "order": 87,
+        "disableSourceHandle": false,
+        "parentKey": "fab5ab04-b1b5-4782-a14d-aec686419fe3",
+        "next": "58cefbed-4f57-45e1-9ea8-bfe10f2b7979"
+      },
+      {
+        "id": "58cefbed-4f57-45e1-9ea8-bfe10f2b7979",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms5\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 92,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7002,
+            "y": 2297
+          }
+        },
+        "parentKey": "89354635-97b7-4e02-8f7a-998823054520"
+      },
+      {
+        "id": "dc082656-e3a4-466e-94af-8179f5f409c7",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms5\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 114,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8652,
+            "y": 2411.9999999999995
+          }
+        },
+        "parentKey": "f931d231-81d6-4119-ac7c-e92adcf9928e"
+      },
+      {
+        "id": "859589fc-e488-44b8-bf6d-7f792f67aedb",
+        "order": 76,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "8a766db1-1009-4d6f-87a3-b756bdf3ba3d",
+              "name": "Apollo Ready - YES",
+              "segments": [
+                {
+                  "__segmentId": "8df924c0-f663-4065-8f32-37b36ffd16b8",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "gdJDuZelIxEBE6n9i5Q6",
+                      "conditionOperator": "==",
+                      "conditionValue": "Yes",
+                      "__conditionId": "11495d02-062f-4baf-8ce3-01e6e51b32af",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "cded063b-d76d-4125-ad80-d8cb8604655a",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Ready?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "8a766db1-1009-4d6f-87a3-b756bdf3ba3d",
+          "42cdf653-77fb-45e1-96e5-0467e38bfe61"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6012,
+            "y": 3211.166666666666
+          }
+        },
+        "parentKey": "7ae24b9c-91f9-4fa7-ac7a-e484f7fadacb"
+      },
+      {
+        "id": "8a766db1-1009-4d6f-87a3-b756bdf3ba3d",
+        "parent": "859589fc-e488-44b8-bf6d-7f792f67aedb",
+        "parentKey": "859589fc-e488-44b8-bf6d-7f792f67aedb",
+        "order": 83,
+        "name": "Apollo Ready - YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "06f39284-5b12-4d3d-8512-3ea1a9612be4",
+        "sibling": [
+          "42cdf653-77fb-45e1-96e5-0467e38bfe61"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6292,
+            "y": 2972
+          }
+        }
+      },
+      {
+        "id": "42cdf653-77fb-45e1-96e5-0467e38bfe61",
+        "parent": "859589fc-e488-44b8-bf6d-7f792f67aedb",
+        "parentKey": "859589fc-e488-44b8-bf6d-7f792f67aedb",
+        "order": 84,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "e8e87e8c-a57c-46db-bfca-16c86decdab6",
+        "sibling": [
+          "8a766db1-1009-4d6f-87a3-b756bdf3ba3d"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6292,
+            "y": 3539.4999999999995
+          }
+        }
+      },
+      {
+        "id": "e8e87e8c-a57c-46db-bfca-16c86decdab6",
+        "parent": "42cdf653-77fb-45e1-96e5-0467e38bfe61",
+        "order": 90,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "gdJDuZelIxEBE6n9i5Q6",
+              "value": "Yes",
+              "title": "Enrich Phone via Apollo",
+              "type": "select",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Enrich Phone via Apollo",
+        "type": "update_contact_field",
+        "next": "9dce7ad6-2c19-4173-bffa-d15a8b51335e",
+        "parentKey": "42cdf653-77fb-45e1-96e5-0467e38bfe61",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6742,
+            "y": 3546.9999999999995
+          }
+        }
+      },
+      {
+        "id": "9dce7ad6-2c19-4173-bffa-d15a8b51335e",
+        "parentKey": "e8e87e8c-a57c-46db-bfca-16c86decdab6",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 95,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7032,
+            "y": 3546.9999999999995
+          }
+        },
+        "next": "162b8a87-93b1-4bcf-be12-dac36880e5c6"
+      },
+      {
+        "id": "162b8a87-93b1-4bcf-be12-dac36880e5c6",
+        "order": 100,
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "dd172834-9d61-454a-93a0-a979c3fdec47",
+              "name": "Yes",
+              "segments": [
+                {
+                  "__segmentId": "2cc6e5cf-d591-465a-8fce-56f595f81597",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "f45f7773-ad19-4f41-8068-aa289a7ec7bf",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Enrichment Worked?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": [
+          "dd172834-9d61-454a-93a0-a979c3fdec47",
+          "79b8cc19-08db-4d11-b32c-4fe53739f1f0"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "parentKey": "9dce7ad6-2c19-4173-bffa-d15a8b51335e",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7398.666666666667,
+            "y": 3546.9999999999995
+          }
+        }
+      },
+      {
+        "id": "dd172834-9d61-454a-93a0-a979c3fdec47",
+        "parent": "162b8a87-93b1-4bcf-be12-dac36880e5c6",
+        "order": 105,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "146198ca-6d79-4b77-a78b-e6debd530fdd",
+        "sibling": [
+          "79b8cc19-08db-4d11-b32c-4fe53739f1f0"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "162b8a87-93b1-4bcf-be12-dac36880e5c6",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7712,
+            "y": 3424.4999999999995
+          }
+        }
+      },
+      {
+        "id": "79b8cc19-08db-4d11-b32c-4fe53739f1f0",
+        "parent": "162b8a87-93b1-4bcf-be12-dac36880e5c6",
+        "order": 106,
+        "attributes": {
+          "else": true
+        },
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "sibling": [
+          "dd172834-9d61-454a-93a0-a979c3fdec47"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "parentKey": "162b8a87-93b1-4bcf-be12-dac36880e5c6",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7682,
+            "y": 3654.5
+          }
+        }
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "146198ca-6d79-4b77-a78b-e6debd530fdd",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8162,
+            "y": 3431.9999999999995
+          }
+        },
+        "order": 110,
+        "disableSourceHandle": false,
+        "parentKey": "dd172834-9d61-454a-93a0-a979c3fdec47",
+        "next": "690f3157-4914-4096-8e17-0b34b4e00ccf"
+      },
+      {
+        "id": "690f3157-4914-4096-8e17-0b34b4e00ccf",
+        "parentKey": "146198ca-6d79-4b77-a78b-e6debd530fdd",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "window": {
+            "condition": "when",
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "09:00",
+            "end": "17:00"
+          },
+          "windowCondition": {
+            "field": "",
+            "operator": "",
+            "value": ""
+          },
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 113,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8422,
+            "y": 3431.9999999999995
+          }
+        },
+        "next": "b9d7a2b3-363e-44b5-8275-3de3f7f6b438"
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "06f39284-5b12-4d3d-8512-3ea1a9612be4",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 6742,
+            "y": 2979.5
+          }
+        },
+        "order": 89,
+        "disableSourceHandle": false,
+        "parentKey": "8a766db1-1009-4d6f-87a3-b756bdf3ba3d",
+        "next": "9013c75d-43a6-407a-8d60-9a283ea954bd"
+      },
+      {
+        "id": "b9d7a2b3-363e-44b5-8275-3de3f7f6b438",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms5\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 117,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8652,
+            "y": 3431.9999999999995
+          }
+        },
+        "parentKey": "690f3157-4914-4096-8e17-0b34b4e00ccf"
+      },
+      {
+        "id": "9013c75d-43a6-407a-8d60-9a283ea954bd",
+        "order": 94,
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "f9cbc184-367a-4441-850a-6e69a54f0280",
+              "name": "Apollo Ready - YES",
+              "segments": [
+                {
+                  "__segmentId": "39330f7a-460b-4e04-88ce-838b7add1434",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "gdJDuZelIxEBE6n9i5Q6",
+                      "conditionOperator": "==",
+                      "conditionValue": "Yes",
+                      "__conditionId": "9a1670e4-ae6c-4657-a4a4-6b23b85cde70",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    },
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "332b754e-cef2-439f-824e-c784a7aa1695",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Ready?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "next": [
+          "f9cbc184-367a-4441-850a-6e69a54f0280",
+          "79ac08ce-180a-450c-8032-d6b8422dbd46"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7042,
+            "y": 2979.5
+          }
+        },
+        "parentKey": "06f39284-5b12-4d3d-8512-3ea1a9612be4"
+      },
+      {
+        "id": "f9cbc184-367a-4441-850a-6e69a54f0280",
+        "parent": "9013c75d-43a6-407a-8d60-9a283ea954bd",
+        "parentKey": "9013c75d-43a6-407a-8d60-9a283ea954bd",
+        "order": 98,
+        "name": "Apollo Ready - YES",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "next": "4379daa2-64c1-4b81-a8ae-9ca287a13d9b",
+        "sibling": [
+          "79ac08ce-180a-450c-8032-d6b8422dbd46"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7292,
+            "y": 2856.9999999999995
+          }
+        }
+      },
+      {
+        "id": "79ac08ce-180a-450c-8032-d6b8422dbd46",
+        "parent": "9013c75d-43a6-407a-8d60-9a283ea954bd",
+        "parentKey": "9013c75d-43a6-407a-8d60-9a283ea954bd",
+        "order": 99,
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "attributes": {
+          "else": true
+        },
+        "next": "bed5eb27-1ad3-4cf4-9baf-44354309d388",
+        "sibling": [
+          "f9cbc184-367a-4441-850a-6e69a54f0280"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7292,
+            "y": 3086.9999999999995
+          }
+        }
+      },
+      {
+        "id": "bed5eb27-1ad3-4cf4-9baf-44354309d388",
+        "parent": "79ac08ce-180a-450c-8032-d6b8422dbd46",
+        "order": 104,
+        "attributes": {
+          "type": "update_contact_field",
+          "actionType": "update_field_data",
+          "fields": [
+            {
+              "field": "gdJDuZelIxEBE6n9i5Q6",
+              "value": "Yes",
+              "title": "Enrich Phone via Apollo",
+              "type": "select",
+              "date": ""
+            }
+          ]
+        },
+        "name": "Enrich Phone via Apollo",
+        "type": "update_contact_field",
+        "next": "192f966c-79b9-43f3-9c1a-f8ae2bbff6aa",
+        "parentKey": "79ac08ce-180a-450c-8032-d6b8422dbd46",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7792,
+            "y": 3094.4999999999995
+          }
+        }
+      },
+      {
+        "id": "192f966c-79b9-43f3-9c1a-f8ae2bbff6aa",
+        "parentKey": "bed5eb27-1ad3-4cf4-9baf-44354309d388",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 109,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8162,
+            "y": 3094.4999999999995
+          }
+        },
+        "next": "bda7fc2c-459b-4ac0-a851-cb5a8b9796e5"
+      },
+      {
+        "id": "bda7fc2c-459b-4ac0-a851-cb5a8b9796e5",
+        "order": 112,
+        "attributes": {
+          "currentRecipeType": "CUSTOM",
+          "branches": [
+            {
+              "id": "2b94d6bb-82cc-4c65-b132-57d38a4ddc0d",
+              "name": "Yes",
+              "segments": [
+                {
+                  "__segmentId": "3ce1b919-85b0-497a-bec0-c4a61c6a9c04",
+                  "operator": "and",
+                  "conditions": [
+                    {
+                      "conditionType": "contact_detail",
+                      "conditionSubType": "rgYJ7UqoznGoe3WeUAtH",
+                      "conditionOperator": "==",
+                      "conditionValue": "enriched",
+                      "__conditionId": "c58d96ea-f551-457f-9e70-71de2fbda477",
+                      "ifElseNodeId": "",
+                      "__customFieldType__": "standard",
+                      "isWait": false,
+                      "nestedDropdownTypes": [
+                        "inboundWebhookRequest",
+                        "sheet",
+                        "datetime_formatter",
+                        "custom_webhook",
+                        "array_functions",
+                        "ivr_gather",
+                        "ivr_connect_call",
+                        "custom_code",
+                        "ai_agent",
+                        "task-notification"
+                      ],
+                      "allowIsOperatorTypes": [
+                        "contact_reply",
+                        "inboundWebhookRequest",
+                        "custom_webhook",
+                        "custom_code",
+                        "ai_agent",
+                        "contact_detail",
+                        "array_functions",
+                        "appointment",
+                        "service_booking",
+                        "rental_booking"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "operator": "and",
+              "showErrors": false,
+              "branchNameError": "Branch name cannot be empty!"
+            }
+          ],
+          "operator": "and",
+          "if": true,
+          "conditionName": "Apollo Enrichment Worked?",
+          "version": 2,
+          "noneBranchName": "None"
+        },
+        "name": "yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": [
+          "2b94d6bb-82cc-4c65-b132-57d38a4ddc0d",
+          "576c71ef-e4ed-4f43-80e1-54e530f958d5"
+        ],
+        "comments": [],
+        "nodeType": "condition-node",
+        "parentKey": "192f966c-79b9-43f3-9c1a-f8ae2bbff6aa",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8422,
+            "y": 3094.4999999999995
+          }
+        }
+      },
+      {
+        "id": "2b94d6bb-82cc-4c65-b132-57d38a4ddc0d",
+        "parent": "bda7fc2c-459b-4ac0-a851-cb5a8b9796e5",
+        "order": 115,
+        "attributes": {
+          "if": false,
+          "conditionName": "Condition",
+          "operator": "and",
+          "branches": []
+        },
+        "name": "Yes",
+        "type": "if_else",
+        "cat": "conditions",
+        "next": "4d83e4e5-5293-46b6-abc6-0e5f7f716914",
+        "sibling": [
+          "576c71ef-e4ed-4f43-80e1-54e530f958d5"
+        ],
+        "comments": [],
+        "nodeType": "branch-yes",
+        "parentKey": "bda7fc2c-459b-4ac0-a851-cb5a8b9796e5",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8682,
+            "y": 2971.9999999999995
+          }
+        }
+      },
+      {
+        "id": "576c71ef-e4ed-4f43-80e1-54e530f958d5",
+        "parent": "bda7fc2c-459b-4ac0-a851-cb5a8b9796e5",
+        "order": 116,
+        "attributes": {
+          "else": true
+        },
+        "name": "None",
+        "type": "if_else",
+        "cat": "conditions",
+        "sibling": [
+          "2b94d6bb-82cc-4c65-b132-57d38a4ddc0d"
+        ],
+        "comments": [],
+        "nodeType": "branch-no",
+        "parentKey": "bda7fc2c-459b-4ac0-a851-cb5a8b9796e5",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8652,
+            "y": 3201.9999999999995
+          }
+        }
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "4d83e4e5-5293-46b6-abc6-0e5f7f716914",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 9102,
+            "y": 2979.4999999999995
+          }
+        },
+        "order": 118,
+        "disableSourceHandle": false,
+        "parentKey": "2b94d6bb-82cc-4c65-b132-57d38a4ddc0d",
+        "next": "8db731bf-8153-464f-8e20-3cb6bed49f07"
+      },
+      {
+        "id": "8db731bf-8153-464f-8e20-3cb6bed49f07",
+        "parentKey": "4d83e4e5-5293-46b6-abc6-0e5f7f716914",
+        "type": "wait",
+        "name": "Wait",
+        "attributes": {
+          "type": "time",
+          "startAfter": {
+            "type": "minutes",
+            "value": 1,
+            "when": "after"
+          },
+          "name": "Wait",
+          "cat": "",
+          "window": {
+            "condition": "when",
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "09:00",
+            "end": "17:00"
+          },
+          "windowCondition": {
+            "field": "",
+            "operator": "",
+            "value": ""
+          },
+          "isHybridAction": true,
+          "hybridActionType": "wait",
+          "convertToMultipath": false,
+          "transitions": []
+        },
+        "order": 119,
+        "cat": "",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 9332,
+            "y": 2979.4999999999995
+          }
+        },
+        "next": "4b7774fe-a1c2-4ab5-b27d-1d5205b1c77d"
+      },
+      {
+        "name": "Drip",
+        "attributes": {
+          "batchSize": 1,
+          "interval": {
+            "timeUnit": "minutes",
+            "value": 10
+          },
+          "type": "drip",
+          "configuredAt": "2026-07-26T13:58:44.341Z"
+        },
+        "id": "4379daa2-64c1-4b81-a8ae-9ca287a13d9b",
+        "type": "drip",
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 7792,
+            "y": 2864.4999999999995
+          }
+        },
+        "order": 103,
+        "disableSourceHandle": false,
+        "parentKey": "f9cbc184-367a-4441-850a-6e69a54f0280",
+        "next": "2a6a6256-1263-4c7c-bb19-0f20c8752707"
+      },
+      {
+        "id": "2a6a6256-1263-4c7c-bb19-0f20c8752707",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms5\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 108,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 8132,
+            "y": 2864.4999999999995
+          }
+        },
+        "parentKey": "4379daa2-64c1-4b81-a8ae-9ca287a13d9b"
+      },
+      {
+        "id": "4b7774fe-a1c2-4ab5-b27d-1d5205b1c77d",
+        "type": "webhook",
+        "category": "actions",
+        "name": "Webhook",
+        "attributes": {
+          "method": "POST",
+          "url": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms",
+          "customData": [
+            {
+              "key": "\"contactId\"",
+              "value": "\"{{contact.id}}\""
+            },
+            {
+              "key": "\"contactPhone\"",
+              "value": "\"{{contact.phone}}\""
+            },
+            {
+              "key": "\"templateKey\"",
+              "value": "\"john_sms5\""
+            },
+            {
+              "key": "\"first_name\"",
+              "value": "\"{{contact.first_name}}\""
+            },
+            {
+              "key": "\"last_name\"",
+              "value": "\"{{contact.last_name}}\""
+            },
+            {
+              "key": " \"email\"",
+              "value": "{{contact.email}}\""
+            },
+            {
+              "key": " \"dryRun\"",
+              "value": "false"
+            }
+          ],
+          "headers": [
+            {
+              "key": "x-lt-webhook-key",
+              "value": "<REDACTED>"
+            }
+          ]
+        },
+        "order": 120,
+        "cat": "",
+        "customVarPrefix": "",
+        "workflowsActionType": null,
+        "isMarketplaceAction": false,
+        "advanceCanvasMeta": {
+          "position": {
+            "x": 9562,
+            "y": 2979.4999999999995
+          }
+        },
+        "parentKey": "8db731bf-8153-464f-8e20-3cb6bed49f07"
+      }
+    ]
+  },
+  "permissionMeta": {
+    "canRead": true,
+    "canWrite": true
+  },
+  "scheduledPauseDates": []
+}
