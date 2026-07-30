@@ -227,7 +227,7 @@ P3 (after findings):
 | GHL Custom Report | 6a67dce4a51a4360c60963a3 |
 | GHL Partnership Pipeline | tQkFYrHjALgoLz6oq0uz |
 | GHL Email Template Folder | 6a6b768aa43d24a7ce1514f1 |
-| Partnership PIT | pit-48a3b580-6906-418b-8215-3257599fd551 |
+| Partnership credential | configured in the live workflow; value intentionally omitted |
 | Postgres tables | partnership_release_log, partnership_linkedin_connection_state |
 | Frontend build | 2026-07-31-v10-partnership |
 | Frontend container | reports-livetransparent (VPS 89.117.21.29) |
