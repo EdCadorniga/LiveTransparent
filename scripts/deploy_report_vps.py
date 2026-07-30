@@ -5,8 +5,8 @@ import paramiko
 
 HOST = "89.117.21.29"
 APP_DIR = "/data/coolify/applications/v3ud1lum1svamymuor21upog"
-IMAGE = "v3ud1lum1svamymuor21upog:71ac648"
-SOURCE_COMMIT = "71ac648"
+IMAGE = "v3ud1lum1svamymuor21upog:dd560a0"
+SOURCE_COMMIT = "dd560a0"
 SOURCE_DIR = "/tmp/livetransparent-report-8620"
 
 
