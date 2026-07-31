@@ -674,8 +674,8 @@
                 </div>
                 <div class="table-scroll">
                  <table class="campaign-table">
-                     <thead><tr><th>Channel</th><th>Campaign</th><th>SMS Sent</th><th>SMS Replies</th><th>Email Sent</th><th>Opened</th><th>Open Rate</th><th>Clicked</th><th>Click Rate</th><th>Email Replies</th><th>Response Rate</th><th>Bounced</th><th>LI DMs</th><th>LI Replies</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
-                     <tbody id="campaign-channel-table"><tr><td colspan="18" class="loading">Loading campaign channel data...</td></tr></tbody>
+                     <thead><tr><th>Channel</th><th>Campaign</th><th>SMS Sent</th><th>SMS Replies</th><th>Email Sent</th><th>Opened</th><th>Open Rate</th><th>Clicked</th><th>Click Rate</th><th>Email Replies</th><th>Response Rate</th><th>Bounced</th><th>LI Invites</th><th>LI Accepted</th><th>LI DMs</th><th>LI Replies</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
+                     <tbody id="campaign-channel-table"><tr><td colspan="20" class="loading">Loading campaign channel data...</td></tr></tbody>
                  </table>
                </div>
                  <div class="footer-note">Date range follows the report selector. DAN, Emerald, and Partnership rows use enrollment/release attribution; SMS uses campaign keys; LinkedIn uses stored activity events joined to Brand/Dispensary source pools plus the Partnership LinkedIn activity ledger. Older events without campaign metadata remain unattributed.</div>
@@ -793,7 +793,7 @@
     </div>
     <script>
       (function () {
-         var BUILD_STAMP = "2026-07-31-v10-partnership";
+          var BUILD_STAMP = "2026-07-31-v11-campaign-breakdown";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -1046,7 +1046,7 @@
               return String(row.channel || "").toLowerCase() === campaignChannelFilter;
             });
             if (visibleRows.length === 0) {
-                body.innerHTML = '<tr><td colspan="18" class="loading">No campaign channel data yet.</td></tr>';
+                body.innerHTML = '<tr><td colspan="20" class="loading">No campaign channel data yet.</td></tr>';
               return;
             }
             body.innerHTML = visibleRows.map(function (r) {
@@ -1063,6 +1063,8 @@
                 "<td>" + formatNumber(r.email_replies || 0) + "</td>" +
                 "<td>" + (r.email_response_rate === null || r.email_response_rate === undefined ? "—" : formatPercent(r.email_response_rate)) + "</td>" +
                 "<td>" + formatNumber(r.email_bounced || 0) + "</td>" +
+                "<td>" + formatNumber(r.linkedin_invites || 0) + "</td>" +
+                "<td>" + formatNumber(r.linkedin_accepted || 0) + "</td>" +
                 "<td>" + formatNumber(r.linkedin_dms || 0) + "</td>" +
                 "<td>" + formatNumber(r.linkedin_replies || 0) + "</td>" +
                 "<td>" + formatNumber(r.vapi_calls || 0) + "</td>" +

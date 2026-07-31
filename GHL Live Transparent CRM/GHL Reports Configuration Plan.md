@@ -250,6 +250,81 @@ Once the GA4 property ID is available:
 - The executive summary webhook is live and serves the dashboard JSON from Postgres.
 - The report host scaffold now exists in `reports/` with a Dockerfile and nginx config.
 
+## Native GHL Report Improvement Plan — `6a67dce4a51a4360c60963a3` (2026-08-01)
+
+Operational CRM view for report ID `6a67dce4a51a4360c60963a3` at `https://app.gohighlevel.com/v2/location/Zwz4relUXVPxx8uohnjV/reporting/reports/view/6a67dce4a51a4360c60963a3`.
+
+### Ground Truth (verified 2026-07-31)
+
+- Report loads in the authenticated GHL UI with **11 editable widgets**; report date window is shared (`Last week`, no per-widget overrides).
+- **Already done**: `Campaign Opportunities` filtered to **Partnership Pipeline** (`tQkFYrHjALgoLz6oq0uz`); `Contacts by tag` uses **Tags → Is one of** with `partner_candidate_email` + `partner_candidate_linkedin`.
+- Email widgets filter Accepted/Opened/Clicked/Hard bounced; SMS filters Direction=Outbound; calls filter Direction=Outgoing.
+- Live pipeline IDs: Sales `MThKauqlvnEFuFmAkyWX`, Sales Outreach `dhdlf3O4tymxFtHk4aqq`, Warm `FRjpDZ1HWj3UPgczsu3t`, Partnership Pipeline `tQkFYrHjALgoLz6oq0uz`. Opportunity custom field **Owner** `Wpg7FGrQTgAY1GoKcdEJ`.
+- Constraint: widget layout is **browser-only** (no public API mutation). All edits happen in the authenticated GHL report builder, then save + re-verify.
+
+### Priority 1 — Close the partnership gap (finish what's started)
+
+| Widget | Change | Filter/spec |
+|---|---|---|
+| `Campaign Opportunities` | Keep Partnership Pipeline filter; add **stage split** | Pipeline `tQkFYrHjALgoLz6oq0uz`, group by stage (New Partner Lead `ccc3d423`, Contacted `7c666a65`, Proposal Sent `2b378529`, Closed `91ab7c92`) |
+| `Contacts by tag` | Expand tag set to the full partner tag family | `partner_candidate_email`, `partner_candidate_linkedin`, `partner_email_queued`, `partner_linkedin_requested`, `partner_replied`, `partner_not_interested`, `partner_do_not_contact` (add any that exist; omit unsupported ones) |
+| New: `Partnership by stage` | Pipeline stage-count widget | Same pipeline, all 4 stages, labeled with the pipeline context so it is not confused with general opportunities |
+
+### Priority 2 — MQL + Sales Outreach (the operational funnel)
+
+| Widget | Spec |
+|---|---|
+| MQL detail | Warm → **Qualified (MQL)** stage `3b3bd98d-cbb9-4c50-8cf3-b4eba29061c2`; show active count + entered/exited this period |
+| MQL→SQL movement | Optionally add movement conditions on stage entry into Sales Outreach → **Qualified** `91517911-3eee-45a0-b432-e36209495c16` |
+| Sales Outreach funnel | New/Attempting 1st/2nd/3rd/Engaged/Meeting Requested/Booked (`3529dd3d`, `b97e42b1`, `c46c3be3`, `c8b7a450`, `9ced8010`, `1ab47457`, `1f95dd0a`) with shared date range |
+
+### Priority 3 — Revenue + ownership (what closes)
+
+- **Closed Won count + revenue**: Sales → Closed Won `f6b65baa-eac8-4f02-b91e-2ab0c8841b2d`, sum monetary value for the selected window.
+- **Owner / assignment breakdown**: group opportunities by the `Owner` custom field (`Wpg7FGrQTgAY1GoKcdEJ`) so Jason/Marc/Janvi volumes are visible; flag unassigned Sales Outreach rows.
+
+### Priority 4 — Channel widgets (verify, don't rebuild)
+
+- **Email**: already has Accepted/Opened/Clicked/Hard bounced. Add **replied** condition if the source supports it; label each widget clearly so the source is obvious.
+- **SMS**: confirm **replies** are captured (outbound is filtered; replies come from inbound events) and add a replied metric if supported.
+- **Calls**: confirm **answered vs missed** split on top of Direction=Outgoing; add voicemail if stored.
+- **Appointments**: keep the Regulated Ads calendar (`SrtXcFVyea7pFl3nTiIK`) as the meeting source; verify status breakdown (booked/showed/no-show/cancelled).
+
+### Priority 5 — Hygiene (applies to all widgets)
+
+- **Shared date range**: one report-level window, no per-widget overrides; confirm sub-account timezone (America/Los_Angeles) is the report default.
+- **Documented filters**: every widget should name its data source (contacts / opportunities / conversations / appointments / tags) and its exact filter — put this in the widget title or a pinned note.
+- **Access**: confirm location-team sharing and read-only operator access after saving.
+
+### Explicitly OUT of scope for GHL (stays in the Executive Report)
+
+- Unipile LinkedIn invites/accepted/DMs/replies and suppression state (native GHL has no source for it unless synced into GHL objects).
+- Cross-channel campaign table (DAN/Emerald/SMS/LinkedIn/Vapi joins).
+- Provider activity, Vapi outcomes, trigger-link detail.
+
+### Execution Result (2026-08-01, authenticated GHL UI)
+
+Applied and saved in the authenticated report builder. The report now has **15 widgets** (verified persisted after reload):
+
+- Added **Partnership Pipeline Opportunities** — `Opportunity count` filtered to `Pipeline Is Partnership Pipeline`.
+- Added **Partnership Pipeline by Status** — `Opportunity counts by status` grouped by Status, filtered to `Pipeline Is Partnership Pipeline`. GHL offers no native stage-group for opportunities, so status is the available breakdown.
+- Added **Closed Won Revenue** — `Won Opportunity value` metric (monetary value of won opportunities for the period).
+- Verified existing partnership widgets are correct: `Campaign Opportunities` (Pipeline Is Partnership Pipeline), `Contacts by tag` and `Contacts counts by tags (Partnership Campaign)` (Tags Is one of with `partner_candidate_email` + `partner_candidate_linkedin`, group-by Tags surfaces the full partner tag distribution). Email Accepted/Opened/Clicked/Hard-bounced, SMS by status (Direction=Outbound), Outgoing calls by status, Appointment count by status, Opportunity counts by status, and Posts by social all verified with live data for the shared `This week` window.
+
+Not applied this session:
+
+- **MQL / Sales Outreach funnel widget**: the Stage condition requires its own per-row Pipeline context in the builder's OR-grouped filter UI and was too fragile to complete reliably; the MQL attempt was cancelled cleanly (no invalid widget left behind). MQL detail remains in the Executive Report (`mqlSummary`) and Warm → Qualified (MQL) is stage `3b3bd98d-cbb9-4c50-8cf3-b4eba29061c2` when revisited.
+- **Owner breakdown widget**: not added; GHL opportunity widgets group by Status/date, not the `Owner` custom field (`Wpg7FGrQTgAY1GoKcdEJ`). Owner detail stays in GHL opportunity views and the Executive Report.
+
+### Acceptance checklist
+
+1. All Partnership Pipeline stages appear in the partnership widget(s) with correct counts for the shared window.
+2. `Contacts by tag` shows the full partner tag set (unsupported tags cleanly omitted).
+3. MQL and Closed-Won widgets return correct numbers vs the Executive Report for the same window.
+4. Owner breakdown matches GHL opportunity owners.
+5. Zero-data windows (e.g. 2026-07-19→25 after filtering) are expected/acknowledged, not treated as breakage.
+6. Every widget has a named source + documented filter; no widget implies Unipile data.
+
 ## Execution Rule
 
 Build the GHL shell now. Add the GA4 traffic layer later without changing the report entry point or the GHL operational views.
