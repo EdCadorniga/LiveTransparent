@@ -1,7 +1,7 @@
 # Reporting Gaps and Requirements
 
 **Updated:** 2026-08-01
-**Status:** Partnership invite ledger, campaign attribution, and the core native GHL partnership widgets are implemented and saved. Remaining: acceptance/DM/reply LinkedIn instrumentation, MQL/owner widgets in the native GHL report (builder limitations), partnership email event coverage, and source-health follow-ups.
+**Status:** LinkedIn activity ledger fully instrumented (connection_accepted, dm_sent, reply_received, suppressed, sequence_completed), partnership campaign attribution live, and the core native GHL partnership widgets implemented and saved. Remaining: MQL/owner widgets in the native GHL report (builder limitations), partnership email event coverage verification, and source-health follow-ups.
 
 ## Purpose
 
@@ -62,7 +62,15 @@ The dispatcher must write `connection_request_sent` only after the Unipile reque
 
 Add a durable `Partnership LinkedIn` catalog row to the campaign summary and populate it from the activity ledger. The row must show invitations sent, invitations failed, connections accepted, DMs by step, replies, sequence completions, suppressions, response rate, acceptance rate, and current ready/requested/connected/completed state counts.
 
-**Implemented 2026-07-31**: `connection_request_sent` events are now written idempotently to `linkedin_activity_events` by the partnership dispatcher (after Unipile success) and by a reconciliation backfill from `partnership_linkedin_connection_state` requested/connected rows. The Campaign Channel Summary routes them to `Partnership LinkedIn` via `campaign_type`/`source_key = 'partnership'` and exposes `linkedin_invites`/`linkedin_accepted` columns; the verified 2026-07-31 run shows 10 invites. Still open: connection_accepted, dm_sent, reply_received, sequence_completed, and suppressed event instrumentation, plus the resulting rates.
+**Implemented 2026-07-31 through 2026-08-01**: the full LinkedIn activity ledger is now instrumented across all send/reply/suppression paths, all writing idempotently to `linkedin_activity_events`:
+
+- `connection_request_sent` — Partnership LinkedIn Dispatcher (`crKIsaL5k3YBfqDZ`, after Unipile success) + reconciliation backfill from requested/connected state rows. The verified 2026-07-31 run shows 10 invites.
+- `connection_accepted` — LinkedIn Connection Acceptance Checker (`3ttEvr5NMcQCS4Hp`), keyed per contact+provider, with partnership campaign routing via `source_table`.
+- `dm_sent` — Canonical LinkedIn DM Sequence (`d0tEtijajisIsYcs`, parallel flatten→record path) and Partnership LinkedIn DM Sequence (`nspggypNF245xzeL`, `campaign_type='partnership'`).
+- `reply_received` — LinkedIn Reply Backfill (`QfJ2EZcc7lZwNgxj`, per contact) and LinkedIn Unipile New Messages (`7o5EBdvwAuIaWW7k`, per inbound message). Reply Backfill now also carries `source_table` so partnership rows route correctly.
+- `suppressed` + `sequence_completed` — LinkedIn DM Suppression from GHL Tag (`IPN8jnR3XSurX0o1`), written when a contact is suppressed.
+
+All six workflows are active and published (versionId == activeVersionId). The Campaign Channel Summary routes partnership events to `Partnership LinkedIn` via `campaign_type`/`source_key = 'partnership'` and exposes `linkedin_invites`/`linkedin_accepted` columns. Still open: resulting acceptance/reply/completion rates surfaced in the report API, and natural (non-suppression) `sequence_completed` events from the DM sequence completion branch.
 
 ### P0: Partnership Email Event Coverage
 
@@ -157,13 +165,13 @@ Every widget must use the shared report date range, have a documented filter, an
 
 ## Data and API Work Required
 
-1. Instrument the Partnership LinkedIn Dispatcher to write activity events after successful invite requests.
-2. Instrument the Partnership LinkedIn DM Sequence to write DM, reply, suppression, and completion events.
-3. Instrument acceptance and inbound-message workflows to write partnership-scoped LinkedIn events.
-4. Add `campaign_key` and `source_key` to every new LinkedIn event.
-5. Update Campaign Channel Summary to aggregate `Partnership LinkedIn` from the ledger.
+1. Instrument the Partnership LinkedIn Dispatcher to write activity events after successful invite requests. — **done** (`crKIsaL5k3YBfqDZ`).
+2. Instrument the Partnership LinkedIn DM Sequence to write DM, reply, suppression, and completion events. — **done** (DM in `nspggypNF245xzeL`; reply in `QfJ2EZcc7lZwNgxj`/`7o5EBdvwAuIaWW7k`; suppression/completion in `IPN8jnR3XSurX0o1`).
+3. Instrument acceptance and inbound-message workflows to write partnership-scoped LinkedIn events. — **done** (`3ttEvr5NMcQCS4Hp`, `7o5EBdvwAuIaWW7k`).
+4. Add `campaign_key` and `source_key` to every new LinkedIn event. — **done** for partnership events; non-partnership events route via `emerging_pool_contacts.ghl_contact_id` join.
+5. Update Campaign Channel Summary to aggregate `Partnership LinkedIn` from the ledger. — **done** (linkedin_invites/linkedin_accepted columns).
 6. Add event coverage and error counts to the Executive Report API payload.
-7. Verify partnership email event delivery and correlate message IDs.
+7. Verify partnership email event delivery and correlate message IDs. — **partially done**: the Partnership Email Dispatcher (`Xshck23cKo1yXL9D`) already stores `ghl_message_id`/`ghl_conversation_id` per send in `partnership_release_log`, and the Campaign Channel Summary now attributes partnership email opens/clicks via a release-log fallback keyed on `contact_id`. Verified live (active version `076dcabc`): `Partnership emails` shows 59 sent / 4 opened, Emerald Executives SSO 358 sent / 1782 opened / 41 clicked, brands 101 opened, dispensaries 541 opened, and `Email - unattributed` dropped to 59 (was 2510). Still open: confirming GHL actually emits per-message open/click webhooks for inline `POST /conversations/messages` sends and that the message IDs correlate.
 8. Add owner dimensions and conflict state to the reporting read model.
 9. Reconnect GSC OAuth and resume GSC ingestion.
 10. Resolve the SimpleTexting provider HTTP 409 before counting provider sends as delivered.
@@ -180,6 +188,7 @@ Every widget must use the shared report date range, have a documented filter, an
 - LinkedIn activity can be filtered by Partnership, Brand, and Dispensary.
 - Email engagement rates show event coverage and do not silently treat missing events as zero.
 - Selected-period and previous-period values agree across KPI cards and campaign rows.
+- Email open/click rates use unique contacts rather than raw open events, or the report documents that rates are event-based (current Campaign Channel Summary `email_open_rate` counts raw events, so multi-open contacts can exceed 100%).
 - Source health identifies GSC OAuth and SimpleTexting provider blockers.
 - No report contains credentials, PITs, OAuth tokens, or signed URLs.
 
