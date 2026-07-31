@@ -9,7 +9,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 ## Current Status
 
 - The host shell is prepared in repo.
-- The public host serves build stamp `2026-07-31-v10-partnership`; the campaign/channel table, selected-period controls, prior-period comparison, and partnership attribution are live.
+- The public host serves build stamp `2026-07-31-v11-campaign-breakdown`; the campaign/channel table, selected-period controls, prior-period comparison, partnership attribution, and channel filters are live.
 - The report host is now deployment-ready with `docker-compose.yml`, `Dockerfile`, `nginx.conf`, and `index.html`.
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.
@@ -29,7 +29,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The campaign-channel endpoint returns its selected `window`, channel, campaign, SMS metrics, email metrics/rates, LinkedIn DM/reply metrics, and Vapi metrics. Rates are deliberately `null` when the campaign sent denominator is unavailable; the report renders those as `—` rather than inventing a percentage.
 - Catalog rows for `General outbound`, `Partnership emails`, `xyz`, and `abc` are intentionally present but remain zero until matching source events exist. Historical email events can also have opens/clicks without a matching send row; those are retained as source-coverage limitations.
 - Historical campaign engagement is limited by `Email_Events` coverage. The event-ingest path had no executions for the tested 2026-07-20 through 2026-07-26 window, while later windows contain live opened/bounced events. The report therefore preserves zero counts for periods with no stored events instead of fabricating rates.
-- A parallel native GHL custom report was created at report ID `6a67dce4a51a4360c60963a3`. It is intended for Campaign Opportunities, Accepted emails, Opened emails, SMS by status, and Outgoing calls by status. Its current widget configuration has not been verified because the authenticated browser URL returned 404 plus Firebase token/permission errors. Do not treat the native report as campaign-level verified until an authenticated GHL UI session confirms the widgets.
+- A parallel native GHL custom report was created at report ID `6a67dce4a51a4360c60963a3`. An authenticated GHL UI session verified 11 widgets, including Campaign Opportunities, Accepted/Open/Clicked/Hard bounced emails, SMS, calls, contacts, appointments, opportunity status, and social posts. The external Executive Report is the campaign-level view: its campaign table has All, Email, LinkedIn, SMS, and VAPI filters, dynamic campaign rows, and a zero-safe Partnership LinkedIn row. LinkedIn counts remain zero until the activity ledger is populated.
 - MQL summary (`mqlSummary`) tracks active and total opportunities in the Warm pipeline Qualified (MQL) stage. SQL contacts (`sqlContacts`) counts contacts with the SQL tag.
 - AI qualification reporting must distinguish Janvi-qualified cannabis contacts promoted to Sales Outreach from AI-pending/unverified contacts remaining in Warm and Vapi.
 - SDR reporting must capture assignment source, owner-alignment result, conflicts, and unassigned Sales Outreach records.

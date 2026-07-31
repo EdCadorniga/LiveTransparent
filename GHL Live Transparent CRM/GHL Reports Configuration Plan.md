@@ -5,6 +5,8 @@ Create the GHL-side reporting shell now, while GA4 stays deferred.
 
 This plan covers the GHL configuration that can be completed immediately and the boundaries between GHL, Postgres, and n8n.
 
+For the complete gap inventory, field-level requirements, and acceptance criteria, see [Reporting Gaps and Requirements](../docs/reports/Reporting%20Gaps%20and%20Requirements.md).
+
 ## What Lives Where
 
 ### GHL
@@ -117,8 +119,15 @@ The live GHL build already has the key structures needed for reporting:
 - Contact drill-down fields already present in the CRM
 - Opportunity/pipeline data for sales and conversion reporting
 - The live custom menu record exists in GHL and points to the embedded report host. The remaining deployment step is to publish the latest committed host build through Coolify and verify the iframe in GHL.
-- A native GHL custom report was created for the operational CRM view: report ID `6a67dce4a51a4360c60963a3`. It is intended to include opportunity, email, SMS, and outbound-call widgets and is shared with the location team. Its current widget configuration is not verified: the latest authenticated browser check returned 404 plus Firebase token/permission errors. Cross-channel campaign joins remain in the external Executive Report because native GHL widgets do not join the campaign source tables.
+- A native GHL custom report was created for the operational CRM view: report ID `6a67dce4a51a4360c60963a3`. It is intended to include opportunity, email, SMS, and outbound-call widgets and is shared with the location team. Its current widget configuration is not verified: the latest authenticated browser check returned 404 plus Firebase token/permission errors. The root `GHL_PIT` was separately verified against the official location and contacts REST endpoints with HTTP 200, so this is a report-builder browser/Firebase session issue rather than a general GHL API-access issue. Cross-channel campaign joins remain in the external Executive Report because native GHL widgets do not join the campaign source tables.
 - The external campaign summary endpoint is live at `/webhook/lt-report-campaign-channel-summary`, published as n8n version `64641979-71f3-466c-8a09-36013be6bc0e`. It returns named DAN, Emerald, SMS, LinkedIn, and Vapi campaign rows for the selected date window. This backend result must not be confused with the native GHL widget state or the older public report-host build.
+
+### Partnership Reporting Status
+
+- The Executive Report currently shows the 10 live Partnership LinkedIn invites in the overall LinkedIn activity KPI.
+- The campaign table currently shows 10 `Partnership emails`, but the 10 LinkedIn invites are not yet attributed to a `Partnership LinkedIn` row.
+- The native GHL report has no verified Partnership Pipeline filter, partnership tag filters, or native Unipile activity widget.
+- Unipile connection requests, acceptance events, LinkedIn DMs, replies, and suppression state remain Executive Report/Postgres concerns unless explicitly synchronized into supported GHL objects.
 
 ### What Should Stay Outside GHL
 
@@ -164,6 +173,10 @@ Previously blocked GHL action:
 
 - Create the report entry menu item once agency-scope custom menu credentials are available.
 - The custom menu API is agency-scoped, so the current location-level PIT is not enough to finish this step. This is no longer an active blocker because the menu record was created through authenticated GHL access.
+
+Current report-builder blocker:
+
+- A valid location PIT can read CRM data but cannot authenticate the Firebase/browser session used by the native Custom Report builder. The supported API/SDK does not expose widget-layout mutation. Finish this through an authenticated GHL UI session or an explicitly approved internal API path; do not guess undocumented report endpoints.
 
 ## GHL-Only Phased Checklist
 

@@ -36,5 +36,5 @@ This file captures the exact custom menu link payload we want to create for the 
 ## Notes
 
 - The custom menu API is agency-scoped.
-- The current location-level PIT is not sufficient to finish creation.
+- The location-level PIT is valid for REST CRM reads, but it is not sufficient for the Firebase/browser report-builder session or agency-scoped custom-menu management. The menu record has since been created through authenticated GHL access; native widget configuration still requires the authenticated report-builder session.
 - Once agency-scope menu management access is available, this payload should be enough to create the sidebar entry with the embedded report target.

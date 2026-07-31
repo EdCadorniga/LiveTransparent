@@ -1,6 +1,6 @@
 # Partnership Campaign Audit Plan
 
-**Created:** 2026-07-31 | **Status:** P1 remediation completed; P2 browser-only checks deferred | **Auditor:** LLM via n8n-lt MCP + SSH + GHL MCP
+**Created:** 2026-07-31 | **Status:** P1 remediation completed; live email and LinkedIn tests completed; reporting attribution and native report configuration remain open | **Auditor:** LLM via n8n-lt MCP + SSH + GHL MCP + direct GHL REST PIT check
 
 ---
 
@@ -12,8 +12,11 @@ This deeper audit verifies the pipeline end-to-end across three layers: n8n exec
 
 **Key known risks:**
 - Reply Poller was hardened to use `POST /conversations/search` and fail closed on lookup errors; published version `04cf007e-0ed1-41c7-abf5-4d1174b4bc9f` passed manual execution `277923`.
-- Postgres tables were bootstrapped but may have 0 rows (dispatchers hadn't fired at deployment).
-- Two API keys: \pit-48a3b580\ (partnership) and \\.GHL_PIT\ (patched workflows).
+- Partnership state was initially bootstrapped empty; the LinkedIn dispatcher now seeds it before fetching ready rows.
+- The root `GHL_PIT` was verified against `GET /locations/{locationId}` and `GET /contacts/` with HTTP 200. This resolves the assumption that GHL REST access is unavailable; it does not resolve the separate Firebase/browser report-builder session problem.
+- The Partnership Email Dispatcher sent 10 live emails in execution `281334`, all successful and written to `partnership_release_log`.
+- The Partnership LinkedIn Dispatcher sent 10 live connection requests in execution `281366`, all profile resolutions and invites successful. The Unipile lookup was corrected to `GET /users/{identifier}?account_id={account_id}` before the test.
+- The normal LinkedIn dispatcher batch size was restored to 30 after the controlled test.
 
 **Credentials:** n8n API key (\\\), GHL PIT(s), VPS SSH key at \C:\Users\edmon\.ssh\local-upload\.
 
@@ -65,7 +68,8 @@ Bridge between Postgres data and Executive Report frontend.
 | Check | How | Expected |
 |-------|-----|----------|
 | Endpoint live | curl https://automations.livetransparent.com/webhook/lt-report-campaign-channel-summary?range=7d | HTTP 200, JSON |
-| Partnership row | Find campaignChannelBreakdown entry with campaign: "Partnership emails" | Row present with email_sent count |
+| Partnership email row | Find campaignChannelBreakdown entry with campaign: "Partnership emails" | Row present with email_sent count; currently 10 for the verified 7-day window |
+| Partnership LinkedIn row | Find campaignChannelBreakdown entry with campaign: "Partnership LinkedIn" | Row must contain the 10 live invite events; currently not attributed because the activity ledger has no partnership event rows |
 | Status filter | SQL uses WHERE status = 'sent' -- Dispatcher writes 'sent' | Values match |
 | Email events | Partnership opens/clicks if Email_Events has partnership entries | Check email_event_rows CTE LIKE '%partnership%' |
 
@@ -83,7 +87,7 @@ Check whether Bukc0mgOD2r7V6ED has been updated for partnership data.
 | LinkedIn funnel | Look for partnership_linkedin_connection_state in linkedinFunnel CTE | Likely NOT present |
 | Campaign channels | May fetch from Campaign Channel Summary or own SQL | Check both paths |
 
-**Expected finding:** Executive Report API likely does NOT include partnership data yet. The Campaign Channel Summary was updated but the main Executive Report API SQL was not. If confirmed, follow-up task.
+**Current finding:** The Executive Report exposes the overall LinkedIn invite count and the Partnership email campaign row. It does not yet expose the 10 LinkedIn invites as a Partnership LinkedIn campaign row because successful Unipile invite events are not yet written with a partnership campaign key into the LinkedIn activity ledger.
 
 ---
 
@@ -131,16 +135,19 @@ Pre-audit confirmed all 7 partnership + 3 patched workflows: versionId == active
 ---
 ## Phase 8 -- GHL Native Custom Report (P2, browser-only)
 
-Requires authenticated GHL browser session. Custom Report ID: 6a67dce4a51a4360c60963a3.
+ Requires authenticated GHL browser/Firebase session. Custom Report ID: `6a67dce4a51a4360c60963a3`. The authenticated session was restored and the report was verified in the GHL UI on 2026-07-31. The GHL PIT remains valid for REST CRM access, but it cannot be substituted for the report-builder browser session and the supported API/SDK does not expose widget-layout mutation.
 
 | Check | How | Expected |
 |-------|-----|----------|
-| Report access | Navigate to report in GHL UI | Report loads (was 404+Firebase errors last check) |
-| Pipeline filterable? | Widget config -- "Partnership Pipeline" available? | Confirms or denies |
-| Tags available? | partner_* tags in contact/opportunity filters? | Confirms or denies |
-| Add widget? | Attempt to add widget scoped to Partnership Pipeline | Note restrictions |
+| Report access | Navigate to `/v2/location/Zwz4relUXVPxx8uohnjV/reporting/reports/view/6a67dce4a51a4360c60963a3` | Pass: report loads with 11 widgets and editable controls |
+| Shared date range | Inspect report date range and widget overrides | Pass: report range is `Last week`, Jul 19-25, 2026; widgets show shared report range with no per-widget override |
+| Pipeline filterable? | Inspect `Campaign Opportunities` conditions | **Fail: no conditions configured; title is not a Partnership Pipeline filter** |
+| Email filters | Inspect Accepted, Opened, Clicked, and Hard bounced conditions | Pass: filters are Accepted, Opened, Clicked, and Hard bounced respectively |
+| SMS/call filters | Inspect SMS and call conditions | Pass: SMS is Direction=Outbound; calls are Direction=Outgoing |
+| Tags available? | Inspect `Contacts by tag` conditions | **Gap: no conditions configured; widget shows general tag counts, not partnership tags** |
+| Partnership metrics | Inspect all widget titles and filters | **Gap: no partnership-specific widget or `partner_*` filter is configured; native GHL has no Unipile activity source** |
 
-API doesn't expose widget mutation. If 404 persists, escalate to GHL support.
+API doesn't expose widget mutation. The browser route still reports an HTTP 404 at the document level and the page logs unrelated GHL integration/Firebase errors, but the authenticated SPA renders the report and its data successfully. The remaining work is UI configuration: add Partnership Pipeline and partnership-tag filters, then save and re-verify. Do not guess undocumented report endpoints.
 
 ---
 
@@ -173,6 +180,8 @@ Hard without real Unipile event. Verify via Phase 7 logic inspection + monitor r
 ---
 
 ## Phase 10 -- Documentation Sync (P3)
+
+The detailed reporting gap inventory and field-level requirements are maintained in `docs/reports/Reporting Gaps and Requirements.md`.
 
 After all findings collected:
 
@@ -254,5 +263,30 @@ P3 (after findings):
 
 ### Deferred P2 Checks
 
-- GHL Native Custom Report browser verification remains blocked: the authenticated report URL returns HTTP 404 with Firebase token/permission errors.
+- GHL Native Custom Report browser verification is complete. The report loads in the authenticated GHL UI, but its `Campaign Opportunities` and `Contacts by tag` widgets are unfiltered and therefore do not yet represent partnership-only metrics.
 - Live LinkedIn invite and live email sends were intentionally not executed. The LinkedIn dispatcher remains a send-capable workflow and requires a separate approved production smoke test.
+
+### Re-audit Findings (2026-07-31)
+
+- The corrected published LinkedIn dispatcher and DM sequence passed safe manual executions `277974` and `277975`; both stopped after successful empty PostgreSQL reads and did not send anything.
+- Historical scheduled executions `277633` and `277645` failed because the published SQL at that time contained doubled quotes around `ready` and `connected`. The current published versions use valid SQL, but the scheduled path still needs monitoring after its next production tick.
+- The previous `POST /contacts/search` concern was resolved by replacing partnership candidate/active-contact reads with paginated `GET /contacts/` and explicit failure handling. Direct PIT checks now return HTTP 200 for location and contacts access.
+- `partnership_linkedin_connection_state` was initially empty. The LinkedIn dispatcher now runs `Seed Partnership State` before its ready-queue read and has 127 seeded `ready` rows.
+- `partnership_release_log` has zero rows and no contacts currently have `partner_email_queued`, which is expected while live email sending is withheld. The scheduled email run `277632` reported zero candidates, but its result cannot distinguish an empty queue from the swallowed contacts-search failure.
+- Partnership workflows contain provider/API secrets and the protected state-upsert secret directly in Set/Code node configuration and fallback literals. This is an operational security gap even though the values are redacted from this report; they should move to managed credentials or protected runtime configuration and be rotated after migration.
+- The native GHL Custom Report was verified through the authenticated browser session. The report contains 11 widgets across opportunities, email, SMS, calls, contacts, appointments, and social posts; partnership-specific filters are still missing.
+
+### Gap Remediation (2026-07-31)
+
+- Replaced partnership email candidate lookup with paginated `GET /contacts/`, with explicit failure handling. Safe execution `278070` found 98 candidates and planned 60; it sent 0.
+- Replaced Reply Poller active-contact lookup with paginated `GET /contacts/`, with explicit failure handling. Safe execution `278071` completed with `checked=0`, `replied=0`, and no errors.
+- Added `Seed Partnership State` to the LinkedIn dispatcher. It populated 127 partnership state rows from the 127 LinkedIn-tagged contacts before the ready-queue fetch.
+- Replaced LinkedIn candidate lookup with paginated `GET /contacts/` and explicit failure handling. Safe execution `278203` found 100 candidate rows, planned 30 requests, and sent 0.
+- Set partnership Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence `defaultDryRun=true` during remediation. Live outbound activation remains an explicit follow-up decision.
+- DM safe execution `278342` completed successfully with no sends.
+- Direct GHL PIT verification returned HTTP 200 for the authorized location and contacts endpoints using the required Bearer/Version headers.
+- All modified workflows were republished with matching draft and active versions after the REST updates.
+- Added an existing-state lookup before LinkedIn seeding so recurring runs do not rewrite all 127 rows. Validation execution `278675` found `existing=127`, `seeded=0`, and completed the full dry-run path successfully.
+- Post-remediation scheduled executions at 20:00 (`278513`, `278515`, `278634`, and `278611`) completed successfully; no errors were recorded after the fixes.
+- Re-audited all 7 partnership workflows: each is active with `versionId == activeVersionId`. Corrected hourly dispatcher interval definitions to explicit weekday cron schedules, fixed the DM terminal completion scan, and corrected the shared Acceptance Checker state-upsert header. Safe smoke executions `281269` (email), `281268` (LinkedIn), and `281270` (DM) succeeded; all outbound paths remain dry-run.
+- User-approved live activation completed after the audit: Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence now have `defaultDryRun=false`; drafts were published and verified active. No manual post-activation execution was run to avoid creating an unscheduled live batch.

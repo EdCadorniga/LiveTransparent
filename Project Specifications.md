@@ -67,7 +67,14 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 - If someone responds on LinkedIn, immediately suppress them from all remaining automated LinkedIn DMs and persist that suppression in the shared state.
 - State sync must use bounded direct HTTP calls with explicit retry/error reporting; API failures must not be reported as an empty healthy scan.
 - Connection dispatch must atomically claim a `ready` row before an invite and perform a live GHL suppression/reply check immediately before sending.
-- The state-upsert boundary uses the protected n8n `httpHeaderAuth` credential `LT LinkedIn State Upsert Webhook` and requires `X-LT-LinkedIn-State-Secret`. Callers must send the shared header; do not reuse an unrelated webhook secret. The secret is not stored in the repository.
+- The state-upsert boundary uses the protected n8n `httpHeaderAuth` credential `LT LinkedIn State Upsert Webhook` and requires `X-LT-LinkedIn-State-Secret`. Callers must send the shared header; do not reuse an unrelated webhook secret. In Community Edition, each relevant workflow stores `stateUpsertSecret` in its single `Config` node and Code nodes read that value instead of embedding the literal. The secret is not stored in the repository.
+
+### Partnership LinkedIn State
+
+- Partnership LinkedIn state is isolated in `partnership_linkedin_connection_state` with `source_key = 'partnership'`; it must not be conflated with the main `linkedin_connection_state` table.
+- The partnership dispatcher seeds `ready` rows from GHL contacts tagged `partner_candidate_linkedin` before reading its ready queue. The 2026-07-31 seed produced 127 rows.
+- Partnership Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence remain `defaultDryRun=true` until explicit live-launch approval. A successful dry run is not evidence that an email, invitation, or DM was sent.
+- Before activation, verify GHL suppression/reply checks, state-upsert authentication, idempotent claims, release-log writes, and the exact active version. Do not activate a send-capable path merely because the PIT can read contacts.
 
 ### SMS Campaign Scope
 
@@ -109,6 +116,8 @@ Normalized callback output:
 ## GHL Configuration
 
 - Secrets: `GHL_PIT` aliased as `GHL_API_KEY`, `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV`
+- The root `GHL_PIT` was directly verified on 2026-07-31 against the official REST location and contacts endpoints with HTTP 200. PIT access confirms CRM/API access only; it does not authenticate the Firebase/browser session used by the native Custom Report builder.
+- Native GHL Custom Report widget layout has no supported public API/SDK mutation surface. Use the authenticated GHL UI or an explicitly approved internal API path; do not infer report-builder access from successful PIT REST calls.
 - Voice write actions: add `vapi_*` tags per outcome, create contact notes for completed calls
 
 ## Guardrails

@@ -17,6 +17,20 @@ UNION ALL
 SELECT 'li_state', count(*) FROM partnership_linkedin_connection_state;
 SELECT tablename, indexname FROM pg_indexes WHERE tablename LIKE 'partnership%' ORDER BY tablename, indexname;
 SELECT source_key, count(*) FROM partnership_linkedin_connection_state GROUP BY source_key;
+SELECT table_name, column_name, data_type
+FROM information_schema.columns
+WHERE table_name IN ('linkedin_activity_events', 'SimpleTexting_Campaign_Event_Log', 'Email_Events', 'DAN_Release_Log', 'Emerald_Release_Log')
+ORDER BY table_name, ordinal_position;
+SELECT COALESCE(campaign_type, ''), COALESCE(source_key, ''), event_type, count(*)
+FROM linkedin_activity_events
+WHERE event_at >= CURRENT_DATE - INTERVAL '90 days'
+GROUP BY 1, 2, 3
+ORDER BY 1, 2, 3;
+SELECT campaign_key, event_type, count(*)
+FROM "SimpleTexting_Campaign_Event_Log"
+WHERE created_at >= CURRENT_DATE - INTERVAL '90 days'
+GROUP BY 1, 2
+ORDER BY 1, 2;
 """
     _, env_out, _ = client.exec_command(f"docker exec {postgres} env")
     environment = {}

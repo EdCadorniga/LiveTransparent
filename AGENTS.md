@@ -40,9 +40,9 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - The Executive Report accepts `range=7d|30d|90d|custom` plus `from=YYYY-MM-DD` and `to=YYYY-MM-DD`. For every selected period it loads the immediately preceding equal-length period and shows current value, prior value, absolute change, and percentage change.
 - Reporting weeks use the report API's returned date window and the sub-account reporting timezone. Do not mix widget-level date overrides with the shared selected-period comparison unless the metric definition explicitly requires it.
 - Campaign summary workflow: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published. Its selected-window endpoint is `/webhook/lt-report-campaign-channel-summary`.
-- Campaign summary version `64641979-71f3-466c-8a09-36013be6bc0e` returns named channel/campaign rows. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn uses `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi uses queue campaign IDs. Catalog rows for `General outbound`, `Partnership emails`, `xyz`, and `abc` remain zero until matching source events exist.
-- The Executive Report is live at `https://reports.livetransparent.com` as build `2026-07-31-v10-partnership`; it includes the campaign/channel table, LinkedIn columns, selected-period controls, and prior-period comparison.
-- The native GHL report URL must be verified through an authenticated GHL UI session. The last browser check returned 404 plus Firebase token/permission errors, so native widget configuration is not currently confirmed.
+- Campaign summary active version `14caff0f-fa99-4bab-9867-792ef8836de6` returns named channel/campaign rows. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn uses `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi uses queue campaign IDs. Catalog rows for `General outbound`, `Partnership emails`, `xyz`, and `abc` remain zero until matching source events exist; `Partnership LinkedIn` is a zero-safe catalog row.
+- The Executive Report is live at `https://reports.livetransparent.com` as build `2026-07-31-v11-campaign-breakdown`; it includes campaign/channel filters, the campaign table, LinkedIn columns, selected-period controls, and prior-period comparison.
+- The root `GHL_PIT` was directly verified against the official REST location and contacts endpoints on 2026-07-31; both returned HTTP 200 with the required Bearer/Version headers. The native GHL report `6a67dce4a51a4360c60963a3` was also verified in an authenticated GHL UI session: it loads 11 widgets and supports editing. Its `Campaign Opportunities` and `Contacts by tag` widgets currently have no partnership-specific filters, so partnership metrics are not yet isolated.
 - The official GHL API/SDK does not expose Custom Report widget-layout mutation. Do not guess undocumented report-builder endpoints; native widget changes require authenticated GHL UI access or an explicitly approved internal API path.
 - Never commit GHL PITs, Firebase signed URLs, OAuth tokens, or captured response artifacts containing credentials. Use environment placeholders in documentation and leave sensitive captures untracked.
 
@@ -53,6 +53,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) is published on `fa1a5dfe-d00c-47b3-98d3-862ea6f912a7`. It uses direct `this.helpers.httpRequest`, bounded contact/API budgets, retry/timeouts, explicit error reporting, and terminal/reply-state preservation.
 - `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`) is published on `bd385c89-0678-4301-84e6-abc63fea3c28`. It reads Config explicitly, atomically claims `ready` rows as `requested_pending`, and performs live suppression/reply checks before invites. Do not manually execute it without explicit approval because it can send LinkedIn invites.
 - `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) is published on `d9168bbc-9c96-44fd-a356-12e645a2ec3d`; its webhook requires the protected `X-LT-LinkedIn-State-Secret` header. All discovered callers, including the partnership dispatcher/DM path, were updated and published. Unauthorized requests return `403`; malformed authorized requests reach the workflow and fail validation without a state write.
+- Community Edition variable convention: each relevant LinkedIn state-upsert workflow has exactly one `Config` node. Workflow-scoped values such as `stateUpsertSecret` live there and Code nodes read them from Config instead of embedding request literals. Config nodes are operational storage, not equivalent to managed credentials; keep access restricted and migrate to credentialed HTTP Request nodes when possible.
 
 ## Working Rules
 
@@ -1064,7 +1065,7 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 
 `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`): `GHL - Create Call Note` node now has `onError: continueRegularOutput`. Previously the dialer errored on every run because deleted GHL contact `AX3wfQNpRwm6DG0HgUE2` (still in `voice_call_queue`) caused a 400 on the note creation endpoint. Calls go out successfully; note failure is cosmetic.
 
-## Partnership Marketing Pipeline (LIVE 2026-07-31)
+## Partnership Marketing Pipeline (Infrastructure Live, Outbound Dry-Run 2026-07-31)
 
 131 content partnership contacts imported. Two parallel sequences from Cameron's accounts: a 4-step email sequence and a 4-step LinkedIn DM cadence. All infrastructure isolated from DAN/Emerald (separate Postgres tables, workflows, GHL pipeline).
 
@@ -1073,7 +1074,7 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 - **GHL Pipeline**: `Partnership Pipeline` (`tQkFYrHjALgoLz6oq0uz`) — New Partner Lead → Contacted → Proposal Sent → Closed
 - **Contacts**: 98 email + 33 LinkedIn-only, all assigned to Janvi (`ck6TRlU3wnTmMxuVpn5F`)
 - **Tags**: `partner_candidate_email`, `partner_candidate_linkedin`, `partner_email_queued`, `partner_linkedin_requested`, `partner_email_sequence_completed`, `partner_replied`, `partner_not_interested`, `partner_do_not_contact`
-- **GHL API key**: `pit-48a3b580-6906-418b-8215-3257599fd551` (embedded in dispatcher Config nodes + Reply Poller via `$env.GHL_PIT`)
+- **GHL API key**: configured in the live dispatcher Config nodes and Reply Poller runtime; value intentionally omitted from documentation
 - **14 contacts excluded** from original CSVs due to wrong company/email domain mismatches — awaiting corrections
 
 ### Email Templates
@@ -1100,9 +1101,9 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 
 | Workflow | ID | Status | Role |
 |----------|----|--------|------|
-| LT - Partnership Email Dispatcher | Xshck23cKo1yXL9D | Active | 60/day, 11am ET Mon-Fri, 2-weekday intervals |
-| LT - Partnership LinkedIn Dispatcher | crKIsaL5k3YBfqDZ | Active | 30 connection requests/day, 3pm CT Mon-Fri, atomic claim |
-| LT - Partnership LinkedIn DM Sequence | nspggypNF245xzeL | Active | 4-step DM cadence, 2-weekday intervals |
+| LT - Partnership Email Dispatcher | Xshck23cKo1yXL9D | Active, dry-run | 60/day planning, 11am ET Mon-Fri, 2-weekday intervals |
+| LT - Partnership LinkedIn Dispatcher | crKIsaL5k3YBfqDZ | Active, dry-run | 30 connection-request planning, 3pm CT Mon-Fri, state seeding + atomic claim |
+| LT - Partnership LinkedIn DM Sequence | nspggypNF245xzeL | Active, dry-run | 4-step DM planning, 2-weekday intervals |
 | LT - Partnership Reply Handler | mRDw57IHtnQe4wOo | Active webhook | `/webhook/lt-partnership-reply` — tags `partner_replied`, creates opportunity, Slack alert |
 | LT - Partnership Reply Poller | 0SQ7tTk03okegp9V | Active | Every 5 min — polls GHL for inbound email replies, triggers Reply Handler |
 | LT - Partnership Bulk Import | zmrYrUjVcyXaS7PJ | Active webhook | `/webhook/lt-partnership-bulk-import` |
@@ -1120,9 +1121,13 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 
 ### Remaining
 
-- **GHL Custom Report**: Add partnership metrics to native report `6a67dce4a51a4360c60963a3` — requires authenticated browser session
+- **GHL Custom Report**: Add partnership metrics to native report `6a67dce4a51a4360c60963a3` — PIT REST access is confirmed, but widget layout still requires an authenticated GHL browser/Firebase session or an explicitly approved internal API path. Do not guess undocumented report-builder endpoints.
 - **Re-import 14 excluded contacts** after corrected company names provided
-- **Reply Poller API gap resolved 2026-07-31**: `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`) now uses `POST /conversations/search`, records lookup failures, and fails closed instead of treating an ambiguous lookup as no reply. Published version `04cf007e-0ed1-41c7-abf5-4d1174b4bc9f`; manual execution `277923` succeeded with no active partnership email queue.
+- **Outbound activation**: Approved and enabled 2026-07-31. Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence now use `defaultDryRun=false`; their published active versions are `6b7490a9-05d8-44e1-8f94-3c4427a7f969`, `29089175-1b37-4271-8b03-d4722b809692`, and `3bd0b759-4740-4e67-85ef-9540bf31c08e`. The dispatcher seeds 127 partnership `ready` state rows before queue fetch.
+- **Live workflow verification 2026-07-31**: All 7 partnership workflows are active and published. Fixed the Email Dispatcher schedule to `0 11 * * 1-5` America/New_York, the LinkedIn Dispatcher schedule to `0 15 * * 1-5` America/Chicago, and the LinkedIn DM schedule to `0 12 * * 1-5` America/Chicago; prior interval definitions were firing hourly. Fixed the DM terminal completion scan to include `sequence_step <= 4` and corrected the shared LinkedIn Acceptance Checker state-upsert header. Safe manual smoke executions `281269` (email), `281268` (LinkedIn), and `281270` (DM) succeeded with outbound dry-run enabled.
+- **Live outbound activation 2026-07-31**: Explicit user approval changed all three outbound `defaultDryRun` controls to `false`; all three drafts were published and verified with `versionId == activeVersionId`. Do not manually execute these workflows unless intentionally sending an additional live batch; scheduled runs now send real outreach.
+- **Credential migration**: Move partnership GHL, Unipile, and state-upsert secrets out of Config/Code literals and rotate them after migration.
+- **Reply Poller API gap resolved 2026-07-31**: `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`) uses supported `GET /contacts/` pagination for active contacts, then `POST /conversations/search` for reply lookup. It records lookup failures and fails closed instead of treating an ambiguous lookup as no reply. Safe execution `278071` completed with no active partnership email queue. Current published version is `42fbe7fc-fffe-4784-a4a4-4187a385bd5b`.
 
 ### Audit (2026-07-31)
 
@@ -1130,7 +1135,9 @@ Full audit passed:
 - All 7 partnership workflows published and active (versionId == activeVersionId for all)
 - 3 patched LinkedIn workflows verified: correct SQL UNION/UNION ALL queries, source_table routing, and dedicated partnership update nodes in Reply Backfill and New Messages
 - Campaign Channel Summary (`MvPLbUAN9IIQikxb`) published with `partnership_release_log` UNION ALL in `email_sent` CTE (version `6641aa9a`). Endpoint confirmed returning "Partnership emails" row.
-- Postgres tables `partnership_release_log` and `partnership_linkedin_connection_state` bootstrapped on live VPS (both had 0 rows as expected before dispatcher first run)
+- Postgres tables `partnership_release_log` and `partnership_linkedin_connection_state` bootstrapped on live VPS; the LinkedIn state table has 127 seeded `ready` rows. The release log was empty during the initial dry-run audit; outbound is now live.
+- Partnership candidate lookups use supported `GET /contacts/` pagination with explicit failure handling. LinkedIn state seeding checks existing IDs first; validation execution `278675` found 127 existing rows, seeded 0, and completed the dry-run request plan without outbound sends.
+- Post-remediation scheduled executions `278513` (email), `278515` (LinkedIn), `278634` (DM), and `278611` (reply polling) succeeded with no error/crash executions after the fixes.
 - Executive Report frontend deployed as build `2026-07-31-v10-partnership` to reports.livetransparent.com. Footer note updated to mention partnerships. Frontend directly fetches campaign channel data — no API change needed for rendering.
 - GHL contacts verified: 98 `partner_candidate_email`, 127 `partner_candidate_linkedin` (94 overlap + 33 LinkedIn-only), 131 total. All assigned to Janvi.
 - 4 email templates confirmed in folder `Partnership Email Campaign` (`6a6b768aa43d24a7ce1514f1`)

@@ -35,8 +35,8 @@ Use this pipeline for content partnership outreach — independent of the main s
 4. **Closed**: Partnership confirmed or declined.
 
 #### Outbound Sequences
-- **Email**: 4-step sequence from `cameron@livetransparent.com`, 60/day max, 11am ET Mon-Fri, 2-weekday intervals. Managed by `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`).
-- **LinkedIn**: 30 connection requests/day, 3pm CT Mon-Fri, handled by `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`). Connected contacts receive 4-step DM cadence via `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`).
+- **Email**: 4-step sequence from `cameron@livetransparent.com`, 60/day max, 11am ET Mon-Fri, 2-weekday intervals. Managed by `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`). It is currently `defaultDryRun=true`; no release-log rows exist until live launch approval.
+- **LinkedIn**: 30 connection requests/day, 3pm CT Mon-Fri, handled by `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`). The dispatcher seeds 127 `ready` partnership state rows before queue fetch. Connected contacts receive 4-step DM cadence via `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`). Both LinkedIn workflows are currently `defaultDryRun=true`; dry-run executions planned 30 requests and sent 0.
 
 #### Reply Detection
 - Email replies: polled every 5 minutes by `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`). On detection, the Reply Handler tags the contact `partner_replied`, creates a Partnership Pipeline opportunity, and posts to Slack.
@@ -52,7 +52,7 @@ Use this pipeline for content partnership outreach — independent of the main s
 #### Reporting
 - Campaign Channel Summary includes "Partnership emails" row via `partnership_release_log`
 - Executive Report renders the campaign channel table with partnership metrics
-- GHL Custom Report partnership widgets pending (browser-only)
+- GHL Custom Report partnership widgets pending. The GHL PIT can read CRM REST data, but widget configuration requires the authenticated GHL browser/Firebase report-builder session or an approved internal API path.
 
 ## 3C) Original Pipelines
 

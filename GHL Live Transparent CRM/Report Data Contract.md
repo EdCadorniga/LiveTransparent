@@ -8,6 +8,8 @@ Use it as the bridge between GHL, GA4, and GSC and the Postgres rollup layer in 
 - GHL: leads, opportunities, pipeline movement, forms, revenue, and calls
 - GA4: traffic and on-site engagement
 - GSC: organic search visibility, queries, pages, and site data
+- Unipile: LinkedIn connection requests, acceptance, direct messages, replies, and provider failures
+- SimpleTexting: SMS delivery and reply events when the provider accepts messages
 
 ## Required Identifiers
 - GHL location ID: `Zwz4relUXVPxx8uohnjV`
@@ -27,6 +29,9 @@ Use it as the bridge between GHL, GA4, and GSC and the Postgres rollup layer in 
 - stage
 - lead temperature
 - identity / matching confidence
+- source key and campaign key
+- owner and assignment source
+- event type and event status
 
 ## GHL Fields Consumed by the Report
 Use the live custom fields from the operating snapshot and warm-routing spec:
@@ -162,6 +167,9 @@ These live workflow families create or mutate the records the report reads:
 - `report_raw_gsc_queries`
 - `report_raw_gsc_pages`
 - `report_raw_gsc_site`
+- `linkedin_activity_events` or an equivalent partnership UNION source
+- `partnership_linkedin_connection_state`
+- `partnership_release_log`
 
 ## Deferred Later-Phase Tables
 ## Bridge Tables
@@ -202,6 +210,7 @@ These live workflow families create or mutate the records the report reads:
 - Email campaign metrics (sent, opened, clicked, bounced, unsubscribed, complained) — added 2026-07-21
 - Email engagement rates (open rate, click rate, bounce rate) — added 2026-07-21
 - LinkedIn outreach funnel (ready → requested → connected → DM active → completed) — added 2026-07-21
+- Partnership LinkedIn campaign row with invite, acceptance, DM, reply, completion, suppression, failure, and event-coverage metrics
 - Vapi voice campaign breakdown (calls by campaign, queue distribution) — added 2026-07-21
 - MQL/SQL contact tracking (opportunities in MQL stage, contacts with SQL tag) — added 2026-07-21
 - AI-qualified cannabis contacts promoted to Sales Outreach

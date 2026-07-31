@@ -24,6 +24,8 @@ Use it for current decisions. Use the deeper runbooks for implementation detail.
   - `GHL_API_KEY` is aliased to `GHL_PIT` in root `.env` for workflow compatibility.
   - Both the LinkedIn PIT and the main PIT are valid and stored outside the repository.
 - If an MCP wrapper fails on a valid endpoint, verify through direct GHL API before assuming the PIT is invalid.
+- Direct verification on 2026-07-31: `GET /locations/Zwz4relUXVPxx8uohnjV` and `GET /contacts/?locationId=Zwz4relUXVPxx8uohnjV&limit=1` returned HTTP 200 with the required Bearer and Version headers. PIT access confirms REST CRM access, not native Custom Report builder access.
+- Native Custom Report `6a67dce4a51a4360c60963a3` still requires a valid GHL browser/Firebase session for widget configuration; the public API/SDK has no supported widget-layout mutation endpoint.
 - GA4/GSC traffic is not available natively in GHL and must be pulled into the report layer separately.
 
 ## Active Pipelines
@@ -155,7 +157,8 @@ Keep these aligned with routing and report logic:
 - `LT - Partnership LinkedIn URL Update` (`ew6uQQnAjgCbjeGn`) — active webhook (one-time URL update)
 - 3 existing LinkedIn workflows patched to query `partnership_linkedin_connection_state` (Acceptance Checker, Reply Backfill, New Messages)
 - Reporting: Campaign Channel Summary includes "Partnership emails" row; Executive Report renders campaign table. Postgres tables bootstrapped 2026-07-31.
-- GHL Custom Report partnership widgets pending (requires authenticated browser session)
+- Partnership LinkedIn state table contains 127 `ready` rows seeded from GHL contacts. Email, LinkedIn Dispatcher, and LinkedIn DM Sequence remain `defaultDryRun=true`; dispatcher dry-run `278203` planned 30 requests with 0 sent and DM dry-run `278342` completed with no sends.
+- GHL Custom Report partnership widgets pending (requires authenticated browser/Firebase session; PIT REST access is confirmed but does not unlock the builder).
 
 ### Emerald (Staged — Marketing Email Paused 2026-06-05)
 - All 7 Emerald workflows are inactive (staged by design since pause):
