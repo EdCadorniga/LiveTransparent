@@ -105,6 +105,8 @@ Normalize contact owner, native opportunity owner, custom opportunity `Owner`, c
 
 Expose last successful sync, latest attempt, row count, selected-window coverage, and failure message for GHL contacts, opportunities, pipeline history, calls, appointments, email events, SimpleTexting events, Unipile LinkedIn activity, Vapi queue/outcomes, GA4, and GSC. GSC is currently live after OAuth renewal and must retain its health/coverage status. SimpleTexting sends remain blocked by provider HTTP 409.
 
+**Coverage probe added (2026-08-01)**: `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`) now upserts `report_source_health` rows for `email_events` and `linkedin_activity_events` (max event freshness, row count, 24h staleness) on every hourly run before evaluating QA. Verified live: `email_events` ready/22,613 rows; `linkedin_activity_events` ready/10 rows (the verified partnership invites). Because the Executive Summary API reads all `report_source_health` rows dynamically, these now appear in the report `health` section without query changes.
+
 ## Executive Report Requirements
 
 ### Shared Controls
