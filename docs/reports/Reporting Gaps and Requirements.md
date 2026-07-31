@@ -107,6 +107,8 @@ Expose last successful sync, latest attempt, row count, selected-window coverage
 
 **Coverage probe added (2026-08-01)**: `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`) now upserts `report_source_health` rows for `email_events` and `linkedin_activity_events` (max event freshness, row count, 24h staleness) on every hourly run before evaluating QA. Verified live: `email_events` ready/22,613 rows; `linkedin_activity_events` ready/10 rows (the verified partnership invites). Because the Executive Summary API reads all `report_source_health` rows dynamically, these now appear in the report `health` section without query changes.
 
+**Known minor limitation (2026-08-01)**: the Executive Summary API's `linkedinWeeklyActivity.inboundReplies`/`uniqueResponders` still count only `event_type = 'inbound_reply'` (not `reply_received`), and `linkedinFunnel` has no `suppressed` count. The Campaign Channel Summary (the primary campaign surface) already counts both reply event types and the LinkedIn funnel suppression is available in the state table. A patch to the `Build Query` jsCode is drafted in the repo session notes but not deployed because the node's ~61KB query string is high-risk to rewrite; apply it during a future full-workflow export/edit cycle.
+
 ## Executive Report Requirements
 
 ### Shared Controls
