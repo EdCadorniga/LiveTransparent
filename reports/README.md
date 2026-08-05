@@ -9,7 +9,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 ## Current Status
 
 - The host shell is prepared in repo.
-- The public host serves build stamp `2026-07-31-v11-campaign-breakdown`; the campaign/channel table, selected-period controls, prior-period comparison, partnership attribution, and channel filters are live.
+- The public host serves build stamp `2026-08-01-v12-campaign-breakdown`; the campaign/channel table, selected-period controls, prior-period comparison, partnership attribution, channel filters, and social engagement fields are live.
 - The report host is now deployment-ready with `docker-compose.yml`, `Dockerfile`, `nginx.conf`, and `index.html`.
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.
@@ -27,6 +27,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - Vapi voice campaign breakdown (`vapiCampaignBreakdown`) and queue distribution (`vapiQueueDistribution`) are now surfaced from `voice_call_attempt` and `voice_call_queue`.
 - A separate live campaign-channel endpoint (`/webhook/lt-report-campaign-channel-summary`) returns date-filtered named rows for DAN, Emerald, SMS, LinkedIn, and Vapi. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `campaign_key`, LinkedIn uses append-only activity events joined to Brand/Dispensary source pools (plus `linkedin_invites`/`linkedin_accepted` columns routed by `campaign_type`/`source_key = 'partnership'`), and Vapi uses queue campaign IDs.
 - The campaign-channel endpoint returns its selected `window`, channel, campaign, SMS metrics, email metrics/rates, LinkedIn DM/reply metrics, and Vapi metrics. Rates are deliberately `null` when the campaign sent denominator is unavailable; the report renders those as `—` rather than inventing a percentage.
+- The selected-window campaign endpoint now reflects the verified historical partnership replies: `Partnership emails` shows 59 sent / 1 reply / 1.69% response rate, and `Partnership LinkedIn` shows 17 invites / 1 reply.
 - Catalog rows for `General outbound`, `Partnership emails`, `xyz`, and `abc` are intentionally present but remain zero until matching source events exist. Historical email events can also have opens/clicks without a matching send row; those are retained as source-coverage limitations.
 - Historical campaign engagement is limited by `Email_Events` coverage. The event-ingest path had no executions for the tested 2026-07-20 through 2026-07-26 window, while later windows contain live opened/bounced events. The report therefore preserves zero counts for periods with no stored events instead of fabricating rates.
 - A parallel native GHL custom report was created at report ID `6a67dce4a51a4360c60963a3`. An authenticated GHL UI session verified 11 widgets, including Campaign Opportunities, Accepted/Open/Clicked/Hard bounced emails, SMS, calls, contacts, appointments, opportunity status, and social posts. The external Executive Report is the campaign-level view: its campaign table has All, Email, LinkedIn, SMS, and VAPI filters, dynamic campaign rows, and LinkedIn Invites/Accepted columns. The `Partnership LinkedIn` row is populated from the durable `connection_request_sent` activity ledger (10 events for the verified 2026-07-31 run).
@@ -42,6 +43,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
   - Downstream lead/opportunity counts come from the GHL bridge and rollup tables.
   - Meta spend, clicks, and impression truth remain in the staged raw ingest and source health path, but are not shown in the Executive Report yet by design.
 - The current cohort view now shows usable source-field coverage, bridge-match coverage, and lead-to-sale match coverage separately so attribution quality can be diagnosed without inflating funnel metrics.
+- The Executive Summary API and embedded report expose social likes, comments, shares, saves, reach, and impressions when supplied by the raw post payload. Current PIT-based post ingestion provides likes/comments/shares only; OAuth-backed GHL statistics ingestion is still required for saves/reach/impressions.
 - `LT - Report Attribution Bridge` now rebuilds a rolling 90-day window using normalized raw contact ids and stored GHL attribution fields, which materially improved cohort bridge coverage in the live report.
 - The embedded report now includes a metric glossary so the visible cards are defined where they appear.
 - The primary funnel cards now use Users as the denominator for conversion rates, while Recorded Visits remains traffic volume context.

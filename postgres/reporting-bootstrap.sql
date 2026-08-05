@@ -651,6 +651,8 @@ CREATE TABLE IF NOT EXISTS voice_call_queue (
   dnc boolean NOT NULL default false,
   max_attempts integer NOT NULL default 3,
   attempt_count integer NOT NULL default 0,
+  phone_candidates jsonb,
+  phone_index integer NOT NULL default 0,
   last_attempt_at timestamptz,
   next_attempt_at timestamptz,
   locked_at timestamptz,

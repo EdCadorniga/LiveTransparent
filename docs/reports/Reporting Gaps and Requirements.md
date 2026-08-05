@@ -1,7 +1,7 @@
 # Reporting Gaps and Requirements
 
-**Updated:** 2026-08-01
-**Status:** LinkedIn activity ledger fully instrumented (connection_accepted, dm_sent, reply_received, suppressed, sequence_completed), partnership campaign attribution live, and the core native GHL partnership widgets implemented and saved. Remaining: MQL/owner widgets in the native GHL report (builder limitations), partnership email event coverage verification, and source-health follow-ups.
+**Updated:** 2026-08-04
+**Status:** LinkedIn activity ledger and partnership reply attribution are live, the two verified historical partnership replies are backfilled, and the Executive Report exposes social engagement fields. Remaining: OAuth-backed social statistics ingestion for saves/reach/impressions and native GHL MQL/owner widgets (builder limitations).
 
 ## Purpose
 
@@ -12,12 +12,13 @@ This document records what is missing from the native GHL report and the externa
 ### Executive Report
 
 - Host: `https://reports.livetransparent.com`
-- Current build: `2026-07-31-v11-campaign-breakdown`
+- Current build: `2026-08-01-v12-campaign-breakdown`
 - Selected-period controls and prior equal-length comparison are live.
 - Campaign Channel Summary is live and returns named campaign rows.
-- `Partnership emails` currently shows 10 email sends for the verified 7-day window.
-- Overall LinkedIn activity shows 10 LinkedIn invites for the same window after the live partnership test.
-- The campaign table shows `Partnership LinkedIn` with 10 durable `connection_request_sent` events for the verified 2026-07-31 test.
+- In the current 30-day window, `Partnership emails` shows 59 sends, 1 reply, and a 1.69% response rate.
+- In the current 30-day window, `Partnership LinkedIn` shows 17 invites and 1 reply.
+- The two historical replies are stored with verified provider timestamps: Strider Peterson email at `2026-08-03T15:41:03Z` and Jaret Christopher LinkedIn at `2026-08-01T03:05:55Z`.
+- Social post totals currently show 24 likes, 3 comments, and 4 shares. The UI also exposes saves, reach, and impressions, but the PIT-based post ingest currently supplies none of those fields.
 - The Executive Report is the only current surface that can combine Postgres state, Unipile activity, GHL CRM data, and campaign joins.
 
 ### Native GHL Report
@@ -70,7 +71,7 @@ Add a durable `Partnership LinkedIn` catalog row to the campaign summary and pop
 - `reply_received` — LinkedIn Reply Backfill (`QfJ2EZcc7lZwNgxj`, per contact) and LinkedIn Unipile New Messages (`7o5EBdvwAuIaWW7k`, per inbound message). Reply Backfill now also carries `source_table` so partnership rows route correctly.
 - `suppressed` + `sequence_completed` — LinkedIn DM Suppression from GHL Tag (`IPN8jnR3XSurX0o1`), written when a contact is suppressed.
 
-All six workflows are active and published (versionId == activeVersionId). The Campaign Channel Summary routes partnership events to `Partnership LinkedIn` via `campaign_type`/`source_key = 'partnership'` and exposes `linkedin_invites`/`linkedin_accepted` columns. Still open: resulting acceptance/reply/completion rates surfaced in the report API, and natural (non-suppression) `sequence_completed` events from the DM sequence completion branch.
+All six workflows are active and published (versionId == activeVersionId). The Campaign Channel Summary routes partnership events to `Partnership LinkedIn` via `campaign_type`/`source_key = 'partnership'` and exposes `linkedin_invites`/`linkedin_accepted`/`linkedin_replies` columns. The selected-window row now shows 17 invites and 1 verified historical reply. Still open: acceptance/completion rates and natural (non-suppression) `sequence_completed` events from the DM sequence completion branch.
 
 ### P0: Partnership Email Event Coverage
 
@@ -107,7 +108,9 @@ Expose last successful sync, latest attempt, row count, selected-window coverage
 
 **Coverage probe added (2026-08-01)**: `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`) now upserts `report_source_health` rows for `email_events` and `linkedin_activity_events` (max event freshness, row count, 24h staleness) on every hourly run before evaluating QA. Verified live: `email_events` ready/22,613 rows; `linkedin_activity_events` ready/10 rows (the verified partnership invites). Because the Executive Summary API reads all `report_source_health` rows dynamically, these now appear in the report `health` section without query changes.
 
-**Known minor limitation (2026-08-01)**: the Executive Summary API's `linkedinWeeklyActivity.inboundReplies`/`uniqueResponders` still count only `event_type = 'inbound_reply'` (not `reply_received`), and `linkedinFunnel` has no `suppressed` count. The Campaign Channel Summary (the primary campaign surface) already counts both reply event types and the LinkedIn funnel suppression is available in the state table. A patch to the `Build Query` jsCode is drafted in the repo session notes but not deployed because the node's ~61KB query string is high-risk to rewrite; apply it during a future full-workflow export/edit cycle.
+**Social statistics blocker confirmed (2026-08-04)**: the official GHL Social Planner statistics endpoint returned 152 impressions and 61 reach for its current seven-day OAuth window. The PIT returns 401 for that endpoint, and n8n has no usable GHL OAuth credential. The source data exists, but scheduled ingestion cannot be completed until OAuth is connected.
+
+**Known minor limitation (2026-08-04)**: the Executive Summary API's `linkedinWeeklyActivity.inboundReplies`/`uniqueResponders` still count only `event_type = 'inbound_reply'` (not `reply_received`), and `linkedinFunnel` has no `suppressed` count. The Campaign Channel Summary (the primary campaign surface) already counts both reply event types and the LinkedIn funnel suppression is available in the state table. The report's campaign table is authoritative for the verified partnership reply until the weekly KPI query is adjusted.
 
 ## Executive Report Requirements
 
@@ -173,14 +176,15 @@ Every widget must use the shared report date range, have a documented filter, an
 2. Instrument the Partnership LinkedIn DM Sequence to write DM, reply, suppression, and completion events. — **done** (DM in `nspggypNF245xzeL`; reply in `QfJ2EZcc7lZwNgxj`/`7o5EBdvwAuIaWW7k`; suppression/completion in `IPN8jnR3XSurX0o1`).
 3. Instrument acceptance and inbound-message workflows to write partnership-scoped LinkedIn events. — **done** (`3ttEvr5NMcQCS4Hp`, `7o5EBdvwAuIaWW7k`).
 4. Add `campaign_key` and `source_key` to every new LinkedIn event. — **done** for partnership events; non-partnership events route via `emerging_pool_contacts.ghl_contact_id` join.
-5. Update Campaign Channel Summary to aggregate `Partnership LinkedIn` from the ledger. — **done** (linkedin_invites/linkedin_accepted columns).
+5. Update Campaign Channel Summary to aggregate `Partnership LinkedIn` from the ledger. — **done** (linkedin_invites/linkedin_accepted/linkedin_replies columns).
 6. Add event coverage and error counts to the Executive Report API payload.
-7. Verify partnership email event delivery and correlate message IDs. — **partially done**: the Partnership Email Dispatcher (`Xshck23cKo1yXL9D`) already stores `ghl_message_id`/`ghl_conversation_id` per send in `partnership_release_log`, and the Campaign Channel Summary now attributes partnership email opens/clicks via a release-log fallback keyed on `contact_id`. Verified live (active version `076dcabc`): `Partnership emails` shows 59 sent / 4 opened, Emerald Executives SSO 358 sent / 1782 opened / 41 clicked, brands 101 opened, dispensaries 541 opened, and `Email - unattributed` dropped to 59 (was 2510). Still open: confirming GHL actually emits per-message open/click webhooks for inline `POST /conversations/messages` sends and that the message IDs correlate.
+7. Verify partnership email event delivery and correlate message IDs. — **partially done**: the Partnership Email Dispatcher (`Xshck23cKo1yXL9D`) stores `ghl_message_id`/`ghl_conversation_id` per send in `partnership_release_log`, and the Campaign Channel Summary attributes partnership email opens/clicks via a release-log fallback keyed on `contact_id`. The known historical reply is backfilled and the selected-window row shows 59 sent / 1 reply / 1.69%. Still open: confirming GHL emits all per-message open/click webhooks for inline `POST /conversations/messages` sends and correlating those events consistently.
 8. Add owner dimensions and conflict state to the reporting read model.
 9. Reconnect GSC OAuth and resume GSC ingestion.
 10. Resolve the SimpleTexting provider HTTP 409 before counting provider sends as delivered.
 11. Configure native GHL widgets through authenticated UI access; do not guess undocumented report-builder APIs. **Done for the partnership widgets (2026-08-01)**; MQL, owner, and stage-split widgets remain open because the builder has no stage-group dimension, no Owner-custom-field group-by, and a per-row Pipeline dependency on the Stage filter.
 12. Add QA assertions for the 10-contact test: 10 invite events, 10 campaign-attributed LinkedIn requests, 10 state transitions or explicit state-upsert failures, and no duplicate event IDs.
+13. Add a GHL OAuth credential to n8n and ingest Social Planner statistics by platform/day, including saves, reach, and impressions.
 
 ## Acceptance Criteria
 

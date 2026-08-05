@@ -735,11 +735,17 @@
                 <div class="mini"><strong>Total Posts</strong><div id="sp-total">—</div></div>
                 <div class="mini"><strong>Published</strong><div id="sp-published">—</div></div>
                 <div class="mini"><strong>Failed</strong><div id="sp-failed">—</div></div>
-                <div class="mini"><strong>Facebook</strong><div id="sp-fb">—</div></div>
-                <div class="mini"><strong>Instagram</strong><div id="sp-ig">—</div></div>
-                <div class="mini"><strong>LinkedIn</strong><div id="sp-li">—</div></div>
-              </div>
-              <div class="footer-note">Social posts from GHL Social Planner across 5 connected accounts. Failed means the latest post status is failed or error, including API error responses surfaced by the ingest. Engagement data (likes/shares/comments) updates with each ingest.</div>
+                 <div class="mini"><strong>Facebook</strong><div id="sp-fb">—</div></div>
+                 <div class="mini"><strong>Instagram</strong><div id="sp-ig">—</div></div>
+                 <div class="mini"><strong>LinkedIn</strong><div id="sp-li">—</div></div>
+                 <div class="mini"><strong>Likes</strong><div id="sp-likes">—</div></div>
+                 <div class="mini"><strong>Comments</strong><div id="sp-comments">—</div></div>
+                 <div class="mini"><strong>Shares</strong><div id="sp-shares">—</div></div>
+                 <div class="mini"><strong>Saves</strong><div id="sp-saves">—</div></div>
+                 <div class="mini"><strong>Reach</strong><div id="sp-reach">—</div></div>
+                 <div class="mini"><strong>Impressions</strong><div id="sp-impressions">—</div></div>
+               </div>
+               <div class="footer-note">Social posts from GHL Social Planner across 5 connected accounts. Failed means the latest post status is failed or error, including API error responses surfaced by the ingest. Engagement and delivery metrics display when supplied by the source.</div>
             </div>
           </div>
           <div class="panel">
@@ -1435,11 +1441,17 @@
           // Chella's social — data from GHL Social Planner API via Postgres
           var sp = data.socialPosts || {};
           el = document.getElementById("sp-total"); if (el) el.textContent = formatNumber(sp.totalPosts || 0);
-          el = document.getElementById("sp-fb"); if (el) el.textContent = formatNumber(sp.facebookCount || 0);
-          el = document.getElementById("sp-ig"); if (el) el.textContent = formatNumber(sp.instagramCount || 0);
-          el = document.getElementById("sp-li"); if (el) el.textContent = formatNumber(sp.linkedinCount || 0);
-          el = document.getElementById("sp-published"); if (el) el.textContent = formatNumber(sp.publishedCount || 0);
-          el = document.getElementById("sp-failed"); if (el) el.textContent = formatNumber(sp.failedCount || 0);
+           el = document.getElementById("sp-fb"); if (el) el.textContent = formatNumber(sp.facebookCount || 0);
+           el = document.getElementById("sp-ig"); if (el) el.textContent = formatNumber(sp.instagramCount || 0);
+           el = document.getElementById("sp-li"); if (el) el.textContent = formatNumber(sp.linkedinCount || 0);
+           el = document.getElementById("sp-published"); if (el) el.textContent = formatNumber(sp.publishedCount || 0);
+           el = document.getElementById("sp-failed"); if (el) el.textContent = formatNumber(sp.failedCount || 0);
+           el = document.getElementById("sp-likes"); if (el) el.textContent = formatNumber(sp.totalLikes || 0);
+           el = document.getElementById("sp-comments"); if (el) el.textContent = formatNumber(sp.totalComments || 0);
+           el = document.getElementById("sp-shares"); if (el) el.textContent = formatNumber(sp.totalShares || 0);
+           el = document.getElementById("sp-saves"); if (el) el.textContent = formatNumber(sp.totalSaves || 0);
+           el = document.getElementById("sp-reach"); if (el) el.textContent = formatNumber(sp.totalReach || 0);
+           el = document.getElementById("sp-impressions"); if (el) el.textContent = formatNumber(sp.totalImpressions || 0);
           
            // Site traffic from summary
            var mqlSummary = data.mqlSummary || {};
