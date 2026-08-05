@@ -15,6 +15,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - The report data store remains Postgres.
 - n8n writes the raw data, bridge rows, rollups, QA rows, and publish markers.
 - The live executive summary webhook is wired to the report host and serves JSON from the Postgres reporting tables. GA4 traffic is ingested daily and bridged into the rollup tables (recorded visits, users, engaged_sessions, engagement_rate) alongside GHL CRM data.
+- The live outgoing-call detail endpoint is `GET /webhook/lt-report-outgoing-calls`, backed by n8n workflow `VXFHc8IrF9DDEEdj`. It returns up to 100 Vapi calls from the last 7 completed days with pagination, disposition, duration, campaign, and signed recording URL fields.
 - The Executive Report now surfaces a Meta attribution panel using the live summary payload. It is intentionally focused on which Meta-tagged ads/campaigns are driving recorded visits and downstream opportunities, not spend.
 - The Postgres reporting bootstrap has been applied to the live database.
 - GHL leads/sales/report workflows are live and active.
@@ -75,6 +76,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 ## Planned API Contract
 
 - `GET /api/report/executive/summary`
+- `GET /api/report/executive/outgoing-calls`
 - `GET /api/report/executive/channel-breakdown`
 - `GET /api/report/executive/pipeline-dropoff`
 - `GET /api/report/executive/health`

@@ -21,7 +21,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 - Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.
 - Verify DNC source of truth and queue feed workflow are active.
 - Confirm archived workflows are not active in n8n.
-- Confirm n8n is running `2.31.5` and recurring workflows use native Schedule Trigger nodes.
+- Confirm n8n is running `2.33.3` and recurring workflows use native Schedule Trigger nodes.
 - Confirm `VOICE_QUEUE_ENQUEUE_SECRET` is configured for callers of `/webhook/voice-queue-enqueue`.
 - Verify the Vapi `transferCall` tool `86d380a3-34d2-41f8-96a0-acf5f0124ccb` uses the shared SDR number and neutral Sales Lead wording; it must not mention Jason, John, Marc, or Cameron.
 - Verify Vapi queue eligibility is limited to Warm contacts whose Janvi AI qualification is pending/unverified. AI-qualified and explicitly rejected/non-cannabis contacts must be excluded.

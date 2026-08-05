@@ -126,8 +126,22 @@
       .campaign-table th, .campaign-table td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
       .campaign-table th:first-child, .campaign-table td:first-child { text-align: left; }
       .campaign-table th { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
-      .campaign-table td { color: var(--text); font-size: 0.9rem; }
-      .table-scroll { overflow-x: auto; }
+       .campaign-table td { color: var(--text); font-size: 0.9rem; }
+       .table-scroll { overflow-x: auto; }
+       .call-table { width: 100%; border-collapse: collapse; min-width: 1180px; }
+       .call-table th, .call-table td { padding: 11px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+       .call-table th { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+       .call-table td { color: var(--text); font-size: 0.84rem; }
+       .call-table .numeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+       .call-table .muted { color: var(--muted); }
+       .call-table .contact { display: grid; gap: 3px; }
+       .call-table .contact small { color: var(--muted); }
+       .call-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+       .call-pagination { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; }
+       .call-pagination button { border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,0.04); color: var(--text); padding: 7px 10px; cursor: pointer; }
+       .call-pagination button:disabled { opacity: 0.45; cursor: not-allowed; }
+       .call-page-size { color: var(--muted); font-size: 0.82rem; }
+       .call-audio { width: 170px; height: 30px; }
       .footer-note { margin-top: 14px; color: var(--faint); font-size: 0.82rem; }
       .section-label { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; padding-left: 4px; }
       .loading { color: var(--muted); font-style: italic; }
@@ -172,6 +186,7 @@
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-gsc" data-view="overview" data-scroll="section-gsc"><span class="nav-dot"></span> Search Console</a>
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-calls" data-view="overview" data-scroll="section-calls"><span class="nav-dot"></span> Calls &amp; Conversations</a>
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-campaigns" data-view="overview" data-scroll="section-campaigns"><span class="nav-dot"></span> Campaign Channels</a>
+           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-outgoing-calls" data-view="overview" data-scroll="section-outgoing-calls"><span class="nav-dot"></span> Outgoing Calls</a>
         </div>
         <div class="nav-group">
           <div class="nav-title">Channels</div>
@@ -809,8 +824,32 @@
               <div class="footer-note">Estimated unique visitors uses GA4 Organic Search users as a proxy. Google Search Console metrics are still rolled up from the raw GSC query table into the summary payload. Query and page detail stays in the dedicated GSC workflow.</div>
             </div>
           </div>
-        </section>
-      </main>
+         </section>
+
+         <!-- OUTGOING CALL DETAIL -->
+         <div class="section-label" id="section-outgoing-calls">Outgoing Calls</div>
+         <section class="grid" style="margin-bottom:16px;">
+           <div class="panel">
+             <div class="panel-head">
+               <h2>Outgoing Call Detail</h2>
+               <span>Last 7 completed days</span>
+             </div>
+             <div class="panel-body">
+               <div class="call-controls">
+                 <span class="call-page-size">100 calls per page</span>
+                 <div class="call-pagination" id="outgoing-calls-pagination" aria-label="Outgoing calls pagination"></div>
+               </div>
+               <div class="table-scroll">
+                 <table class="call-table">
+                   <thead><tr><th>Date &amp; Time</th><th>Contact</th><th>Number</th><th>Status</th><th>Disposition</th><th>Duration</th><th>Recording</th><th>First Time</th><th>Campaign</th></tr></thead>
+                   <tbody id="outgoing-calls-table"><tr><td colspan="9" class="loading">Loading outgoing call detail...</td></tr></tbody>
+                 </table>
+               </div>
+               <div class="footer-note" id="outgoing-calls-note">Calls are limited to the last 7 completed calendar days. Recordings load only when requested.</div>
+             </div>
+           </div>
+         </section>
+       </main>
     </div>
     <script>
       (function () {
@@ -1051,6 +1090,9 @@
          }
           var campaignChannelRows = [];
           var campaignChannelFilter = "all";
+          var outgoingCallsPage = 0;
+          var outgoingCallsTotal = 0;
+          var outgoingCallsPageSize = 100;
           function escapeHtml(value) {
             return String(value == null ? "" : value)
               .replace(/&/g, "&amp;")
@@ -1058,6 +1100,77 @@
               .replace(/>/g, "&gt;")
               .replace(/\"/g, "&quot;")
               .replace(/'/g, "&#39;");
+          }
+          function formatCallDuration(value) {
+            var seconds = Number(value || 0);
+            if (!Number.isFinite(seconds) || seconds < 0) return "—";
+            seconds = Math.round(seconds);
+            if (seconds < 60) return seconds + "s";
+            var minutes = Math.floor(seconds / 60);
+            var remainder = seconds % 60;
+            return minutes + "m" + (remainder ? " " + remainder + "s" : "");
+          }
+          function formatCallDate(value) {
+            if (!value) return "—";
+            var date = new Date(value);
+            if (!Number.isFinite(date.getTime())) return escapeHtml(value);
+            return escapeHtml(date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }));
+          }
+          function renderOutgoingCalls(payload) {
+            var body = document.getElementById("outgoing-calls-table");
+            var pagination = document.getElementById("outgoing-calls-pagination");
+            if (!body || !pagination) return;
+            var rows = Array.isArray(payload && payload.calls) ? payload.calls : [];
+            outgoingCallsTotal = Number(payload && (payload.total || 0) || 0);
+            if (!rows.length) {
+              body.innerHTML = '<tr><td colspan="9" class="loading">No outgoing calls found in the last 7 completed days.</td></tr>';
+            } else {
+              body.innerHTML = rows.map(function (call) {
+                var contact = call.contact_name || call.contactName || "Unknown";
+                var phone = call.contact_phone || call.contactPhone || "";
+                var recording = call.recording_url || call.recordingUrl || "";
+                var recordingCell = recording
+                  ? '<audio class="call-audio" controls preload="none" src="' + escapeHtml(recording) + '"></audio>'
+                  : '<span class="muted">No recording</span>';
+                return "<tr>" +
+                  "<td>" + formatCallDate(call.started_at || call.date_time || call.dateTime) + "</td>" +
+                  "<td><div class=\"contact\"><span>" + escapeHtml(contact) + "</span>" + (phone ? "<small>" + escapeHtml(phone) + "</small>" : "") + "</div></td>" +
+                  "<td>" + escapeHtml(call.number_name || call.numberName || "—") + "</td>" +
+                  "<td>" + escapeHtml(call.call_status || call.status || "—") + "</td>" +
+                  "<td>" + escapeHtml(call.disposition || "—") + "</td>" +
+                  "<td class=\"numeric\">" + formatCallDuration(call.duration_seconds || call.durationSeconds || call.duration) + "</td>" +
+                  "<td>" + recordingCell + "</td>" +
+                  "<td>" + escapeHtml(call.first_time === true || call.firstTime === true ? "Yes" : "No") + "</td>" +
+                  "<td>" + escapeHtml(call.marketing_campaign || call.marketingCampaign || "—") + "</td>" +
+                  "</tr>";
+              }).join("");
+            }
+            var pages = Math.max(1, Math.ceil(outgoingCallsTotal / outgoingCallsPageSize));
+            pagination.innerHTML = "<button type=\"button\" data-outgoing-page=\"prev\"" + (outgoingCallsPage <= 0 ? " disabled" : "") + ">Previous</button>" +
+              "<span>Page " + (outgoingCallsPage + 1) + " of " + pages + "</span>" +
+              "<button type=\"button\" data-outgoing-page=\"next\"" + (outgoingCallsPage + 1 >= pages ? " disabled" : "") + ">Next</button>";
+            pagination.querySelectorAll("[data-outgoing-page]").forEach(function (button) {
+              button.addEventListener("click", function () {
+                var direction = button.getAttribute("data-outgoing-page");
+                if (direction === "prev" && outgoingCallsPage > 0) outgoingCallsPage -= 1;
+                if (direction === "next" && outgoingCallsPage + 1 < pages) outgoingCallsPage += 1;
+                loadOutgoingCalls();
+              });
+            });
+          }
+          async function loadOutgoingCalls() {
+            var body = document.getElementById("outgoing-calls-table");
+            if (!body) return;
+            var url = "/api/report/executive/outgoing-calls?range=7d&limit=" + outgoingCallsPageSize + "&offset=" + (outgoingCallsPage * outgoingCallsPageSize);
+            try {
+              var payload = await loadJson(url);
+              renderOutgoingCalls(payload);
+            } catch (err) {
+              body.innerHTML = '<tr><td colspan="9" class="loading">Outgoing call detail is temporarily unavailable.</td></tr>';
+              var note = document.getElementById("outgoing-calls-note");
+              if (note) note.textContent = "The call detail source did not respond. Aggregate call metrics remain available above.";
+              console.warn("Outgoing call detail load failed:", err);
+            }
           }
           function renderCampaignChannels(rows) {
             var body = document.getElementById("campaign-channel-table");
@@ -1582,7 +1695,8 @@
               renderCampaignChannels(campaignChannelRows);
             });
           });
-          loadReport();
+           loadReport();
+           loadOutgoingCalls();
         if (section) window.setTimeout(function () { scrollToSection(section); }, 150);
       })();
     </script>

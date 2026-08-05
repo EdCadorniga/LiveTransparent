@@ -4,7 +4,7 @@
 `Warm` -> `Sales Outreach` -> `Sales`
 
 ## Current Platform Note
-- n8n is on `2.31.5` (current production target; recurring workflows use native Schedule Trigger nodes)
+- n8n is on `2.33.3` (current production target; recurring workflows use native Schedule Trigger nodes)
 - previously at `2.14.2` — see AGENTS.md for upgrade history
 
 ## Warm

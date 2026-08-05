@@ -8,7 +8,7 @@ Capture RB2B webhook leads, reconcile/update contact data in GHL, apply source/q
 - Workflow ID: `3kjsIUeoEQFx26cC`
 - Webhook path: `/webhook/rb2b_leads_v3`
 - Test webhook path: `/webhook-test/rb2b_leads_v3`
-- Platform note: n8n target/runtime is `2.31.5`; recurring workflows use native Schedule Trigger nodes.
+- Platform note: n8n target/runtime is `2.33.3`; recurring workflows use native Schedule Trigger nodes.
 
 ## Input Payload (RB2B)
 - `LinkedIn URL`

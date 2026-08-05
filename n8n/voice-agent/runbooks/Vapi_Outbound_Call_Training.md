@@ -148,7 +148,7 @@ If the prospect is qualified and wants to meet:
 
 ## 2026-07-23 Production Hardening
 
-- n8n is upgraded to `2.31.5`; recurring schedules use native Schedule Trigger nodes, not OS or Coolify cron.
+- n8n is upgraded to `2.33.3`; recurring schedules use native Schedule Trigger nodes, not OS or Coolify cron.
 - The callback no longer calls `LT - Voice Dequeue Next`; that workflow is unpublished and remains an explicit helper only.
 - Callback timer state uses a 60-second duplicate guard and is pruned after 30 minutes.
 - Queue insertion requires `X-LT-Voice-Queue-Secret` from `VOICE_QUEUE_ENQUEUE_SECRET`.

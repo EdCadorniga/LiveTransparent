@@ -15,7 +15,7 @@ This process applies to:
 - `Sales`: deal progression from discovery to close
 
 ## 3A) Current Platform Note
-- n8n target version is `2.31.5`.
+- n8n target version is `2.33.3`.
 - Recurring workflows use native n8n `Schedule Trigger` nodes; do not add OS, Coolify, or external cron jobs.
 - If a workflow looks different after the upgrade, verify live behavior before editing node fields.
 

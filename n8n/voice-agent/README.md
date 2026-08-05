@@ -23,7 +23,7 @@ This package documents the current production Vapi voice-agent implementation an
 ## Runtime assumptions
 - GHL remains the CRM system of record.
 - n8n orchestrates queueing, callback/tool routing, and CRM sync.
-- n8n `2.31.5` is the target runtime. Recurring workflows use native `Schedule Trigger` nodes; external cron jobs are not part of the production design.
+- n8n `2.33.3` is the target runtime. Recurring workflows use native `Schedule Trigger` nodes; external cron jobs are not part of the production design.
 - The 2026-07-23 hardening pass added callback timer pruning, authenticated queue enqueue requests, Apollo phone-request failure metrics, and repaired timeout-reaper Slack-summary wiring. The 2026-07-25 dialer recovery added same-run queue advancement with a 25-contact safety cap and cleared stale n8n queued executions without adding Redis or external cron.
 - Voice provider and LLM provider are env-driven and swappable.
 - Transcript system of record is Postgres; GHL stores summary + link.

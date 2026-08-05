@@ -2,7 +2,7 @@
 
 Last verified: 2026-06-30 (against live n8n via n8n-lt MCP)
 Canonical n8n host: https://automations.livetransparent.com
-n8n version: `2.31.5`
+n8n version: `2.33.3`
 
 Status: Wired for `Email Inbound`, `Email Outbound`, `SMS`, and `Referral` sender automations.
 Live as of 2026-06-30: `SMS` and `Referral` webhook handlers are active; `Email Inbound` and `Email Outbound` handlers are inactive (no recent event traffic).

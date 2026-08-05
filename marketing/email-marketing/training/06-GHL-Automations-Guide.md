@@ -26,7 +26,7 @@ Automations help us:
 
 ## Current System Note
 
-- n8n is on `2.31.5` (current production target; recurring workflows use native Schedule Trigger nodes)
+- n8n is on `2.33.3` (current production target; recurring workflows use native Schedule Trigger nodes)
 - do not manually refresh/update node versions unless an admin runbook says to
 - if an automation looks different in the editor after an upgrade, stop and escalate before changing node fields
 

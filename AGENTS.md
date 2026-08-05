@@ -27,7 +27,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Deployed via Coolify on a VPS.
 - Public hosts: `automations.livetransparent.com` for n8n and `reports.livetransparent.com` for the report host.
 - Prefer Coolify internal service-to-service calls when possible.
-- n8n target version: `2.31.5` (native Schedule Trigger is the scheduling standard; do not add OS/Coolify cron jobs for workflows).
+- n8n target version: `2.33.3` (native Schedule Trigger is the scheduling standard; do not add OS/Coolify cron jobs for workflows).
 - Canonical MCP: `n8n-lt`.
 - Root `.env` is the reference copy; Coolify env vars are the deployed source of truth.
 
@@ -170,7 +170,7 @@ POST to `https://automations.livetransparent.com/webhook/lt-linkedin-connection-
 - **Avoid `n8n-lt` `updateNodeParameters` for Set v3.4 nodes.** It silently corrupts `assignments.assignments` from `[{...}]` to `{item: [{...}]}` and stringifies booleans / `options`. Use `setNodeParameter` for single-path edits on Set v3.4 nodes. If that also fails, use direct n8n REST `PUT /api/v1/workflows/{id}` with `N8N_API_KEY_LT` from `.env` (note: PUT auto-publishes and validates all node credentials). For Code nodes, both `updateNodeParameters` and `setNodeParameter` are safe. Known-good Config shape: `{"mode": "manual", "assignments": {"assignments": [{id, name, value}, ...]}}` — no `includeOtherFields` or `options` keys required.
 - **`setNodeParameter` silent failure (observed 2026-07-06):** On Code nodes and HTTP Request nodes, `setNodeParameter` may report success without modifying parameters. **Use `updateNodeParameters` with `replace: true`** as the primary mutation method for both. Always verify with a fresh `GET` after mutation.
 - n8n Code nodes cannot access managed credentials by design. Do not attempt `$getCredentials()` or `this.getCredentials()` in Code nodes. Credential migration for direct API calls requires credentialed HTTP Request nodes, or an explicitly approved protected runtime-variable path.
-- **Historical n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` returned fields that violated the MCP output schema. The deployment target is now n8n `2.31.5`; retain the REST workaround if the MCP schema issue recurs:
+- **Historical n8n 2.28.6 MCP schema bug (upstream #33056):** `search_workflows`, `search_projects`, and `get_workflow_details` returned fields that violated the MCP output schema. The deployment target is now n8n `2.33.3`; retain the REST workaround if the MCP schema issue recurs:
   ```bash
   curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows?active=true&limit=100"
   curl.exe -s -H "X-N8N-API-KEY: $env:N8N_API_KEY_LT" "https://automations.livetransparent.com/api/v1/workflows/{workflowId}"
@@ -621,7 +621,7 @@ After:  Apply Tags → Postgres - Mark Queue Completed → Should Re-enrich Phon
 
 ### Vapi Call-Path Hardening (2026-07-22 — 2026-07-23)
 
-- n8n target upgraded to `2.31.5`; recurring workflows use native Schedule Trigger nodes, not OS/Coolify cron jobs.
+- n8n target upgraded to `2.33.3`; recurring workflows use native Schedule Trigger nodes, not OS/Coolify cron jobs.
 - `Code - Detect Tool vs Callback` now reads the original `Webhook - Vapi` input because the Config Set node replaces the current item.
 - Callback normalization now reads Vapi IDs from `message.assistant.metadata`, `message.assistant.variableValues`, and `artifact.variables`.
 - Callback completion-note JSON is built as an object expression, avoiding invalid JSON when summaries contain quotes or newlines.
@@ -632,7 +632,7 @@ After:  Apply Tags → Postgres - Mark Queue Completed → Should Re-enrich Phon
 
 ### Vapi/n8n Final Hardening (2026-07-23)
 
-- n8n is now documented and operated at target version `2.31.5`; recurring workflows use native Schedule Trigger nodes rather than OS/Coolify cron.
+- n8n is now documented and operated at target version `2.33.3`; recurring workflows use native Schedule Trigger nodes rather than OS/Coolify cron.
 - Callback timer state keeps the 60-second duplicate-start guard and now prunes ended/inactive entries older than 30 minutes.
 - `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) requires `X-LT-Voice-Queue-Secret`; the caller reference is `VOICE_QUEUE_ENQUEUE_SECRET`. Missing authentication fails closed before queue insertion.
 - `LT - Apollo Phone Enrichment Polling` reports `apollo_phone_request_failed` when the asynchronous Apollo phone request fails after profile processing.
