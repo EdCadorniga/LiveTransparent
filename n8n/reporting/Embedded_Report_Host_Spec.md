@@ -55,3 +55,16 @@ The dashboard should be read-only, GHL-first, and backed by Postgres.
 - The host reads KPI and detail data from the Postgres reporting tables.
 - It should expect the rollup tables to be refreshed by n8n.
 - It should not call GA4 or GSC directly in the current phase.
+
+## Outgoing Call Detail
+
+- UI section: `Outgoing Call Detail` at the bottom of the Executive Report.
+- Sidebar anchor: `#section-outgoing-calls`.
+- Browser API: `GET /api/report/executive/outgoing-calls?range=7d&limit=100&offset=0`.
+- Nginx proxy target: `https://automations.livetransparent.com/webhook/lt-report-outgoing-calls`.
+- n8n workflow: `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`), active and published.
+- Source query: `voice_call_attempt` joined to `voice_call_queue`, with latest `report_raw_ghl_contacts` snapshot enrichment.
+- Window rule: exactly the seven most recent completed calendar days in `America/Los_Angeles`; the API returns `total`, `limit`, `offset`, `range`, and `calls`.
+- Page rule: maximum 100 rows; the UI uses Previous/Next pagination and does not load all history at once.
+- Playback rule: recording elements use `preload="none"`; recording URLs are provider-signed values and must not be committed to the repository.
+- Identity rule: if the reporting snapshot has no contact name, display the GHL contact ID rather than `Unknown`.

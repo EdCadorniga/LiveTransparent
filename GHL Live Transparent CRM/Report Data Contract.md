@@ -6,6 +6,7 @@ Use it as the bridge between GHL, GA4, and GSC and the Postgres rollup layer in 
 
 ## Source Systems
 - GHL: leads, opportunities, pipeline movement, forms, revenue, and calls
+- Vapi voice agent: outbound call attempts, queue/campaign context, dispositions, recordings, and call timing
 - GA4: traffic and on-site engagement
 - GSC: organic search visibility, queries, pages, and site data
 - Unipile: LinkedIn connection requests, acceptance, direct messages, replies, and provider failures
@@ -152,8 +153,10 @@ These live workflow families create or mutate the records the report reads:
   - `LT - Report Attribution Bridge`
   - `LT - Report Daily Rollups`
   - `LT - Report QA and Alerts`
-  - `LT - Report Publish Refresh`
-  - `LT - GHL Executive Report Menu Sync`
+   - `LT - Report Publish Refresh`
+   - `LT - GHL Executive Report Menu Sync`
+   - `LT - Report Executive Summary API`
+   - `LT - Report Outgoing Calls Detail`
 
 ## Raw Tables
 - `report_raw_ga4_sessions`
@@ -164,6 +167,9 @@ These live workflow families create or mutate the records the report reads:
 - `report_raw_ghl_pipeline_history`
 - `report_raw_ghl_forms`
 - `report_raw_ghl_calls`
+- `voice_call_queue`
+- `voice_call_attempt`
+- `voice_call_transcript_turn`
 - `report_raw_gsc_queries`
 - `report_raw_gsc_pages`
 - `report_raw_gsc_site`
@@ -212,6 +218,7 @@ These live workflow families create or mutate the records the report reads:
 - LinkedIn outreach funnel (ready → requested → connected → DM active → completed) — added 2026-07-21
 - Partnership LinkedIn campaign row with invite, acceptance, DM, reply, completion, suppression, failure, and event-coverage metrics
 - Vapi voice campaign breakdown (calls by campaign, queue distribution) — added 2026-07-21
+- Executive Report outgoing-call detail: paginated calls from the last 7 completed days with contact ID/name fallback, phone, disposition, duration, first-attempt flag, campaign, and lazy signed recording playback — added 2026-08-06
 - MQL/SQL contact tracking (opportunities in MQL stage, contacts with SQL tag) — added 2026-07-21
 - AI-qualified cannabis contacts promoted to Sales Outreach
 - AI-pending/unverified contacts sent to Vapi

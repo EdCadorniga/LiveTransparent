@@ -1,5 +1,7 @@
 # GHL SimpleTexting Access Workflow
 
+> Operational status: automated campaign execution and phone backfill remain unpublished while SimpleTexting requires account re-enablement. Do not use this manual-send path for live traffic until the provider accepts a controlled test and returns a real provider message ID.
+
 ## Goal
 Give GHL users a direct, repeatable way to send their own typed reply through SimpleTexting while keeping n8n as the provider boundary and audit layer.
 

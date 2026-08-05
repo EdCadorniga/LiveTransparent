@@ -16,6 +16,10 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - n8n writes the raw data, bridge rows, rollups, QA rows, and publish markers.
 - The live executive summary webhook is wired to the report host and serves JSON from the Postgres reporting tables. GA4 traffic is ingested daily and bridged into the rollup tables (recorded visits, users, engaged_sessions, engagement_rate) alongside GHL CRM data.
 - The live outgoing-call detail endpoint is `GET /webhook/lt-report-outgoing-calls`, backed by n8n workflow `VXFHc8IrF9DDEEdj`. It returns up to 100 Vapi calls from the last 7 completed days with pagination, disposition, duration, campaign, and signed recording URL fields.
+- The Executive Report renders that endpoint in the bottom `Outgoing Call Detail` section. The sidebar bookmark is `#section-outgoing-calls`; the browser requests `GET /api/report/executive/outgoing-calls?range=7d&limit=100&offset=0`, and nginx proxies it to the n8n webhook.
+- The outgoing detail window is intentionally fixed to the seven most recent completed calendar days in `America/Los_Angeles`; the endpoint ignores broader report-range controls. `limit` is clamped to 1-100 and `offset` is non-negative.
+- The detail query reads `voice_call_attempt` joined to `voice_call_queue`, calculates duration from `started_at`/`ended_at`, derives the first-attempt flag from prior attempts, and uses the latest `report_raw_ghl_contacts` snapshot for contact identity when available. Current snapshots may lack names, so the API falls back to the GHL contact ID.
+- Recording playback is lazy (`preload="none"`) and uses the provider-signed `recording_url` already stored on the call attempt. Do not persist or document signed recording URLs in source files.
 - The Executive Report now surfaces a Meta attribution panel using the live summary payload. It is intentionally focused on which Meta-tagged ads/campaigns are driving recorded visits and downstream opportunities, not spend.
 - The Postgres reporting bootstrap has been applied to the live database.
 - GHL leads/sales/report workflows are live and active.
@@ -82,6 +86,8 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - `GET /api/report/executive/health`
 
 The summary endpoint is implemented through n8n and proxied by nginx. The other endpoints remain reserved for future expansion, but the HTML shell is already written to consume the summary payload without changing the GHL embed URL.
+
+The outgoing-call detail endpoint is also implemented through n8n and proxied by nginx. It is a read-only endpoint and does not mutate GHL, Vapi, queue, or reporting data.
 
 ## Files
 

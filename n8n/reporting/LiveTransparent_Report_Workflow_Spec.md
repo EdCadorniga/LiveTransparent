@@ -39,6 +39,31 @@ Current n8n conventions already in use:
 - Postgres upserts for durable staging
 - `availableInMCP = true` on staged workflows when live verification is needed
 
+## Live Outgoing Call Detail Endpoint
+
+The Executive Report has a separate read-only detail workflow in addition to the aggregate summary workflow:
+
+| Item | Value |
+|------|-------|
+| Workflow | `LT - Report Outgoing Calls Detail` |
+| Workflow ID | `VXFHc8IrF9DDEEdj` |
+| Production webhook | `GET /webhook/lt-report-outgoing-calls` |
+| Report-host route | `GET /api/report/executive/outgoing-calls` |
+| Status | Active and published |
+| Published version | `d004556d-0b11-4a86-8827-f8f58a1eeee3` |
+| Window | Seven most recent completed days, `America/Los_Angeles` |
+| Page size | Client requests 100; server clamps to 1-100 |
+
+Node chain:
+
+1. `Outgoing Calls Webhook` accepts GET query parameters.
+2. `Normalize Outgoing Calls Request` calculates the fixed completed-day window and clamps `limit`/`offset`.
+3. `Query Outgoing Calls` runs parameterized Postgres SQL using the existing `Postgres account` credential.
+4. `Build Outgoing Calls Response` maps rows to the stable `{ calls, total, limit, offset, range }` payload.
+5. `Respond Outgoing Calls` returns JSON.
+
+The query reads `voice_call_attempt` and joins `voice_call_queue` for campaign and phone context. It calculates duration from `started_at` and `ended_at`, identifies the first attempt per contact, and enriches from the latest `report_raw_ghl_contacts` snapshot. It never writes to the call, queue, GHL, or rollup tables. Empty results still return a valid JSON payload with `calls: []`.
+
 ## Design Rules
 
 1. Keep GHL pulls isolated from traffic/search sources, even when those sources are live.

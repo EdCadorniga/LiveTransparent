@@ -52,7 +52,7 @@ The executive report (`reports/embed/executive/index.html`) surfaces data from:
 |--------|----------|------|
 | GHL Contacts | `LT - GHL Daily Leads Ingest` | Contacts, UTM fields, warm source, routing metadata |
 | GHL Opportunities | `LT - GHL Daily Sales Ingest` | Pipeline stages, closed-won revenue |
-| GHL Calls | `LT - GHL Daily Calls Ingest` | Voice call logs: status, direction, duration |
+| GHL Calls | `LT - GHL Daily Calls Ingest` + `LT - Call Outcome Ingest` | Aggregate GHL call status, direction, and outcome facts |
 | GHL Appointments | `LT - GHL Daily Appointments Ingest` | Calendar events: booked, showed, no-show |
 | GA4 Sessions | `LT - GA4 Daily Ingest` | Sessions, users, engagement by channel/landing page |
 | GSC Search | `LT - GSC Daily Ingest` | Clicks, impressions, CTR, average position, queries, pages |
@@ -62,6 +62,7 @@ The executive report (`reports/embed/executive/index.html`) surfaces data from:
 | Email Events | `LT - Email Event Ingest` | Opens, clicks, bounces, unsubscribes, spam complaints |
 | LinkedIn State | `linkedin_connection_state` | Connection funnel: ready → requested → connected → DM → completed |
 | Vapi Voice | `voice_call_attempt` + `voice_call_queue` | Call outcomes by campaign, pending queue distribution |
+| Outgoing Call Detail | `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`) | Seven completed days of row-level Vapi calls, disposition, duration, campaign, contact ID/name fallback, and signed recordings; served through `/api/report/executive/outgoing-calls` |
 | MQL/SQL | `report_raw_ghl_opportunities` + `report_raw_ghl_contacts` | MQL (Warm pipeline Qualified stage), AI-qualified cannabis promotion to Sales Outreach, SQL (tagged contacts) |
 | AI Qualification / SDR Routing | Janvi assessment + GHL owner fields | Qualified cannabis -> Sales Outreach; owner alignment or Jason/Marc 50/50 fallback; pending/unverified -> Vapi Warm |
 
@@ -198,7 +199,8 @@ Minimum v1 output from the executive report:
 
 Additional reporting requests that would be sub sections under the main section and can be covered in calls more in depth by team leads
 Sales (john)
-- Total calls by status → Available via `report_raw_ghl_calls` and the Calls & Conversations panel in the Executive Report
+- Total GHL calls by status → Available via `report_raw_ghl_call_outcomes` and the Calls & Conversations panel in the Executive Report
+- Row-level outgoing Vapi calls → Available through the bottom Outgoing Call Detail section; this is separate from aggregate GHL call status reporting
 - Total meetings and if they showed → Available via `report_raw_ghl_appointments` (ingested by `LT - GHL Daily Appointments Ingest`, calendar `SrtXcFVyea7pFl3nTiIK`)
 - Contract closed and pending → Available via Sales Detail panel and Deal Stage Pipeline in executive report
 - Win rate (closed won / closed total) → Available in Sales Quality panel

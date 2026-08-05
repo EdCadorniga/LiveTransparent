@@ -13,8 +13,8 @@ It records the live workflow contracts, hardening decisions, verification eviden
 6. Build the bridge and rollups.
 7. Add QA and publish refresh.
 
-Current live status as of 2026-07-31:
-- **Active**: `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report Executive Summary API`, `LT - Report QA and Alerts`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, `LT - Report Postgres Bootstrap Apply`.
+Current live status as of 2026-08-06:
+- **Active**: `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report Executive Summary API`, `LT - Report Outgoing Calls Detail`, `LT - Report QA and Alerts`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, `LT - Report Postgres Bootstrap Apply`.
 - **GA4 Active**: `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`), `LT - GA4 Traffic Rollup Bridge` (`0P2AZcQYWYZjXbRi`).
 - **GSC Active**: `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) writes raw query/page/site rows.
 - **Email Events Active**: `LT - Email Event Ingest` (`ZrqFN8qLKO8eVHDc`) receives GHL email event webhooks (opens, clicks, bounces, unsubscribes, spam) and stores in `Email_Events`. Email campaign metrics (sent, opened, clicked, bounced) are now rolled into `report_daily_summary` and surfaced in the Executive Report.
@@ -33,6 +33,7 @@ The published Rollups workflow preserves GA-backed summary, channel, UTM, and la
 - **Stage name resolution**: Pipeline and stage names now resolved from GHL stage IDs via CASE mapping, fixing stagemover count (was 0, now 93+).
 - **Voice dialer**: `GHL - Create Call Note` node set to `onError: continueRegularOutput` to prevent execution errors from blocking calls.
 - **Named campaign/channel rows**: the campaign summary maps DAN through `DAN_Release_Log`, Emerald through bucket/enrollment data, SMS through `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn through `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi through queue campaign IDs. `General outbound`, `Partnership emails`, `xyz`, and `abc` are catalog rows that remain zero until matching source events exist.
+- **Outgoing call detail (2026-08-06)**: `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`, published version `d004556d-0b11-4a86-8827-f8f58a1eeee3`) serves `GET /webhook/lt-report-outgoing-calls`. It queries `voice_call_attempt` joined to `voice_call_queue`, calculates duration and first-attempt state, enriches from latest contact snapshots, and returns a bounded seven-completed-day JSON page for the report-host proxy `/api/report/executive/outgoing-calls`.
 
 ## Live Pattern To Reuse
 The live workflows in this repo generally follow this shape:
@@ -48,6 +49,8 @@ The live workflows in this repo generally follow this shape:
 The executive summary workflow currently returns the live dashboard JSON payload from Postgres and serves it through the report host proxy.
 
 The Executive Report UI now renders the named campaign/channel rows and LinkedIn DM/reply columns. The public report host serves build `2026-07-31-v10-partnership`.
+
+The Executive Report UI also renders the bottom `Outgoing Call Detail` table. It requests 100 rows at a time, uses the `America/Los_Angeles` completed-day window, and loads signed recordings only when the operator presses play.
 
 Keep that structure for reporting workflows so the nodes stay easy to inspect and patch.
 

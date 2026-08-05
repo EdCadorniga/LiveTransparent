@@ -9,12 +9,14 @@ It is intended to be the handoff point between the written plan and the live bui
 - GHL report shell plan and sidebar/embed contract
 - n8n workflow architecture and build order
 - Live GHL summary/report workflows for leads, sales, bridge, rollups, QA, and the executive summary API
+- Live row-level Vapi outgoing-call detail workflow and report-host proxy route
 - GHL menu provisioner workflow for the report entry point
 - External report host scaffold in `reports/embed/executive/index.html`
 - GHL references and the live GHL summary/report workflows
 - GA4 is live. Search Console raw ingest exists, but the current GSC OAuth credential is revoked/expired, so the GSC source remains blocked until reauthorization.
 - Live Postgres bootstrap apply workflow used to initialize the reporting schema in the database
 - Current live state: the patched GHL ingest workflows have been rerun, GA4 is live, the Executive Report backend is reading combined GHL + GA4 data, and the campaign summary endpoint is published with named channel/campaign rows. The public Executive Report serves build `2026-07-31-v10-partnership`.
+- Current live state: the Executive Report also serves a bottom `Outgoing Call Detail` table through `/api/report/executive/outgoing-calls`. The n8n endpoint is `/webhook/lt-report-outgoing-calls`, workflow `VXFHc8IrF9DDEEdj`, and its source is `voice_call_attempt` joined to `voice_call_queue`.
 - Ingest hardening (2026-07-31): GA4 version `8f4c63ea-dd33-4c7f-93a5-b3cbb5c8e7fa` finalizes success/empty/partial/failure states and protects the watermark; sales version `4f3e8068-8864-4b4d-9286-ba4d618cc3a8` uses ingest-date snapshots, bounded cursor/retry guards, fail-closed finalization, and `ghl_opportunities` health isolation. Verification executions: GA4 `276731` success, GA4 pinned failure `276747`, sales `276626` success.
 - `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary fix logic integrated directly.
 - `LT - Report Rollup Corrections` has been deactivated because the production Rollups workflow now owns those fixes.
@@ -45,6 +47,8 @@ It is intended to be the handoff point between the written plan and the live bui
 4. Create or verify the GHL sidebar entry.
 5. The live n8n workflow shells already exist; keep consolidating corrective logic back into the primary rollup flow.
 6. Recheck the live summary and campaign endpoints after deployment and confirm the integrated Rollups metrics hold without the separate correction handoff.
+
+7. Verify the outgoing-call proxy after report-host deployment with `limit=100&offset=0` and a second page request when `total > 100`.
 
 ## Remaining External Dependency
 

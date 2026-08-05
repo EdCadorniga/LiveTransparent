@@ -3,13 +3,14 @@
 This file is the short checklist of reporting workflows that should exist in n8n.
 Use it together with the workflow spec and the Postgres bootstrap.
 
-## Current Status (2026-05-13)
+## Current Status (2026-08-06)
 All report workflows are active and published in n8n:
 - `LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) — rebuilt replacement
 - `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`)
 - `LT - Report Attribution Bridge` (`Y0TU7Il71JswxOBp`)
 - `LT - Report Daily Rollups` (`EUeOiRttoVLQ9zF9`)
 - `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`)
+- `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`)
 - `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`)
 - `LT - Report Config Sync` (`aomO3Z4AXJIgEvvN`)
 - `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`)
@@ -95,6 +96,16 @@ Known cleanup completed: `LT - Report Daily Rollups` was restored, republished, 
 - Live n8n ID: `Bukc0mgOD2r7V6ED`
 - Status: created in n8n, active, returns the dashboard JSON payload
 - Sections added 2026-07-21: email metrics, LinkedIn funnel, Vapi campaign/queue, MQL/SQL, pool distribution, stage mover fix
+
+### `LT - Report Outgoing Calls Detail`
+- Trigger: GET webhook
+- First nodes: Trigger -> Normalize Request -> Query Postgres -> Shape Response -> Respond
+- Live n8n ID: `VXFHc8IrF9DDEEdj`
+- Production URL: `https://automations.livetransparent.com/webhook/lt-report-outgoing-calls`
+- Report-host proxy: `/api/report/executive/outgoing-calls`
+- Status: active and published, version `d004556d-0b11-4a86-8827-f8f58a1eeee3`
+- Purpose: seven completed days of paginated row-level Vapi calls with duration, disposition, campaign, contact ID/name fallback, first-attempt flag, and signed recording URL
+- Source: `voice_call_attempt` joined to `voice_call_queue`, enriched from latest `report_raw_ghl_contacts`
 
 ### `LT - Report Postgres Bootstrap Apply`
 - Trigger: Webhook

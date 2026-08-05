@@ -1,6 +1,6 @@
 # Reporting Gaps and Requirements
 
-**Updated:** 2026-08-04
+**Updated:** 2026-08-06
 **Status:** LinkedIn activity ledger and partnership reply attribution are live, the two verified historical partnership replies are backfilled, and the Executive Report exposes social engagement fields. Remaining: OAuth-backed social statistics ingestion for saves/reach/impressions and native GHL MQL/owner widgets (builder limitations).
 
 ## Purpose
@@ -20,6 +20,10 @@ This document records what is missing from the native GHL report and the externa
 - The two historical replies are stored with verified provider timestamps: Strider Peterson email at `2026-08-03T15:41:03Z` and Jaret Christopher LinkedIn at `2026-08-01T03:05:55Z`.
 - Social post totals currently show 24 likes, 3 comments, and 4 shares. The UI also exposes saves, reach, and impressions, but the PIT-based post ingest currently supplies none of those fields.
 - The Executive Report is the only current surface that can combine Postgres state, Unipile activity, GHL CRM data, and campaign joins.
+- Outgoing Call Detail is live at the bottom of the report. It loads the seven most recent completed days, paginates at 100 rows, and displays contact ID/name fallback, phone, disposition, duration, first-attempt flag, campaign, and lazy signed recording playback.
+- Outgoing Call Detail API: `GET /api/report/executive/outgoing-calls?range=7d&limit=100&offset=0`; nginx proxies to `GET /webhook/lt-report-outgoing-calls`.
+- The detail endpoint is backed by n8n workflow `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`), published version `d004556d-0b11-4a86-8827-f8f58a1eeee3`.
+- The aggregate `GHL Calls` panel and the outgoing Vapi detail table are separate surfaces: aggregate GHL call status facts remain sourced from `report_raw_ghl_call_outcomes`, while the detail table is sourced from `voice_call_attempt` plus `voice_call_queue`.
 
 ### Native GHL Report
 
@@ -137,6 +141,19 @@ Required partnership rows:
 - `Partnership emails`
 - `Partnership LinkedIn`
 
+### Outgoing Call Detail
+
+The Executive Report must keep the following call-detail contract:
+
+- Use only the seven most recent completed calendar days in `America/Los_Angeles`.
+- Return a stable JSON payload with `calls`, `total`, `limit`, `offset`, and `range`.
+- Cap one page at 100 rows and support non-negative offsets.
+- Include call ID, contact ID/name fallback, phone, started/ended timestamps, status/disposition, duration seconds, first-attempt flag, campaign, and recording URL.
+- Calculate duration from `ended_at - started_at`; null or missing end time falls back to zero-duration behavior rather than failing the whole report.
+- Load recordings lazily and preserve provider-signed URL handling; do not put signed URLs in documentation or source control.
+- Preserve an explicit contact-ID fallback when raw contact snapshots do not include a name.
+- Keep this read-only endpoint separate from aggregate GHL call reporting and Vapi queue mutation workflows.
+
 The 10 live test invites must appear in `Partnership LinkedIn`, not only in the overall LinkedIn KPI.
 
 ### LinkedIn Funnel
@@ -199,6 +216,8 @@ Every widget must use the shared report date range, have a documented filter, an
 - Email open/click rates use unique contacts rather than raw open events, or the report documents that rates are event-based (current Campaign Channel Summary `email_open_rate` counts raw events, so multi-open contacts can exceed 100%).
 - Source health identifies GSC OAuth and SimpleTexting provider blockers.
 - No report contains credentials, PITs, OAuth tokens, or signed URLs.
+- Outgoing Call Detail returns HTTP 200 with a valid empty payload when the selected seven-day window has no rows.
+- Outgoing Call Detail production and manual smoke executions complete without Postgres, Code-node, or webhook-response errors.
 
 ## References
 

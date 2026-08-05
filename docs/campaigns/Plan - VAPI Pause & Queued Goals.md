@@ -68,7 +68,9 @@ separate step outside of n8n and is the owner's responsibility.
 - Instagram outreach workflows (still active):
   - `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`)
   - `LT - Instagram DM State Upsert` (`enkF6Y25bvzVSPr0`)
-- SimpleTexting SMS workflows (still active; some staged):
+- SimpleTexting provider/inbound workflows remain available, but campaign execution is paused pending provider re-enablement:
+-   `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`) — unpublished
+-   `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`) — unpublished
   - `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`)
   - `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`)
   - `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`)
