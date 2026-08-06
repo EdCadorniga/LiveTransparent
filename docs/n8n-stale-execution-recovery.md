@@ -69,11 +69,11 @@ Reactivate one workflow at a time. Wait at least two scheduled intervals, or 15 
 ### Tier 3: Intake and Enrichment
 
 5. `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`): reactivate at its existing 10-minute cadence and 30-contact cap. Keep the positive `qualified` gate, `not qualified` suppression, source-tag cleanup, and queue deduplication. Add a cheap database count/eligibility check before paginating GHL contacts.
-6. `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`): keep paused until the provider HTTP 409 is resolved. When resumed, use a 10- or 15-minute cadence, a bounded batch of 10, and a query that selects only contacts with a current retryable phone-backfill state.
+6. `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`): temporarily unpublished during dispatcher recovery. After the timeout-configured redeploy, re-enable only after API and scheduler health is stable.
 
 ### Tier 4: Outbound and High-Side-Effect Work
 
-7. `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`): keep paused while the provider 409 remains unresolved. After resolution, start at 15 minutes with a small candidate limit, atomic claims, idempotent sends, and an immediate no-candidate exit. Do not replay the deleted historical ticks.
+7. `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`): temporarily unpublished during dispatcher recovery. After the timeout-configured redeploy, re-enable only after API and scheduler health is stable. Do not replay deleted historical ticks.
 8. `LT - DAN Campaign Sender Release Dispatcher (Staged)` (`toUG1yPDmFG48KEP`): reactivate only after email delivery and release-log health are confirmed. Keep the 30-minute schedule and bounded candidate limit; add a preflight query that exits when sender capacity is unavailable.
 9. `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`): reactivate last and only during an approved calling window. Keep the two-minute schedule and business-hours guard, but add a workflow-level overlap guard so a prior dialer execution cannot overlap the next tick. Preserve the atomic queue claim and 25-contact same-run safety cap.
 
@@ -104,9 +104,16 @@ After stale executions are removed, set regular-mode concurrency conservatively.
 
 ```text
 N8N_CONCURRENCY=10
+DB_POSTGRESDB_POOL_SIZE=10
+DB_POSTGRESDB_CONNECTION_TIMEOUT=3000
+DB_CONNECTION_ACQUISITION_TIMEOUT_MS=10000
+DB_POSTGRESDB_STATEMENT_TIMEOUT=300000
+DB_PING_TIMEOUT_MS=5000
+EXECUTIONS_TIMEOUT=1800
+EXECUTIONS_TIMEOUT_MAX=3600
 ```
 
-Redeploy n8n through Coolify for the setting to take effect, then monitor PostgreSQL connections, CPU, memory, API rate limits, execution errors, and the `new` execution count. Increase concurrency only after the system remains stable. Do not enable Queue Mode unless Redis and dedicated n8n workers are intentionally deployed and configured.
+Redeploy n8n through Coolify for these settings to take effect, then monitor PostgreSQL connections, CPU, memory, API rate limits, execution errors, and the `new` execution count. Increase concurrency only after the system remains stable. Do not enable Queue Mode unless Redis and dedicated n8n workers are intentionally deployed and configured.
 
 ## Verification Criteria
 
@@ -127,7 +134,7 @@ Add monitoring for:
 - n8n readiness failures
 - Repeated crash/error executions by workflow
 
-The concurrency change is staged in `n8n/docker-compose.yml` and requires the next Coolify redeploy; it is not yet active in the current container.
+The concurrency and timeout changes are staged in `n8n/docker-compose.yml` and require the next Coolify redeploy; they are not yet active in the current container.
 
 ## Reactivation Execution
 
@@ -141,14 +148,15 @@ Following the n8n redeploy, the seven non-SimpleTexting workflows were republish
 - `LT - DAN Campaign Sender Release Dispatcher (Staged)`
 - `LT - Sales Outreach Jason Marc No-Owner Allocator`
 
-The following remain intentionally unpublished while SimpleTexting requires account re-enablement:
+The following remain intentionally inactive because they are manual-only or legacy duplicate paths:
 
-- `LT - SimpleTexting Campaign Step Runner`
-- `LT - SimpleTexting Campaign Phone Backfill`
+- `LT - SimpleTexting State Diagnostic`
+- `LT - SimpleTexting Send Count Check`
+- `LT - SimpleTexting Inbound Reply (Webhook, Staged)`
 
 Post-reactivation verification:
 
 - n8n readiness: HTTP 200
-- `new` executions: 0
-- SimpleTexting workflows: inactive
+- `new` executions: only preserved webhook executions remain
+- SimpleTexting production workflows: temporarily paused during dispatcher recovery; manual and legacy duplicate workflows: inactive
 - No manual production executions were started as part of reactivation

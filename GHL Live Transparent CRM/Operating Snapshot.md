@@ -118,15 +118,15 @@ Keep these aligned with routing and report logic:
 - Operational note: the `.env` GHL PIT was verified against GHL and propagated to active workflows on 2026-07-25. Dialer smoke execution `242609` succeeded; a controlled live call remains the next production verification.
 
 ### SimpleTexting
-- `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`) — unpublished pending SimpleTexting account re-enablement; no automated campaign sends
-- `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`) — unpublished pending SimpleTexting account re-enablement
+- `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`) — temporarily unpublished during n8n dispatcher recovery
+- `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`) — temporarily unpublished during n8n dispatcher recovery
 - `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) — active
-- `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`) — active scheduling path; review before campaign resumption
-- `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`) — active (triggerCount=0)
+- `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`) — temporarily unpublished during n8n dispatcher recovery
+- `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`) — temporarily unpublished during n8n dispatcher recovery
 - `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) — active
 - `LT - SimpleTexting Delivery Events (Webhook)` (`AEi1VCzkLvaYFr4U`) — active
 - `LT - SimpleTexting Unsubscribe Events (Webhook)` (`IyBKMkpYQ7pa0C8V`) — active
-- Campaign execution remains paused while SimpleTexting requires account re-enablement and resolves the provider-side HTTP 409/compliance issue. The August 2026 n8n recovery removed stale scheduled executions, set regular-mode concurrency to 10 for the next deployment, and re-enabled non-SimpleTexting workflows without manual production runs.
+- Campaign Sequencer (`7mSiivR3NhtLIcNz`), Warmup Dispatcher (`dZQLlbTLkpE1843X`), and Pool Dispatcher (`usxYXSuc4ahw40V3`) are temporarily unpublished during n8n dispatcher recovery. State Diagnostic, Send Count Check, and the legacy staged inbound webhook remain inactive because they are manual-only or duplicate paths. Timeout and pool settings are staged in `n8n/docker-compose.yml` for the next Coolify redeploy.
 
 ### LinkedIn/Unipile Pipeline
 - `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) — active, `15 */6 * * *`

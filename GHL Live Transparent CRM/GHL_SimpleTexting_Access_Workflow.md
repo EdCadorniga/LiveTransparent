@@ -1,6 +1,6 @@
 # GHL SimpleTexting Access Workflow
 
-> Operational status: automated campaign execution and phone backfill remain unpublished while SimpleTexting requires account re-enablement. Do not use this manual-send path for live traffic until the provider accepts a controlled test and returns a real provider message ID.
+> Operational status: automated campaign execution and phone backfill are temporarily paused during n8n dispatcher recovery. Use this manual-send path only for controlled operator sends and verify a real provider message ID before treating a send as successful.
 
 ## Goal
 Give GHL users a direct, repeatable way to send their own typed reply through SimpleTexting while keeping n8n as the provider boundary and audit layer.
