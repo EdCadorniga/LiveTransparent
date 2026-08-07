@@ -1,7 +1,7 @@
 # Reporting Gaps and Requirements
 
-**Updated:** 2026-08-06
-**Status:** LinkedIn activity ledger and partnership reply attribution are live, the two verified historical partnership replies are backfilled, and the Executive Report exposes social engagement fields. Remaining: OAuth-backed social statistics ingestion for saves/reach/impressions and native GHL MQL/owner widgets (builder limitations).
+**Updated:** 2026-08-08
+**Status:** Campaign attribution, SMS delivery diagnostics, opportunity counts, LinkedIn activity, and partnership reply attribution are live. Remaining: OAuth-backed social statistics ingestion, native GHL stage/tag/email/custom-metric widgets, and reporting owner dimensions.
 
 ## Purpose
 
@@ -12,9 +12,12 @@ This document records what is missing from the native GHL report and the externa
 ### Executive Report
 
 - Host: `https://reports.livetransparent.com`
-- Current build: `2026-08-01-v12-campaign-breakdown`
+- Current build: `2026-08-08-v18-opportunity-attribution`
 - Selected-period controls and prior equal-length comparison are live.
 - Campaign Channel Summary is live and returns named campaign rows.
+- Campaign rows remain separate for `DAN`, `Emerald`, `Partnership`, `Vapi Brand`, and `Vapi Dispensary`; Vapi activity is no longer rolled into DAN.
+- Campaign rows include selected-window distinct opportunity counts matched from current campaign tags in `report_raw_ghl_opportunities`.
+- SMS summary includes sent, failed, replies, and normalized failure reasons. The verified 2026-07-09 through 2026-08-07 window returned 294 sent, 1,095 failed, 0 replies; failure reasons were provider failure 1,010, duplicate send 63, unknown 16, invalid phone 5, and idempotent webhook error 1.
 - In the current 30-day window, `Partnership emails` shows 59 sends, 1 reply, and a 1.69% response rate.
 - In the current 30-day window, `Partnership LinkedIn` shows 17 invites and 1 reply.
 - The two historical replies are stored with verified provider timestamps: Strider Peterson email at `2026-08-03T15:41:03Z` and Jaret Christopher LinkedIn at `2026-08-01T03:05:55Z`.
@@ -28,7 +31,7 @@ This document records what is missing from the native GHL report and the externa
 ### Native GHL Report
 
 - Report ID: `6a67dce4a51a4360c60963a3`
-- The report has **15 widgets** (verified persisted after reload on 2026-08-01) and is intended for operational CRM facts.
+- The report is intended for operational CRM facts. Its saved date range is `Last 30 days`; the duplicate page-3 `Outgoing calls by status` widget was removed on 2026-08-08 and the report still has three content pages.
 - The report-builder UI requires an authenticated GHL browser/Firebase session.
 - A location PIT can read CRM data but cannot mutate native report widget layouts.
 - `Campaign Opportunities` is filtered to `Pipeline Is Partnership Pipeline`.
@@ -90,7 +93,7 @@ If GHL does not emit events consistently, correlate events using GHL message ID,
 - `Campaign Opportunities`: filtered to `Pipeline Is Partnership Pipeline`.
 - `Contacts by tag` and `Contacts counts by tags (Partnership Campaign)`: `Tags Is one of` with `partner_candidate_email` + `partner_candidate_linkedin`; group-by Tags surfaces the full partner tag family distribution.
 - Added `Partnership Pipeline Opportunities` (count), `Partnership Pipeline by Status` (grouped by Status), and `Closed Won Revenue` (`Won Opportunity value`).
-- Shared report date range confirmed (`This week`, Jul 26 – Aug 1, 2026) with no per-widget overrides.
+- Shared report date range confirmed as `Last 30 days` (saved 2026-08-08) with no per-widget overrides.
 
 Still open (builder limitations, not yet reliable via the report-builder UI):
 
@@ -134,7 +137,7 @@ Show current, prior, change, and definition for recorded visits/users, GHL conta
 
 ### Campaign Channel Table
 
-Columns must include channel, campaign, SMS sent/replies, email sent/opened/open rate/clicked/click rate/replies/response rate/bounced, LinkedIn invites or DMs/replies, and Vapi calls/answered/qualified/booked.
+Columns must include channel, campaign, SMS sent/failed/replies, email sent/opened/open rate/clicked/click rate/replies/response rate/bounced, LinkedIn invites or DMs/replies, Vapi calls/answered/qualified/booked, and selected-window distinct opportunities.
 
 Required partnership rows:
 
@@ -198,8 +201,8 @@ Every widget must use the shared report date range, have a documented filter, an
 7. Verify partnership email event delivery and correlate message IDs. — **partially done**: the Partnership Email Dispatcher (`Xshck23cKo1yXL9D`) stores `ghl_message_id`/`ghl_conversation_id` per send in `partnership_release_log`, and the Campaign Channel Summary attributes partnership email opens/clicks via a release-log fallback keyed on `contact_id`. The known historical reply is backfilled and the selected-window row shows 59 sent / 1 reply / 1.69%. Still open: confirming GHL emits all per-message open/click webhooks for inline `POST /conversations/messages` sends and correlating those events consistently.
 8. Add owner dimensions and conflict state to the reporting read model.
 9. Reconnect GSC OAuth and resume GSC ingestion.
-10. Resolve the SimpleTexting provider HTTP 409 before counting provider sends as delivered.
-11. Configure native GHL widgets through authenticated UI access; do not guess undocumented report-builder APIs. **Done for the partnership widgets (2026-08-01)**; MQL, owner, and stage-split widgets remain open because the builder has no stage-group dimension, no Owner-custom-field group-by, and a per-row Pipeline dependency on the Stage filter.
+10. Resolve the SimpleTexting provider HTTP 409 before counting provider sends as delivered. The reporting layer now exposes normalized failure reasons; the dominant selected-window cause is `simpletext_provider_failed` with provider HTTP 409 responses.
+11. Configure native GHL widgets through authenticated UI access; do not guess undocumented report-builder APIs. **Partially done**: saved `Last 30 days` and removed the duplicate page-3 outgoing-call widget on 2026-08-08. MQL, owner, stage-split, campaign-tag, email-detail, page-name, and custom-metric widgets remain open because the builder has no stage-group dimension, no Owner-custom-field group-by, and some tag selections are virtualized.
 12. Add QA assertions for the 10-contact test: 10 invite events, 10 campaign-attributed LinkedIn requests, 10 state transitions or explicit state-upsert failures, and no duplicate event IDs.
 13. Add a GHL OAuth credential to n8n and ingest Social Planner statistics by platform/day, including saves, reach, and impressions.
 

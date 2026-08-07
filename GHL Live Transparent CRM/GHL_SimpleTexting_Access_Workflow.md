@@ -143,7 +143,7 @@ Treat these as blocking or review states:
 ## Practical GHL Setup
 Use the `SimpleTexting SMS` custom field for the typed message body and map that field into the webhook payload as `message`. That is the cleanest way to let GHL users send their own reply text instead of picking from predefined snippets.
 Add a follow-up field update step after the webhook that blanks `SimpleTexting SMS` only when the webhook response indicates success.
-Do not set a custom auth header on this webhook path; the live endpoint is configured to accept the GHL call directly so the workflow does not hang on a header mismatch.
+The published GHL workflow `Send Simpletexting SMS from field to Contact` sends the required `x-lt-simpletexting-key` header. Keep that header aligned with the n8n-derived internal-send secret; do not remove it or substitute the legacy `x-lt-webhook-key`. This protects the outbound n8n API boundary; it does not require a SimpleTexting dashboard login.
 
 ## QA Checklist
 1. Run a dry-run payload from GHL.

@@ -13,13 +13,13 @@ It records the live workflow contracts, hardening decisions, verification eviden
 6. Build the bridge and rollups.
 7. Add QA and publish refresh.
 
-Current live status as of 2026-08-06:
+Current live status as of 2026-08-08:
 - **Active**: `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report Executive Summary API`, `LT - Report Outgoing Calls Detail`, `LT - Report QA and Alerts`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, `LT - Report Postgres Bootstrap Apply`.
 - **GA4 Active**: `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`), `LT - GA4 Traffic Rollup Bridge` (`0P2AZcQYWYZjXbRi`).
 - **GSC Active**: `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) writes raw query/page/site rows.
 - **Email Events Active**: `LT - Email Event Ingest` (`ZrqFN8qLKO8eVHDc`) receives GHL email event webhooks (opens, clicks, bounces, unsubscribes, spam) and stores in `Email_Events`. Email campaign metrics (sent, opened, clicked, bounced) are now rolled into `report_daily_summary` and surfaced in the Executive Report.
 - **Inactive/deferred**: `LT - GHL Executive Report Menu Sync` (one-time provision, inactive).
-- **Campaign Summary Active**: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published as version `64641979-71f3-466c-8a09-36013be6bc0e`. Its endpoint is `/webhook/lt-report-campaign-channel-summary`; manual execution `276517` succeeded, and live 7-day/30-day checks returned named rows.
+- **Campaign Summary Active**: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published as version `1cea3b9c-d587-4135-806d-46d301e2c7f4`. Its endpoint is `/webhook/lt-report-campaign-channel-summary`; it returns named DAN, Emerald, Partnership, Vapi Brand, Vapi Dispensary, and SMS rows with selected-window comparison data.
 Current status: GA4 is live, GSC raw ingest is live, the rollups draft has been restored from the active workflow definition, and the published Rollups workflow now includes the daily-summary correction logic directly.
 The published Rollups workflow preserves GA-backed summary, channel, UTM, and landing-page rows so Channel Breakdown and traffic totals survive the CRM rollup pass. GSC search metrics now render in the Executive Report, with GA4 Organic Search users used as the unique-visitor proxy.
 
@@ -34,6 +34,8 @@ The published Rollups workflow preserves GA-backed summary, channel, UTM, and la
 - **Voice dialer**: `GHL - Create Call Note` node set to `onError: continueRegularOutput` to prevent execution errors from blocking calls.
 - **Named campaign/channel rows**: the campaign summary maps DAN through `DAN_Release_Log`, Emerald through bucket/enrollment data, SMS through `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn through `linkedin_activity_events` joined to `emerging_pool_contacts.source_list`, and Vapi through queue campaign IDs. `General outbound`, `Partnership emails`, `xyz`, and `abc` are catalog rows that remain zero until matching source events exist.
 - **Outgoing call detail (2026-08-06)**: `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`, published version `d004556d-0b11-4a86-8827-f8f58a1eeee3`) serves `GET /webhook/lt-report-outgoing-calls`. It queries `voice_call_attempt` joined to `voice_call_queue`, calculates duration and first-attempt state, enriches from latest contact snapshots, and returns a bounded seven-completed-day JSON page for the report-host proxy `/api/report/executive/outgoing-calls`.
+- **Campaign attribution (2026-08-08)**: campaign rows use release-log and event-source routing rather than broad channel rollups. Opportunity counts are selected-window counts matched from current campaign tags in `report_raw_ghl_opportunities`; Vapi is split into Brand and Dispensary campaign rows.
+- **SMS diagnostics (2026-08-08)**: the campaign summary counts SimpleTexting `sent_step_1` through `sent_step_4` events and exposes selected-window sent, delivery-failed, reply, and normalized failure-reason summaries.
 
 ## Live Pattern To Reuse
 The live workflows in this repo generally follow this shape:
@@ -48,7 +50,7 @@ The live workflows in this repo generally follow this shape:
 
 The executive summary workflow currently returns the live dashboard JSON payload from Postgres and serves it through the report host proxy.
 
-The Executive Report UI now renders the named campaign/channel rows and LinkedIn DM/reply columns. The public report host serves build `2026-07-31-v10-partnership`.
+The Executive Report UI now renders the named campaign/channel rows, campaign filters, Vapi filters, campaign opportunity counts, comparison view, LinkedIn DM/reply columns, SMS delivery diagnostics, and social engagement fields. The public report host serves build `2026-08-08-v18-opportunity-attribution`.
 
 The Executive Report UI also renders the bottom `Outgoing Call Detail` table. It requests 100 rows at a time, uses the `America/Los_Angeles` completed-day window, and loads signed recordings only when the operator presses play.
 

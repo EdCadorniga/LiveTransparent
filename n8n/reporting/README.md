@@ -15,11 +15,20 @@ It is intended to be the handoff point between the written plan and the live bui
 - GHL references and the live GHL summary/report workflows
 - GA4 is live. Search Console raw ingest exists, but the current GSC OAuth credential is revoked/expired, so the GSC source remains blocked until reauthorization.
 - Live Postgres bootstrap apply workflow used to initialize the reporting schema in the database
-- Current live state: the patched GHL ingest workflows have been rerun, GA4 is live, the Executive Report backend is reading combined GHL + GA4 data, and the campaign summary endpoint is published with named channel/campaign rows. The public Executive Report serves build `2026-07-31-v10-partnership`.
+- Current live state: the patched GHL ingest workflows have been rerun, GA4 is live, the Executive Report backend is reading combined GHL + GA4 data, and the campaign summary endpoint is published with named channel/campaign rows, selected-window comparisons, campaign opportunity counts, and SMS delivery diagnostics. The public Executive Report serves build `2026-08-08-v18-opportunity-attribution`.
 - Current live state: the Executive Report also serves a bottom `Outgoing Call Detail` table through `/api/report/executive/outgoing-calls`. The n8n endpoint is `/webhook/lt-report-outgoing-calls`, workflow `VXFHc8IrF9DDEEdj`, and its source is `voice_call_attempt` joined to `voice_call_queue`.
 - Ingest hardening (2026-07-31): GA4 version `8f4c63ea-dd33-4c7f-93a5-b3cbb5c8e7fa` finalizes success/empty/partial/failure states and protects the watermark; sales version `4f3e8068-8864-4b4d-9286-ba4d618cc3a8` uses ingest-date snapshots, bounded cursor/retry guards, fail-closed finalization, and `ghl_opportunities` health isolation. Verification executions: GA4 `276731` success, GA4 pinned failure `276747`, sales `276626` success.
 - `LT - Report Daily Rollups` was restored, republished, and verified on 2026-05-02 with the daily-summary fix logic integrated directly.
 - `LT - Report Rollup Corrections` has been deactivated because the production Rollups workflow now owns those fixes.
+
+## Current Reporting Contract (2026-08-08)
+
+- Campaign summary workflow: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`), published version `1cea3b9c-d587-4135-806d-46d301e2c7f4`.
+- Campaign rows are separated into DAN, Emerald, Partnership, Vapi Brand, Vapi Dispensary, and SMS. Vapi must not be merged into DAN.
+- Opportunity counts are selected-window counts matched from current campaign tags in `report_raw_ghl_opportunities`.
+- SMS summary includes sent step events, delivery failures, replies, and normalized failure reasons from `SimpleTexting_Campaign_Event_Log`.
+- The Executive Report supports `range=7d|30d|90d|custom`, custom `from`/`to`, immediately preceding equal-length comparison periods, campaign/channel filters, and campaign drill-downs.
+- Native GHL report `6a67dce4a51a4360c60963a3` is currently saved to `Last 30 days`. Its duplicate page-3 outgoing-call widget was removed. Native report layout changes remain UI-only because the official API does not expose widget mutation.
 
 ## File Index
 

@@ -160,3 +160,120 @@ Post-reactivation verification:
 - `new` executions: only preserved webhook executions remain
 - SimpleTexting production workflows: temporarily paused during dispatcher recovery; manual and legacy duplicate workflows: inactive
 - No manual production executions were started as part of reactivation
+
+## SimpleTexting Hardening and Re-enable Plan (2026-08-06)
+
+### Current Production State
+
+The Campaign Sequencer remains intentionally unpublished because it would duplicate the canonical Step Runner. The other four production workflows were enabled and smoke-tested on 2026-08-07:
+
+| Workflow | ID | Current state | Notes |
+|----------|----|---------------|-------|
+| LT - SimpleTexting Campaign Sequencer (Staged) | `7mSiivR3NhtLIcNz` | Unpublished | Keep disabled until the canonical sender path is selected. |
+| LT - SimpleTexting Warmup Dispatcher (Staged) | `dZQLlbTLkpE1843X` | Active | Hourly; `defaultDryRun=false`; smoke `721541` succeeded with zero candidates/sends. |
+| LT - SimpleTexting Campaign Step Runner | `dUyOfxllvkxZavaw` | Active | Every 5 minutes; explicit `dryRun=false`; smoke `721562` succeeded. |
+| LT - SimpleTexting Campaign Phone Backfill | `8hQKQi1PooYDFxNR` | Active | Every 10 minutes; no-work guard added; smoke `721377` succeeded. |
+| LT - SimpleTexting Pool Dispatcher (Staged) | `usxYXSuc4ahw40V3` | Active | Weekday bounded schedules, candidate limit 10, `defaultDryRun=false`; smoke `721576` succeeded with zero eligible contacts. |
+
+The canonical provider router, send boundary, inbound reply, delivery, and unsubscribe workflows remain available. Manual diagnostics, send-count checks, and the legacy staged inbound webhook remain inactive.
+
+### Completed Fixes and Optimizations
+
+- Bootstrapped `SimpleTexting_Campaign_State` and `SimpleTexting_Campaign_Event_Log` in the n8n PostgreSQL database.
+- Added indexes for due sends, phone backfill, stale locks, and event-log contact lookups.
+- Removed runtime `CREATE TABLE` and `ALTER TABLE` statements from all five production workflows. Schema work is now a bootstrap/migration concern, not a scheduled-run concern.
+- Split Warmup Dispatcher `Fetch + Dispatch Warmup Contacts` into `Fetch + Prepare Warmup Contacts` and `Send Warmup Contacts` so candidate preparation and provider sends are separate runner tasks.
+- Replaced the known `$httpRequest`/`doHttpRequest` wrapper pattern with direct `this.helpers.httpRequest(...)` in Warmup and all six Sequencer step nodes.
+- Changed Step Runner cadence from every 2 minutes to every 5 minutes.
+- Changed Phone Backfill cadence from every 2 minutes to every 10 minutes.
+- Added row claiming and a transaction-scoped advisory lock to Phone Backfill so overlapping runs cannot process the same rows.
+- Added a transaction-scoped advisory lock to Step Runner so overlapping ticks exit without claiming work.
+- Preserved Step Runner atomic `FOR UPDATE SKIP LOCKED` claims, five-row batch limit, bounded attempts, stale-claim recovery, and 15-minute failed-send retry delay.
+- Added n8n runner request timeout configuration: `N8N_RUNNERS_TASK_REQUEST_TIMEOUT=300`.
+- The deployment also declares `N8N_CONCURRENCY=10`, PostgreSQL pool size 10, bounded connection acquisition, statement, ping, and workflow execution timeouts.
+
+### Remaining Configuration Gates
+
+- Warmup is now active with `defaultDryRun=false`; its GHL search body remains blank, so the smoke produced zero candidates and zero sends. Approve the audience query before expecting warmup traffic.
+- Pool Dispatcher still loads campaign state through full `ARRAY_AGG` arrays. Replace this with database-side existence checks before scaling the audience beyond a small test set.
+- Sequencer is a long-lived six-step Wait-based path while Step Runner is a stateful scheduled sender. Do not activate both as senders until the canonical path is explicitly selected.
+- Warmup and Sequencer provider-boundary Config nodes now use `x-lt-simpletexting-key` with the configured internal-send secret.
+- The latest n8n timeout/deprecation environment settings require a Coolify redeploy, followed by an environment inspection inside the running container.
+
+### One-by-One Re-enable Test Sequence
+
+Do not activate all five workflows together. Before every step, record readiness, PostgreSQL connections, `new`/`running` counts, oldest queued execution, and recent errors.
+
+1. Confirm the latest Coolify deployment is running n8n `2.33.3` with the timeout and runner settings active. Require `/healthz/readiness` HTTP 200, zero scheduled `new` executions, and zero stale scheduled `running` executions for at least 15 minutes.
+2. Enable **Campaign Step Runner** only. Observe at least three five-minute cycles. Expected result: successful no-work exits or bounded sends, no queue growth, no database timeout, no duplicate claims, and no provider 409.
+3. Enable **Phone Backfill** only. Observe at least two ten-minute cycles. Confirm row claims release, no overlapping duplicate lookups, and no growth in `new` executions.
+4. Enable **Warmup Dispatcher** with `defaultDryRun=false` and its approved search body only for an explicitly authorized bounded live test. Confirm the split preparation/send graph completes without task-runner timeout and produces a bounded summary.
+5. Enable **Pool Dispatcher** first in dry-run or with a one-contact approved limit while Step Runner is paused. Confirm only intended enrollment rows are created and no duplicate `(ghl_contact_id, campaign_key)` rows appear.
+6. Run one approved live provider test with the smallest possible audience. Confirm a real SimpleTexting provider message ID, `report_sms_sent.provider_response`, campaign state advancement, GHL tags/notes, and conversation mirroring.
+7. Enable Step Runner for the controlled enrolled row, observe its successful state transition, then gradually increase the Pool Dispatcher candidate limit.
+8. Keep **Campaign Sequencer** unpublished unless it is explicitly chosen as the canonical sender. If it must be tested, set dry-run behavior first and use a synthetic/manual input; never test it concurrently with live Step Runner sends.
+
+### Stop and Rollback Conditions
+
+Immediately deactivate the most recently enabled workflow if any condition occurs:
+
+- Scheduled `new` executions become nonzero for two consecutive checks.
+- Any scheduled execution remains `running` beyond its normal interval or 10 minutes, whichever is shorter.
+- A PostgreSQL connection acquisition timeout, `idle in transaction` accumulation, or scheduler `NaNms` deadline warning recurs.
+- PostgreSQL active connections exceed 50% of `max_connections`.
+- A provider 409, missing provider message ID, duplicate-send result, or unexpected live send occurs.
+- Campaign state or event-log counts advance without a corresponding successful provider result.
+- Warmup or any Code node hits the runner request timeout.
+
+When rolling back, deactivate the last workflow only, preserve webhook executions, and do not delete current successful or waiting executions. Capture the execution ID, workflow ID, database connection count, and n8n logs before further cleanup.
+
+## SimpleTexting Live Audit Pass (2026-08-06)
+
+### Audit Result
+
+The live n8n definitions were audited for all SimpleTexting sender, dispatcher, provider, inbound, delivery, unsubscribe, intake, diagnostic, and send-count workflows. No production campaign schedules were re-enabled during the audit.
+
+Recent execution checks showed:
+
+- Step Runner execution `720852`: successful no-work exit; no claimed rows.
+- Phone Backfill execution `720851`: successful no-work exit; no claimed rows.
+- Pool Dispatcher execution `703059`: successful state read and no candidate output; it remains unpublished.
+- Historical Warmup execution `720733`: task-runner timeout after 60 seconds on the pre-split `Fetch + Dispatch Warmup Contacts` node. This was an old execution/version and is the reason the split graph must be tested after redeploy.
+- Provider outbound health check: HTTP 200 with the expected registered-service response.
+
+### Confirmed Fixes Applied During Audit
+
+- Provider Outbound Router now fails closed unless `conversationProviderId` exactly matches configured provider `6a5b91913953360948dd59f1`.
+- Runtime table creation/index DDL was removed from the active inbound reply, delivery, unsubscribe, provider-map, and idempotent-send paths. These workflows now depend on the bootstrapped schema.
+- Active inbound, delivery, unsubscribe, and GHL SMS intake Config nodes explicitly preserve webhook input fields with `includeOtherFields=true`.
+- The active SMS Send Config node's stale nested `parameters` assignment artifact was removed; its canonical outer assignments remain authoritative.
+- The GHL SMS intake Code node now uses direct `this.helpers.httpRequest(...)` instead of the deprecated wrapper pattern.
+- Live patched workflows were verified with matching `versionId` and `activeVersionId`; inactive production schedules remain unpublished.
+
+### Activation Audit (2026-08-07)
+
+- Step Runner, Phone Backfill, Warmup Dispatcher, and Pool Dispatcher are active and published.
+- Successful smoke executions: Step Runner `721562`, Phone Backfill `721377`, Warmup `721541`, and Pool `721576`.
+- Step Runner sends explicit `dryRun=false`; Warmup, Pool, and the send boundary use `defaultDryRun=false`.
+- Warmup's schedule was corrected to an explicit hourly interval. Its smoke had `dryRun=false`, zero candidates, zero sends, and zero errors.
+- Pool's original weekday schedules were restored after a one-minute controlled smoke; its smoke had zero eligible contacts.
+- Phone Backfill now uses the dedicated `GHL API - SimpleTexting` credential and skips the GHL lookup when the claim query returns no contact rows.
+- No active SimpleTexting workflow has a currently running execution, and the n8n execution API reports zero `new` executions.
+- Campaign Sequencer remains unpublished to prevent a duplicate sender path.
+
+### Findings Still Blocking Live Sends
+
+- **Outbound API sending is not blocked by the SimpleTexting dashboard.** The SimpleTexting API credential is already used by n8n for outbound sends, and the authenticated GHL manual-send caller (`Send Simpletexting SMS from field to Contact`) now sends `x-lt-simpletexting-key` and is published. Provider event authentication only affects inbound reply, delivery, and unsubscribe callbacks; those callbacks need matching headers if they are enabled for production tracking.
+- **Resolved 2026-08-06: unknown-contact events.** Inbound, delivery, and unsubscribe workflows now claim an event before side effects. If contact resolution fails, they write a synthetic `unresolved:<hash>` event-log record and return a controlled no-op without writing campaign state or touching GHL.
+- **Resolved 2026-08-06: duplicate provider events.** Each event now uses a stable provider/event/status key. An advisory transaction lock and event-log lookup ensure only the first event proceeds to GHL notes, tags, Slack, Conversations, and state updates; replays return `duplicate_event_ignored`.
+- **Medium: GHL Warm Intake - SMS Tag is active but defaults to `defaultDryRun=true`.** It will not add its intake tag unless the caller explicitly sends `dryRun=false`. Confirm whether this endpoint is intentionally staged or should be made operational before relying on it.
+- **Low: the inactive legacy staged inbound workflow still contains runtime DDL.** It remains unpublished and is not part of the production path, but it should be retired or cleaned before any future activation.
+
+Authentication is enforced internally using values derived from the existing n8n encryption key; the values were not printed or committed. The one-by-one outbound re-enable plan is not blocked by provider event headers. Event-driven reply, delivery, and unsubscribe tracking remains gated until the external provider can send the configured header or an approved provider-signature/secret-URL contract is selected.
+
+Header contracts:
+
+- Internal campaign callers to `lt-simpletexting-send-sms`: `x-lt-simpletexting-key`.
+- SimpleTexting inbound/delivery/unsubscribe callers: `x-lt-simpletexting-event-key`.
+- GHL SMS intake caller: `x-lt-simpletexting-intake-key` (not yet configured in the authenticated GHL session).
+- GHL custom-provider outbound remains protected by exact `conversationProviderId` validation because the GHL provider callback contract does not currently expose a configured shared-secret header.

@@ -126,7 +126,8 @@ Keep these aligned with routing and report logic:
 - `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) — active
 - `LT - SimpleTexting Delivery Events (Webhook)` (`AEi1VCzkLvaYFr4U`) — active
 - `LT - SimpleTexting Unsubscribe Events (Webhook)` (`IyBKMkpYQ7pa0C8V`) — active
-- Campaign Sequencer (`7mSiivR3NhtLIcNz`), Warmup Dispatcher (`dZQLlbTLkpE1843X`), and Pool Dispatcher (`usxYXSuc4ahw40V3`) are temporarily unpublished during n8n dispatcher recovery. State Diagnostic, Send Count Check, and the legacy staged inbound webhook remain inactive because they are manual-only or duplicate paths. Timeout and pool settings are staged in `n8n/docker-compose.yml` for the next Coolify redeploy.
+- Campaign Sequencer (`7mSiivR3NhtLIcNz`) remains unpublished as the duplicate sender path. Warmup Dispatcher (`dZQLlbTLkpE1843X`), Pool Dispatcher (`usxYXSuc4ahw40V3`), Step Runner, and Phone Backfill are active after successful smoke executions; State Diagnostic, Send Count Check, and the legacy staged inbound webhook remain inactive because they are manual-only or duplicate paths. Timeout and pool settings are staged in `n8n/docker-compose.yml` for the next Coolify redeploy.
+- SimpleTexting hardening completed 2026-08-06 and staged activation completed 2026-08-07: campaign state/event-log tables and indexes were bootstrapped; runtime DDL was removed; Warmup was split into prepare/send tasks; Step Runner now runs every 5 minutes; Phone Backfill runs every 10 minutes with row claims, advisory locking, and a no-work guard; Step Runner also has an overlap guard. Outbound send paths are configured with `dryRun=false` or `defaultDryRun=false`.
 
 ### LinkedIn/Unipile Pipeline
 - `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) — active, `15 */6 * * *`

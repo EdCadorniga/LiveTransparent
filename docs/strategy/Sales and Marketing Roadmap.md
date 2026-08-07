@@ -178,9 +178,11 @@ Minimum v1 output from the executive report:
 - [x] MQL summary (active + total opportunities in Warm/Qualified MQL) — added 2026-07-21
 - [x] SQL contacts count (contacts with SQL tag) — added 2026-07-21
 - [x] Pool distribution (brands, dispensaries, vapi brand/dispensary pool tags) — added 2026-07-21
+- [x] Campaign-level Vapi separation, SMS delivery diagnostics, and campaign opportunity attribution — added 2026-08-08
 - [x] Stage mover count (fixed from 0 to 93 via stage ID resolution) — added 2026-07-21
 - [ ] Meta raw spend/clicks/impressions (deferred)
 - [ ] Matched funnel by landing page (after tracking is tightened)
+- [ ] OAuth-backed social saves/reach/impressions and remaining native GHL campaign widgets
 
 ### Pipeline Movement Tracking
 

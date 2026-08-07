@@ -118,12 +118,14 @@ The live GHL build already has the key structures needed for reporting:
 - Saved views for daily operational work
 - Contact drill-down fields already present in the CRM
 - Opportunity/pipeline data for sales and conversion reporting
-- The live custom menu record exists in GHL and points to the embedded report host. The remaining deployment step is to publish the latest committed host build through Coolify and verify the iframe in GHL.
-- A native GHL custom report was created for the operational CRM view: report ID `6a67dce4a51a4360c60963a3`. It is intended to include opportunity, email, SMS, and outbound-call widgets and is shared with the location team. Its current widget configuration is not verified: the latest authenticated browser check returned 404 plus Firebase token/permission errors. The root `GHL_PIT` was separately verified against the official location and contacts REST endpoints with HTTP 200, so this is a report-builder browser/Firebase session issue rather than a general GHL API-access issue. Cross-channel campaign joins remain in the external Executive Report because native GHL widgets do not join the campaign source tables.
-- The external campaign summary endpoint is live at `/webhook/lt-report-campaign-channel-summary`, published as n8n version `64641979-71f3-466c-8a09-36013be6bc0e`. It returns named DAN, Emerald, SMS, LinkedIn, and Vapi campaign rows for the selected date window. This backend result must not be confused with the native GHL widget state or the older public report-host build.
-- The external outgoing-call detail endpoint is live at `/webhook/lt-report-outgoing-calls` through n8n workflow `VXFHc8IrF9DDEEdj` (published version `d004556d-0b11-4a86-8827-f8f58a1eeee3`). The report host proxies it as `/api/report/executive/outgoing-calls` and renders the result at the bottom of the Executive Report. It is a read-only Vapi detail surface, not a native GHL widget.
+  - The live custom menu record exists in GHL and points to the embedded report host. The public host currently serves build `2026-08-08-v18-opportunity-attribution`; the iframe route has been verified.
+  - A native GHL custom report was created for the operational CRM view: report ID `6a67dce4a51a4360c60963a3`. It is shared with the location team, saved to `Last 30 days`, and its duplicate page-3 outgoing-call widget has been removed. The remaining widget additions are UI work: stage widgets for Sales Outreach and Warm, campaign-tag widgets, email detail widgets, page names, and custom metrics. Cross-channel campaign joins remain in the external Executive Report because native GHL widgets do not join campaign source tables.
+  - The external campaign summary endpoint is live at `/webhook/lt-report-campaign-channel-summary`, published as n8n version `1cea3b9c-d587-4135-806d-46d301e2c7f4`. It returns separate DAN, Emerald, Partnership, Vapi Brand, Vapi Dispensary, and SMS campaign rows, selected-window comparison data, campaign opportunity counts, LinkedIn metrics, Vapi metrics, and SMS failure diagnostics. This backend result must not be confused with native GHL widget state.
+  - The external outgoing-call detail endpoint is live at `/webhook/lt-report-outgoing-calls` through n8n workflow `VXFHc8IrF9DDEEdj` (published version `d004556d-0b11-4a86-8827-f8f58a1eeee3`). The report host proxies it as `/api/report/executive/outgoing-calls` and renders the result at the bottom of the Executive Report. It is a read-only Vapi detail surface, not a native GHL widget.
 
 ### Partnership Reporting Status
+
+- Campaign opportunity attribution is now exposed in the Executive Report using current campaign tags matched to opportunity creation dates. Treat this as operational attribution rather than immutable historical ownership.
 
 - The Executive Report currently shows the 10 live Partnership LinkedIn invites in the overall LinkedIn activity KPI.
 - The campaign table currently shows 10 `Partnership emails`, but the 10 LinkedIn invites are not yet attributed to a `Partnership LinkedIn` row.
@@ -248,7 +250,7 @@ Once the GA4 property ID is available:
 - `LT - Report Config Sync` is live in n8n as the first real reporting workflow.
 - `LT - Report QA and Alerts` is live in n8n as a real starter chain.
 - `LT - Report Publish Refresh` is live in n8n as a real starter chain.
-- The report embed target is present in GHL and the host is reachable. The public host serves the Executive Report build `2026-08-01-v12-campaign-breakdown`; live iframe behavior, campaign rows, and the bottom outgoing-call detail section have been verified. Native report configuration remains blocked by the authenticated GHL report page returning 404.
+- The report embed target is present in GHL and the host is reachable. The public host serves the Executive Report build `2026-08-08-v18-opportunity-attribution`; live iframe behavior, campaign rows, campaign comparison, opportunity attribution, SMS diagnostics, and the bottom outgoing-call detail section have been verified. Native report configuration is partially complete through the authenticated GHL UI; the remaining widget backlog is tracked below.
 - The executive summary webhook is live and serves the dashboard JSON from Postgres.
 - The report host scaffold now exists in `reports/` with a Dockerfile and nginx config.
 
