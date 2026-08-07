@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-08-01-v12-campaign-breakdown -->
+    <!-- build-stamp: 2026-08-07-v13-parallel-loads -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -853,7 +853,7 @@
     </div>
     <script>
       (function () {
-          var BUILD_STAMP = "2026-08-01-v12-campaign-breakdown";
+          var BUILD_STAMP = "2026-08-07-v13-parallel-loads";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -1301,32 +1301,47 @@
             }
             return url;
          }
-          async function loadReport() {
-            var base = "/api/report/executive";
-            var url = base + "/summary?view=" + encodeURIComponent(view) + "&range=" + encodeURIComponent(range);
-            if (from) url += "&from=" + encodeURIComponent(from);
-            if (to) url += "&to=" + encodeURIComponent(to);
-            try {
-              var data = await loadJson(url);
-              var currentWindow = data.window || { from: from, to: to };
-              var previousWindow = getPreviousWindow(currentWindow);
-              setPeriodInputs(currentWindow);
-              var previousUrl = previousWindow ? appendWindow(base + "/summary?view=" + encodeURIComponent(view), previousWindow) : null;
-              var campaignUrl = appendWindow("https://automations.livetransparent.com/webhook/lt-report-campaign-channel-summary?range=" + encodeURIComponent(range), currentWindow);
-              var results = await Promise.all([
-                previousUrl ? loadJson(previousUrl).catch(function () { return {}; }) : Promise.resolve({}),
-                loadJson(campaignUrl).catch(function () { return {}; })
-              ]);
-              data.campaignChannelBreakdown = results[1].campaignChannelBreakdown || [];
-              data.campaignBreakdown = results[1].campaignBreakdown || [];
-              render(data);
-              renderWeekComparison(data, results[0] || {});
-              var comparisonLabel = document.getElementById("comparison-period-label");
-              if (comparisonLabel) comparisonLabel.textContent = windowLabel(currentWindow) + " vs " + windowLabel(previousWindow);
-              var periodNote = document.getElementById("period-note");
-              if (periodNote) periodNote.textContent = "Comparing against " + windowLabel(previousWindow) + ".";
-            } catch (err) { console.warn("Report load failed:", err); }
+          function estimateWindow(r) {
+            var end = new Date();
+            end.setDate(end.getDate() - 1);
+            end.setHours(0, 0, 0, 0);
+            var days = r === "7d" ? 7 : r === "90d" ? 90 : 30;
+            var start = new Date(end);
+            start.setDate(start.getDate() - days + 1);
+            return { from: start.toISOString().slice(0, 10), to: end.toISOString().slice(0, 10) };
           }
+           async function loadReport() {
+             var base = "/api/report/executive";
+             var currentUrl = base + "/summary?view=" + encodeURIComponent(view) + "&range=" + encodeURIComponent(range);
+             if (from) currentUrl += "&from=" + encodeURIComponent(from);
+             if (to) currentUrl += "&to=" + encodeURIComponent(to);
+             var estimatedWindow = from && to ? { from: from, to: to } : estimateWindow(range);
+             var priorEstimate = getPreviousWindow(estimatedWindow);
+             var previousUrl = priorEstimate ? appendWindow(base + "/summary?view=" + encodeURIComponent(view), priorEstimate) : null;
+             var campaignUrl = "https://automations.livetransparent.com/webhook/lt-report-campaign-channel-summary?range=" + encodeURIComponent(range);
+             if (from) campaignUrl += "&from=" + encodeURIComponent(from);
+             if (to) campaignUrl += "&to=" + encodeURIComponent(to);
+             try {
+               var results = await Promise.all([
+                 loadJson(currentUrl).catch(function () { return {}; }),
+                 previousUrl ? loadJson(previousUrl).catch(function () { return {}; }) : Promise.resolve({}),
+                 loadJson(campaignUrl).catch(function () { return {}; })
+               ]);
+               var data = results[0];
+               var previousData = results[1];
+               var currentWindow = data.window || estimatedWindow || { from: from, to: to };
+               var previousWindow = getPreviousWindow(currentWindow);
+               setPeriodInputs(currentWindow);
+               data.campaignChannelBreakdown = (results[2].campaignChannelBreakdown || []);
+               data.campaignBreakdown = (results[2].campaignBreakdown || []);
+               render(data);
+               renderWeekComparison(data, previousData || {});
+               var comparisonLabel = document.getElementById("comparison-period-label");
+               if (comparisonLabel) comparisonLabel.textContent = windowLabel(currentWindow) + " vs " + windowLabel(previousWindow);
+               var periodNote = document.getElementById("period-note");
+               if (periodNote) periodNote.textContent = "Comparing against " + windowLabel(previousWindow) + ".";
+             } catch (err) { console.warn("Report load failed:", err); }
+           }
          function render(data) {
            if (!data || typeof data !== "object") return;
             renderCampaignChannels(data.campaignChannelBreakdown || []);
