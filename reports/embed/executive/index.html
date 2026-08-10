@@ -952,12 +952,17 @@
           if (!Number.isFinite(num)) return "0";
           return new Intl.NumberFormat("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits > 0 ? digits : 0 }).format(num);
         }
-        function formatPercent(value) {
-          var num = Number(value);
-          if (!Number.isFinite(num)) return "0%";
-          var pct = num <= 1 ? num * 100 : num;
-          return pct.toFixed(pct >= 10 ? 0 : 1) + "%";
-        }
+         function formatPercent(value) {
+           var num = Number(value);
+           if (!Number.isFinite(num)) return "0%";
+           var pct = num <= 1 ? num * 100 : num;
+           return pct.toFixed(pct >= 10 ? 0 : 1) + "%";
+         }
+         function formatCampaignPercent(value) {
+           var num = Number(value);
+           if (!Number.isFinite(num)) return "0%";
+           return num.toFixed(num >= 10 ? 0 : 2) + "%";
+         }
          function formatCurrency(value) {
            var num = Number(value);
            if (!Number.isFinite(num)) return "$0";
@@ -1256,11 +1261,11 @@
                 "<td>" + formatNumber(r.sms_replies || 0) + "</td>" +
                 "<td>" + formatNumber(r.email_sent || 0) + "</td>" +
                 "<td>" + formatNumber(r.email_opened || 0) + "</td>" +
-                "<td>" + (r.email_open_rate === null || r.email_open_rate === undefined ? "—" : formatPercent(r.email_open_rate)) + "</td>" +
+                "<td>" + (r.email_open_rate === null || r.email_open_rate === undefined ? "—" : formatCampaignPercent(r.email_open_rate)) + "</td>" +
                 "<td>" + formatNumber(r.email_clicked || 0) + "</td>" +
-                "<td>" + (r.email_click_rate === null || r.email_click_rate === undefined ? "—" : formatPercent(r.email_click_rate)) + "</td>" +
+                "<td>" + (r.email_click_rate === null || r.email_click_rate === undefined ? "—" : formatCampaignPercent(r.email_click_rate)) + "</td>" +
                 "<td>" + formatNumber(r.email_replies || 0) + "</td>" +
-                "<td>" + (r.email_response_rate === null || r.email_response_rate === undefined ? "—" : formatPercent(r.email_response_rate)) + "</td>" +
+                "<td>" + (r.email_response_rate === null || r.email_response_rate === undefined ? "—" : formatCampaignPercent(r.email_response_rate)) + "</td>" +
                 "<td>" + formatNumber(r.email_bounced || 0) + "</td>" +
                 "<td>" + formatNumber(r.linkedin_invites || 0) + "</td>" +
                 "<td>" + formatNumber(r.linkedin_accepted || 0) + "</td>" +
@@ -1298,9 +1303,9 @@
                   "<td>" + formatNumber(r.opportunities || 0) + "</td>" +
                  "<td>" + formatNumber(r.email_sent || 0) + "</td>" +
                  "<td>" + formatNumber(r.email_opened || 0) + "</td>" +
-                 "<td>" + (r.email_open_rate === null || r.email_open_rate === undefined ? "—" : formatPercent(r.email_open_rate)) + "</td>" +
+                 "<td>" + (r.email_open_rate === null || r.email_open_rate === undefined ? "—" : formatCampaignPercent(r.email_open_rate)) + "</td>" +
                  "<td>" + formatNumber(r.email_clicked || 0) + "</td>" +
-                 "<td>" + (r.email_click_rate === null || r.email_click_rate === undefined ? "—" : formatPercent(r.email_click_rate)) + "</td>" +
+                 "<td>" + (r.email_click_rate === null || r.email_click_rate === undefined ? "—" : formatCampaignPercent(r.email_click_rate)) + "</td>" +
                   "<td>" + formatNumber(r.email_replies || 0) + "</td>" +
                   "<td>" + formatNumber(r.email_bounced || 0) + "</td>" +
                   "<td>" + formatNumber(r.linkedin_invites || 0) + "</td>" +
@@ -1366,9 +1371,9 @@
                "<div class=\"campaign-detail-grid\">" +
                 buildDetailCard("Opportunities", campaignRow.opportunities, "") +
                 buildDetailCard("Email Sent", campaignRow.email_sent, "") +
-               buildDetailCard("Opened", campaignRow.email_opened, "Open Rate: " + (campaignRow.email_open_rate !== null && campaignRow.email_open_rate !== undefined ? formatPercent(campaignRow.email_open_rate) : "—")) +
-               buildDetailCard("Clicked", campaignRow.email_clicked, "Click Rate: " + (campaignRow.email_click_rate !== null && campaignRow.email_click_rate !== undefined ? formatPercent(campaignRow.email_click_rate) : "—")) +
-                buildDetailCard("Email Replies", campaignRow.email_replies, "Response Rate: " + (campaignRow.email_response_rate !== null && campaignRow.email_response_rate !== undefined ? formatPercent(campaignRow.email_response_rate) : "—")) +
+               buildDetailCard("Opened", campaignRow.email_opened, "Open Rate: " + (campaignRow.email_open_rate !== null && campaignRow.email_open_rate !== undefined ? formatCampaignPercent(campaignRow.email_open_rate) : "—")) +
+               buildDetailCard("Clicked", campaignRow.email_clicked, "Click Rate: " + (campaignRow.email_click_rate !== null && campaignRow.email_click_rate !== undefined ? formatCampaignPercent(campaignRow.email_click_rate) : "—")) +
+                buildDetailCard("Email Replies", campaignRow.email_replies, "Response Rate: " + (campaignRow.email_response_rate !== null && campaignRow.email_response_rate !== undefined ? formatCampaignPercent(campaignRow.email_response_rate) : "—")) +
                 buildDetailCard("Bounced", campaignRow.email_bounced, "") +
                 buildDetailCard("LinkedIn Invites", campaignRow.linkedin_invites, "") +
                 buildDetailCard("LinkedIn Accepted", campaignRow.linkedin_accepted, "") +
@@ -1432,7 +1437,7 @@
                return "<tr><td><strong>" + m.label + "</strong></td>" + campaigns.map(function(c) {
                  var val = c[m.key];
                  if (m.isPct) {
-                   return "<td>" + (val === null || val === undefined ? "—" : formatPercent(val)) + "</td>";
+                   return "<td>" + (val === null || val === undefined ? "—" : formatCampaignPercent(val)) + "</td>";
                  }
                  return "<td>" + formatNumber(val || 0) + "</td>";
                }).join("") + "</tr>";
