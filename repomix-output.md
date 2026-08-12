@@ -37,7 +37,7 @@ The content is organized as follows:
 - Files are sorted by Git change count (files with more changes are at the bottom)
 
 # Directory Structure
-````
+```
 AGENTS.md
 classifier-repair-plan.md
 classifier-workflow-change-plan.md
@@ -63,13 +63,79 @@ sms_edited_templatekeys.md
 Unipile_potential_automations.md
 unipile-ghl-bidirectional-integration.md
 vapi-campaign-prompts-summary.md
-````
+```
 
 # Files
 
 ## File: AGENTS.md
 ````markdown
 # LiveTransparent Agent Notes
+
+## ✅ RESOLVED: 2026-08-12 Postgres Write Blocker
+
+**The n8n Postgres node v2.5+ has a known bug where `queryReplacement` silently fails to persist data.** This affects ~25 Postgres nodes across ~12 workflows. The root cause is that parameterized queries (`$1, $2, ...`) fail to commit in n8n's embedded task runner.
+
+### Current Strategy: External Task Runner
+
+The fix is to switch n8n from embedded task runner mode to **external task runner mode** (`N8N_RUNNERS_MODE=external`). This requires:
+1. A custom `n8nio/runners` Docker image with the `pg` module installed
+2. The `NODE_FUNCTION_ALLOW_EXTERNAL=*` override in the runner config and runner container
+3. Code nodes using `require('pg')` for direct Postgres connections (bypassing the broken Postgres node)
+
+### What's Already Done
+
+| Area | Status |
+|------|--------|
+| **Frontend fixes** (CSS, mappings, CORS proxy, outgoing calls) | Deployed to live |
+| **Database tables** (emerging_pool_contacts, DAN/Emerald release logs, Email_Events) | Created |
+| **LinkedIn workflows** (6 workflows, 16 nodes) | Published with fix |
+| **Campaign/Email workflows** (4 workflows, 4 nodes) | Published with fix |
+| **GHL Leads Ingest** (4 Postgres nodes) | Published with fix |
+| **n8n container** (DB_TYPE=postgresdb, persisted encryption key) | Running |
+| **External runner container** (custom image with pg) | Running; `pg.Client` resolves successfully |
+
+### Resolution
+
+The runner now uses an isolated npm-installed `pg@8.21.0` tree at `/opt/pg-node_modules`. `NODE_PATH` is configured in both the container environment and `n8n-task-runners.json`; the runner is rebuilt by `scripts/deploy_runner.py`. Direct runner verification returns `typeof require('pg').Client === 'function'`. The n8n container must use the persisted Coolify encryption key, not the earlier local/reference key. The live container was recreated with the persisted key and credential decryption errors stopped.
+
+### Executive Report Recovery: 2026-08-12
+
+- The report host and n8n are attached to `coolify-shared`; n8n has the network alias `n8n`.
+- `reports/nginx.conf` proxies the Executive Summary, campaign-channel summary, and outgoing-call endpoints directly to `http://n8n:5678`.
+- `https://reports.livetransparent.com/api/report/executive/summary?range=30d` now returns HTTP 200 with a real approximately 33 KB JSON payload.
+- Executive Report build `2026-08-12-v23-mobile-overflow` resolves raw pipeline/stage IDs through the live GHL name map across all stage charts. Desktop and 390px mobile verification found no raw IDs or page-level horizontal overflow; wide report tables scroll within their panels.
+- The empty-body/zero-metric symptom was caused by the reports proxy reaching n8n while report workflow Postgres credentials failed to decrypt. The running container used `WJR...`; Coolify's persisted service `.env` used `ffff...`. The container was recreated from the persisted value.
+- Do not rotate or replace `N8N_ENCRYPTION_KEY` casually. A mismatch makes existing n8n credentials unreadable. Back up the service `.env` before changing it.
+
+### Current Runner Caveat
+
+- Some older n8n logs contain `Module .../pg@8.21.0... is disallowed`. The effective config uses `NODE_FUNCTION_ALLOW_EXTERNAL=*`, and the real affected Code-node path succeeded in GHL Leads Ingest execution `742843`. Treat new warnings as actionable only when tied to a reproducible failing workflow.
+
+### Remaining Follow-up
+
+1. **Start with the canonical handoff**: read `docs/handoff/2026-08-12-report-recovery.md`, section `Next Agent: Start Here`, and execute its restart procedure in order.
+2. **Critical**: repair GHL Sales Ingest (`aYT5oHcgmBALzHy5`). Latest inspected execution `742754` fails GHL opportunity fetch with HTTP `401`; migrate both Postgres v2.6 writes to one atomic direct-`pg` transaction.
+3. **Critical**: publish and run the repaired ingest, then prove `report_raw_ghl_opportunities`, pipeline history, sync run, watermark, and `ghl_opportunities` health rows before other recovery work.
+4. **Critical**: restore empty source state deliberately, authenticate public write webhooks, and retain approval gates for all manual outbound calls/messages.
+5. **High**: audit then backfill `emerging_pool_contacts.ghl_contact_id`; the checkpoint is `0/13,868`.
+6. **High**: verify voice release-lock, attempt, and callback persistence safely without triggering a real call unless approved.
+7. **Medium/Low**: fix duplicate report keys/date filters, add OAuth social statistics, complete native GHL report UI work, then clean legacy artifacts.
+
+### Known Issues Still Unresolved
+
+- **API duplicate JSON keys** in Executive Summary SQL (5x `vapiWeeklyPerformance`/`vapiWeeklyBreakdown`)
+- **Date range timezone drift** in Executive Report's `Normalize Request`
+- **Missing date filters** on `stageVelocity`, `sql_contacts`, `pool_distribution`
+- **`report_raw_ghl_contacts`** is verified (500 distinct rows in controlled batch `742843`); **`report_raw_ghl_opportunities`** still needs controlled ingest verification
+- **Live post-recovery baseline**: `report_raw_ghl_contacts=500`, `report_raw_ghl_opportunities=0`, `voice_call_queue=1` pending, `voice_call_attempt=0`, `report_raw_ghl_call_outcomes=0`, `Email_Events=0`, DAN/Emerald/partnership release logs `=0`, main LinkedIn state `=0`, partnership LinkedIn state `=18`, SimpleTexting campaign state/events `=0`
+- **`emerging_pool_contacts.ghl_contact_id`** needs audited backfill (`0/13,868` currently populated)
+
+### Key Files
+
+- Runner Dockerfile: `n8n/runners/Dockerfile`
+- Runner config: `n8n/runners/n8n-task-runners.json`
+- n8n docker-compose: `n8n/docker-compose.yml`
+- VPS scripts: `scripts/vapi_audit.py`
 
 ## IMPORTANT — Read This First
 
@@ -91,6 +157,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 ## Canonical Status
 
 - Use [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md) for current priorities and live-state details.
+- For the 2026-08-12 report recovery and session continuation order, read [docs/handoff/2026-08-12-report-recovery.md](./docs/handoff/2026-08-12-report-recovery.md).
 - This file is the short operating guide: keep it current, but avoid duplicating long planning material here.
 
 ## Environment
@@ -112,7 +179,7 @@ Analyze the attached `repomix-output.md` file. It contains the core system archi
 - Reporting weeks use the report API's returned date window and the sub-account reporting timezone. Do not mix widget-level date overrides with the shared selected-period comparison unless the metric definition explicitly requires it.
 - Campaign summary workflow: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published. Its selected-window endpoint is `/webhook/lt-report-campaign-channel-summary`.
 - Campaign summary active version `d65e2845-660a-40ca-88f4-d39445b87403` returns named channel/campaign rows plus `linkedin_invites`/`linkedin_accepted` columns. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn uses `linkedin_activity_events` joined to `emerging_pool_contacts.source_list` with `campaign_type`/`source_key = 'partnership'` routing, and Vapi uses queue campaign IDs. The response-shaping node now derives separate `DAN`, `Emerald`, `Partnership`, `Vapi Brand`, and `Vapi Dispensary` aggregates from channel rows, so Vapi is no longer incorrectly rolled into DAN.
-- The Executive Report is live at `https://reports.livetransparent.com` as build `2026-08-08-v18-opportunity-attribution`; it includes campaign/channel filters, separate Vapi filters, campaign drill-downs, comparison view, campaign opportunity counts, LinkedIn columns, selected-period controls, prior-period comparison, and social likes/comments/shares/reach/impressions fields when the source supplies them.
+- The Executive Report is live at `https://reports.livetransparent.com` as build `2026-08-12-v23-mobile-overflow`; it includes campaign/channel filters, separate Vapi filters, campaign drill-downs, comparison view, campaign opportunity counts, LinkedIn columns, selected-period controls, prior-period comparison, resolved GHL stage names, responsive table containment, and social likes/comments/shares/reach/impressions fields when the source supplies them.
 - The Executive Report also includes a bottom `Outgoing Call Detail` table. It calls `/api/report/executive/outgoing-calls`, which nginx proxies to `GET /webhook/lt-report-outgoing-calls` from active workflow `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`). The endpoint is fixed to the seven most recent completed `America/Los_Angeles` days, paginates at 100 rows, and reads `voice_call_attempt` joined to `voice_call_queue`.
 - On 2026-08-08 the live reports container was missing the repository nginx proxy route for `/api/report/executive/outgoing-calls`; the route was copied into `reports-livetransparent`, `nginx -t` passed, nginx was reloaded, and the proxy now returns the healthy n8n endpoint response.
 - Campaign summary active version `1cea3b9c-d587-4135-806d-46d301e2c7f4` now counts SimpleTexting `sent_step_1` through `sent_step_4` events and exposes a selected-window `smsSummary` with sent, `delivery_failed`, reply, and normalized failure-reason counts. The Executive Report displays this as the SMS delivery summary; the verified 2026-07-09 through 2026-08-07 window returned 294 sent, 1,095 failed, and 0 replies. Failure reasons were `simpletext_provider_failed` (1,010), `duplicate_send` (63), `unknown` (16), `invalid_phone` (5), and `idempotent_webhook_error` (1).
@@ -1090,7 +1157,7 @@ Raw Ingest → Attribution Bridge → Daily Rollups → Executive Summary API (G
 
 ### GHL Leads Ingest Rate-Limit Guard
 
-`LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) uses direct `this.helpers.httpRequest` calls in `Fetch + Normalize Leads`. Do not restore the `doHttpRequest`/`$httpRequest` wrapper pattern. GHL contact pagination retries HTTP 429 responses up to four attempts with `Retry-After` or exponential backoff and waits 500 ms between pages. The live fix was published as version `c740c006-fef5-4873-91b5-d2d4218872de` and validated by execution `241894` with 500 contacts.
+`LT - GHL Daily Leads Ingest` (`osIJOgBmWITF5Yuv`) uses direct `this.helpers.httpRequest` calls in `Fetch + Normalize Leads`. Do not restore the `doHttpRequest`/`$httpRequest` wrapper pattern. GHL contact pagination retries HTTP 429 responses up to four attempts, waits 500 ms between pages, and must send both `startAfter` and `startAfterId`. Repeated pages and missing/stalled cursors fail closed. Published version `d29b7af9-0b69-4fc7-a53c-c23dd24b0825` uses an atomic direct-`pg` transaction for contacts plus sync/watermark/health metadata. Controlled execution `742843` persisted 500/500 distinct contacts with healthy metadata.
 
 ### Bridge & Rollup Workflows
 
@@ -1166,7 +1233,7 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 
 ### Executive Report Campaign Improvement Plan (2026-08-08)
 
-The Executive Report at `https://reports.livetransparent.com` (build `2026-08-08-v18-opportunity-attribution`) has campaign/channel filters, separate Vapi filters, campaign drill-downs, comparison view, SMS delivery diagnostics, and campaign opportunity counts. The following remaining improvements complement the GHL Native Report:
+The Executive Report at `https://reports.livetransparent.com` (build `2026-08-12-v23-mobile-overflow`) has campaign/channel filters, separate Vapi filters, campaign drill-downs, comparison view, SMS delivery diagnostics, campaign opportunity counts, resolved GHL stage names, and responsive wide-table containment. The following remaining improvements complement the GHL Native Report:
 
 **High Priority — Campaign Detail Page:**
 1. **Per-campaign funnel metrics** — Each campaign row (DAN, Emerald, Partnership Emails, Partnership LinkedIn, Vapi Brand, Vapi Dispensary, SMS) should expand to show:
@@ -2444,7 +2511,7 @@ Use this section when reviewing the report with someone who needs the fastest po
 # Part 2: Part 2: Technical Deep Dive
 This section explains how the report is assembled, what the live API returns, and how to read the payload without inventing new assumptions.
 
-- Architecture: the dashboard is a static HTML and JavaScript SPA at reports.livetransparent.com. It calls the n8n executive summary proxy at `/api/report/executive/summary`, the outgoing-call proxy at `/api/report/executive/outgoing-calls`, and a separate campaign summary webhook at `/webhook/lt-report-campaign-channel-summary`; all render client-side. The public host serves build `2026-08-08-v18-opportunity-attribution` with campaign filters, comparison view, opportunity attribution, SMS diagnostics, social fields, and outgoing-call detail.
+- Architecture: the dashboard is a static HTML and JavaScript SPA at reports.livetransparent.com. It calls the report-host proxies at `/api/report/executive/summary`, `/api/report/executive/campaign-channels`, and `/api/report/executive/outgoing-calls`; all render client-side. The public host serves build `2026-08-12-v23-mobile-overflow` with campaign filters, comparison view, opportunity attribution, SMS diagnostics, social fields, outgoing-call detail, resolved GHL stage names, and responsive wide-table containment.
 - Request contract: the report reads `view`, `range`, `from`, `to`, `embed`, and `locationId` query parameters. The current preset ranges are trailing complete days ending yesterday.
 - Response shape: the API returns `summary`, `channelBreakdown`, `utmBreakdown`, `metaAttribution`, `contactSources`, `topPages`, `pipelineDropoff`, `stageDropoff`, `stageVelocity`, `appointments`, `health`, `linkedinFunnel`, `vapiCampaignBreakdown`, `vapiQueueDistribution`, `mqlSummary`, `sqlContacts`, `poolDistribution`, `emailsSent`, `emailsOpened`, `emailsClicked`, `emailsBounced`, `emailsUnsubscribed`, `emailsComplained`, `emailOpenRate`, `emailClickRate`, and `emailBounceRate`.
 - Response shape: the API also returns the active-opportunity fields used by the report, including `activeOpportunityCount`, `workedOpportunityCount`, `stageMoverCount`, and `opportunityStageBreakdown`.
@@ -2734,16 +2801,112 @@ Use that file for the current state and priority order so reporting work stays a
 
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
 
+## ✅ RESOLVED: 2026-08-12 Postgres Write Blocker & Executive Report Runtime Recovery
+
+### Summary
+
+The n8n Postgres node v2.5/2.6 has a known bug where parameterized queries (`$1, $2, ...` with `queryReplacement`) silently fail to persist data. The node reports execution success but data never reaches the database. This affects ~25 Postgres nodes across ~12 workflows.
+
+### Current State (2026-08-12)
+
+| Component | Status |
+|-----------|--------|
+| **n8n container** (DB_TYPE=postgresdb, persisted encryption key) | ✅ Running; recreated after credential decryption mismatch |
+| **External task runner** (n8nio/runners-custom) | ✅ Running; direct `pg` and real Code-node transaction verified in execution `742843` |
+| **Workflow publication recovery** | ✅ 85 published versions recreated after DB switch; individual active states still require live checks |
+| **emerging_pool_contacts** (13,868 rows) | ✅ Created from CSVs |
+| **DAN_Release_Log, Emerald_Release_Log** | ✅ Tables created |
+| **Email_Events** | ✅ Table created (empty) |
+| **LinkedIn workflows** (6 workflows, 16 nodes) | ✅ Build SQL → Postgres pattern applied |
+| **Campaign/Email workflows** (4 workflows, 4 nodes) | ✅ Build SQL → Postgres pattern applied |
+| **GHL Leads Ingest** (4 Postgres nodes) | ✅ Build SQL → Postgres pattern applied |
+| **Frontend fixes** (CSS, mappings, CORS proxies) | ✅ Deployed to reports.livetransparent.com |
+| **nginx config** (campaign channel + outgoing calls proxies) | ✅ Deployed |
+| **Executive Summary endpoint** | ✅ Public HTTP 200 with real JSON payload; verified 2026-08-12 |
+
+### Resolution
+
+The custom runner now installs `pg@8.21.0` in a clean npm build stage, copies the isolated dependency tree to `/opt/pg-node_modules`, and sets `NODE_PATH` both in the runner container and task-runner configuration. This avoids copying n8n's pnpm symlinks and preserves the runner's own dependency metadata.
+
+**Verification:**
+1. `docker build --pull -t n8nio/runners-custom:latest n8n/runners` succeeds on the VPS.
+2. `require('pg').Client` resolves as `function` inside the deployed runner with `NODE_PATH=/opt/pg-node_modules`.
+3. Real GHL Leads Ingest execution `742843` loaded `pg` and committed the atomic transaction successfully.
+
+The repository deployment helper is `scripts/deploy_runner.py`; the reference compose file mounts the checked-in runner configuration.
+
+### Completed Fixes (2026-08-11 session)
+
+| Fix | Details |
+|-----|---------|
+| **Frontend CSS** | Added `.divider` and `.sub-head` rules |
+| **Frontend stage names** | Added 8 missing stage ID mappings + Partnership Pipeline |
+| **Frontend CORS proxy** | Campaign channel summary now uses `/api/report/executive/campaign-channels` |
+| **Frontend outgoing calls** | Fixed hardcoded `range=7d`, added page reset, proxy route works |
+| **nginx proxies** | Both campaign-channels and outgoing-calls return HTTP 200 |
+| **Email_Events table** | Created with indexes, waiting for data flow |
+| **emerging_pool_contacts** | Recreated from CSVs: 13,868 rows (3,668 brands, 10,200 dispensaries) |
+| **DAN/Emerald Release Logs** | Tables created |
+| **GHL Leads Ingest** | Active hourly; atomic writes and cursor-pair pagination verified |
+| **n8n DB migration** | Switched from SQLite to PostgreSQL (DB_TYPE=postgresdb) |
+| **n8n encryption** | Configured N8N_ENCRYPTION_KEY for credential decryption |
+| **n8n published versions** | 85 published versions created (were missing after DB switch) |
+
+### Data Pipeline Status
+
+```
+✅ report_raw_ghl_contacts (controlled batch: 500/500 distinct contacts)
+❌ report_raw_ghl_opportunities (empty)
+⚠️ emerging_pool_contacts (13,868 rows; 0 currently have ghl_contact_id)
+⚠️ voice_call_queue (1 pending row)
+❌ voice_call_attempt (empty)
+❌ Email_Events (empty)
+✅ linkedin_activity_events (28 rows)
+✅ DAN_Release_Log (table exists, 0 rows)
+✅ Emerald_Release_Log (table exists, 0 rows)
+```
+
+### Follow-up Verification Required
+
+1. **CRITICAL: GHL Sales Ingest** — workflow `aYT5oHcgmBALzHy5` active version `4f3e8068-8864-4b4d-9286-ba4d618cc3a8`; execution `742754` fails at `Fetch Opportunities` with HTTP `401`. Fix auth, migrate both Postgres writes to one atomic direct-`pg` transaction, publish, run, and verify database metadata.
+2. **CRITICAL: source recovery** — opportunities, voice attempts, call outcomes, email events, release logs, main LinkedIn state, and SimpleTexting state are empty after recovery. Restore one source at a time through controlled ingest/replay; do not fabricate history.
+3. **CRITICAL: webhook auth/outbound gates** — authenticate public write boundaries and do not manually run live senders/dialer without approval.
+4. **HIGH: ghl_contact_id backfill** — raw contact ingest is confirmed; audit candidate matches before changing the current `0/13,868` linkage.
+5. **HIGH: voice persistence** — verify the published dialer release-lock fix and callback/attempt writes safely.
+6. **MEDIUM: Executive Summary SQL** — remove duplicate response keys and verify JSON shape.
+7. **MEDIUM: Executive Report** — fix timezone normalization and selected-period date filters.
+8. **LOW: cleanup** — remove disconnected legacy nodes/scripts only after live paths are stable.
+9. **Guardrail: encryption-key continuity** — keep the Coolify persisted key; replacing it makes existing credentials unreadable.
+
+### Next Agent Immediate Start
+
+Do not infer the next task from the historical plan below. Open `docs/handoff/2026-08-12-report-recovery.md` and follow `Next Agent: Start Here` exactly. The first implementation task is live workflow `aYT5oHcgmBALzHy5`: fix GHL HTTP `401`, replace its two Postgres v2.6 persistence nodes with one atomic direct-`pg` transaction, publish, execute in a controlled run, and prove opportunity/history/sync/watermark/health rows. No backfill, replay, report correctness work, or outbound test should precede that proof.
+
+### Key Files
+
+- `n8n/runners/Dockerfile` — Custom runner image definition
+- `n8n/runners/n8n-task-runners.json` — Runner config with pg allowlist
+- `n8n/docker-compose.yml` — Reference docker-compose (contains NODE_FUNCTION_ALLOW_EXTERNAL)
+- `scripts/vapi_audit.py` — VPS SSH utility for DB queries
+- `scripts/report_runtime_audit.py` — VPS/container/network/report endpoint diagnostics
+- `scripts/align_n8n_encryption_key.py` — recreates n8n with the persisted Coolify encryption key; review before reuse
+- `scripts/deploy_runner.py` — rebuilds and deploys the custom external runner
+
 - Canonical status: [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md)
+- Session handoff: [docs/handoff/2026-08-12-report-recovery.md](./docs/handoff/2026-08-12-report-recovery.md)
 - Active work now spans the **Emerald email campaign** (activated 2026-07-07), **DAN email campaign** (backfilled ghl_contact_id 2026-07-13, 5,373 eligible for dispatch), **Partnership Marketing pipeline** (activated 2026-07-31, 131 contacts, dual email+LinkedIn sequences, fully audited and deployed), **Apollo phone enrichment** (repaired 2026-07-14, new polling workflow), voice, reporting, LinkedIn outreach (canonical sender path and suppression guardrails hardened), the **LinkedIn/Instagram via Unipile -> GHL bidirectional conversation provider integration**, and the SimpleTexting SMS campaign stack, currently paused for one-by-one reactivation after n8n dispatcher recovery.
+## Original Plan Content (pre-2026-08-11)
+
+> The historical sections below contain old snapshots and completed work narratives. For current blockers, use the resolved runtime update above and `Project Status and Next Steps.md`.
+
 - Social provider integration handoff: [docs/strategy/unipile-ghl-bidirectional-integration.md](./docs/strategy/unipile-ghl-bidirectional-integration.md)
-- Reporting implementation handoff: native GHL report `6a67dce4a51a4360c60963a3` plus the read-only Executive Report at `reports/embed/executive/index.html`. The public report host now serves build `2026-08-08-v18-opportunity-attribution`.
+- Reporting implementation handoff: native GHL report `6a67dce4a51a4360c60963a3` plus the read-only Executive Report at `reports/embed/executive/index.html`. The public report host now serves build `2026-08-12-v23-mobile-overflow`.
 - Reporting contract: use native GHL for CRM/email/SMS/call facts and custom metrics; use Social Planner for native social analytics; use the Executive Report for Brands-versus-Dispensaries joins, Unipile, Vapi, trigger-link detail, and cross-channel reporting.
 - **Outgoing call detail (2026-08-06)**: the Executive Report now has a bottom row-level Vapi table backed by `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`). The report-host route `/api/report/executive/outgoing-calls` proxies to `/webhook/lt-report-outgoing-calls`; it is fixed to the seven most recent completed `America/Los_Angeles` days, capped at 100 rows per page, and reads `voice_call_attempt` + `voice_call_queue` with latest contact-snapshot enrichment. Aggregate GHL calls remain a separate status/outcome surface.
 - Date contract: selected `from`/`to` windows are supported by the Executive Report and campaign summary endpoint. Every selected period must compare with the immediately preceding equal-length period, including absolute and percentage changes. Default weekly interpretation is Monday-Sunday in the reporting timezone.
 - Native GHL limitation: the verified `GHL_PIT` provides valid REST access to the location and contacts endpoints, but the official API/SDK exposes no supported Custom Report widget-layout mutation. Authenticated browser access is now available and has been used to save `Last 30 days` and remove the duplicate page-3 outgoing-call widget. Do not use undocumented endpoints.
 - **Execution order (2026-07-30)**: deploy and verify the Executive Report; complete native GHL report configuration through an approved authenticated path; verify SimpleTexting live delivery; run controlled Brand/Dispensary Vapi checks; implement the deterministic Jason/Marc no-owner allocator; harden public webhook/secret boundaries; then finish the remaining reporting backlog.
-- **Current blockers**: remaining native GHL widget configuration requires careful authenticated UI edits because the supported API cannot mutate layouts; completed UI changes are the saved `Last 30 days` range and duplicate-widget removal. GSC requires OAuth reconnection. SimpleTexting schedules remain paused until the latest n8n deployment settings are verified and each workflow passes its staged test gate. Credential-bearing response captures must remain untracked. Partnership live outbound remains intentionally blocked by explicit launch approval, not by GHL contact API access.
+- **Current blockers**: GHL Sales Ingest is failing HTTP `401` and still uses the broken Postgres-node persistence path; post-recovery reporting/source tables require controlled restoration. Remaining native GHL widget configuration requires authenticated UI edits because the supported API cannot mutate layouts. Credential-bearing response captures must remain untracked.
 - **n8n stale execution recovery (2026-08-05)**: the regular-mode n8n instance accumulated 6,946 `new` executions after the PostgreSQL outage/redeploy, including 1,915 SimpleTexting Step Runner, 1,905 SimpleTexting Phone Backfill, 788 Partnership Reply Poller, 396 Vapi Intake Poller, 386 LinkedIn Reply Backfill, 313 Vapi Dialer, and 261 Campaign Contact Classifier records. Follow `docs/n8n-stale-execution-recovery.md`; pause high-volume schedules, preserve recent webhook executions, remove stale scheduled records through n8n UI/API in batches, then add `N8N_CONCURRENCY=10` and re-enable workflows gradually. Do not delete execution rows directly in PostgreSQL.
 - **n8n stale execution recovery completed 2026-08-05**: rebuilt the n8n PostgreSQL pool by restarting n8n, unpublished nine high-volume scheduled workflows, and deleted 6,964 stale `new` trigger executions through the supported execution API. No webhook executions were deleted and the current `new` count is zero. `N8N_CONCURRENCY=10` is staged in `n8n/docker-compose.yml` for the next Coolify redeploy. Re-enable schedules gradually; do not reactivate outbound workflows until controlled verification passes.
 - **n8n gradual reactivation and optimization**: after redeploy, restore workflows in tiers from allocator/classifier to reply-state pollers, intake/enrichment, and finally outbound senders/dialer. Keep SimpleTexting paused until the staged n8n and provider verification gates pass. Optimize with bounded batches, no-work exits, atomic claims, watermarks, idempotency, and overlap guards. See `docs/n8n-stale-execution-recovery.md` for the exact sequence and stop conditions.
@@ -3184,9 +3347,52 @@ Normalized callback output:
 ````markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-08-08 (Executive Report campaign attribution, SMS diagnostics, and GHL report cleanup)
+Updated: 2026-08-12 (final recovery handoff and severity-ranked continuation order)
 
 ## Source Of Truth
+
+### Immediate Runtime Update (2026-08-12)
+
+- The external n8n JavaScript runner blocker is resolved. `n8nio/runners-custom:latest` now contains an isolated npm `pg@8.21.0` tree at `/opt/pg-node_modules`; `NODE_PATH` is configured in the container and task-runner config. VPS verification returns `typeof require('pg').Client === 'function'`, and runner logs show no allowlist/module errors.
+- The n8n container was recreated with the persisted Coolify encryption key after a mismatch caused `Credentials could not be decrypted` and empty report responses. The public report endpoint now returns HTTP 200 with a real approximately 33 KB JSON payload.
+- The external runner's direct `require('pg')` path is verified by controlled GHL leads ingest execution `742843`; the atomic transaction completed successfully.
+- GHL leads ingest is active hourly on published version `d29b7af9-0b69-4fc7-a53c-c23dd24b0825`. Execution `742843` wrote 500 distinct contacts and matching sync-run, watermark, and source-health records. Opportunity ingest and voice queue/attempt coverage still need separate verification.
+- Executive Report build `2026-08-12-v23-mobile-overflow` is deployed. Pipeline/stage charts now resolve live GHL IDs to names in Current Open Deals, Active Deals, stage movement, velocity, and pipeline overview. The map was reconciled against the official GHL pipeline API, including Warm Vapi and Partnership stages. Desktop and 390px mobile checks found no raw stage IDs or page-level horizontal overflow; wide tables scroll within their panels.
+
+For the complete recovery narrative and continuation order, read [`docs/handoff/2026-08-12-report-recovery.md`](docs/handoff/2026-08-12-report-recovery.md).
+
+### Severity-Ranked Open Work
+
+1. **Critical: repair and prove GHL Sales Ingest** (`aYT5oHcgmBALzHy5`). Last inspected execution `742754` failed `Fetch Opportunities` with HTTP `401`; both Postgres v2.6 write nodes must become one atomic direct-`pg` transaction. This is the next agent's first implementation task.
+2. **Critical: restore source coverage with provenance**. After Sales Ingest succeeds, recover opportunities, voice attempts/outcomes, email/release logs, main LinkedIn state, and SimpleTexting state one source at a time. Do not fabricate historical data.
+3. **Critical: authenticate public write boundaries and keep outbound gated**. Review Call Outcome Ingest, Warm intake, and SimpleTexting send authentication. Do not manually execute live dialer/sender workflows without approval.
+4. **High: audit then backfill `ghl_contact_id`**. The checkpoint was `0/13,868`; inspect audit results and ambiguity before mutation.
+5. **High: verify voice persistence safely**. Prove release-lock, attempt, and callback writes with non-sending branches where possible.
+6. **High: migrate embedded secrets** to credentialed HTTP Request nodes or approved protected runtime configuration, then rotate exposed values.
+7. **Medium: fix report correctness debt**. Remove duplicate Executive Summary JSON keys, fix request timezone drift, and add selected-period filters to `stageVelocity`, `sql_contacts`, and `pool_distribution` after source recovery.
+8. **Medium: add OAuth-backed social statistics** for reach, impressions, and saves; complete approved native GHL report widgets/page names through the UI.
+9. **Low: clean legacy nodes/scripts and stale historical prose** only after live paths are stable.
+
+The exact restart procedure, evidence, and guardrails are in [`docs/handoff/2026-08-12-report-recovery.md`](docs/handoff/2026-08-12-report-recovery.md), section `Next Agent: Start Here`.
+
+### Post-Recovery Baseline
+
+Measured directly on live Postgres after execution `742843`:
+
+| Source | Current Rows |
+|--------|-------------:|
+| `report_raw_ghl_contacts` | 500 |
+| `report_raw_ghl_opportunities` | 0 |
+| `voice_call_queue` | 1 pending |
+| `voice_call_attempt` | 0 |
+| `report_raw_ghl_call_outcomes` | 0 |
+| `Email_Events` | 0 |
+| DAN / Emerald / Partnership release logs | 0 / 0 / 0 |
+| Main / Partnership LinkedIn state | 0 / 18 |
+| SimpleTexting campaign state / events | 0 / 0 |
+| `emerging_pool_contacts` / with GHL ID | 13,868 / 0 |
+
+Pre-recovery throughput and row-count claims are historical until each source is re-ingested or restored.
 
 This document is the canonical project status and next-steps reference. It supersedes duplicated planning notes in plan.md and other plan documents.
 
@@ -3245,17 +3451,15 @@ This document is the canonical project status and next-steps reference. It super
 
 ## Prioritized Next Steps
 
-1. ~~**Deploy and verify the Executive Report**~~ **Done 2026-08-08**: the public host serves build `2026-08-08-v18-opportunity-attribution`; campaign/channel rows, Vapi separation, campaign drill-downs, comparison view, SMS diagnostics, opportunity attribution, selected-period controls, prior-period comparison, LinkedIn columns, social fields, outgoing-call detail, and the HTTP 200 campaign endpoint were verified.
-2. **Complete native GHL report configuration**: the authenticated UI is now reachable. The shared date range is saved as `Last 30 days` and the duplicate page-3 outgoing-call widget is removed. Remaining: Sales Outreach/Warm stage widgets, DAN/Emerald/Vapi tag widgets, Replied/Soft bounced/Emails by domain widgets, page names, and open/click custom metrics. Do not use undocumented API guesses.
-3. **Verify the active SimpleTexting paths after the next Coolify redeploy**: confirm the n8n runtime settings, monitor the active schedules, approve the Warmup audience query, and require a real provider message ID plus matching `report_sms_sent.provider_response` and GHL conversation mirroring for the first live send. Campaign Sequencer remains disabled unless explicitly selected as the replacement canonical sender.
-4. **Run controlled Vapi verification (dialer now operational)**: the 1,051 pending contacts are being processed. Monitor a live Brand call and a live Dispensary call from the next few dialer executions; confirm the Vapi dashboard callback/tools are present, no unresolved placeholders, no voicemail disclosure, correct one-question turn-taking, and correct outcome/queue completion via the repaired Call Outcome Ingest workflow.
-5. ~~Implement Jason/Marc no-owner allocation~~ **Done 2026-07-30** — workflow `eeksgD0fbGHUqh4r` is active, 73 records assigned in first run, remaining unowned Qualified records draining in bounded batches.
-6. **Harden remaining public boundaries**: authenticate Warm intake and SimpleTexting send webhooks, then migrate active Config-node secrets into protected credentials/runtime configuration. n8n Code nodes cannot access managed credentials, so this migration requires replacing direct Code-node HTTP calls with credentialed HTTP Request nodes or an approved protected runtime-variable path; do not move the same secrets into another Set/Config node.
-7. **Finish reporting backlog**: implement the remaining items in `docs/reports/Reporting Gaps and Requirements.md`, including OAuth-backed social statistics ingestion, native GHL stage/tag/email/custom-metric widgets, owner dimensions, approved Meta Ads spend/click/impression ingest, trigger-link detail, and remaining Unipile/social metrics where source data supports the selected period.
-8. **Migrate remaining embedded Config secrets**: replace active hardcoded GHL/Unipile values with protected credentials or approved runtime configuration, then rotate values exposed during migration. The LinkedIn state-upsert boundary is already authenticated and verified.
-9. **Partnership outbound activation**: approved and enabled 2026-07-31. `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`), `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`), and `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`) are published with `defaultDryRun=false`, active schedules, and matching `versionId === activeVersionId`. Do not manually execute these workflows unless intentionally sending an additional live batch.
-10. **Capture social reach/impressions/saves (2026-08-04)**: Add a GHL OAuth credential to n8n, then build or extend a scheduled social statistics ingest to store platform/day metrics and surface the official statistics response in the Executive Report. The official endpoint currently returns reach/impressions, while the existing PIT-based post ingest does not.
-11. ~~**Backfill the known partnership replies**~~ **Done 2026-08-04**: Strider Peterson's email reply and Jaret Christopher's LinkedIn reply were inserted with verified source timestamps; the selected-window campaign summary now reports both.
+1. **Repair GHL Daily Sales Ingest first**: workflow `aYT5oHcgmBALzHy5`, last inspected active version `4f3e8068-8864-4b4d-9286-ba4d618cc3a8`, failure `742754`. Replace stale auth, migrate both writes to one atomic direct-`pg` transaction, publish, run, and verify opportunity/history/sync/watermark/health rows.
+2. **Restore source coverage one system at a time** with supported ingest/replay and provenance.
+3. **Authenticate public write boundaries** before broader outbound activity; retain explicit approval gates for manual sends/calls.
+4. **Audit and backfill `emerging_pool_contacts.ghl_contact_id`** only after healthy ingestion.
+5. **Verify voice persistence safely**, then recover campaign/email/LinkedIn/SMS reporting state.
+6. **Migrate and rotate embedded secrets** using protected credential/runtime paths.
+7. **Fix Executive Summary/date correctness debt** after source recovery.
+8. **Add OAuth social statistics and finish native GHL report UI configuration**.
+9. **Clean legacy artifacts and reconcile historical prose last**.
 
 ### Explicit Reporting Notes
 
@@ -3268,7 +3472,7 @@ This document is the canonical project status and next-steps reference. It super
 ### Follow-up Sender Routing Handoff
 
 - **User requirement**: follow-up email sender name and email must follow the opportunity/contact owner; if neither record has an owner, use Jason.
-- **Workflow**: `Jason Followup Emails and SMS`, ID `f6b44e34-779e-4959-b41d-b05641f134e7`, currently published version `38`.
+- **Workflow**: `Jason Followup Emails and SMS`, ID `f6b44e34-779e-4959-b41d-b05641f134e7`, currently published version `39`.
 - **Template folder**: `Jason Follow Up Emails`, ID `69e0c9069af5986541802d88`.
 - **Affected template IDs**:
   - `69e0d86b9af59801b580f4b5`
@@ -3753,7 +3957,7 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 
 GHL, Unipile, and state-upsert values remain configured in the live workflow runtime; values are intentionally omitted from documentation. Credential migration and rotation remain open.
 
-All 7 partnership workflows are active and published. The dispatcher schedules are now explicit weekday cron schedules: email at 11:00 America/New_York, LinkedIn requests at 15:00 America/Chicago, and LinkedIn DMs at 12:00 America/Chicago. Safe smoke executions `281269`, `281268`, and `281270` succeeded. Outbound email, invitations, and DMs remain `defaultDryRun=true` pending explicit launch approval.
+All 7 partnership workflows are active and published. The dispatcher schedules are explicit weekday cron schedules: email at 11:00 America/New_York, LinkedIn requests at 15:00 America/Chicago, and LinkedIn DMs at 12:00 America/Chicago. Outbound was explicitly activated on 2026-07-31 with `defaultDryRun=false`; do not manually execute these workflows unless intentionally sending an additional batch. The post-recovery database currently has 0 partnership release rows and 18 partnership LinkedIn state rows, so persistence/source restoration must be verified before trusting campaign totals.
 
 ### Tags
 
@@ -3909,9 +4113,10 @@ Monitor first week of dispatcher runs. Verify Email_Events data quality. Increas
 - Monitor for GHL rate limiting on per-contact API calls (250ms delay between contacts)
 - After first email sends complete, verify the campaign summary endpoint reflects non-zero "Partnership emails" catalog row (may lag until reporting rollup runs)
 
-### 9. LinkedIn Dispatcher Monitoring
+### Historical LinkedIn Dispatcher Monitoring
 
-- Monitor first dispatcher runs to confirm Fetch Ready Queue picks up the 14,987 `ready` contacts
+- Historical checklist only: the post-recovery main LinkedIn state table currently has 0 rows, so the old 14,987-ready count is not current.
+- Verify restored state and current queue counts before expecting dispatcher work.
 - Verify dispatcher sends invites (successTag: `linkedin_connection_requested`) and updates state table correctly
 - Watch for GHL rate limiting on dispatcher's per-contact API calls (tag check + LinkedIn URL extraction)
 - Confirm Acceptance Checker correctly processes new connections and applies `linkedin_connected` tag
@@ -3927,19 +4132,14 @@ Monitor first week of dispatcher runs. Verify Email_Events data quality. Increas
 - ~~Delete duplicate DAN template 6a4f6fcdf74b73e4b5b9ac0b in Brands folder~~ (verified already removed 2026-07-15)
 - Delete GHL export CSVs after DAN backfill confirmed healthy
 
-## Working Order
+## Next Session Start
 
-1. **Partnership Marketing** — monitor first email dispatcher at 11am ET, LinkedIn dispatcher at 3pm CT. Verify both sequences fire, release logs write, reply polling works.
-2. **LinkedIn dispatcher** — monitor first runs now that 14,987 `ready` contacts are queued. Verify invites send, tags apply, state table updates.
-2. **DAN ramp** — active dispatching (5 fixes applied 2026-07-15), monitor deliverability, track pool exhaustion (~4 days at 1,200/day)
-3. **Vapi monitoring** — verify dialer fires, calls route to correct assistants
-4. **Apollo enrichment** — monitor polling runs, verify V4 callback receiving phones
-5. **Voice hardening** — secret management, webhook verification, adversarial testing
-6. **Emerald ramp** — monitor dispatcher, verify data quality
-7. Reporting depth
-8. Meta attribution
-9. SimpleTexting GHL Conversations provider bridge
-10. Cleanup and adjacent automation
+1. Read `docs/handoff/2026-08-12-report-recovery.md` and re-run `scripts/report_runtime_audit.py`.
+2. Re-query the post-recovery baseline because schedules may change counts.
+3. Repair GHL Sales Ingest (`aYT5oHcgmBALzHy5`) from failure `742754` before any backfill or report interpretation.
+4. Verify the repaired workflow's published version and database writes.
+5. Audit `ghl_contact_id` candidate matches, then restore voice/campaign/source state one system at a time.
+6. Ask for explicit approval before any live outbound test.
 ````
 
 ## File: QWEN.md

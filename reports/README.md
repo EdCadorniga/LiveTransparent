@@ -9,7 +9,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 ## Current Status
 
 - The host shell is prepared in repo.
-- The public host serves build stamp `2026-08-08-v18-opportunity-attribution`; campaign/channel filters, separate Vapi campaign rows, campaign drill-downs, comparison view, selected-period controls, prior-period comparison, campaign opportunity counts, SMS delivery diagnostics, partnership attribution, and social engagement fields are live.
+- The public host serves build stamp `2026-08-12-v23-mobile-overflow`; campaign/channel filters, separate Vapi campaign rows, campaign drill-downs, comparison view, selected-period controls, prior-period comparison, campaign opportunity counts, SMS delivery diagnostics, partnership attribution, resolved GHL stage labels, responsive wide-table containment, and social engagement fields are live.
 - The report host is now deployment-ready with `docker-compose.yml`, `Dockerfile`, `nginx.conf`, and `index.html`.
 - The preferred GHL entry point is a Custom Menu Link that opens this page in an embedded iframe.
 - The report data store remains Postgres.

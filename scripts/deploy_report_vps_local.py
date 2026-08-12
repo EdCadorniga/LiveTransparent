@@ -8,7 +8,8 @@ import paramiko
 HOST = "89.117.21.29"
 APP_DIR = "/data/coolify/applications/v3ud1lum1svamymuor21upog"
 SOURCE_DIR = "/tmp/livetransparent-report-local"
-IMAGE = "v3ud1lum1svamymuor21upog:campaign-breakdown-20260801"
+IMAGE = "v3ud1lum1svamymuor21upog:stage-labels-20260812"
+BUILD_STAMP = "2026-08-12-v23-mobile-overflow"
 LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reports"))
 
 
@@ -52,11 +53,13 @@ try:
     upload_tree(sftp, LOCAL_DIR, SOURCE_DIR)
     sftp.close()
     run(client, "build", f"docker build -t {IMAGE} {SOURCE_DIR}")
-    run(client, "backup-compose", f"cp {APP_DIR}/docker-compose.yaml {APP_DIR}/docker-compose.yaml.pre-campaign-breakdown")
+    run(client, "backup-compose", f"cp {APP_DIR}/docker-compose.yaml {APP_DIR}/docker-compose.yaml.pre-stage-labels")
     run(client, "select-image", f"sed -E -i \"s#^        image: .*#        image: '{IMAGE}'#\" {APP_DIR}/docker-compose.yaml")
     run(client, "recreate", f"docker compose -f {APP_DIR}/docker-compose.yaml up -d --force-recreate")
+    run(client, "attach-shared-network", "docker network connect coolify-shared reports-livetransparent 2>/dev/null || true")
+    run(client, "restart-after-network", "docker restart reports-livetransparent")
     time.sleep(5)
     run(client, "verify-container", "docker ps --filter name=reports-livetransparent --format '{{.ID}}\t{{.Image}}\t{{.Status}}'")
-    run(client, "verify-build", "curl -fsS https://reports.livetransparent.com/embed/executive/index.html | grep -o '2026-08-01-v12-campaign-breakdown'")
+    run(client, "verify-build", f"curl -fsS https://reports.livetransparent.com/embed/executive/index.html | grep -o '{BUILD_STAMP}'")
 finally:
     client.close()

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Live Transparent | Executive Report</title>
-    <!-- build-stamp: 2026-08-08-v18-opportunity-attribution -->
+    <!-- build-stamp: 2026-08-12-v23-mobile-overflow -->
     <meta name="color-scheme" content="dark" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -39,7 +39,7 @@
       }
       .shell { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
       .sidebar {
-        position: relative; z-index: 20; border-right: 1px solid var(--line);
+        position: relative; z-index: 20; min-width: 0; border-right: 1px solid var(--line);
         background: rgba(7, 11, 24, 0.78); backdrop-filter: blur(18px); padding: 24px 16px;
       }
       .brand { display: flex; align-items: center; gap: 12px; padding: 10px 12px 22px; }
@@ -56,7 +56,7 @@
       }
       .nav-item.active { background: rgba(79, 140, 255, 0.14); color: var(--text); }
       .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: 0.9; }
-      .content { position: relative; z-index: 1; padding: 28px; }
+      .content { position: relative; z-index: 1; min-width: 0; padding: 28px; }
       .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 22px; }
       .title-wrap h1 { margin: 0; font-size: clamp(1.5rem, 2.2vw, 2.2rem); line-height: 1.1; }
       .title-wrap p { margin: 8px 0 0; color: var(--muted); font-size: 0.95rem; }
@@ -76,7 +76,8 @@
       .period-picker label { display: grid; gap: 5px; color: var(--muted); font-size: 0.76rem; }
       .period-picker input { min-height: 38px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--text); padding: 8px 10px; font: inherit; }
       .period-picker .period-note { margin-left: auto; color: var(--faint); font-size: 0.8rem; align-self: center; }
-      .grid { display: grid; gap: 16px; }
+      .grid { display: grid; gap: 16px; min-width: 0; }
+      .grid > *, .panel, .panel-body, .table-scroll { min-width: 0; }
       .kpi-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
       .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .two-col { grid-template-columns: 1.3fr 1fr; }
@@ -162,6 +163,8 @@
        .campaign-detail-card .detail-rate { margin-top: 3px; color: var(--faint); font-size: 0.78rem; }
        .campaign-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
        .campaign-actions button { padding: 5px 10px; font-size: 0.75rem; }
+      .divider { border-top: 1px solid var(--line); margin: 16px 0; }
+      .sub-head { color: var(--muted); font-size: 0.84rem; font-weight: 600; letter-spacing: 0.05em; margin: 14px 0 8px; }
       .section-label { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; padding-left: 4px; }
       .loading { color: var(--muted); font-style: italic; }
       .good { color: var(--green); }
@@ -174,6 +177,8 @@
       @media (max-width: 1100px) {
         .shell { grid-template-columns: 1fr; }
         .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+        .topbar { align-items: flex-start; flex-direction: column; }
+        .controls { justify-content: flex-start; max-width: 100%; }
         .kpi-row { grid-template-columns: repeat(3, 1fr); }
         .three-col, .two-col { grid-template-columns: 1fr; }
         .mini-grid, .mini-grid-2, .mini-grid-4 { grid-template-columns: repeat(2, 1fr); }
@@ -717,11 +722,11 @@
                   <div id="sms-summary" class="footer-note" style="margin:0 0 12px;">SMS delivery summary: loading...</div>
                  <div class="table-scroll">
                  <table class="campaign-table">
-                     <thead><tr><th>Channel</th><th>Campaign</th><th>SMS Sent</th><th>SMS Replies</th><th>Email Sent</th><th>Opened</th><th>Open Rate</th><th>Clicked</th><th>Click Rate</th><th>Email Replies</th><th>Response Rate</th><th>Bounced</th><th>LI Invites</th><th>LI Accepted</th><th>LI DMs</th><th>LI Replies</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
+                      <thead><tr><th>Channel</th><th>Campaign</th><th>SMS Sent</th><th>SMS Replies</th><th>Tracked Delivered</th><th>Unique Opens</th><th>Unique Open Rate</th><th>Unique Clickers</th><th>Unique Click Rate</th><th>Unique Replies</th><th>Unique Response Rate</th><th>Bounced</th><th>LI Invites</th><th>LI Accepted</th><th>LI DMs</th><th>LI Replies</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
                      <tbody id="campaign-channel-table"><tr><td colspan="20" class="loading">Loading campaign channel data...</td></tr></tbody>
                  </table>
                </div>
-               <div class="footer-note">Date range follows the report selector. This is the tracked campaign view, not all GHL Workflow Campaign activity. Email sent is based on tracked campaign release records; opened, clicked, bounced, and replies are unique contacts in the selected window. DAN, Emerald, and Partnership rows use enrollment/release attribution; SMS uses campaign keys; LinkedIn uses stored activity events joined to Brand/Dispensary source pools plus the Partnership LinkedIn activity ledger. Older events without campaign metadata remain unattributed.</div>
+                <div class="footer-note">Date range follows the report selector. This is the tracked campaign view, not all GHL Workflow Campaign activity. Tracked Delivered is an interim recipient-level approximation: tracked recipients minus tracked bounces. Opens, clicks, bounces, and replies are distinct contacts in the selected window. Exact GHL delivered-email rates require the GHL Email Statistics source. DAN, Emerald, and Partnership rows use enrollment/release attribution; SMS uses campaign keys; LinkedIn uses stored activity events joined to Brand/Dispensary source pools plus the Partnership LinkedIn activity ledger. Older events without campaign metadata remain unattributed.</div>
               </div>
             </div>
             <div class="panel">
@@ -736,11 +741,11 @@
                <div class="panel-body">
                 <div class="table-scroll">
                  <table class="campaign-table">
-                      <thead><tr><th>Campaign</th><th>Opportunities</th><th>Email Sent</th><th>Opened</th><th>Open Rate</th><th>Clicked</th><th>Click Rate</th><th>Email Replies</th><th>Bounced</th><th>LI Invites</th><th>LI Accepted</th><th>LI DMs</th><th>LI Replies</th><th>SMS Sent</th><th>SMS Replies</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
+                      <thead><tr><th>Campaign</th><th>Opportunities</th><th>Tracked Delivered</th><th>Unique Opens</th><th>Unique Open Rate</th><th>Unique Clickers</th><th>Unique Click Rate</th><th>Unique Replies</th><th>Bounced</th><th>LI Invites</th><th>LI Accepted</th><th>LI DMs</th><th>LI Replies</th><th>SMS Sent</th><th>SMS Replies</th><th>VAPI Calls</th><th>Answered</th><th>Qualified</th><th>Booked</th></tr></thead>
                       <tbody id="campaign-breakdown-table"><tr><td colspan="19" class="loading">Loading campaign breakdown...</td></tr></tbody>
                  </table>
                 </div>
-                    <div class="footer-note">Rolls DAN, Partnership, Emerald, and Vapi activity into one row per campaign. Opportunities use distinct selected-window opportunity IDs matched to current campaign tags; Vapi Brand and Vapi Dispensary remain separate from DAN.</div>
+                    <div class="footer-note">Rolls DAN, Partnership, Emerald, and Vapi activity into one row per campaign. Email rates use tracked delivered recipients, approximated as tracked recipients minus tracked bounces; they are not the exact GHL Email Statistics rates. Opportunities use distinct selected-window opportunity IDs matched to current campaign tags; Vapi Brand and Vapi Dispensary remain separate from DAN.</div>
                  </div>
                  <div id="campaign-compare-view" style="display:none;">
                    <div class="table-scroll">
@@ -895,33 +900,45 @@
     </div>
     <script>
       (function () {
-            var BUILD_STAMP = "2026-08-08-v18-opportunity-attribution";
+            var BUILD_STAMP = "2026-08-12-v23-mobile-overflow";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
           "dhdlf3O4tymxFtHk4aqq": "Sales Outreach",
-          "MThKauqlvnEFuFmAkyWX": "Sales"
+          "MThKauqlvnEFuFmAkyWX": "Sales",
+          "tQkFYrHjALgoLz6oq0uz": "Partnership"
         };
         var STAGE_NAMES = {
           "b961de1f-34fd-4b66-b032-f21225654868": "New",
+          "67d47ef7-73af-44db-9061-a1acfe65d142": "New_Not Qualified",
           "3b3bd98d-cbb9-4c50-8cf3-b4eba29061c2": "Qualified (MQL)",
           "477c0b59-4a64-4566-81d6-63e233362520": "Routed to Outreach",
           "98775f02-0018-4629-9e69-0b1fcab293eb": "Nurture Active",
           "dae2ddc5-a031-4ffa-bcdb-79d5c9afe91b": "Disqualified",
+          "0741e8b5-bab0-4500-a8f6-34fbfec6cf7e": "Vapi Voicemail",
+          "967292f9-aba0-416e-9723-5d2aa9719eaa": "Vapi Nurture",
+          "16fb26a2-736c-498d-be91-6a94633146f9": "Vapi Qualified",
           "3529dd3d-cab0-4279-967c-1aea203de4fb": "New",
-          "b97e42b1-b4c2-4759-8212-33596a085cf2": "Attempting Contact 1st",
+          "b97e42b1-b4c2-4759-8212-33596a085cf2": "Attempting Contact 1st Attempt",
           "c46c3be3-a216-4489-8ae3-c4284cfc747f": "2nd attempt",
           "c8b7a450-462a-497d-ab86-65f9a8e9b082": "3rd attempt",
           "9ced8010-dfd7-4d5b-aa9c-c2eb58fca94d": "Engaged",
           "1ab47457-c945-4d16-9dd7-305583823114": "Meeting Requested",
           "1f95dd0a-1cf2-4d31-abad-825d97d3ef69": "Booked",
           "23276991-fbb3-4b0f-8d65-35c737b62bdd": "Unresponsive",
+          "5112b5c8-efe5-48f5-b90b-29b3e28a7a3e": "Discovery No Shows for Rescheduling",
           "6f5aa304-a190-40da-8556-7c65bbc52733": "Discovery Scheduled",
           "facd3d31-c634-40c5-9271-17d608b4379c": "Discovery Completed",
           "42b12e59-9b51-4c82-b597-4a9c972322c9": "Proposal Sent",
           "f9022c83-7791-45c9-903d-381668454b2f": "Negotiation",
           "f6b65baa-eac8-4f02-b91e-2ab0c8841b2d": "Closed Won",
-          "d7784617-96f4-4ae4-8b3e-e2088b62627d": "Closed Lost"
+          "d7784617-96f4-4ae4-8b3e-e2088b62627d": "Closed Lost",
+          "268ed432-ce29-42a6-81a1-bb85617db575": "Discovery No Shows",
+          "91517911-3eee-45a0-b432-e36209495c16": "Qualified",
+          "ccc3d423-ff86-46b4-bd53-064458910eba": "New Partner Lead",
+          "7c666a65-7497-4b20-a5a1-ab3c64934b1a": "Contacted",
+          "2b378529-219e-4185-8871-a1d0b09459bb": "Proposal Sent",
+          "91ab7c92-7705-41f0-a192-d94626269329": "Closed"
         };
         function resolvePipeline(id) { return PIPELINE_NAMES[id] || id; }
         function resolveStage(id) { return STAGE_NAMES[id] || id; }
@@ -961,7 +978,8 @@
          function formatCampaignPercent(value) {
            var num = Number(value);
            if (!Number.isFinite(num)) return "0%";
-           return num.toFixed(num >= 10 ? 0 : 2) + "%";
+           var pct = num <= 1 ? num * 100 : num;
+           return pct.toFixed(pct >= 10 ? 0 : 2) + "%";
          }
          function formatCurrency(value) {
            var num = Number(value);
@@ -1211,7 +1229,7 @@
           async function loadOutgoingCalls() {
             var body = document.getElementById("outgoing-calls-table");
             if (!body) return;
-            var url = "/api/report/executive/outgoing-calls?range=7d&limit=" + outgoingCallsPageSize + "&offset=" + (outgoingCallsPage * outgoingCallsPageSize);
+             var url = "/api/report/executive/outgoing-calls?range=" + encodeURIComponent(range) + "&limit=" + outgoingCallsPageSize + "&offset=" + (outgoingCallsPage * outgoingCallsPageSize);
             try {
               var payload = await loadJson(url);
               renderOutgoingCalls(payload);
@@ -1224,8 +1242,9 @@
           }
             function campaignMatchesGroup(row, group) {
               var channel = String(row.channel || "").toLowerCase();
-              var campaign = String(row.campaign || "").toLowerCase();
-              var target = String(group || "").toLowerCase();
+               var campaign = String(row.campaign || "").toLowerCase();
+               var target = String(group || "").toLowerCase();
+               if (campaign === target) return true;
               if (target === "dan") return campaign.indexOf("new attribution model") !== -1 || (channel === "sms" && campaign === "simpletexting_campaign_v1") || campaign === "general outbound";
               if (target === "emerald") return campaign.indexOf("emerald -") === 0;
               if (target === "partnership") return campaign.indexOf("partnership") !== -1;
@@ -1259,7 +1278,7 @@
                  "<td>" + escapeHtml(r.campaign || "Unknown") + "</td>" +
                "<td>" + formatNumber(r.sms_sent || 0) + "</td>" +
                 "<td>" + formatNumber(r.sms_replies || 0) + "</td>" +
-                "<td>" + formatNumber(r.email_sent || 0) + "</td>" +
+                  "<td>" + formatNumber(r.email_delivered || 0) + "</td>" +
                 "<td>" + formatNumber(r.email_opened || 0) + "</td>" +
                 "<td>" + (r.email_open_rate === null || r.email_open_rate === undefined ? "—" : formatCampaignPercent(r.email_open_rate)) + "</td>" +
                 "<td>" + formatNumber(r.email_clicked || 0) + "</td>" +
@@ -1296,12 +1315,20 @@
                renderCampaignDetail(null, null);
                return;
              }
-             body.innerHTML = campaignBreakdownRows.map(function (r, idx) {
-               var isExpanded = expandedCampaign === r.campaign;
-               return "<tr class=\"campaign-row-clickable" + (isExpanded ? " expanded" : "") + "\" data-campaign-index=\"" + idx + "\">" +
+              var visibleBreakdownRows = campaignNameFilter === "all"
+                ? campaignBreakdownRows
+                : campaignBreakdownRows.filter(function (r) { return campaignMatchesGroup(r, campaignNameFilter); });
+              if (visibleBreakdownRows.length === 0) {
+                body.innerHTML = '<tr><td colspan="19" class="loading">No campaign breakdown data for this filter.</td></tr>';
+                renderCampaignDetail(null, null);
+                return;
+              }
+              body.innerHTML = visibleBreakdownRows.map(function (r) {
+                var isExpanded = expandedCampaign === r.campaign;
+                return "<tr class=\"campaign-row-clickable" + (isExpanded ? " expanded" : "") + "\" tabindex=\"0\" role=\"button\" aria-expanded=\"" + (isExpanded ? "true" : "false") + "\" data-campaign-name=\"" + escapeHtml(r.campaign || "") + "\">" +
                   "<td><strong>" + escapeHtml(r.campaign || "Unknown") + (isExpanded ? " ▾" : " ▸") + "</strong></td>" +
                   "<td>" + formatNumber(r.opportunities || 0) + "</td>" +
-                 "<td>" + formatNumber(r.email_sent || 0) + "</td>" +
+                 "<td>" + formatNumber(r.email_delivered || 0) + "</td>" +
                  "<td>" + formatNumber(r.email_opened || 0) + "</td>" +
                  "<td>" + (r.email_open_rate === null || r.email_open_rate === undefined ? "—" : formatCampaignPercent(r.email_open_rate)) + "</td>" +
                  "<td>" + formatNumber(r.email_clicked || 0) + "</td>" +
@@ -1322,17 +1349,22 @@
              }).join("");
              body.querySelectorAll(".campaign-row-clickable").forEach(function (tr) {
                tr.addEventListener("click", function () {
-                 var idx = parseInt(tr.getAttribute("data-campaign-index"), 10);
-                 var row = campaignBreakdownRows[idx];
+                  var row = campaignBreakdownRows.find(function (candidate) { return candidate.campaign === tr.getAttribute("data-campaign-name"); });
                  if (!row) return;
                  if (expandedCampaign === row.campaign) {
                    expandedCampaign = null;
                  } else {
                    expandedCampaign = row.campaign;
                  }
-                 renderCampaignDetail(row, campaignChannelRows);
-                 renderCampaignBreakdown(campaignBreakdownRows);
-               });
+                  renderCampaignDetail(row, campaignChannelRows);
+                  renderCampaignBreakdown(campaignBreakdownRows);
+                });
+                tr.addEventListener("keydown", function (event) {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    tr.click();
+                  }
+                });
              });
              renderCampaignDetail(
                expandedCampaign ? campaignBreakdownRows.find(function(r) { return r.campaign === expandedCampaign; }) : null,
@@ -1354,7 +1386,7 @@
              var smsRows = channelRowsFor.filter(function(r) { return String(r.channel || "").toLowerCase() === "sms"; });
              function renderSubRows(rows, title, cols) {
                if (!rows.length) return "";
-               var colLabels = { sub_campaign: "Campaign", campaign: "Campaign", email_sent: "Sent", email_opened: "Opened", email_clicked: "Clicked", email_replies: "Replies", email_bounced: "Bounced", linkedin_invites: "Invites", linkedin_accepted: "Accepted", linkedin_dms: "DMs", linkedin_replies: "Replies", vapi_calls: "Calls", vapi_answered: "Answered", vapi_qualified: "Qualified", vapi_booked: "Booked", sms_sent: "Sent", sms_replies: "Replies" };
+                var colLabels = { sub_campaign: "Campaign", campaign: "Campaign", email_delivered: "Tracked Delivered", email_sent: "Tracked Recipients", email_opened: "Unique Opens", email_clicked: "Unique Clickers", email_replies: "Unique Replies", email_bounced: "Bounced", linkedin_invites: "Invites", linkedin_accepted: "Accepted", linkedin_dms: "DMs", linkedin_replies: "Replies", vapi_calls: "Calls", vapi_answered: "Answered", vapi_qualified: "Qualified", vapi_booked: "Booked", sms_sent: "Sent", sms_replies: "Replies" };
                return "<div style=\"margin-top:8px;\"><strong style=\"color:var(--muted);font-size:0.8rem;\">" + title + "</strong>" +
                  "<table class=\"campaign-table\" style=\"margin-top:4px;\"><thead><tr>" +
                  cols.map(function(c) { return "<th>" + (colLabels[c] || c) + "</th>"; }).join("") +
@@ -1370,10 +1402,10 @@
              var detailHtml = "<h3>" + campaignName + " Campaign Detail</h3>" +
                "<div class=\"campaign-detail-grid\">" +
                 buildDetailCard("Opportunities", campaignRow.opportunities, "") +
-                buildDetailCard("Email Sent", campaignRow.email_sent, "") +
-               buildDetailCard("Opened", campaignRow.email_opened, "Open Rate: " + (campaignRow.email_open_rate !== null && campaignRow.email_open_rate !== undefined ? formatCampaignPercent(campaignRow.email_open_rate) : "—")) +
-               buildDetailCard("Clicked", campaignRow.email_clicked, "Click Rate: " + (campaignRow.email_click_rate !== null && campaignRow.email_click_rate !== undefined ? formatCampaignPercent(campaignRow.email_click_rate) : "—")) +
-                buildDetailCard("Email Replies", campaignRow.email_replies, "Response Rate: " + (campaignRow.email_response_rate !== null && campaignRow.email_response_rate !== undefined ? formatCampaignPercent(campaignRow.email_response_rate) : "—")) +
+                 buildDetailCard("Tracked Delivered", campaignRow.email_delivered, "") +
+                buildDetailCard("Unique Opens", campaignRow.email_opened, "Unique Open Rate: " + (campaignRow.email_open_rate !== null && campaignRow.email_open_rate !== undefined ? formatCampaignPercent(campaignRow.email_open_rate) : "—")) +
+                buildDetailCard("Unique Clickers", campaignRow.email_clicked, "Unique Click Rate: " + (campaignRow.email_click_rate !== null && campaignRow.email_click_rate !== undefined ? formatCampaignPercent(campaignRow.email_click_rate) : "—")) +
+                 buildDetailCard("Unique Replies", campaignRow.email_replies, "Unique Response Rate: " + (campaignRow.email_response_rate !== null && campaignRow.email_response_rate !== undefined ? formatCampaignPercent(campaignRow.email_response_rate) : "—")) +
                 buildDetailCard("Bounced", campaignRow.email_bounced, "") +
                 buildDetailCard("LinkedIn Invites", campaignRow.linkedin_invites, "") +
                 buildDetailCard("LinkedIn Accepted", campaignRow.linkedin_accepted, "") +
@@ -1387,7 +1419,7 @@
                buildDetailCard("Vapi Booked", campaignRow.vapi_booked, "") +
                buildDetailCard("Total Actions", (campaignRow.email_sent || 0) + (campaignRow.sms_sent || 0) + (campaignRow.vapi_calls || 0), "") +
                "</div>";
-             detailHtml += renderSubRows(emailRows, "Email Sub-Campaigns", ["sub_campaign", "email_sent", "email_opened", "email_clicked", "email_replies", "email_bounced"]);
+              detailHtml += renderSubRows(emailRows, "Email Sub-Campaigns", ["sub_campaign", "email_delivered", "email_opened", "email_clicked", "email_replies", "email_bounced"]);
              detailHtml += renderSubRows(liRows, "LinkedIn Sub-Campaigns", ["sub_campaign", "linkedin_invites", "linkedin_accepted", "linkedin_dms", "linkedin_replies"]);
              detailHtml += renderSubRows(vapiRows, "Vapi Sub-Campaigns", ["sub_campaign", "vapi_calls", "vapi_answered", "vapi_qualified", "vapi_booked"]);
              detailHtml += renderSubRows(smsRows, "SMS Sub-Campaigns", ["sub_campaign", "sms_sent", "sms_replies"]);
@@ -1411,13 +1443,13 @@
              if (!campaigns.length) { return; }
              var metrics = [
                 { key: "opportunities", label: "Opportunities" },
-                { key: "email_sent", label: "Email Sent" },
-               { key: "email_opened", label: "Opened" },
-               { key: "email_open_rate", label: "Open Rate", isPct: true },
-               { key: "email_clicked", label: "Clicked" },
-               { key: "email_click_rate", label: "Click Rate", isPct: true },
-               { key: "email_replies", label: "Email Replies" },
-               { key: "email_response_rate", label: "Response Rate", isPct: true },
+                 { key: "email_delivered", label: "Tracked Delivered" },
+                { key: "email_opened", label: "Unique Opens" },
+                { key: "email_open_rate", label: "Unique Open Rate", isPct: true },
+                { key: "email_clicked", label: "Unique Clickers" },
+                { key: "email_click_rate", label: "Unique Click Rate", isPct: true },
+                { key: "email_replies", label: "Unique Replies" },
+                { key: "email_response_rate", label: "Unique Response Rate", isPct: true },
                 { key: "email_bounced", label: "Bounced" },
                 { key: "linkedin_invites", label: "LinkedIn Invites" },
                 { key: "linkedin_accepted", label: "LinkedIn Accepted" },
@@ -1487,7 +1519,7 @@
               closedWon: Number(summary.closedWonCount || data.closedWonCount || 0),
               emailOpened: Number(data.emailsOpened || 0),
               emailClicked: Number(data.emailsClicked || 0),
-              vapiCalls: Number(summary.callTotal || data.callTotal || 0),
+               vapiCalls: Number((data.vapiWeeklyPerformance || {}).totalCalls || 0),
               linkedinDms: Number((data.linkedinWeeklyActivity || {}).dmsSent || 0),
               linkedinReplies: Number((data.linkedinWeeklyActivity || {}).inboundReplies || 0)
             };
@@ -1545,7 +1577,7 @@
              var estimatedWindow = from && to ? { from: from, to: to } : estimateWindow(range);
              var priorEstimate = getPreviousWindow(estimatedWindow);
              var previousUrl = priorEstimate ? appendWindow(base + "/summary?view=" + encodeURIComponent(view), priorEstimate) : null;
-             var campaignUrl = "https://automations.livetransparent.com/webhook/lt-report-campaign-channel-summary?range=" + encodeURIComponent(range);
+             var campaignUrl = base + "/campaign-channels?range=" + encodeURIComponent(range);
              if (from) campaignUrl += "&from=" + encodeURIComponent(from);
              if (to) campaignUrl += "&to=" + encodeURIComponent(to);
              try {
@@ -1721,10 +1753,10 @@
           el = document.getElementById("gsc-ctr"); if (el) el.textContent = formatPercent(gscCtr);
           el = document.getElementById("gsc-position"); if (el) el.textContent = formatNumber(gscPosition, 1);
           renderMiniGrid(document.getElementById("pipeline-grid"), pipelineDropoff.map(function (p) {
-            return { label: p.label || p.pipeline || "Pipeline", value: formatNumber(p.value || p.stageCount || 0) };
+            return { label: resolvePipeline(p.label || p.pipeline || "Pipeline"), value: formatNumber(p.value || p.stageCount || 0) };
           }), [{ label: "Warm", value: "—" }, { label: "Sales Outreach", value: "—" }, { label: "Sales", value: "—" }]);
           renderBars(document.getElementById("stage-movement-list"), stageDropoff.slice(0, 8).map(function (s) {
-            return { label: (s.pipeline || "?") + " \u2192 " + (s.stage || "?"), sessions: s.moved_out_count || 0, sub: "in:" + formatNumber(s.moved_in_count || 0) + " out:" + formatNumber(s.moved_out_count || 0) };
+            return { label: resolvePipeline(s.pipeline || "?") + " \u2192 " + resolveStage(s.stage || "?"), sessions: s.moved_out_count || 0, sub: "in:" + formatNumber(s.moved_in_count || 0) + " out:" + formatNumber(s.moved_out_count || 0) };
           }), "No stage data yet.");
           renderBars(document.getElementById("velocity-list"), stageVelocity.map(function (v) {
             var pipeName = resolvePipeline(v.pipeline);
@@ -1738,7 +1770,7 @@
           el = document.getElementById("sq-lost"); if (el) el.textContent = formatNumber(closedLost);
           el = document.getElementById("sq-win-rate"); if (el) el.textContent = formatNumber(winRate, 1) + "%";
           renderBars(document.getElementById("deal-stage-list"), opportunityStageBreakdown.slice(0, 10).map(function (s) {
-            return { label: (s.pipeline || "?") + " → " + (s.stage || "?"), sessions: s.active_opportunities || 0, sub: "worked:" + formatNumber(s.worked_opportunities || 0) + " movers:" + formatNumber(s.stage_movers || 0) };
+            return { label: resolvePipeline(s.pipeline || "?") + " → " + resolveStage(s.stage || "?"), sessions: s.active_opportunities || 0, sub: "worked:" + formatNumber(s.worked_opportunities || 0) + " movers:" + formatNumber(s.stage_movers || 0) };
           }), "No active opportunity data yet.");
           
           // John's view — appointments + deals
@@ -1837,7 +1869,7 @@
            }
           el = document.getElementById("st-eng-rate"); if (el) el.textContent = formatPercent(Number(summary.engagementRate || 0));
           renderBars(document.getElementById("deals-pipeline-list"), opportunityStageBreakdown.slice(0, 10).map(function(s) {
-            return { label: (s.pipeline || "?") + " → " + (s.stage || "?"), sessions: s.active_opportunities || 0, sub: "worked:" + formatNumber(s.worked_opportunities || 0) + " movers:" + formatNumber(s.stage_movers || 0) };
+            return { label: resolvePipeline(s.pipeline || "?") + " → " + resolveStage(s.stage || "?"), sessions: s.active_opportunities || 0, sub: "worked:" + formatNumber(s.worked_opportunities || 0) + " movers:" + formatNumber(s.stage_movers || 0) };
           }), "No active opportunity data.");
           
           // Sales team panel
@@ -1954,6 +1986,7 @@
               });
             });
             loadReport();
+           outgoingCallsPage = 0;
            loadOutgoingCalls();
         if (section) window.setTimeout(function () { scrollToSection(section); }, 150);
       })();

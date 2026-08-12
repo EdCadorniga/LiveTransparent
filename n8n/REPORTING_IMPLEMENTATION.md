@@ -50,7 +50,7 @@ The live workflows in this repo generally follow this shape:
 
 The executive summary workflow currently returns the live dashboard JSON payload from Postgres and serves it through the report host proxy.
 
-The Executive Report UI now renders the named campaign/channel rows, campaign filters, Vapi filters, campaign opportunity counts, comparison view, LinkedIn DM/reply columns, SMS delivery diagnostics, and social engagement fields. The public report host serves build `2026-08-08-v18-opportunity-attribution`.
+The Executive Report UI now renders the named campaign/channel rows, campaign filters, Vapi filters, campaign opportunity counts, comparison view, LinkedIn DM/reply columns, SMS delivery diagnostics, resolved GHL pipeline/stage labels, responsive wide-table containment, and social engagement fields. The public report host serves build `2026-08-12-v23-mobile-overflow`.
 
 The Executive Report UI also renders the bottom `Outgoing Call Detail` table. It requests 100 rows at a time, uses the `America/Los_Angeles` completed-day window, and loads signed recordings only when the operator presses play.
 
@@ -90,22 +90,24 @@ Keep that structure for reporting workflows so the nodes stay easy to inspect an
   - The workflow has already been manually rerun after the patch.
   - On 2026-07-25, the live `Fetch + Normalize Leads` node was hardened against GHL HTTP 429 responses with direct `this.helpers.httpRequest` calls, bounded `Retry-After`/exponential backoff, and a 500 ms delay between pagination pages.
   - Validation execution `241894` completed successfully with 500 contacts and all downstream writes successful.
+  - On 2026-08-12, legacy contact pagination was corrected to pass both `startAfter` and `startAfterId`; repeated pages and stalled/missing cursors now fail closed.
+  - Published version `d29b7af9-0b69-4fc7-a53c-c23dd24b0825` writes contacts, sync metadata, watermark, and source health in one direct `pg` transaction. Execution `742843` produced 500 distinct persisted contacts and matching healthy metadata.
 
 ### 3. `LT - GHL Daily Sales Ingest`
-- Status: not blocked by GA4.
+- Status: critical repair required after the 2026-08-12 database/runtime recovery.
 - Purpose: pull opportunities, stage movement, and revenue outcomes from GHL.
 - Trigger: Cron.
 - Outputs:
   - raw opportunity rows
   - stage history rows
   - sales outcome rows
- - Notes:
-   - This can run now.
-   - Keep sales ingest separate from lead ingest.
-    - The live workflow is active and uses the ingest/reporting date for snapshot and history rows while preserving opportunity `createdAt` in the source dimensions.
-    - Raw rows, sync runs, and watermarks retain `source_system = 'ghl'` for compatibility with existing consumers. Because `report_source_health` is keyed only by `source_system`, sales health uses `ghl_opportunities`; leads health remains `ghl`.
-     - Published live version `4f3e8068-8864-4b4d-9286-ba4d618cc3a8` fails closed on raw/finalization errors, skips watermark advancement and `ready` health on empty results, includes bounded cursor/retry guards, and sends `Content-Type: application/json` to GHL.
-     - Verification execution `276626` completed with 7,683 opportunities and 7,683 pipeline-history rows.
+- Notes:
+  - Keep sales ingest separate from lead ingest.
+  - The live workflow is active on version `4f3e8068-8864-4b4d-9286-ba4d618cc3a8` and preserves cursor/retry guards.
+  - Latest inspected execution `742754` failed in `Fetch Opportunities` with GHL HTTP `401`; `report_raw_ghl_opportunities` remains empty.
+  - `Upsert Raw Sales` and `Finalize Run Records` are Postgres v2.6 nodes using the persistence path known to be unreliable after runner migration. Replace them with one atomic direct-`pg` transaction before accepting a successful execution.
+  - Historical execution `276626` processed 7,683 opportunities before the database recovery, but it does not verify the current database.
+  - After repair, verify raw opportunities, pipeline history, sync run, watermark, and `ghl_opportunities` source health in the live database.
 
 ### 4. `LT - GA4 Daily Ingest`
 - Status: active in production.

@@ -154,17 +154,26 @@ const sourceWindowStart = shiftDate(runReportDate, -overlapDays);
 const batchId = \`\${workflowName}__\${runReportDate}__\${Date.now()}\`;
 const rows = [];
 
+const seenContactIds = new Set();
+const seenPages = new Set();
+let startAfter = '';
 let startAfterId = '';
 for (let page = 0; page < maxPages; page += 1) {
   let path = \`/contacts/?locationId=\${encodeURIComponent(locationId)}&limit=\${pageSize}\`;
-  if (startAfterId) path += \`&startAfterId=\${encodeURIComponent(startAfterId)}\`;
+  if (startAfter && startAfterId) path += \`&startAfter=\${encodeURIComponent(startAfter)}&startAfterId=\${encodeURIComponent(startAfterId)}\`;
   const response = await apiGet.call(this, path);
   const contacts = getContacts(response);
   if (!contacts.length) break;
 
+  const pageIds = contacts.map((contact) => clean(contact?.id || contact?.contactId || contact?._id || '')).filter(Boolean);
+  const pageSignature = pageIds.join('|');
+  if (seenPages.has(pageSignature)) throw new Error(\`GHL contacts pagination repeated page \${page + 1}\`);
+  seenPages.add(pageSignature);
+
   for (const contact of contacts) {
     const contactId = clean(contact?.id || contact?.contactId || contact?._id || '');
-    if (!contactId) continue;
+    if (!contactId || seenContactIds.has(contactId)) continue;
+    seenContactIds.add(contactId);
     const dims = {
       contact_id: contactId,
       contact_name: contactName(contact),
@@ -220,11 +229,14 @@ for (let page = 0; page < maxPages; page += 1) {
     });
   }
 
-  const meta = response?.meta || {};
-  const nextStartAfterId = clean(meta.startAfterId || meta.nextStartAfterId || '');
-  if (nextStartAfterId) startAfterId = nextStartAfterId;
-  else if (contacts.length >= pageSize) startAfterId = clean(contacts[contacts.length - 1]?.id || contacts[contacts.length - 1]?._id || '');
-  else break;
+  if (contacts.length < pageSize) break;
+  const meta = response?.meta || response?.data?.meta || {};
+  const nextStartAfter = clean(meta.startAfter ?? meta.nextStartAfter ?? '');
+  const nextStartAfterId = clean(meta.startAfterId ?? meta.nextStartAfterId ?? '');
+  if (!nextStartAfter || !nextStartAfterId) throw new Error('GHL contacts response omitted the pagination cursor after a full page');
+  if (nextStartAfter === startAfter && nextStartAfterId === startAfterId) throw new Error('GHL contacts pagination cursor did not advance');
+  startAfter = nextStartAfter;
+  startAfterId = nextStartAfterId;
   await new Promise((resolve) => setTimeout(resolve, 500));
 }
 

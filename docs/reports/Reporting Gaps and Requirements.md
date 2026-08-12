@@ -12,7 +12,7 @@ This document records what is missing from the native GHL report and the externa
 ### Executive Report
 
 - Host: `https://reports.livetransparent.com`
-- Current build: `2026-08-08-v18-opportunity-attribution`
+- Current build: `2026-08-12-v23-mobile-overflow`
 - Selected-period controls and prior equal-length comparison are live.
 - Campaign Channel Summary is live and returns named campaign rows.
 - Campaign rows remain separate for `DAN`, `Emerald`, `Partnership`, `Vapi Brand`, and `Vapi Dispensary`; Vapi activity is no longer rolled into DAN.
