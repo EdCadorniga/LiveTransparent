@@ -127,9 +127,9 @@ The live GHL build already has the key structures needed for reporting:
 
 - Campaign opportunity attribution is now exposed in the Executive Report using current campaign tags matched to opportunity creation dates. Treat this as operational attribution rather than immutable historical ownership.
 
-- The Executive Report currently shows the 10 live Partnership LinkedIn invites in the overall LinkedIn activity KPI.
-- The campaign table currently shows 10 `Partnership emails`, but the 10 LinkedIn invites are not yet attributed to a `Partnership LinkedIn` row.
-- The native GHL report has no verified Partnership Pipeline filter, partnership tag filters, or native Unipile activity widget.
+- The Executive Report attributes Partnership LinkedIn activity through `linkedin_activity_events`; the selected 30-day campaign row currently shows 17 invites and 3 verified replies.
+- The campaign table includes separate `Partnership emails` and `Partnership LinkedIn` rows. The LinkedIn row is routed by `campaign_type`/`source_key = 'partnership'` rather than inferred at render time.
+- The native GHL report has verified Partnership Pipeline and partnership tag widgets, but no native Unipile activity widget.
 - Unipile connection requests, acceptance events, LinkedIn DMs, replies, and suppression state remain Executive Report/Postgres concerns unless explicitly synchronized into supported GHL objects.
 
 ### What Should Stay Outside GHL

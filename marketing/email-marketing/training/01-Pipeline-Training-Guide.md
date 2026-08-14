@@ -115,8 +115,7 @@ Use this when:
 
 Important:
 
-- The current automated booking handoff is for `Regulated Ads On Social/Search`
-- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+- The current automated booking handoff is for `Regulated Ads On Social/Search`, `Book a demo`, and `Book 1:1 with Cameron`
 - That path adds `SQL` and ensures the opportunity is in `Sales -> Discovery Scheduled`
 
 ### `Discovery Completed`
@@ -160,8 +159,7 @@ Use `mql` only for:
 - `Warm  Meta Lead Form`
 - `Warm  Website` from the website Hero or Footer forms
 - `Warm  Referral`
-- Bookings only when the calendar is `Regulated Ads On Social/Search`
-- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+- Bookings only when the calendar is `Regulated Ads On Social/Search`, `Book a demo`, or `Book 1:1 with Cameron`
 
 Do not use `mql` for:
 

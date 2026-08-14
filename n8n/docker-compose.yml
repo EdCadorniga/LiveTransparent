@@ -60,6 +60,7 @@ services:
     environment:
       N8N_RUNNERS_AUTH_TOKEN: '${N8N_RUNNERS_AUTH_TOKEN:?Set the runner authentication token}'
       N8N_RUNNERS_TASK_BROKER_URI: 'http://n8n:5679'
+      N8N_RUNNERS_TASK_TIMEOUT: '300'
       NODE_PATH: '/opt/pg-node_modules'
     volumes:
       - './runners/n8n-task-runners.json:/etc/n8n-task-runners.json'

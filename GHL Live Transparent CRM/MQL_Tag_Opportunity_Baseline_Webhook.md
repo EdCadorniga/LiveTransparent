@@ -12,8 +12,10 @@ The `mql` tag should only be applied for high-intent warm triggers:
   - Hero form
   - Footer form
 - `Warm  Referral`
-- Booking appointments only when the booked calendar matches `Regulated Ads On Social/Search`
-- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+- Booking appointments when the booked calendar matches any of these MQL-qualified calendars:
+  - `Regulated Ads On Social/Search` (ID: `SrtXcFVyea7pFl3nTiIK`, keys: `regulated-ads`, `regulated-ads-on-social-search`) — also gets `SQL` + Sales Discovery Scheduled
+  - `Book a demo` (ID: `WS6lacfQK2XOhqN7mRaF`, key: `book-a-demo`) — also gets `SQL` + Sales Discovery Scheduled
+  - `Book 1:1 with Cameron` (ID: `w6lgGxG2zOKyw24LTpjD`, key: `book-11-with-cameron`) — MQL only, no SQL
 
 The `mql` tag should not be applied universally to every contact entering `WL - Master Warm Intake and Routing`.
 
@@ -89,7 +91,10 @@ In `WL - Master Warm Intake and Routing`:
   - LinkedIn Lead Form
   - Referral
   - Website lead-form path
-  - Booking path limited to calendar `Regulated Ads On Social/Search`
+  - Booking path limited to MQL-qualified calendars:
+  - `Regulated Ads On Social/Search` (`SrtXcFVyea7pFl3nTiIK`)
+  - `Book a demo` (`WS6lacfQK2XOhqN7mRaF`)
+  - `Book 1:1 with Cameron` (`w6lgGxG2zOKyw24LTpjD`)
 
 The website lead-form path should be limited to contacts created by:
 
@@ -98,10 +103,13 @@ The website lead-form path should be limited to contacts created by:
 
 The booking path should be limited by the appointment/calendar identifier sent by GHL:
 
-- allowed calendar name: `Regulated Ads On Social/Search`
-- allowed normalized slug/key: `regulated-ads` or `regulated-ads-on-social-search`
+- allowed calendar names/IDs:
+  - `Regulated Ads On Social/Search` / `SrtXcFVyea7pFl3nTiIK` (keys: `regulated-ads`, `regulated-ads-on-social-search`) — SQL + Sales handoff
+  - `Book a demo` / `WS6lacfQK2XOhqN7mRaF` (key: `book-a-demo`) — SQL + Sales handoff
+  - `Book 1:1 with Cameron` / `w6lgGxG2zOKyw24LTpjD` (key: `book-11-with-cameron`) — MQL only, no SQL, no Sales handoff
 - non-matching calendars must not add `mql`
 - non-matching calendars must not be posted into the Slack leads alert flow
+- `Book 1:1 with Cameron` bookings post to Slack but do NOT receive `SQL` or move to Sales -> Discovery Scheduled
 
 ## Related Regulated Ads Booking Automation
 

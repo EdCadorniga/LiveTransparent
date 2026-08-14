@@ -105,14 +105,11 @@ Important:
 
 This is the most important booking rule for users to know.
 
-Only this meeting should trigger the full booking automation:
+Only these meetings should trigger the full booking automation:
 
-- `Regulated Ads On Social/Search`
-
-The normalized key may also appear as:
-
-- `regulated-ads`
-- `regulated-ads-on-social-search`
+- `Regulated Ads On Social/Search` (ID: `SrtXcFVyea7pFl3nTiIK`)
+- `Book a demo` (ID: `WS6lacfQK2XOhqN7mRaF`)
+- `Book 1:1 with Cameron` (ID: `w6lgGxG2zOKyw24LTpjD`)
 
 When that meeting is booked:
 

@@ -134,7 +134,7 @@ Keep these aligned with routing and report logic:
 - `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`) — active, `0 15-21 * * 1-5`
 - `LT - LinkedIn DM Sequence (Unipile)` (`d0tEtijajisIsYcs`) — active, `0 12-22 * * 1-5`
 - `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) — active (webhook receiver)
-- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) — active; posts inbound LinkedIn messages into GHL Conversations under `LinkedIn via Unipile` using canonical provider `6a58a14ff3023bea3783c152`.
+- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) — active on published version `f96dafba-9818-4aab-8656-c2e4e2ab8480`; posts inbound LinkedIn messages into GHL Conversations under `LinkedIn via Unipile` using canonical provider `6a58a14ff3023bea3783c152` and retains malformed form-payload field recovery.
 - `LT - LinkedIn Connection Request (Unipile) (Internal Test)` (`Zt8p2aYtIuY0HK18`) — active (test)
 - Verified 2026-06-03: sync scans 101/matches 100, dispatcher sent 10, DM sent 2
 
@@ -160,9 +160,9 @@ Keep these aligned with routing and report logic:
 - `LT - Partnership Bulk Import` (`zmrYrUjVcyXaS7PJ`) — active webhook (one-time import)
 - `LT - Partnership LinkedIn URL Update` (`ew6uQQnAjgCbjeGn`) — active webhook (one-time URL update)
 - 3 existing LinkedIn workflows patched to query `partnership_linkedin_connection_state` (Acceptance Checker, Reply Backfill, New Messages)
-- Reporting: Campaign Channel Summary includes "Partnership emails" row; Executive Report renders campaign table. Postgres tables bootstrapped 2026-07-31.
-- Partnership LinkedIn state table contains 127 `ready` rows seeded from GHL contacts. Email, LinkedIn Dispatcher, and LinkedIn DM Sequence remain `defaultDryRun=true`; dispatcher dry-run `278203` planned 30 requests with 0 sent and DM dry-run `278342` completed with no sends.
-- GHL Custom Report partnership widgets pending (requires authenticated browser/Firebase session; PIT REST access is confirmed but does not unlock the builder).
+- Reporting: Campaign Channel Summary includes separate `Partnership emails` and `Partnership LinkedIn` rows. The selected 30-day LinkedIn row shows 17 invites and 3 verified replies. Postgres tables were bootstrapped 2026-07-31.
+- Partnership outbound was explicitly activated on 2026-07-31. Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence use `defaultDryRun=false`; do not manually execute them unless an extra live batch is intended.
+- GHL Custom Report partnership widgets are configured; native GHL still cannot display Unipile invite, DM, or reply activity.
 
 ### Emerald (Staged — Marketing Email Paused 2026-06-05)
 - All 7 Emerald workflows are inactive (staged by design since pause):

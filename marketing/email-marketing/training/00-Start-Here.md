@@ -30,10 +30,11 @@ What this folder is for:
   - `T&C 1` = non-marketing SMS consent
   - `T&C 2` = marketing SMS consent
   - these are built-in GHL form consent elements, not separate contact custom fields
-- Learn the regulated ads booking rule:
-  - only `Regulated Ads On Social/Search` / normalized keys `regulated-ads` or `regulated-ads-on-social-search` get `SQL`
-  - only that booking should trigger the `#leads` Slack alert
-  - only that booking should move or create the opportunity in `Sales -> Discovery Scheduled`
+- Learn the MQL-qualified booking rule:
+  - `Regulated Ads On Social/Search` and `Book a demo` bookings get `mql` + `SQL`
+  - `Book 1:1 with Cameron` bookings get `mql` only (no SQL)
+  - all three bookings trigger the `#leads` Slack alert
+  - `Regulated Ads` and `Book a demo` bookings move or create the opportunity in `Sales -> Discovery Scheduled`
 
 What this folder is not for:
 

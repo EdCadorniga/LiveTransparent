@@ -1,6 +1,6 @@
 # Reporting Gaps and Requirements
 
-**Updated:** 2026-08-08
+**Updated:** 2026-08-13
 **Status:** Campaign attribution, SMS delivery diagnostics, opportunity counts, LinkedIn activity, and partnership reply attribution are live. Remaining: OAuth-backed social statistics ingestion, native GHL stage/tag/email/custom-metric widgets, and reporting owner dimensions.
 
 ## Purpose
@@ -19,8 +19,8 @@ This document records what is missing from the native GHL report and the externa
 - Campaign rows include selected-window distinct opportunity counts matched from current campaign tags in `report_raw_ghl_opportunities`.
 - SMS summary includes sent, failed, replies, and normalized failure reasons. The verified 2026-07-09 through 2026-08-07 window returned 294 sent, 1,095 failed, 0 replies; failure reasons were provider failure 1,010, duplicate send 63, unknown 16, invalid phone 5, and idempotent webhook error 1.
 - In the current 30-day window, `Partnership emails` shows 59 sends, 1 reply, and a 1.69% response rate.
-- In the current 30-day window, `Partnership LinkedIn` shows 17 invites and 1 reply.
-- The two historical replies are stored with verified provider timestamps: Strider Peterson email at `2026-08-03T15:41:03Z` and Jaret Christopher LinkedIn at `2026-08-01T03:05:55Z`.
+- In the current 30-day window, `Partnership LinkedIn` shows 17 invites and 3 replies.
+- Verified historical replies are stored with provider timestamps: Strider Peterson email at `2026-08-03T15:41:03Z`; Jaret Christopher LinkedIn at `2026-08-01T03:05:55Z`; David Schachter LinkedIn (`rvWEW2K2WYeQ7v6zypDdZQ`) at `2026-08-10T15:09:07.711Z`; and Gretchen Gailey LinkedIn (`8UF3lxibUmKYaG87h1F5Pg`) at `2026-08-06T16:20:35.281Z`.
 - Social post totals currently show 24 likes, 3 comments, and 4 shares. The UI also exposes saves, reach, and impressions, but the PIT-based post ingest currently supplies none of those fields.
 - The Executive Report is the only current surface that can combine Postgres state, Unipile activity, GHL CRM data, and campaign joins.
 - Outgoing Call Detail is live at the bottom of the report. It loads the seven most recent completed days, paginates at 100 rows, and displays contact ID/name fallback, phone, disposition, duration, first-attempt flag, campaign, and lazy signed recording playback.
@@ -45,7 +45,7 @@ This document records what is missing from the native GHL report and the externa
 
 ### P0: LinkedIn Activity Ledger
 
-The 10 live connection requests were sent through Unipile and are visible in the aggregate LinkedIn metric, but they are not attributed to the Partnership campaign. The reporting system needs a durable activity row for every LinkedIn action.
+**Implemented:** Partnership LinkedIn actions are attributed through durable, idempotent `linkedin_activity_events` rows. The requirements below remain the event contract for every LinkedIn action.
 
 Use the existing `linkedin_activity_events` pattern or create a partnership-specific table that is UNIONed into it. Each event must contain:
 
@@ -78,7 +78,7 @@ Add a durable `Partnership LinkedIn` catalog row to the campaign summary and pop
 - `reply_received` — LinkedIn Reply Backfill (`QfJ2EZcc7lZwNgxj`, per contact) and LinkedIn Unipile New Messages (`7o5EBdvwAuIaWW7k`, per inbound message). Reply Backfill now also carries `source_table` so partnership rows route correctly.
 - `suppressed` + `sequence_completed` — LinkedIn DM Suppression from GHL Tag (`IPN8jnR3XSurX0o1`), written when a contact is suppressed.
 
-All six workflows are active and published (versionId == activeVersionId). The Campaign Channel Summary routes partnership events to `Partnership LinkedIn` via `campaign_type`/`source_key = 'partnership'` and exposes `linkedin_invites`/`linkedin_accepted`/`linkedin_replies` columns. The selected-window row now shows 17 invites and 1 verified historical reply. Still open: acceptance/completion rates and natural (non-suppression) `sequence_completed` events from the DM sequence completion branch.
+All six workflows are active and published (versionId == activeVersionId). The Campaign Channel Summary routes partnership events to `Partnership LinkedIn` via `campaign_type`/`source_key = 'partnership'` and exposes `linkedin_invites`/`linkedin_accepted`/`linkedin_replies` columns. The selected-window row now shows 17 invites and 3 verified historical replies. `LT - LinkedIn Unipile New Messages` is published on `f96dafba-9818-4aab-8656-c2e4e2ab8480` with malformed form-payload field recovery. Still open: acceptance/completion rates and natural (non-suppression) `sequence_completed` events from the DM sequence completion branch.
 
 ### P0: Partnership Email Event Coverage
 
@@ -117,7 +117,7 @@ Expose last successful sync, latest attempt, row count, selected-window coverage
 
 **Social statistics blocker confirmed (2026-08-04)**: the official GHL Social Planner statistics endpoint returned 152 impressions and 61 reach for its current seven-day OAuth window. The PIT returns 401 for that endpoint, and n8n has no usable GHL OAuth credential. The source data exists, but scheduled ingestion cannot be completed until OAuth is connected.
 
-**Known minor limitation (2026-08-04)**: the Executive Summary API's `linkedinWeeklyActivity.inboundReplies`/`uniqueResponders` still count only `event_type = 'inbound_reply'` (not `reply_received`), and `linkedinFunnel` has no `suppressed` count. The Campaign Channel Summary (the primary campaign surface) already counts both reply event types and the LinkedIn funnel suppression is available in the state table. The report's campaign table is authoritative for the verified partnership reply until the weekly KPI query is adjusted.
+**Known minor limitation (2026-08-04)**: the Executive Summary API's `linkedinWeeklyActivity.inboundReplies`/`uniqueResponders` still count only `event_type = 'inbound_reply'` (not `reply_received`), and `linkedinFunnel` has no `suppressed` count. The Campaign Channel Summary (the primary campaign surface) already counts both reply event types and the LinkedIn funnel suppression is available in the state table. The report's campaign table is authoritative for the 3 verified Partnership LinkedIn replies until the weekly KPI query is adjusted.
 
 ## Executive Report Requirements
 

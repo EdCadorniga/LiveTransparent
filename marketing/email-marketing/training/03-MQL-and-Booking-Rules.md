@@ -21,8 +21,10 @@ Add `mql` only when the lead came from one of these:
 - `Warm  Website` when the lead came from the website Hero form
 - `Warm  Website` when the lead came from the website Footer form
 - `Warm  Referral`
-- A booking on calendar `Regulated Ads On Social/Search`
-- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+- A booking on an MQL-qualified calendar:
+  - `Regulated Ads On Social/Search` (ID: `SrtXcFVyea7pFl3nTiIK`) — MQL + SQL
+  - `Book a demo` (ID: `WS6lacfQK2XOhqN7mRaF`) — MQL + SQL
+  - `Book 1:1 with Cameron` (ID: `w6lgGxG2zOKyw24LTpjD`) — MQL only
 
 ## Do Not Add `mql` For
 
@@ -66,10 +68,9 @@ The `/apply/` page should embed the same widget instead of the legacy Calendly U
 
 If a contact books the right meeting:
 
-- calendar must be `Regulated Ads On Social/Search`
-- normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+- calendar must be one of the MQL-qualified calendars (`Regulated Ads On Social/Search`, `Book a demo`, `Book 1:1 with Cameron`)
 - then the lead can get `mql`
-- then the lead should also get `SQL`
+- then the lead should also get `SQL` (except `Book 1:1 with Cameron` which is MQL-only)
 - then the lead can keep `meeting booked`
 - then the opportunity should be moved to `Sales -> Discovery Scheduled`, or created there if none exists
 

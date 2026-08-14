@@ -1,6 +1,6 @@
 # Partnership Campaign Audit Plan
 
-**Created:** 2026-07-31 | **Status:** P1 remediation completed; live email and LinkedIn tests completed; reporting attribution and native report configuration remain open | **Auditor:** LLM via n8n-lt MCP + SSH + GHL MCP + direct GHL REST PIT check
+**Created:** 2026-07-31 | **Status:** Historical audit plan; reporting attribution and native partnership report configuration were completed after the original findings | **Auditor:** LLM via n8n-lt MCP + SSH + GHL MCP + direct GHL REST PIT check
 
 ---
 
@@ -10,8 +10,8 @@ The Partnership Marketing pipeline was fully deployed on 2026-07-31: 131 contact
 
 This deeper audit verifies the pipeline end-to-end across three layers: n8n execution, Postgres data integrity, and reporting (Executive Report API, Campaign Channel Summary endpoint, frontend deployment, GHL native report, and GHL assets).
 
-**Key known risks:**
-- Reply Poller was hardened to use `POST /conversations/search` and fail closed on lookup errors; published version `04cf007e-0ed1-41c7-abf5-4d1174b4bc9f` passed manual execution `277923`.
+**Historical findings at audit time:**
+- Reply Poller initially used `POST /conversations/search`; this was later corrected to supported `GET /conversations/search` and published on `736386a2-a7d2-434d-b9ba-72026e49c98b`.
 - Partnership state was initially bootstrapped empty; the LinkedIn dispatcher now seeds it before fetching ready rows.
 - The root `GHL_PIT` was verified against `GET /locations/{locationId}` and `GET /contacts/` with HTTP 200. This resolves the assumption that GHL REST access is unavailable; it does not resolve the separate Firebase/browser report-builder session problem.
 - The Partnership Email Dispatcher sent 10 live emails in execution `281334`, all successful and written to `partnership_release_log`.
@@ -69,7 +69,7 @@ Bridge between Postgres data and Executive Report frontend.
 |-------|-----|----------|
 | Endpoint live | curl https://automations.livetransparent.com/webhook/lt-report-campaign-channel-summary?range=7d | HTTP 200, JSON |
 | Partnership email row | Find campaignChannelBreakdown entry with campaign: "Partnership emails" | Row present with email_sent count; currently 10 for the verified 7-day window |
-| Partnership LinkedIn row | Find campaignChannelBreakdown entry with campaign: "Partnership LinkedIn" | Row must contain the 10 live invite events; currently not attributed because the activity ledger has no partnership event rows |
+| Partnership LinkedIn row | Find campaignChannelBreakdown entry with campaign: "Partnership LinkedIn" | Historical requirement: row must contain the 10 live invite events. This was later implemented through `linkedin_activity_events`. |
 | Status filter | SQL uses WHERE status = 'sent' -- Dispatcher writes 'sent' | Values match |
 | Email events | Partnership opens/clicks if Email_Events has partnership entries | Check email_event_rows CTE LIKE '%partnership%' |
 
@@ -87,7 +87,7 @@ Check whether Bukc0mgOD2r7V6ED has been updated for partnership data.
 | LinkedIn funnel | Look for partnership_linkedin_connection_state in linkedinFunnel CTE | Likely NOT present |
 | Campaign channels | May fetch from Campaign Channel Summary or own SQL | Check both paths |
 
-**Current finding:** The Executive Report exposes the overall LinkedIn invite count and the Partnership email campaign row. It does not yet expose the 10 LinkedIn invites as a Partnership LinkedIn campaign row because successful Unipile invite events are not yet written with a partnership campaign key into the LinkedIn activity ledger.
+**Historical finding:** At audit time, the Executive Report exposed the overall LinkedIn invite count and Partnership email row but not a Partnership LinkedIn row. This was subsequently resolved with durable partnership-scoped `linkedin_activity_events`; the current selected-window campaign row shows 17 invites and 3 verified replies.
 
 ---
 

@@ -109,8 +109,11 @@ Flow:
 - LinkedIn Lead Form
 - Meta Lead Form
 - Website Hero/Footer lead forms
-- Booking path only when the booked calendar is `Regulated Ads On Social/Search`
-- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+- Booking path only when the booked calendar is one of the MQL-qualified calendars:
+  - `Regulated Ads On Social/Search` (ID: `SrtXcFVyea7pFl3nTiIK`, keys: `regulated-ads`, `regulated-ads-on-social-search`)
+  - `Book a demo` (ID: `WS6lacfQK2XOhqN7mRaF`, key: `book-a-demo`)
+  - `Book 1:1 with Cameron` (ID: `w6lgGxG2zOKyw24LTpjD`, key: `book-11-with-cameron`)
+- The normalized internal key can appear as `regulated-ads`, `regulated-ads-on-social-search`, `book-a-demo`, or `book-11-with-cameron`
 4. Ensure minimum stage/pipeline:
 - Move to Warm pipeline + MQL stage only if contact is not already further in sales progression.
 5. Preserve the channel signal while the contact remains in Warm:

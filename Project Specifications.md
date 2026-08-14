@@ -49,7 +49,7 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 
 - `LT - GHL LinkedIn Connect Dispatcher (Unipile)` is active and uses the invite copy from `outreach_messages.v2.docx`.
 - `LT - LinkedIn DM Sequence (Unipile)` is active and uses the LinkedIn DM copy from `outreach_messages.v2.docx`.
-- `LT - LinkedIn Unipile New Messages` is active and marks active conversations when inbound replies arrive.
+- `LT - LinkedIn Unipile New Messages` is active and marks active conversations when inbound replies arrive. Its inbound normalizer must preserve the malformed form-payload fallback because Unipile can send unescaped JSON as the sole form body key; removing that fallback can lose reply sender/message fields.
 - LinkedIn DM sends are blocked when `payload_json.dm_conversation_status = 'active'`.
 
 ### LinkedIn Timing
@@ -73,8 +73,8 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 
 - Partnership LinkedIn state is isolated in `partnership_linkedin_connection_state` with `source_key = 'partnership'`; it must not be conflated with the main `linkedin_connection_state` table.
 - The partnership dispatcher seeds `ready` rows from GHL contacts tagged `partner_candidate_linkedin` before reading its ready queue. The 2026-07-31 seed produced 127 rows.
-- Partnership Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence remain `defaultDryRun=true` until explicit live-launch approval. A successful dry run is not evidence that an email, invitation, or DM was sent.
-- Before activation, verify GHL suppression/reply checks, state-upsert authentication, idempotent claims, release-log writes, and the exact active version. Do not activate a send-capable path merely because the PIT can read contacts.
+- Partnership Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence have been live with `defaultDryRun=false` since explicit approval on 2026-07-31. Do not manually execute them unless an additional live batch is intentional.
+- Before changing or republishing a send-capable path, verify GHL suppression/reply checks, state-upsert authentication, idempotent claims, release-log writes, and the exact active version. A successful dry run or readable PIT is not sufficient evidence for safe production sending.
 
 ### SMS Campaign Scope
 

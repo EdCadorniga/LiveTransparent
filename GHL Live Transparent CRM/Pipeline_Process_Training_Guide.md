@@ -35,12 +35,12 @@ Use this pipeline for content partnership outreach — independent of the main s
 4. **Closed**: Partnership confirmed or declined.
 
 #### Outbound Sequences
-- **Email**: 4-step sequence from `cameron@livetransparent.com`, 60/day max, 11am ET Mon-Fri, 2-weekday intervals. Managed by `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`). It is currently `defaultDryRun=true`; no release-log rows exist until live launch approval.
-- **LinkedIn**: 30 connection requests/day, 3pm CT Mon-Fri, handled by `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`). The dispatcher seeds 127 `ready` partnership state rows before queue fetch. Connected contacts receive 4-step DM cadence via `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`). Both LinkedIn workflows are currently `defaultDryRun=true`; dry-run executions planned 30 requests and sent 0.
+- **Email**: 4-step sequence from `cameron@livetransparent.com`, 60/day max, 11am ET Mon-Fri, 2-weekday intervals. Managed by `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`). Production sending has been live with `defaultDryRun=false` since explicit approval on 2026-07-31.
+- **LinkedIn**: 30 connection requests/day, 3pm CT Mon-Fri, handled by `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`). The dispatcher seeds partnership state before queue fetch. Connected contacts receive the 4-step DM cadence via `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`). Both LinkedIn workflows have been live with `defaultDryRun=false` since explicit approval on 2026-07-31.
 
 #### Reply Detection
 - Email replies: polled every 5 minutes by `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`). On detection, the Reply Handler tags the contact `partner_replied`, creates a Partnership Pipeline opportunity, and posts to Slack.
-- LinkedIn replies: detected by the patched `LT - LinkedIn Reply Backfill` and `LT - LinkedIn Unipile New Messages` workflows, which now query `partnership_linkedin_connection_state`.
+- LinkedIn replies: detected by the patched `LT - LinkedIn Reply Backfill` and `LT - LinkedIn Unipile New Messages` workflows, which query `partnership_linkedin_connection_state`. The inbound workflow retains a malformed form-payload fallback because Unipile can send unescaped JSON as the sole form body key. Campaign reporting currently contains 3 verified Partnership LinkedIn replies.
 
 #### Terminal Tags
 - `partner_replied`: Stops all outbound sequences, creates opportunity
@@ -219,7 +219,7 @@ Exit criteria:
 - Do not skip stages unless manager-approved.
 - Do not move backward except documented correction.
 - Current booked automation scope is not universal:
-  - only `Regulated Ads On Social/Search` / normalized keys `regulated-ads` or `regulated-ads-on-social-search` are auto-routed into `Sales -> Discovery Scheduled`
+  - only `Regulated Ads On Social/Search`, `Book a demo`, and `Book 1:1 with Cameron` are auto-routed into `Sales -> Discovery Scheduled`
 
 ## 5A) Website Hero Consent Rule (Current)
 - The website hero form uses GHL's built-in T&C consent elements.
@@ -237,10 +237,12 @@ Exit criteria:
 - `Warm  Meta Lead Form`
 - `Warm  Website` when created by the website Hero or Footer lead forms
 - `Warm  Referral`
-- Booking path only when the booked calendar is `Regulated Ads On Social/Search`
-- The normalized internal key can appear as `regulated-ads` or `regulated-ads-on-social-search`
+- Booking path only when the booked calendar is one of the MQL-qualified calendars:
+  - `Regulated Ads On Social/Search` (`SrtXcFVyea7pFl3nTiIK`)
+  - `Book a demo` (`WS6lacfQK2XOhqN7mRaF`)
+  - `Book 1:1 with Cameron` (`w6lgGxG2zOKyw24LTpjD`)
 - Standard bookings/appointments must not receive `Warm  Referral` unless the lead is actually referral-sourced.
-- Non-regulated-ads bookings must not receive `mql`.
+- Non-MQL-calendar bookings must not receive `mql`.
 - The downstream n8n workflow `GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)` only reacts after `mql` is present; it does not add the tag itself.
 - The regulated ads booking path separately adds `SQL` and ensures the opportunity is in `Sales -> Discovery Scheduled`.
 

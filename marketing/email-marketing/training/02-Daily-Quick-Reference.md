@@ -55,15 +55,13 @@ Use this file during your work day.
 - Meta Lead Form
 - Website Hero/Footer forms
 - Referral
-- Booking only when calendar is `Regulated Ads On Social/Search`
-- Normalized key may appear as `regulated-ads` or `regulated-ads-on-social-search`
+- Booking only when calendar is `Regulated Ads On Social/Search`, `Book a demo`, or `Book 1:1 with Cameron`
 
 ## Booking Quick Rules
 
-- Only `Regulated Ads On Social/Search` bookings should hit the `#leads` Slack alert
-- The normalized key may appear as `regulated-ads` or `regulated-ads-on-social-search`
+- Only MQL-qualified calendar bookings (`Regulated Ads On Social/Search`, `Book a demo`, `Book 1:1 with Cameron`) should hit the `#leads` Slack alert
 - Other bookings should not go to `#leads`
-- Regulated ads bookings should also get tag `SQL`
+- MQL-calendar bookings should also get tag `SQL` (except `Book 1:1 with Cameron` which is MQL-only)
 - `meeting booked` should only be trusted on qualifying regulated ads bookings and a small set of legacy Cameron 30-minute records
 - Regulated ads bookings should have an opportunity moved or created in `Sales -> Discovery Scheduled`
 - Do not use `Warm  Referral` for regular bookings

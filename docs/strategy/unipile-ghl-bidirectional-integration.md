@@ -1,6 +1,6 @@
 # LinkedIn and Instagram via Unipile -> GHL Bidirectional Integration
 
-Updated: 2026-07-16 (Session 6: Instagram dedup verified; Instagram and LinkedIn inbound/outbound paths working through canonical SMS custom providers)
+Updated: 2026-08-14 (company Instagram-page delivery planning added; existing inbound/outbound bridge remains authoritative)
 
 Next-session handoff for the bidirectional GHL Custom Conversation Provider integration using Unipile for LinkedIn and Instagram.
 
@@ -14,6 +14,72 @@ Make GHL Conversations the operator-facing inbox for LinkedIn and Instagram conv
 4. GHL posts the outbound provider webhook to n8n.
 5. n8n resolves the mapped Unipile chat/profile and sends the reply through the correct Unipile account.
 6. Reply/inbound state feeds back into the outbound automation guardrails so automated DMs stop.
+
+## Company Instagram Page Outreach Contract (2026-08-14)
+
+The approved Instagram/FB DM copy is unchanged. The planned outbound audience is the company's Instagram page, not the employee represented by the GHL contact. GHL contacts remain the attribution and suppression records; the company-page Instagram identity is a separate operational identity.
+
+### Source and audience selectors
+
+- Brands: GHL tag `brands_pool`; source file `data/Brands.csv`.
+- Dispensaries: GHL tag `dispensaries_pool`; source file `data/Dispensaries.csv`.
+- Partnerships: GHL tag `partner_candidate_email` or `partner_candidate_linkedin`; the current Partnership CSVs do not contain reliable Instagram/Facebook URL fields and require separate enrichment before activation.
+
+The Brands and Dispensaries source files provide `Company non-LinkedIn URL(s)`, `Location non-LinkedIn URL(s)`, and `Contact non-LinkedIn URL(s)`. Preliminary audit counts are Brands 3,224/3,668 rows with Instagram URL occurrences and 2,799/3,668 with Facebook URL occurrences; Dispensaries 6,875/10,200 with Instagram URL occurrences and 6,431/10,200 with Facebook URL occurrences. These are not validated page counts.
+
+### GHL field contract
+
+The existing contact-level fields are protected and continue to serve the inbound contact bridge:
+
+| Field | ID |
+|------|----|
+| Instagram Username | `8k6vF61VBIysdIXXFQD5` |
+| Instagram Profile URL | `beGMXoidqHdYqAQDORWX` |
+| Instagram Profile Provider ID | `fYYUrFLABP5l0w7RdK7Y` |
+| Instagram Chat Attendee ID | `SQdQw0MNvk8uQbr4yDZU` |
+| Instagram Chat ID | `ab6euY7qo5klhUSe7VWu` |
+
+Create separate contact custom fields, all `TEXT`, with these exact names:
+
+- `Company Instagram Username`
+- `Company Instagram Profile URL`
+- `Company Instagram Profile Provider ID`
+- `Company Instagram Chat Attendee ID`
+- `Company Instagram Chat ID`
+- `Company Facebook Page URL`
+- `Company Facebook Page ID`
+- `Company Facebook Messenger PSID`
+
+Do not repurpose `Apollo Facebook URL`. A public Facebook Page URL or Page ID is reference/enrichment data only; a Messenger PSID may only be captured from an eligible GHL Messenger interaction and must never be inferred from a URL.
+
+### Enrichment and identity resolution
+
+The one-time enrichment workflow must be read-only until its review output is approved. Match source rows to GHL in this order: Emerald Contact ID; source-file/import metadata; exact normalized email; exact normalized phone; company-plus-contact-name as a review-only fallback. Extract and normalize company/location Instagram URLs, remove tracking parameters, resolve the profile through Unipile account `F2UprZ8aQc6Qm9CYYWU6cg`, and reject personal, unrelated, ambiguous, or conflicting profiles.
+
+Several GHL contacts may refer to one company page. Deduplicate by `(Unipile account ID, normalized Instagram handle)` and retain all associated GHL contact IDs plus one primary attribution contact. Update only the new `Company ...` fields after approval. Preserve the original `Em_*Non_LinkedIn_URLs` source metadata and never overwrite a validated contact-level Instagram identity with a company identity.
+
+### Authoritative Postgres state
+
+Create a dedicated company-page identity/state model, proposed name `instagram_company_dm_state`, authoritative for delivery and lifecycle. At minimum it must store campaign key, Unipile account/profile/chat identifiers, normalized username, profile URL, company name, source tag, primary and associated GHL IDs, step/status, started/last-sent/next-due timestamps, last message ID/hash, reply/suppression state, failure reason, and audit timestamps.
+
+Enforce identity uniqueness by `(campaign_key, unipile_account_id, instagram_profile_provider_id)` and send idempotency by `(campaign_key, instagram_profile_provider_id, message_step)`. Use direct `require('pg')` transactions for writes because the n8n Postgres v2.5+ `queryReplacement` path is not reliable in this environment.
+
+Before Message 1, check prior inbound/reply evidence for every associated GHL contact and company page across `instagram_conversation_map`, GHL Conversations, existing social state, and relevant email/LinkedIn reply state. Any reply or suppression from any associated contact stops the whole company-page sequence. Identity or reply-check errors fail closed and skip the send.
+
+Cadence is Message 1 on the first eligible weekday, Message 2 two business days later, and Message 3 two business days after Message 2. Do not send on weekends. Lifecycle remains in Postgres; do not add lifecycle tags for this campaign.
+
+### Build and verification gates
+
+1. Produce source extraction, URL normalization, match, duplicate, personal-profile, ambiguous-profile, and unresolved reports.
+2. Create the eight company-level GHL fields.
+3. Resolve and review company Instagram identities through Unipile.
+4. Update approved GHL company fields and import the authoritative Postgres identity state.
+5. Run a five-page dry-run sample for Brands and Dispensaries.
+6. Run one controlled live Instagram test per campaign only after explicit approval.
+7. Verify Unipile profile/chat/message IDs, GHL mapping, Postgres persistence, and reply suppression.
+8. Publish and activate the weekday dispatcher only after all gates pass.
+
+The existing `instagram_conversation_map` remains the contact-level inbound/GHL bridge. It must not be silently changed into the company-page campaign state table.
 
 ## What's Working
 
@@ -204,7 +270,7 @@ Note: marketplace.gohighlevel.com has session issues. Use app.gohighlevel.com in
 |----------|----|--------|
 | LT - Social Provider Outbound Router | `kqIi8i1RjFAZKrK3` | Active (outbound working for direct tests and Instagram GHL UI reply) |
 | LT - Instagram Unipile New Messages | `pISlgYUsyJIrLuJd` | Active (inbound working; dedup verified) |
-| LT - LinkedIn Unipile New Messages | `7o5EBdvwAuIaWW7k` | Active (inbound working) |
+| LT - LinkedIn Unipile New Messages | `7o5EBdvwAuIaWW7k` | Active; published `f96dafba-9818-4aab-8656-c2e4e2ab8480` (inbound working; malformed form-payload fallback live) |
 | LT - GHL OAuth Callback | `UnSWPnVoUy3tNJkX` | Active |
 
 ### Stopped
@@ -268,6 +334,7 @@ Operators should monitor GHL Conversations at the conversation level, not by ope
 - Do not reply through normal SMS, email, or manually typed phone/email fields for social messages.
 - Do not add dummy phone or email values to make social replies work; routing depends on `conversationProviderId` and `altId`.
 - If a person replies on LinkedIn, confirm the automated LinkedIn sequence is suppressed by `dm_conversation_status = active` or the `linkedin_dm_sequence_completed` tag/state.
+- Do not remove the LinkedIn inbound normalizer's malformed form-payload fallback. Unipile can deliver unescaped JSON as the sole `application/x-www-form-urlencoded` body key; the fallback recovers sender, chat, message, and timestamp fields needed for GHL mirroring, suppression, and reporting.
 - If a contact asks to stop LinkedIn DMs, use the suppression runbook in `AGENTS.md` or add the GHL tag `stop_linkedin_dms`.
 
 ### Macro-Level Visibility
@@ -324,6 +391,7 @@ Run these checks after any workflow/provider change and at least weekly while th
 - Confirm the provider delivery URL for both providers is `https://automations.livetransparent.com/webhook/lt-social-provider-outbound`.
 - Confirm Unipile Instagram webhook points to `/webhook/lt-unipile-instagram-new-messages`.
 - Confirm Unipile LinkedIn webhook points to `/webhook/lt-unipile-linkedin-new-messages`.
+- Confirm LinkedIn inbound workflow version `f96dafba-9818-4aab-8656-c2e4e2ab8480` or a verified successor retains malformed form-payload field recovery.
 - Confirm `ghl_oauth_tokens` has an active token row for the Live Transparent location.
 - Confirm `instagram_conversation_map` and `linkedin_conversation_map` contain rows for active social chats.
 
@@ -369,7 +437,7 @@ If automated LinkedIn DMs continue after a reply:
 
 4. **Add macro alerting/digest**: Build and verify a lightweight n8n notification path for inbound LinkedIn/Instagram messages after they are successfully posted to GHL Conversations.
 
-5. **Rebuild Instagram outbound DM**: Only after the bidirectional inbox remains stable, with Instagram account `F2UprZ8aQc6Qm9CYYWU6cg`, account-type guard, reply suppression, and safe cadence.
+5. **Build company-page Instagram outbound DM**: Only after the bidirectional inbox remains stable. Implement source enrichment, the eight company-level GHL fields, `instagram_company_dm_state` (or approved equivalent), company-page/account-type validation, reply suppression, idempotency, and the agreed weekday cadence using Instagram account `F2UprZ8aQc6Qm9CYYWU6cg`.
 
 6. Do NOT republish Instagram DM Sequence or LinkedIn Follower DM Sequence unless explicitly requested.
 
