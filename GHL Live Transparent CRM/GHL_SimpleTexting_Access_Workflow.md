@@ -1,6 +1,6 @@
 # GHL SimpleTexting Access Workflow
 
-> Operational status: automated campaign execution and phone backfill are temporarily paused during n8n dispatcher recovery. Use this manual-send path only for controlled operator sends and verify a real provider message ID before treating a send as successful.
+> Operational status: automated sender schedules are unpublished. Phone Backfill is active but cannot send SMS. Use this path only for an explicitly approved controlled operator send, and treat the send as successful only when the hardened boundary returns a confirmed provider message ID.
 
 ## Goal
 Give GHL users a direct, repeatable way to send their own typed reply through SimpleTexting while keeping n8n as the provider boundary and audit layer.
@@ -40,7 +40,7 @@ Recommended field types:
 
 Recommended defaults:
 - Workflow default `campaignKey` = `ghl_manual_sms`
-- Workflow default `dryRun` = `false`
+- Workflow default `dryRun` = `true`; set `false` only for an approved controlled live send
 
 ## Workflow Steps
 Use this order inside GHL:
@@ -130,6 +130,7 @@ Treat these as success:
 - `provider: SimpleTexting`
 
 Treat these as blocking or review states:
+- `unauthorized`
 - `missing_phone`
 - `invalid_phone`
 - `invalid_account_phone`
@@ -139,16 +140,18 @@ Treat these as blocking or review states:
 - `outside_business_hours`
 - `duplicate_send`
 - `idempotent_webhook_error`
+- `ghl_contact_lookup_failed`
+- `contact_replied`
 
 ## Practical GHL Setup
 Use the `SimpleTexting SMS` custom field for the typed message body and map that field into the webhook payload as `message`. That is the cleanest way to let GHL users send their own reply text instead of picking from predefined snippets.
 Add a follow-up field update step after the webhook that blanks `SimpleTexting SMS` only when the webhook response indicates success.
-The published GHL workflow `Send Simpletexting SMS from field to Contact` sends the required `x-lt-simpletexting-key` header. Keep that header aligned with the n8n-derived internal-send secret; do not remove it or substitute the legacy `x-lt-webhook-key`. This protects the outbound n8n API boundary; it does not require a SimpleTexting dashboard login.
+The published GHL workflow `Send Simpletexting SMS from field to Contact` sends the required `x-lt-simpletexting-key` header. Keep that header aligned with the n8n internal-send secret. A narrowly scoped compatibility path exists for one known legacy Emerald caller; do not use it for new callers. This protects the outbound n8n API boundary; it does not require a SimpleTexting dashboard login.
 
 ## QA Checklist
 1. Run a dry-run payload from GHL.
 2. Confirm n8n resolves the contact and returns `ok: true`.
 3. Confirm the note is written back into GHL.
 4. Confirm requested tags are applied or removed.
-5. Send one live SMS to an internal number.
+5. With explicit approval, send one live SMS to an internal number.
 6. Repeat the same payload and confirm duplicate suppression.

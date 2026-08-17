@@ -53,7 +53,7 @@ separate step outside of n8n and is the owner's responsibility.
 
 ## Workflows that remain ACTIVE (not VAPI, not email outreach)
 
-- `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — GHL-only, hourly, flips stuck contacts to `callback_timeout`.
+- `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — GHL-only, hourly, flips stuck contacts to `callback_timeout`, and reports its summary to `#reaper`.
 - `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) — receives Apollo's callback deliveries to GHL (if any resume).
 - `GHL Apollo Phone Enrichment - Callback Handler V3` (`YaWizRnw7XmkcvZH`) — V3 backup callback handler.
 - `Apollo Phone Enrichment Intake V3` (`WuxgTa0EEL1mb2SA`) — accepts intake requests, calls Apollo `POST /v1/people/match`, sets `queued` status.

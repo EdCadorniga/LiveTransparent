@@ -69,11 +69,11 @@ Reactivate one workflow at a time. Wait at least two scheduled intervals, or 15 
 ### Tier 3: Intake and Enrichment
 
 5. `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`): reactivate at its existing 10-minute cadence and 30-contact cap. Keep the positive `qualified` gate, `not qualified` suppression, source-tag cleanup, and queue deduplication. Add a cheap database count/eligibility check before paginating GHL contacts.
-6. `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`): temporarily unpublished during dispatcher recovery. After the timeout-configured redeploy, re-enable only after API and scheduler health is stable.
+6. `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`): active after hardening. It is non-sending and transitions supported numbers back to `enrolled` or terminalizes unsupported/missing numbers as `phone_unavailable`.
 
 ### Tier 4: Outbound and High-Side-Effect Work
 
-7. `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`): temporarily unpublished during dispatcher recovery. After the timeout-configured redeploy, re-enable only after API and scheduler health is stable. Do not replay deleted historical ticks.
+7. `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`): unpublished with a dry-run guard. Re-enable only after explicit approval and current provider acceptance verification. Do not replay deleted historical ticks.
 8. `LT - DAN Campaign Sender Release Dispatcher (Staged)` (`toUG1yPDmFG48KEP`): reactivate only after email delivery and release-log health are confirmed. Keep the 30-minute schedule and bounded candidate limit; add a preflight query that exits when sender capacity is unavailable.
 9. `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`): reactivate last and only during an approved calling window. Keep the two-minute schedule and business-hours guard, but add a workflow-level overlap guard so a prior dialer execution cannot overlap the next tick. Preserve the atomic queue claim and 25-contact same-run safety cap.
 
@@ -165,15 +165,15 @@ Post-reactivation verification:
 
 ### Current Production State
 
-The Campaign Sequencer remains intentionally unpublished because it would duplicate the canonical Step Runner. The other four production workflows were enabled and smoke-tested on 2026-08-07:
+The 2026-08-07 activation below is historical. After the 2026-08-17 safety reconciliation, all sender-capable schedules are unpublished; only Phone Backfill remains active:
 
 | Workflow | ID | Current state | Notes |
 |----------|----|---------------|-------|
 | LT - SimpleTexting Campaign Sequencer (Staged) | `7mSiivR3NhtLIcNz` | Unpublished | Keep disabled until the canonical sender path is selected. |
-| LT - SimpleTexting Warmup Dispatcher (Staged) | `dZQLlbTLkpE1843X` | Active | Hourly; `defaultDryRun=false`; smoke `721541` succeeded with zero candidates/sends. |
-| LT - SimpleTexting Campaign Step Runner | `dUyOfxllvkxZavaw` | Active | Every 5 minutes; explicit `dryRun=false`; smoke `721562` succeeded. |
-| LT - SimpleTexting Campaign Phone Backfill | `8hQKQi1PooYDFxNR` | Active | Every 10 minutes; no-work guard added; smoke `721377` succeeded. |
-| LT - SimpleTexting Pool Dispatcher (Staged) | `usxYXSuc4ahw40V3` | Active | Weekday bounded schedules, candidate limit 10, `defaultDryRun=false`; smoke `721576` succeeded with zero eligible contacts. |
+| LT - SimpleTexting Warmup Dispatcher (Staged) | `dZQLlbTLkpE1843X` | Unpublished | Sender-capable; keep paused pending explicit approval. |
+| LT - SimpleTexting Campaign Step Runner | `dUyOfxllvkxZavaw` | Unpublished | Dry-run guard enabled; smoke `757254` stopped before database claims. |
+| LT - SimpleTexting Campaign Phone Backfill | `8hQKQi1PooYDFxNR` | Active | Non-sending phone-state repair; active version `83202303-bca2-4786-9bce-eed8147307c3`. |
+| LT - SimpleTexting Pool Dispatcher (Staged) | `usxYXSuc4ahw40V3` | Unpublished | Treats `phone_unavailable` as terminal/already enrolled; keep paused. |
 
 The canonical provider router, send boundary, inbound reply, delivery, and unsubscribe workflows remain available. Manual diagnostics, send-count checks, and the legacy staged inbound webhook remain inactive.
 
@@ -194,7 +194,7 @@ The canonical provider router, send boundary, inbound reply, delivery, and unsub
 
 ### Remaining Configuration Gates
 
-- Warmup is now active with `defaultDryRun=false`; its GHL search body remains blank, so the smoke produced zero candidates and zero sends. Approve the audience query before expecting warmup traffic.
+- Warmup is unpublished. Approve the audience query and controlled-live scope before any activation.
 - Pool Dispatcher still loads campaign state through full `ARRAY_AGG` arrays. Replace this with database-side existence checks before scaling the audience beyond a small test set.
 - Sequencer is a long-lived six-step Wait-based path while Step Runner is a stateful scheduled sender. Do not activate both as senders until the canonical path is explicitly selected.
 - Warmup and Sequencer provider-boundary Config nodes now use `x-lt-simpletexting-key` with the configured internal-send secret.
@@ -207,7 +207,7 @@ Do not activate all five workflows together. Before every step, record readiness
 1. Confirm the latest Coolify deployment is running n8n `2.33.3` with the timeout and runner settings active. Require `/healthz/readiness` HTTP 200, zero scheduled `new` executions, and zero stale scheduled `running` executions for at least 15 minutes.
 2. Enable **Campaign Step Runner** only. Observe at least three five-minute cycles. Expected result: successful no-work exits or bounded sends, no queue growth, no database timeout, no duplicate claims, and no provider 409.
 3. Enable **Phone Backfill** only. Observe at least two ten-minute cycles. Confirm row claims release, no overlapping duplicate lookups, and no growth in `new` executions.
-4. Enable **Warmup Dispatcher** with `defaultDryRun=false` and its approved search body only for an explicitly authorized bounded live test. Confirm the split preparation/send graph completes without task-runner timeout and produces a bounded summary.
+4. Enable **Warmup Dispatcher** only with an approved audience and explicit bounded-live authorization. Keep the dry-run gate enabled until that approval. Confirm the split preparation/send graph completes without task-runner timeout and produces a bounded summary.
 5. Enable **Pool Dispatcher** first in dry-run or with a one-contact approved limit while Step Runner is paused. Confirm only intended enrollment rows are created and no duplicate `(ghl_contact_id, campaign_key)` rows appear.
 6. Run one approved live provider test with the smallest possible audience. Confirm a real SimpleTexting provider message ID, `report_sms_sent.provider_response`, campaign state advancement, GHL tags/notes, and conversation mirroring.
 7. Enable Step Runner for the controlled enrolled row, observe its successful state transition, then gradually increase the Pool Dispatcher candidate limit.
@@ -252,7 +252,7 @@ Recent execution checks showed:
 
 ### Activation Audit (2026-08-07)
 
-- Step Runner, Phone Backfill, Warmup Dispatcher, and Pool Dispatcher are active and published.
+- Historical result: Step Runner, Phone Backfill, Warmup Dispatcher, and Pool Dispatcher were active and published on 2026-08-07. Current state supersedes this: only Phone Backfill remains active; all sender-capable schedules are unpublished.
 - Successful smoke executions: Step Runner `721562`, Phone Backfill `721377`, Warmup `721541`, and Pool `721576`.
 - Step Runner sends explicit `dryRun=false`; Warmup, Pool, and the send boundary use `defaultDryRun=false`.
 - Warmup's schedule was corrected to an explicit hourly interval. Its smoke had `dryRun=false`, zero candidates, zero sends, and zero errors.
@@ -261,7 +261,14 @@ Recent execution checks showed:
 - No active SimpleTexting workflow has a currently running execution, and the n8n execution API reports zero `new` executions.
 - Campaign Sequencer remains unpublished to prevent a duplicate sender path.
 
-### Findings Still Blocking Live Sends
+### Current Safety State (2026-08-17)
+
+- Send webhook `Q3Ivnwe4z2Y3cD7A`, Provider Router `f4VoO1lBWkYRcQai`, and Idempotent Send `gwaEpWDpTIwsafi8` are active with fail-closed validation. Safe tests did not send SMS.
+- Inbound, delivery/non-delivery, and unsubscribe provider webhooks are registered with protected secret URLs. SimpleTexting cannot attach custom headers, so callback authentication uses the secret URL query contract.
+- Database reconciliation restored 41 confirmed sends, terminalized 202 exhausted provider failures, quarantined 55 `send_unknown` rows, and replayed nothing.
+- One approved live provider send or natural callback traffic is still required for end-to-end production confirmation.
+
+### Findings Still Blocking Sender Activation
 
 - **Outbound API sending is not blocked by the SimpleTexting dashboard.** The SimpleTexting API credential is already used by n8n for outbound sends, and the authenticated GHL manual-send caller (`Send Simpletexting SMS from field to Contact`) now sends `x-lt-simpletexting-key` and is published. Provider event authentication only affects inbound reply, delivery, and unsubscribe callbacks; those callbacks need matching headers if they are enabled for production tracking.
 - **Resolved 2026-08-06: unknown-contact events.** Inbound, delivery, and unsubscribe workflows now claim an event before side effects. If contact resolution fails, they write a synthetic `unresolved:<hash>` event-log record and return a controlled no-op without writing campaign state or touching GHL.
@@ -269,11 +276,11 @@ Recent execution checks showed:
 - **Medium: GHL Warm Intake - SMS Tag is active but defaults to `defaultDryRun=true`.** It will not add its intake tag unless the caller explicitly sends `dryRun=false`. Confirm whether this endpoint is intentionally staged or should be made operational before relying on it.
 - **Low: the inactive legacy staged inbound workflow still contains runtime DDL.** It remains unpublished and is not part of the production path, but it should be retired or cleaned before any future activation.
 
-Authentication is enforced internally using values derived from the existing n8n encryption key; the values were not printed or committed. The one-by-one outbound re-enable plan is not blocked by provider event headers. Event-driven reply, delivery, and unsubscribe tracking remains gated until the external provider can send the configured header or an approved provider-signature/secret-URL contract is selected.
+Authentication is enforced internally and values were not printed or committed. Provider callbacks now use registered secret URLs, resolving the custom-header limitation. Sender activation remains gated on explicit approval and current end-to-end provider evidence.
 
 Header contracts:
 
 - Internal campaign callers to `lt-simpletexting-send-sms`: `x-lt-simpletexting-key`.
-- SimpleTexting inbound/delivery/unsubscribe callers: `x-lt-simpletexting-event-key`.
+- SimpleTexting inbound/delivery/unsubscribe callers: protected secret URL query parameter registered in the provider dashboard; do not expose the value in documentation.
 - GHL SMS intake caller: `x-lt-simpletexting-intake-key` (not yet configured in the authenticated GHL session).
 - GHL custom-provider outbound remains protected by exact `conversationProviderId` validation because the GHL provider callback contract does not currently expose a configured shared-secret header.

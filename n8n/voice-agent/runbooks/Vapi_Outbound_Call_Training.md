@@ -252,7 +252,7 @@ Tool behavior:
 - `log_call_outcome`
   - upserts a `voice_call_attempt` row
 - `notify_sales`
-  - sends a Slack message to `#leads`
+  - sends a Slack message to `#reaper`
 - `report_referral`
   - checks GHL for the referred contact
   - sends a Slack message if the referred contact is new

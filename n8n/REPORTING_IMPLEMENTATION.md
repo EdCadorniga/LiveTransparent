@@ -13,21 +13,24 @@ It records the live workflow contracts, hardening decisions, verification eviden
 6. Build the bridge and rollups.
 7. Add QA and publish refresh.
 
-Current live status as of 2026-08-08:
+Current live status as of 2026-08-17:
 - **Active**: `LT - GHL Daily Leads Ingest`, `LT - GHL Daily Sales Ingest`, `LT - Report Attribution Bridge`, `LT - Report Daily Rollups`, `LT - Report Executive Summary API`, `LT - Report Outgoing Calls Detail`, `LT - Report QA and Alerts`, `LT - Report Config Sync`, `LT - Report Publish Refresh`, `LT - Report Postgres Bootstrap Apply`.
 - **GA4 Active**: `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`), `LT - GA4 Traffic Rollup Bridge` (`0P2AZcQYWYZjXbRi`).
 - **GSC Active**: `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) writes raw query/page/site rows.
 - **Email Events Active**: `LT - Email Event Ingest` (`ZrqFN8qLKO8eVHDc`) receives GHL email event webhooks (opens, clicks, bounces, unsubscribes, spam) and stores in `Email_Events`. Email campaign metrics (sent, opened, clicked, bounced) are now rolled into `report_daily_summary` and surfaced in the Executive Report.
 - **Inactive/deferred**: `LT - GHL Executive Report Menu Sync` (one-time provision, inactive).
 - **Campaign Summary Active**: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published as version `1cea3b9c-d587-4135-806d-46d301e2c7f4`. Its endpoint is `/webhook/lt-report-campaign-channel-summary`; it returns named DAN, Emerald, Partnership, Vapi Brand, Vapi Dispensary, and SMS rows with selected-window comparison data.
+- **Social Post Ingest Active**: `LT - GHL Daily Social Ingest` (`QZoqCaTwDhbym80O`) is active and published as version `2ed24c59-1fc8-40ae-bdb0-aba9744a37a1`. It refreshes the paginated 366-day GHL Social Planner placement horizon every 12 hours; execution `759065` processed 229 posts successfully.
 Current status: GA4 is live, GSC raw ingest is live, the rollups draft has been restored from the active workflow definition, and the published Rollups workflow now includes the daily-summary correction logic directly.
 The published Rollups workflow preserves GA-backed summary, channel, UTM, and landing-page rows so Channel Breakdown and traffic totals survive the CRM rollup pass. GSC search metrics now render in the Executive Report, with GA4 Organic Search users used as the unique-visitor proxy.
 
 ### New Sections Added 2026-07-21
 - **Email campaign metrics**: `emails_sent`, `emails_opened`, `emails_clicked`, `emails_bounced`, `emails_unsubscribed`, `emails_complained` columns added to `report_daily_summary`. Populated from `DAN_Release_Log`, `Emerald_Release_Log`, and `Email_Events`.
-- **LinkedIn outreach funnel**: `linkedinFunnel` key in the Executive Report; aggregated from `linkedin_connection_state` (ready → requested → connected → DM active → completed).
+- **LinkedIn outreach state**: `linkedinFunnel` aggregates main and Partnership state. Requested includes both `requested` and atomically claimed `requested_pending`; separate requested-sent, requested-pending, follower-messaged, completed, and total counts make the snapshot auditable.
+- **Social Planner placements**: `socialPosts` counts platform/account placements, not unique composer parents. Likes/comments/shares come from the latest post ledger. Saves/reach/impressions are null unless the payload actually contains those fields; exact account statistics require restored GHL OAuth.
 - **Vapi campaign breakdown**: `vapiCampaignBreakdown` (all-time call metrics by campaign) and `vapiQueueDistribution` (pending queue by campaign) from `voice_call_attempt` JOIN `voice_call_queue`.
-- **MQL/SQL tracking**: `mqlSummary` (opportunities in Warm pipeline Qualified (MQL) stage) and `sqlContacts` (contacts with SQL tag) surfaced in the report.
+- **Social Statistics Ingest Active**: `LT - GHL Social Statistics Ingest` (`veg9jbN1P67Xmqy8`, active version `bee234fb-5234-4fb4-88e9-4dd611b937fb`) runs daily 06:00 America/Los_Angeles. It calls `/social-media-posting/statistics` with the GHL PIT and stores 7/30/90-day window totals (all + per-platform) in `report_ghl_social_statistics`. Execution `760249` stored 12 rows.
+- **MQL/SQL tracking**: `mqlSummary` reports total MQLs (ever in Warm Qualified (MQL)), converted-to-SQL (also in Sales Outreach pipeline), current MQLs awaiting sales, and entered/converted within the selected window; `sqlContacts` counts contacts with the SQL tag.
 - **AI qualification and SDR boundary**: report Janvi-qualified cannabis contacts promoted to Sales Outreach, AI-pending/unverified contacts remaining in Warm/Vapi, rejected contacts suppressed from Vapi, and Sales Outreach owner-alignment outcomes.
 - **Pool distribution**: `poolDistribution` with counts for brands_pool, dispensaries_pool, vapi_campaign_brand, vapi_campaign_dispensary.
 - **Stage name resolution**: Pipeline and stage names now resolved from GHL stage IDs via CASE mapping, fixing stagemover count (was 0, now 93+).
@@ -50,7 +53,7 @@ The live workflows in this repo generally follow this shape:
 
 The executive summary workflow currently returns the live dashboard JSON payload from Postgres and serves it through the report host proxy.
 
-The Executive Report UI now renders the named campaign/channel rows, campaign filters, Vapi filters, campaign opportunity counts, comparison view, LinkedIn DM/reply columns, SMS delivery diagnostics, resolved GHL pipeline/stage labels, responsive wide-table containment, and social engagement fields. The public report host serves build `2026-08-12-v23-mobile-overflow`.
+The Executive Report UI now renders the named campaign/channel rows, campaign filters, Vapi filters, campaign opportunity counts, comparison view, LinkedIn and Instagram DM/reply columns, SMS delivery diagnostics, resolved GHL pipeline/stage labels, responsive wide-table containment, and explicit Social Planner placement/account-statistics coverage. The public report host serves build `2026-08-17-v26-social-reporting-accuracy`.
 
 The Executive Report UI also renders the bottom `Outgoing Call Detail` table. It requests 100 rows at a time, uses the `America/Los_Angeles` completed-day window, and loads signed recordings only when the operator presses play.
 

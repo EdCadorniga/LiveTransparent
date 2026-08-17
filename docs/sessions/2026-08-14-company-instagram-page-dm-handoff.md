@@ -1,18 +1,40 @@
 # Session Handoff: Company Instagram Page DM Delivery
 
-Updated: 2026-08-14
+Updated: 2026-08-16
 
-`repomix-output.md` was not regenerated in this session because the `packlive` command was unavailable in the current PowerShell environment. Treat the handoff and the four linked documentation files as the authoritative session record until a later session successfully refreshes the repomix artifact.
+Treat live n8n and the deployed Postgres state as authoritative. The repository contains the current bootstrap, import, identity-validation, association, and dry-run workflow sources, but none of the new workflows are published.
 
 ## Next Agent: Start Here
 
-This session completed planning and documentation only. No GHL custom fields, Postgres tables, contacts, or outbound workflows were created or mutated for this workstream. The next agent should implement the company-page enrichment and Instagram delivery plan, not republish the old Instagram sender.
+The Postgres state model, source import, fail-closed Unipile identity validator, GHL association bridge, and Message 1 dry-run dispatcher now exist. No live Instagram message was sent, and no new workflow is active or published.
 
 1. Read `repomix-output.md`, `AGENTS.md`, this handoff, `plan.md`, and the first 180 lines of `Project Status and Next Steps.md`.
 2. Read `docs/strategy/unipile-ghl-bidirectional-integration.md`, especially `Company Instagram Page Outreach Contract (2026-08-14)` and the existing inbound/outbound bridge sections.
-3. Fetch live state before mutation: GHL contact custom fields, existing Instagram mappings, active Unipile/GHL bridge workflows, and current workflow versions. Live n8n is the source of truth; repository workflow snapshots may be stale.
-4. Build the read-only source extraction/matching/review step first. Do not start with a sender workflow or live message.
-5. Ask for explicit approval before any live Instagram test or production send.
+3. Fetch live state before mutation. Live n8n is the source of truth; repository workflow snapshots may be stale.
+4. Continue identity validation in controlled manual batches and resolve the remaining Partnership GHL associations without fuzzy automatic matching.
+5. Add the live GHL tag/conversation suppression check to a no-send validation path.
+6. Ask for explicit approval before creating, publishing, or manually executing any live Instagram send action.
+
+## Implementation Status: 2026-08-16
+
+- Deployed `instagram_company_dm_state`, `instagram_company_dm_send_log`, `instagram_company_dm_run`, and `instagram_inbound_reply_events` to the `n8n` database. The initial bootstrap accidentally targeted the container default database; `scripts/apply_instagram_company_dm_bootstrap.py` now explicitly targets `n8n`.
+- Imported 412 populated source rows from the approved Google Sheet into 379 globally unique page candidates: 76 Partnerships, 245 Brands, and 58 Dispensaries. Global duplicate-handle count is zero.
+- Source import workflow: `LT - Instagram Company Page Source Import` (`iQ80zfEH3JiulLNv`), inactive/unpublished, version `b66c1409-1d3a-415c-b064-d3dd0367903c`. Successful import execution: `757050`.
+- Identity validator: `LT - Instagram Company Page Identity Validator` (`HpgL5E5CcHKqz7Oi`), inactive/unpublished, version `726bca16-007b-4ca4-83ce-75eb4e648f3e`. It uses documented Unipile fields only: exact `public_identifier`, `provider_id`, `provider_messaging_id`, `profile_type`, and `category`.
+- Identity policy: `BUSINESS` can validate; `PERSONNAL` is rejected; `PROFESSIONNAL` requires review; username/provider mismatches and 404/422 resolution failures are rejected. Provider/retry errors remain fail-closed candidates.
+- Controlled identity executions `757097`, `757106`, `757117`, and `757121` performed no send-capable action. Current result: 42 validated Partnerships, 12 review-required Partnerships, and 22 rejected Partnerships; Brand and Dispensary validation remains pending.
+- Deterministic pool association linked 174 Brand pages to 689 GHL contacts and 47 Dispensary pages to 70 GHL contacts. This uses exact normalized company names and source-list boundaries.
+- GHL Partnership association workflow: `LT - Instagram Company Page GHL Association` (`6ILxRR6ZAVngGPD1`), inactive/unpublished, version `fc2fe189-e91e-4dc5-bd67-462bede35941`. Execution `757138` fetched 130 already-tagged GHL contacts and exact-matched 26 Partnership pages to 34 contacts; 50 Partnership pages remain unresolved. It performs no GHL writes.
+- Dry-run dispatcher: `LT - Instagram Company Page Message 1 Dispatcher (Dry Run)` (`1iEqGs5IxEuD5rrS`), inactive/unpublished, version `6a0482b9-a9c3-4f06-a443-3ff5d8caff00`. It has no provider POST/send action and hard-fails unless `dryRun=true` and `firstWeekMessage1Only=true`.
+- Dry-run execution `757139`: 42 priority-ordered Partnership previews, 19 locally eligible after identity/association/local-ledger checks, 23 unassociated, zero sends. Every preview still requires a successful live GHL tag/conversation suppression check before it can become live-eligible.
+- Five-send test workflow: `LT - Instagram Company Page Five Send Test` (`27NLAovEaClxCAuI`), inactive/unpublished, version `568130e2-f3df-4916-84ef-dae88575a7a0`. It is manual-only, lifetime-capped at five successful sends, daily-capped at 45, blocks weekends, reserves send idempotency before provider calls, checks every associated GHL contact for suppression tags and inbound conversations, and defaults back to `preflightOnly=true`.
+- Preflight execution `758994` cleared exactly five Partnership pages with zero skips/errors and zero sends: Vaping360.com, Tricycle Day, TNMNews.com, MedicateOH & MedicateKY, and Marijuana Moment.
+- Approved live execution `758995` sent zero messages. Unipile rejected all provider calls with HTTP 401 before message creation. The same stale credential also produced 20 retryable 401 profile lookups in identity execution `759001`, confirming an account-level access-token problem rather than recipient rejection.
+- The 19 failed pre-send reservations from execution `758995` were removed only after confirming `providerAccepted=false` for every attempt. `instagram_company_dm_send_log` has zero successful test sends and the test workflow is back in preflight mode.
+- Current blocker: generate a valid Unipile access token from the same dashboard/application as Instagram account `F2UprZ8aQc6Qm9CYYWU6cg`, and confirm the account remains connected. Do not retry live sends until both `GET /users/{identifier}` and the five-candidate preflight pass with the replacement token.
+- Inbound reply branch in active `LT - Instagram Unipile New Messages` (`pISlgYUsyJIrLuJd`) persists/deduplicates replies, suppresses matching company state, and independently alerts Slack. Current active version: `6767c629-4a5a-47d3-be0a-1160de1700a6`.
+- No company-level GHL custom fields were created or populated. Existing contact-level Instagram fields remain untouched.
+- No live Instagram test or production send has been approved or performed.
 
 ## User Decisions
 
@@ -35,7 +57,7 @@ This session completed planning and documentation only. No GHL custom fields, Po
 | DAN Dispensaries | `dispensaries_pool` | `INSTAGRAM and FB DM - Dispensary Attribution Network (Dispensaries).docx` |
 | Partnerships | `partner_candidate_email` OR `partner_candidate_linkedin` | `INSTAGRAM and FB DM - Partnerships Campaign.docx` |
 
-Partnership source files currently do not contain reliable Instagram/Facebook URL fields and require separate enrichment before activation.
+The approved Google Sheet now supplies Partnership Instagram handles directly. Facebook remains ignored for phase one. GHL contact association is incomplete for 50 Partnership pages and remains a live-send blocker for those rows.
 
 ## Source Data Audit
 

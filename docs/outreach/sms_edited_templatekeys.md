@@ -2,7 +2,7 @@
 
 This document lists the current SMS template keys and the full message bodies currently used in the workflow.
 
-The keys stay unchanged because live GHL workflow payloads reference them. The canonical registry is maintained by `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) at `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`. Automated campaign execution is temporarily paused during n8n dispatcher recovery; monitor provider IDs and HTTP 409 recurrence before resuming.
+The keys stay unchanged because live GHL workflow payloads reference them. The canonical registry is maintained by `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) at `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`. Automated sender schedules are unpublished, and the boundary defaults to dry-run. Resume only after an explicitly approved live provider test or natural traffic confirms current provider acceptance; do not replay quarantined `send_unknown` rows.
 
 On 2026-07-26, `sms_1`, `sms_3`, and `sms_5` were revised and the workflow was republished. On 2026-07-29, `sms_4` was revised and republished to remove cannabis product terms and the unreliable Facebook ad preview link while retaining neutral `regulated-industry` positioning. `sms_2` and `sms_6` remain unchanged.
 

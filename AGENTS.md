@@ -35,6 +35,9 @@ The fix is to switch n8n from embedded task runner mode to **external task runne
 | **n8n container** (DB_TYPE=postgresdb, persisted encryption key) | Running |
 | **External runner container** (custom image with pg) | Running; `pg.Client` resolves successfully |
 | **External runner task timeout propagation** (2026-08-14) | Fixed. `N8N_RUNNERS_TASK_TIMEOUT=300` is now set on the runner container itself, not only the n8n broker. Sales Ingest verification execution `749605` completed in 104.7s and persisted 8,007 opportunities plus 8,007 history rows. |
+| **GHL Sales Ingest daily schedule** (2026-08-14) | Fixed. Invalid `minutesInterval: 1440` was firing hourly because minute intervals only support 1-59. Published version `c1b5020c` now runs daily at 1:15 AM `America/Los_Angeles`, after the hourly Leads Ingest. |
+| **Social reporting accuracy** (2026-08-17) | Executive Summary version `e4fa3d18` adds account-level reach/impressions/followers from the new daily statistics ingest (`veg9jbN1P67Xmqy8`, PIT-backed) and reworks `mqlSummary` into total MQLs / converted-to-SQL / current MQLs plus windowed movement. Social ingest version `2ed24c59` paginates the 366-day horizon and passed execution `759065`; report build `2026-08-17-v27-social-mql` passed desktop and 390px checks. |
+| **Social statistics ingest live** (2026-08-17) | `LT - GHL Social Statistics Ingest` (`veg9jbN1P67Xmqy8`, version `bee234fb`) runs daily 06:00 LA, calls `/social-media-posting/statistics` with the GHL PIT, and stores 7/30/90-day window totals in `report_ghl_social_statistics` in the report database. Execution `760249` stored 12 rows. |
 
 ### Resolution
 
@@ -45,7 +48,7 @@ The runner now uses an isolated npm-installed `pg@8.21.0` tree at `/opt/pg-node_
 - The report host and n8n are attached to `coolify-shared`; n8n has the network alias `n8n`.
 - `reports/nginx.conf` proxies the Executive Summary, campaign-channel summary, and outgoing-call endpoints directly to `http://n8n:5678`.
 - `https://reports.livetransparent.com/api/report/executive/summary?range=30d` now returns HTTP 200 with a real approximately 33 KB JSON payload.
-- Executive Report build `2026-08-12-v23-mobile-overflow` resolves raw pipeline/stage IDs through the live GHL name map across all stage charts. Desktop and 390px mobile verification found no raw IDs or page-level horizontal overflow; wide report tables scroll within their panels.
+- Executive Report build `2026-08-17-v26-social-reporting-accuracy` resolves raw pipeline/stage IDs, uses exact completed-day ranges, exposes LinkedIn and Instagram ledger metrics, labels Social Planner rows as platform placements, and renders unavailable account statistics as N/A. Desktop and 390px mobile verification found no raw IDs or page-level horizontal overflow.
 - The empty-body/zero-metric symptom was caused by the reports proxy reaching n8n while report workflow Postgres credentials failed to decrypt. The running container used `WJR...`; Coolify's persisted service `.env` used `ffff...`. The container was recreated from the persisted value.
 - Do not rotate or replace `N8N_ENCRYPTION_KEY` casually. A mismatch makes existing n8n credentials unreadable. Back up the service `.env` before changing it.
 
@@ -58,7 +61,7 @@ The runner now uses an isolated npm-installed `pg@8.21.0` tree at `/opt/pg-node_
 1. **High**: 1,229 unmatched `ghl_contact_id` rows in `emerging_pool_contacts` — contacts not in GHL export CSVs. Decide: skip, manual GHL lookup, or re-export with broader filter.
 2. **High**: migrate embedded secrets to Config nodes (Community Edition cannot use env vars in Code nodes). Priority: GHL PIT (8+ workflows) → Unipile (5+ workflows) → Vapi (2 workflows) → Postgres credentials → webhook secrets. Then rotate exposed values.
 3. **High**: recover campaign/reporting state deliberately — `Email_Events`, release logs, LinkedIn state, and SimpleTexting state will populate through live workflow activity. Do NOT fabricate historical data.
-4. **Medium**: Warm intake and SimpleTexting send authentication review — `5nYzp9DgQUopzWhR`, `OowP3sAd8c9paSKf`, `SmMf8QIfysuxQJbG` have empty shared-secret configuration.
+4. **Medium**: Warm intake authentication review — `5nYzp9DgQUopzWhR`, `OowP3sAd8c9paSKf`, and `SmMf8QIfysuxQJbG` have empty shared-secret configuration. SimpleTexting send/callback boundaries were hardened on 2026-08-17.
 5. **Medium**: add OAuth-backed social statistics for reach/impressions/saves; complete native GHL report UI widgets.
 6. **Low**: monitor migrated voice dialer next scheduled execution; clean legacy artifacts after live paths are stable.
 
@@ -69,7 +72,7 @@ The runner now uses an isolated npm-installed `pg@8.21.0` tree at `/opt/pg-node_
 - **`emerging_pool_contacts.ghl_contact_id`** needs audited backfill (`12,639/13,868` currently populated; 1,229 null — not in GHL exports)
 - **Call Outcome Ingest** now requires `X-LT-Call-Outcome-Secret` header (secret in Config node of `PUCfTZBANSPcgS0c`)
 - **Call Outcome caller auth fix (2026-08-13)**: GHL automation `LT - Call Outcome to Report` (`2152ba2b-0b9d-4645-aba4-44cc818a1789`) was sending Call Details webhooks to `https://automations.livetransparent.com/webhook/lt-call-outcome-ingest` without the required header. Its Webhook action now includes `X-LT-Call-Outcome-Secret` with the value stored in the n8n Config node, was saved, and was confirmed published in the GHL advanced canvas. Do not weaken the n8n validation or expose the secret in documentation. No live Vapi call was placed during verification.
-- **Warm intake and SimpleTexting send boundaries** still need authentication review
+- **Warm intake boundaries** still need authentication review; SimpleTexting send and provider callback boundaries are protected
 
 ### Key Files
 
@@ -166,7 +169,7 @@ Full cross-file review of AGENTS.md, plan.md, Project Status and Next Steps.md, 
 - Reporting weeks use the report API's returned date window and the sub-account reporting timezone. Do not mix widget-level date overrides with the shared selected-period comparison unless the metric definition explicitly requires it.
 - Campaign summary workflow: `LT - Report Campaign Channel Summary` (`MvPLbUAN9IIQikxb`) is active and published. Its selected-window endpoint is `/webhook/lt-report-campaign-channel-summary`.
 - Campaign summary active version `d65e2845-660a-40ca-88f4-d39445b87403` returns named channel/campaign rows plus `linkedin_invites`/`linkedin_accepted` columns. DAN uses release-log campaign fields, Emerald uses bucket/enrollment data, SMS uses `SimpleTexting_Campaign_Event_Log.campaign_key`, LinkedIn uses `linkedin_activity_events` joined to `emerging_pool_contacts.source_list` with `campaign_type`/`source_key = 'partnership'` routing, and Vapi uses queue campaign IDs. The response-shaping node now derives separate `DAN`, `Emerald`, `Partnership`, `Vapi Brand`, and `Vapi Dispensary` aggregates from channel rows, so Vapi is no longer incorrectly rolled into DAN.
-- The Executive Report is live at `https://reports.livetransparent.com` as build `2026-08-12-v23-mobile-overflow`; it includes campaign/channel filters, separate Vapi filters, campaign drill-downs, comparison view, campaign opportunity counts, LinkedIn columns, selected-period controls, prior-period comparison, resolved GHL stage names, responsive table containment, and social likes/comments/shares/reach/impressions fields when the source supplies them.
+- The Executive Report is live at `https://reports.livetransparent.com` as build `2026-08-17-v26-social-reporting-accuracy`; it includes campaign/channel filters, separate Vapi filters, campaign drill-downs, comparison view, campaign opportunity counts, LinkedIn and Instagram activity columns, selected-period controls, prior-period comparison, resolved GHL stage names, responsive table containment, and explicit post-ledger versus account-statistics coverage.
 - The Executive Report also includes a bottom `Outgoing Call Detail` table. It calls `/api/report/executive/outgoing-calls`, which nginx proxies to `GET /webhook/lt-report-outgoing-calls` from active workflow `LT - Report Outgoing Calls Detail` (`VXFHc8IrF9DDEEdj`). The endpoint is fixed to the seven most recent completed `America/Los_Angeles` days, paginates at 100 rows, and reads `voice_call_attempt` joined to `voice_call_queue`.
 - Partnership LinkedIn reply recovery (2026-08-12): Campaign Channels now reports 3 verified Partnership replies. Jaret Christopher was already present; David Schachter (`rvWEW2K2WYeQ7v6zypDdZQ`, 2026-08-10) and Gretchen Gailey (`8UF3lxibUmKYaG87h1F5Pg`, 2026-08-06) were recovered from the Unipile API with their original timestamps and inserted idempotently into `linkedin_activity_events`. `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) is published on `f96dafba-9818-4aab-8656-c2e4e2ab8480` with a malformed form-payload fallback so unescaped Unipile JSON no longer loses critical inbound fields.
 - On 2026-08-08 the live reports container was missing the repository nginx proxy route for `/api/report/executive/outgoing-calls`; the route was copied into `reports-livetransparent`, `nginx -t` passed, nginx was reloaded, and the proxy now returns the healthy n8n endpoint response.
@@ -399,7 +402,7 @@ When using direct n8n REST `PUT /api/v1/workflows/{id}`:
 | LT - Voice Queue Enqueue | XzcpOBi9YcIhJPck | Active |
 | LT - Voice Dequeue Next | KsBMFcz1YpBGrjDW | **Unpublished** (explicit helper only; not an automatic call-start path) |
 | LT - Call Outcome Ingest | PUCfTZBANSPcgS0c | Active |
-| LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Active (hourly, no Slack reporting) |
+| LT - Apollo Queued Timeout Reaper | RL5ZyUoshSPbmVA1 | Active (hourly, reports to #reaper) |
 | LT - Voice Campaign Brand (Alex) | 1d7c5d42-f0a4-4b58-9494-dbda3be3c657 | Active (optimized 2026-07-20) |
 | LT - Voice Campaign Dispensary (Jordan) | 056f2e50-8bdf-4257-ac45-4d575600c39d | Active (optimized 2026-07-20) |
 
@@ -798,7 +801,7 @@ After:  Apply Tags → Postgres - Mark Queue Completed → Should Re-enrich Phon
 - Callback timer state keeps the 60-second duplicate-start guard and now prunes ended/inactive entries older than 30 minutes.
 - `LT - Voice Queue Enqueue` (`XzcpOBi9YcIhJPck`) requires `X-LT-Voice-Queue-Secret`; the caller reference is `VOICE_QUEUE_ENQUEUE_SECRET`. Missing authentication fails closed before queue insertion.
 - `LT - Apollo Phone Enrichment Polling` reports `apollo_phone_request_failed` when the asynchronous Apollo phone request fails after profile processing.
-- `LT - Apollo Queued Timeout Reaper` now connects `Build Slack Summary` to `Post to Slack #leads`.
+- `LT - Apollo Queued Timeout Reaper` now connects `Build Slack Summary` to `Post to Slack #reaper`.
 - Removed the stale response-code option from `LT - Call Outcome Ingest`.
 - Final live workflow versions were checked after each mutation; `versionId` matched `activeVersionId` for all changed workflows.
 - Safe queue smoke checks passed: unauthenticated requests return `400 unauthorized`; authenticated malformed requests reach validation and do not insert a queue row. Live Vapi control URLs remain untested because exercising them requires an actual call.
@@ -1223,7 +1226,7 @@ The `Report Executive Summary API` (`GET /webhook/lt-report-executive-summary?ra
 | **`vapiCampaignBreakdown`** | `voice_call_attempt` JOIN `voice_call_queue` | Per-campaign call totals, answered, qualified, booked (added 2026-07-21) |
 | **Outgoing Call Detail** | `voice_call_attempt` JOIN `voice_call_queue` + latest `report_raw_ghl_contacts` snapshot | Seven completed days of paginated Vapi call rows with disposition, duration, contact ID/name fallback, campaign, first-attempt flag, and signed recording URL |
 | **`vapiQueueDistribution`** | `voice_call_queue` (status=pending) | Pending queue by campaign (added 2026-07-21) |
-| **`mqlSummary`** | `report_raw_ghl_opportunities` (stage IDs) | Active + total MQL opportunities (added 2026-07-21) |
+| **`mqlSummary`** | `report_raw_ghl_opportunities` (stage IDs) | Total MQLs (ever in Warm Qualified (MQL)), converted-to-SQL (also in Sales Outreach pipeline), current MQLs awaiting sales, plus entered/converted in the selected window |
 | **`sqlContacts`** | `report_raw_ghl_contacts` (tag search) | Contacts with SQL tag (added 2026-07-21) |
 | **`poolDistribution`** | `report_raw_ghl_contacts` (tag counts) | brands_pool, dispensaries_pool, vapi brand/dispensary (added 2026-07-21) |
 
@@ -1244,7 +1247,7 @@ GHL stage names (`pipeline_stage_name`) are NULL in `report_raw_ghl_opportunitie
 
 ### Executive Report Campaign Improvement Plan (2026-08-08)
 
-The Executive Report at `https://reports.livetransparent.com` (build `2026-08-12-v23-mobile-overflow`) has campaign/channel filters, separate Vapi filters, campaign drill-downs, comparison view, SMS delivery diagnostics, campaign opportunity counts, resolved GHL stage names, and responsive wide-table containment. The following remaining improvements complement the GHL Native Report:
+The Executive Report at `https://reports.livetransparent.com` (build `2026-08-17-v26-social-reporting-accuracy`) has campaign/channel filters, separate Vapi filters, LinkedIn and Instagram ledger metrics, campaign drill-downs, comparison view, SMS delivery diagnostics, campaign opportunity counts, resolved GHL stage names, explicit Social Planner placement definitions, and responsive wide-table containment. The following remaining improvements complement the GHL Native Report:
 
 **High Priority — Campaign Detail Page:**
 1. **Per-campaign funnel metrics** — Each campaign row (DAN, Emerald, Partnership Emails, Partnership LinkedIn, Vapi Brand, Vapi Dispensary, SMS) should expand to show:
@@ -1354,7 +1357,7 @@ The Executive Report at `https://reports.livetransparent.com` (build `2026-08-12
   3. **Reply Backfill was one-shot** — `LT - LinkedIn Reply Backfill (Unipile)` (`QfJ2EZcc7lZwNgxj`) only selected rows where `dm_backfill_checked_at` was empty, so it ran once on 2026-07-31 (all partnership rows `idle`) and never re-checked. The `Select Pending Backfill Rows` query now also re-checks rows older than 6 hours with `dm_conversation_status <> 'active'`. Published version `0620c314-befb-4620-b23a-ad96b55cf4a0`.
   4. **Social insights key mismatch** — the Executive Summary `social_posts` CTE read `insights->>'likes'/'comments'/'shares'` (plural) but GHL stores `like`/`comment`/`share` (singular). The `Build Query` node now `COALESCE`s both. Verified: `totalLikes: 24, totalShares: 4, totalComments: 3` (was all 0). Published version `ff6fdc52-5eef-44b2-a50a-358cace45228`.
   - **Historical reply backfill completed 2026-08-04**: the verified Strider Peterson email reply was recorded in `Email_Events` with its actual GHL inbound timestamp (`2026-08-03T15:41:03Z`), and the verified Jaret Christopher LinkedIn reply was recorded in `linkedin_activity_events` at `2026-08-01T03:05:55Z`. The one-time helper workflows were executed successfully and archived. At that point, the selected-window Campaign Channel Summary showed `Partnership emails`: 59 sent, 1 reply, 1.69% response rate; and `Partnership LinkedIn`: 17 invites, 1 reply. The 2026-08-12 recovery added verified David Schachter and Gretchen Gailey replies, bringing the current Partnership LinkedIn reply total to 3.
-  - **Reach/impressions/saves ingestion remains pending**: the official GHL statistics endpoint returned `152` impressions and `61` reach for its current seven-day OAuth window, proving the source data is available. n8n still has no usable GHL OAuth credential; the PIT returns 401. The Executive Summary query and UI now expose null-safe `totalSaves`, `totalReach`, and `totalImpressions` fields from raw post payloads, but the current PIT-based `posts/list` ingest supplies none of these metrics, so they remain zero until OAuth-backed scheduled ingestion is added.
+  - **Account-level social statistics live (2026-08-17)**: the GHL PIT now authenticates `/social-media-posting/statistics`, so `LT - GHL Social Statistics Ingest` (`veg9jbN1P67Xmqy8`) stores 7/30/90-day reach/impressions/likes/followers/posts windows daily and the Executive Summary returns them. Saves is not supplied by the statistics source and stays N/A. |
 
 ### Audit (2026-07-31)
 
@@ -1373,7 +1376,7 @@ Full audit passed:
 
 ## Other Live Systems
 
-- **SimpleTexting**: Step Runner (`dUyOfxllvkxZavaw`), Phone Backfill (`8hQKQi1PooYDFxNR`), Warmup Dispatcher (`dZQLlbTLkpE1843X`), and Pool Dispatcher (`usxYXSuc4ahw40V3`) passed smoke executions `721562`, `721377`, `721541`, and `721576` but remain **unpublished** pending one-by-one validation after the n8n execution-dispatcher incident. See [Project Status and Next Steps.md](./Project%20Status%20and%20Next%20Steps.md) for current workflow statuses. Phone Backfill has a no-work guard before GHL lookup. Keep Campaign Sequencer (`7mSiivR3NhtLIcNz`) unpublished until the canonical sender path is explicitly selected. The provider bridge, delivery, inbound reply, unsubscribe, and idempotent-send workflows remain available for operator/inbound handling. Keep the manual State Diagnostic, Send Count Check, and legacy staged inbound webhook inactive. Inbound replies add `simpletext_replied`, remove `simpletext_ongoing`, mark campaign state `replied`, and suppress future campaign/direct sends; `simpletext_stop` remains the opt-out hard stop. `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) posts a Slack alert and mirrors inbound messages to GHL Conversations under `SimpleTexting SMS` via `type: "Custom"`, provider `6a5b91913953360948dd59f1`, and `altId`.
+- **SimpleTexting**: Automated outbound remains paused. Step Runner (`dUyOfxllvkxZavaw`), Warmup Dispatcher (`dZQLlbTLkpE1843X`), Pool Dispatcher (`usxYXSuc4ahw40V3`), and Campaign Sequencer (`7mSiivR3NhtLIcNz`) are unpublished. Phone Backfill (`8hQKQi1PooYDFxNR`) is active but non-sending. The active send webhook defaults to dry-run; no sender schedule may be published and no live SMS may be sent without explicit approval. Inbound replies add `simpletext_replied`, remove `simpletext_ongoing`, mark campaign state `replied`, and suppress future sends; `simpletext_stop` remains the hard opt-out.
 - **SimpleTexting GHL Conversations provider**: **LIVE** as of 2026-07-20. Separate GHL private app `LiveTransparent SimpleTexting SMS` with provider `SimpleTexting SMS` (`6a5b91913953360948dd59f1`). Delivery URL: `https://automations.livetransparent.com/webhook/lt-simpletexting-provider-outbound`. `LT - SimpleTexting Provider Outbound Router` (`f4VoO1lBWkYRcQai`) receives GHL outbound replies, validates provider ID, normalizes phone to E.164, checks `simpletext_stop` tag, and sends via the idempotent send workflow (`gwaEpWDpTIwsafi8`) → SimpleTexting API. Outbound campaign sends mirror into GHL Conversations via `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`). `simpletexting_conversation_map` table created in Postgres keyed by `(conversation_provider_id, alt_id)`. GHL Conversations is the primary operator inbox for SimpleTexting SMS; Slack alert for inbound replies is preserved.
   - **Unipile/Instagram**: Instagram DM Sequence (`iCnY6ccdHhfJg3sf`) remains **unpublished**. The real Instagram account is `F2UprZ8aQc6Qm9CYYWU6cg`, but the old workflow must not be republished because it used the LinkedIn account and old state model. Build the company-page workflow against the approved identity/state plan instead.
 - **Instagram inbound bridge**: `LT - Instagram Unipile New Messages` (`pISlgYUsyJIrLuJd`) is active at `/webhook/lt-unipile-instagram-new-messages`. It normalizes Unipile Instagram inbound payloads, conservatively resolves an existing GHL contact before creating one, persists `instagram_conversation_map`, converts the stored agency OAuth token to a location token via `POST /oauth/locationToken`, and posts inbound messages into GHL Conversations under the `Instagram via Unipile` tab. Post-merge cleanup on 2026-07-16 repointed `instagram_conversation_map.id = 1` for chat `yx-R-9J6XdWaFpGOQd1JFA` to canonical GHL contact `XZ4yChllGBdcsVxhFRDe`; the temporary duplicate `4V2oTmM7lWya3Nmtmp1Y` created during verification was deleted.
@@ -1382,8 +1385,7 @@ Full audit passed:
 - **Unipile/LinkedIn**: Active production path is dispatcher → acceptance/state sync → canonical DM sequence. Follower DM (`pq7XVajNFnnwMUTr`) is **unpublished**. Current published workflow inventory is documented in `Current Published Workflow Inventory` above. Guardrails block John-branded copy.
 - **LinkedIn invite copy**: n8n defaults say Transparent eCom. If LiveTransparent appears, check GHL-side body.message overrides first. Use [/] character class instead of \/ in regex literals to avoid SDK serialization corruption.
 - **GHL warm intake/routing**, Apollo enrichment, Emerald and DAN email campaigns are active.
-- **SMS campaign**: SimpleTexting production schedules are temporarily paused while n8n dispatcher/database recovery is validated. The canonical send webhook is `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`; template registry details are in `docs/outreach/sms_edited_templatekeys.md`. The latest timeout/deprecation settings and `N8N_RUNNERS_TASK_REQUEST_TIMEOUT=300` are staged in `n8n/docker-compose.yml` and require the next Coolify redeploy. Resume only through the documented one-by-one sequence after API/scheduler health is stable and a controlled provider-ID check passes. Keep diagnostic and legacy staged workflows inactive.
-- **SimpleTexting audit blockers (2026-08-06)**: provider-ID validation, active-event DDL removal, webhook payload preservation, stale Set cleanup, GHL intake HTTP-wrapper cleanup, unresolved-contact handling, duplicate-event claims, and internal webhook authentication are published. The authenticated GHL manual-send workflow `Send Simpletexting SMS from field to Contact` now sends the derived `x-lt-simpletexting-key` header and is published. External SimpleTexting event headers are only required if inbound reply, delivery, and unsubscribe callbacks are used; they do not block outbound API sending. `GHL Warm Intake - SMS Tag (Webhook)` remains active but defaults to dry-run; confirm that behavior before relying on it.
+- **SMS campaign**: The canonical send webhook is `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`; template registry details are in `docs/outreach/sms_edited_templatekeys.md`. Send, provider-router, idempotency, and callback boundaries were hardened on 2026-08-17. Registered provider callbacks use protected secret URLs because SimpleTexting cannot attach custom headers. Historical reconciliation restored 41 confirmed sends, terminalized 202 exhausted provider failures, quarantined 55 `send_unknown` rows, and replayed nothing. Keep sender schedules and legacy diagnostics inactive until an approved live provider test or natural traffic verifies the final boundary.
 
 ### SimpleTexting SMS via GHL — Bidirectional Provider (LIVE 2026-07-20)
 
@@ -1397,10 +1399,13 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 | LT - SimpleTexting Inbound Reply (Webhook) | i0pROHpFtN4LYR0Q | Active | Slack alert preserved. Now also posts inbound messages to GHL Conversations under `SimpleTexting SMS` via `type: "Custom"` + `conversationProviderId`. |
 | LT - SimpleTexting SMS Send (Webhook, Staged) | Q3Ivnwe4z2Y3cD7A | Active | Mirrors successful outbound campaign sends into GHL Conversations under `SimpleTexting SMS`. |
 | LT - SMS Idempotent Send | gwaEpWDpTIwsafi8 | Active | Canonical deduplicated SMS boundary. Called by outbound router and campaign send paths. |
+| LT - SimpleTexting Campaign Phone Backfill | 8hQKQi1PooYDFxNR | Active | Non-sending phone-state repair; supports `awaiting_phone_refresh` and terminal `phone_unavailable`. |
+| LT - SimpleTexting Campaign Step Runner | dUyOfxllvkxZavaw | Unpublished | Canonical scheduled sender candidate; dry-run guard enabled. |
+| LT - SimpleTexting Warmup Dispatcher (Staged) | dZQLlbTLkpE1843X | Unpublished | Sender-capable; keep paused pending explicit approval. |
 | LT - SimpleTexting Pool Dispatcher (Staged) | usxYXSuc4ahw40V3 | Unpublished | `sms_drip`, 10/run; dry-run/small-batch gate required. |
 | LT - SimpleTexting Campaign Sequencer (Staged) | 7mSiivR3NhtLIcNz | Unpublished | 6-step flow; keep disabled until the canonical sender path is selected. |
-| LT - SimpleTexting Delivery Events (Webhook) | AEi1VCzkLvaYFr4U | Active | No changes needed. |
-| LT - SimpleTexting Unsubscribe Events (Webhook) | IyBKMkpYQ7pa0C8V | Active | No changes needed. |
+| LT - SimpleTexting Delivery Events (Webhook) | AEi1VCzkLvaYFr4U | Active | Registered protected callback for delivery and non-delivery reports. |
+| LT - SimpleTexting Unsubscribe Events (Webhook) | IyBKMkpYQ7pa0C8V | Active | Registered protected callback for unsubscribe reports. |
 
 #### DB Table
 
@@ -1422,6 +1427,8 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - `simpletext_stop` tag check in outbound router blocks provider-originated sends to opted-out contacts.
 - SMS Send mirroring runs on `onError: continueRegularOutput` so mirror failures don't block sends.
 - Inbound reply still posts to Slack AND GHL Conversations; Slack alert preserved as secondary channel.
+- A provider result is accepted only when the idempotent boundary confirms `sent` or `duplicate`; ambiguous responses fail closed.
+- Controlled live validation still requires explicit approval. Safe pinned/dry-run tests are not proof of provider acceptance.
 
 ## Key Files
 

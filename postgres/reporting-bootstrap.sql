@@ -576,6 +576,31 @@ CREATE INDEX IF NOT EXISTS idx_raw_social_posts_platform ON report_raw_ghl_socia
 CREATE INDEX IF NOT EXISTS idx_raw_social_posts_published ON report_raw_ghl_social_posts (published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_raw_social_posts_account ON report_raw_ghl_social_posts (account_id);
 
+-- GHL Social Planner account statistics — ingested from /social-media-posting/statistics.
+-- Stores rolled-up per-window totals (scope='all') plus per-platform rows so the report
+-- can read exact completed 7/30/90-day windows. Reach/impressions/saves/engagement are
+-- account analytics supplied by GHL, distinct from the post-placement ledger.
+CREATE TABLE IF NOT EXISTS report_ghl_social_statistics (
+  id BIGSERIAL PRIMARY KEY,
+  window_start DATE NOT NULL,
+  window_end DATE NOT NULL,
+  scope TEXT NOT NULL,
+  platform TEXT,
+  posts INT,
+  likes INT,
+  followers INT,
+  impressions INT,
+  reach INT,
+  comments INT,
+  saves INT,
+  source TEXT NOT NULL DEFAULT 'ghl_statistics',
+  loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT report_ghl_social_statistics_uq UNIQUE (window_start, window_end, scope)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ghl_social_statistics_window
+  ON report_ghl_social_statistics (window_start, window_end);
+
 -- Idempotent SMS send log
 -- Records each attempted send and prevents duplicate sends for the same
 -- (contact_id, workflow_id, message_hash) combination.

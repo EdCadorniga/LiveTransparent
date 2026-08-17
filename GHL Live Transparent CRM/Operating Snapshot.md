@@ -106,7 +106,7 @@ Keep these aligned with routing and report logic:
 - `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) — unpublished legacy path
 - `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) — unpublished legacy V3 path
 - `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) — active canonical callback
-- `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly backstop for stuck `queued` contacts
+- `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly backstop for stuck `queued`/`queued_phone` contacts; summary posts to `#reaper`
 
 ### Voice System (Current Live State)
 - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — active; silent human answers classify as `interest_unknown`
@@ -118,16 +118,17 @@ Keep these aligned with routing and report logic:
 - Operational note: the `.env` GHL PIT was verified against GHL and propagated to active workflows on 2026-07-25. Dialer smoke execution `242609` succeeded; a controlled live call remains the next production verification.
 
 ### SimpleTexting
-- `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`) — temporarily unpublished during n8n dispatcher recovery
-- `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`) — temporarily unpublished during n8n dispatcher recovery
+- `LT - SimpleTexting Campaign Step Runner` (`dUyOfxllvkxZavaw`) — unpublished; dry-run guard enabled
+- `LT - SimpleTexting Campaign Phone Backfill` (`8hQKQi1PooYDFxNR`) — active; non-sending phone-state repair
 - `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) — active
-- `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`) — temporarily unpublished during n8n dispatcher recovery
-- `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`) — temporarily unpublished during n8n dispatcher recovery
+- `LT - SimpleTexting Warmup Dispatcher (Staged)` (`dZQLlbTLkpE1843X`) — unpublished
+- `LT - SimpleTexting Pool Dispatcher (Staged)` (`usxYXSuc4ahw40V3`) — unpublished
+- `LT - SimpleTexting Campaign Sequencer (Staged)` (`7mSiivR3NhtLIcNz`) — unpublished duplicate sender path
 - `LT - SimpleTexting Inbound Reply (Webhook)` (`i0pROHpFtN4LYR0Q`) — active
 - `LT - SimpleTexting Delivery Events (Webhook)` (`AEi1VCzkLvaYFr4U`) — active
 - `LT - SimpleTexting Unsubscribe Events (Webhook)` (`IyBKMkpYQ7pa0C8V`) — active
-- Campaign Sequencer (`7mSiivR3NhtLIcNz`) remains unpublished as the duplicate sender path. Warmup Dispatcher (`dZQLlbTLkpE1843X`), Pool Dispatcher (`usxYXSuc4ahw40V3`), Step Runner, and Phone Backfill are active after successful smoke executions; State Diagnostic, Send Count Check, and the legacy staged inbound webhook remain inactive because they are manual-only or duplicate paths. Timeout and pool settings are staged in `n8n/docker-compose.yml` for the next Coolify redeploy.
-- SimpleTexting hardening completed 2026-08-06 and staged activation completed 2026-08-07: campaign state/event-log tables and indexes were bootstrapped; runtime DDL was removed; Warmup was split into prepare/send tasks; Step Runner now runs every 5 minutes; Phone Backfill runs every 10 minutes with row claims, advisory locking, and a no-work guard; Step Runner also has an overlap guard. Outbound send paths are configured with `dryRun=false` or `defaultDryRun=false`.
+- The active send boundary defaults to dry-run and checks authentication, phone format, template interpolation, business hours, live GHL DND/tags, idempotency, and confirmed provider status. Sender schedules remain unpublished until an explicitly approved live provider test or natural traffic verifies the current boundary.
+- Protected provider callbacks are registered for inbound, delivery/non-delivery, and unsubscribe events. Reconciliation restored 41 confirmed sends, terminalized 202 exhausted provider failures, quarantined 55 unknown sends, and replayed no uncertain send.
 
 ### LinkedIn/Unipile Pipeline
 - `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) — active, `15 */6 * * *`

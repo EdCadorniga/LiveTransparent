@@ -8,8 +8,8 @@ import paramiko
 HOST = "89.117.21.29"
 APP_DIR = "/data/coolify/applications/v3ud1lum1svamymuor21upog"
 SOURCE_DIR = "/tmp/livetransparent-report-local"
-IMAGE = "v3ud1lum1svamymuor21upog:stage-labels-20260812"
-BUILD_STAMP = "2026-08-12-v23-mobile-overflow"
+IMAGE = "v3ud1lum1svamymuor21upog:social-mql-20260817"
+BUILD_STAMP = "2026-08-17-v27-social-mql"
 LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reports"))
 
 
@@ -53,7 +53,7 @@ try:
     upload_tree(sftp, LOCAL_DIR, SOURCE_DIR)
     sftp.close()
     run(client, "build", f"docker build -t {IMAGE} {SOURCE_DIR}")
-    run(client, "backup-compose", f"cp {APP_DIR}/docker-compose.yaml {APP_DIR}/docker-compose.yaml.pre-stage-labels")
+    run(client, "backup-compose", f"cp {APP_DIR}/docker-compose.yaml {APP_DIR}/docker-compose.yaml.pre-campaign-accuracy")
     run(client, "select-image", f"sed -E -i \"s#^        image: .*#        image: '{IMAGE}'#\" {APP_DIR}/docker-compose.yaml")
     run(client, "recreate", f"docker compose -f {APP_DIR}/docker-compose.yaml up -d --force-recreate")
     run(client, "attach-shared-network", "docker network connect coolify-shared reports-livetransparent 2>/dev/null || true")

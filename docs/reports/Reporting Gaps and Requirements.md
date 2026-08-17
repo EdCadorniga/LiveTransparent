@@ -1,7 +1,7 @@
 # Reporting Gaps and Requirements
 
-**Updated:** 2026-08-13
-**Status:** Campaign attribution, SMS delivery diagnostics, opportunity counts, LinkedIn activity, and partnership reply attribution are live. Remaining: OAuth-backed social statistics ingestion, native GHL stage/tag/email/custom-metric widgets, and reporting owner dimensions.
+**Updated:** 2026-08-17
+**Status:** Campaign attribution, SMS delivery diagnostics, opportunity counts, LinkedIn activity, partnership reply attribution, account-level social statistics, and MQL-to-SQL movement are live. Remaining: native GHL stage/tag/email/custom-metric widgets, and reporting owner dimensions.
 
 ## Purpose
 
@@ -111,13 +111,13 @@ Normalize contact owner, native opportunity owner, custom opportunity `Owner`, c
 
 ### P1: Source Health and Coverage
 
-Expose last successful sync, latest attempt, row count, selected-window coverage, and failure message for GHL contacts, opportunities, pipeline history, calls, appointments, email events, SimpleTexting events, Unipile LinkedIn activity, Vapi queue/outcomes, GA4, and GSC. GSC is currently live after OAuth renewal and must retain its health/coverage status. SimpleTexting sends remain blocked by provider HTTP 409.
+Expose last successful sync, latest attempt, row count, selected-window coverage, and failure message for GHL contacts, opportunities, pipeline history, calls, appointments, email events, SimpleTexting events, Unipile LinkedIn activity, Vapi queue/outcomes, GA4, and GSC. GSC is currently live after OAuth renewal and must retain its health/coverage status. Historical SimpleTexting HTTP 409 failures are terminalized and reported; current provider acceptance remains unverified until approved live or natural traffic supplies a new result.
 
 **Coverage probe added (2026-08-01)**: `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`) now upserts `report_source_health` rows for `email_events` and `linkedin_activity_events` (max event freshness, row count, 24h staleness) on every hourly run before evaluating QA. Verified live: `email_events` ready/22,613 rows; `linkedin_activity_events` ready/10 rows (the verified partnership invites). Because the Executive Summary API reads all `report_source_health` rows dynamically, these now appear in the report `health` section without query changes.
 
-**Social statistics blocker confirmed (2026-08-04)**: the official GHL Social Planner statistics endpoint returned 152 impressions and 61 reach for its current seven-day OAuth window. The PIT returns 401 for that endpoint, and n8n has no usable GHL OAuth credential. The source data exists, but scheduled ingestion cannot be completed until OAuth is connected.
+**Social statistics blocker confirmed (updated 2026-08-17)**: the official GHL Social Planner statistics endpoint proves reach/impression data exists, but PIT access returns 401 and the active `ghl_oauth_tokens` row has an empty access token. The report therefore returns null and renders N/A for reach, impressions, and saves. Scheduled exact-range account analytics remain blocked until GHL OAuth is reconnected.
 
-**Known minor limitation (2026-08-04)**: the Executive Summary API's `linkedinWeeklyActivity.inboundReplies`/`uniqueResponders` still count only `event_type = 'inbound_reply'` (not `reply_received`), and `linkedinFunnel` has no `suppressed` count. The Campaign Channel Summary (the primary campaign surface) already counts both reply event types and the LinkedIn funnel suppression is available in the state table. The report's campaign table is authoritative for the 3 verified Partnership LinkedIn replies until the weekly KPI query is adjusted.
+**Social accuracy audit completed (2026-08-17)**: Executive Summary counts both `inbound_reply` and `reply_received`. The completed 7-day window reports 8 verified GHL platform/account placements, 3 ledger likes, 2 LinkedIn requests, and 2 LinkedIn replies from 2 responders. LinkedIn Requested now includes both `requested` and `requested_pending`; separate subcounts preserve the state detail. Account statistics and post-ledger engagement remain separate metric families.
 
 ## Executive Report Requirements
 
@@ -179,7 +179,7 @@ Required widgets:
 2. Contacts by source or campaign tag. — **present** (`Contacts by tag`, `Contacts counts by tags (Partnership Campaign)`).
 3. Opportunities by pipeline and stage. — **partial**: `Opportunity counts by status` groups by Status; no native stage-group.
 4. Partnership Pipeline opportunities by stage. — **partial**: `Partnership Pipeline Opportunities` (count) and `Partnership Pipeline by Status` (Status split) present; stage split not natively available.
-5. MQL opportunities and MQL-to-SQL movement. — **open** (builder limitation; Executive Report `mqlSummary` is the current source).
+5. MQL opportunities and MQL-to-SQL movement. — **live in the Executive Report** `mqlSummary` (total MQLs, converted to SQL via Sales Outreach pipeline, current MQLs awaiting sales, plus entered/converted in the selected window).
 6. Meetings and appointments by calendar/status. — **present** (`Appointment count by status`).
 7. Outbound email counts and engagement where GHL supports the event. — **present** (Accepted/Opened/Clicked/Hard bounced).
 8. Outbound SMS counts and replies where GHL supports the event. — **present** (`SMS by status`).
@@ -201,7 +201,7 @@ Every widget must use the shared report date range, have a documented filter, an
 7. Verify partnership email event delivery and correlate message IDs. — **partially done**: the Partnership Email Dispatcher (`Xshck23cKo1yXL9D`) stores `ghl_message_id`/`ghl_conversation_id` per send in `partnership_release_log`, and the Campaign Channel Summary attributes partnership email opens/clicks via a release-log fallback keyed on `contact_id`. The known historical reply is backfilled and the selected-window row shows 59 sent / 1 reply / 1.69%. Still open: confirming GHL emits all per-message open/click webhooks for inline `POST /conversations/messages` sends and correlating those events consistently.
 8. Add owner dimensions and conflict state to the reporting read model.
 9. Reconnect GSC OAuth and resume GSC ingestion.
-10. Resolve the SimpleTexting provider HTTP 409 before counting provider sends as delivered. The reporting layer now exposes normalized failure reasons; the dominant selected-window cause is `simpletext_provider_failed` with provider HTTP 409 responses.
+10. Keep historical SimpleTexting HTTP 409 failures distinct from current provider health. Count only rows with confirmed provider IDs as sent/delivered; retain `send_unknown` rows in quarantine until provider evidence resolves them.
 11. Configure native GHL widgets through authenticated UI access; do not guess undocumented report-builder APIs. **Partially done**: saved `Last 30 days` and removed the duplicate page-3 outgoing-call widget on 2026-08-08. MQL, owner, stage-split, campaign-tag, email-detail, page-name, and custom-metric widgets remain open because the builder has no stage-group dimension, no Owner-custom-field group-by, and some tag selections are virtualized.
 12. Add QA assertions for the 10-contact test: 10 invite events, 10 campaign-attributed LinkedIn requests, 10 state transitions or explicit state-upsert failures, and no duplicate event IDs.
 13. Add a GHL OAuth credential to n8n and ingest Social Planner statistics by platform/day, including saves, reach, and impressions.
