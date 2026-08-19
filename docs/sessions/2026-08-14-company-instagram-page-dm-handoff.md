@@ -1,6 +1,8 @@
 # Session Handoff: Company Instagram Page DM Delivery
 
-Updated: 2026-08-16
+Updated: 2026-08-18
+
+> **Superseded in part by `docs/sessions/2026-08-18-instagram-company-page-dm-priority.md`.** The company-page DM sender is now LIVE (`IeovbYnhCsetXS89`, active and published), with brands-first send priority (dan_brands=1, dan_dispensaries=2, partnerships=3) and a Message-1-first strategy. The contract, audience selectors, GHL field plan, and guardrails below remain authoritative.
 
 Treat live n8n and the deployed Postgres state as authoritative. The repository contains the current bootstrap, import, identity-validation, association, and dry-run workflow sources, but none of the new workflows are published.
 
