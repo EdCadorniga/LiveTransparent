@@ -2,6 +2,16 @@
 
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
 
+## ✅ 2026-08-20: Emerald/DAN/Partnership release-log fix + Apollo August enrollment
+
+- Fixed the same release-log single-row write bug (`runOnceForAllItems` + `$json` read only the first item) in all three campaign dispatchers:
+  - Emerald `8UXlpoMJnQ229AuG` → published `d6737e68`
+  - DAN `toUG1yPDmFG48KEP` → published `f8f29288`
+  - Partnership `Xshck23cKo1yXL9D` → published `2663f32b`
+- Enrolled 73 clean `apollo_august2026` contacts (from `Sales - New Leads - Cannabis _ Hemp _ CBD.csv`) into Emerald **Executives MSO** via dispatcher run `769889`; all confirmed enrolled in GHL and marked released + release-logged. 12 pre-existing Emerald contacts + 1 DAN-only were skipped.
+- Backfilled release-log + released status for 58 prior-run contacts the bug left unlogged → **0 pending+unlogged candidates**, no re-dispatch risk.
+- Postgres campaign tables live in the `postgres` default DB (container `postgres-uokgs4c04ko0s4scccg40cgg`), not `n8n`.
+
 ## ✅ RESOLVED: 2026-08-12 Postgres Write Blocker & Executive Report Runtime Recovery
 
 ### Documentation Review (2026-08-12)

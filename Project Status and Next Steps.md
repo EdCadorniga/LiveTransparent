@@ -163,13 +163,15 @@ Measured directly on live Postgres after execution `743094` (Sales Ingest repair
 | SimpleTexting campaign state / events | 0 / 0 |
 | `emerging_pool_contacts` / with GHL ID | 13,868 / 12,639 |
 
-Pre-recovery throughput and row-count claims are historical until each source is re-ingested or restored.
+Pre-recovery throughput and row-count claims are historical until each source is re-ingested or restored. **Updated 2026-08-20**: `Emerald_Campaign_Contacts` now has 20,238 rows (16,672 pending, 3,566 released) and `Emerald_Release_Log` has 16,154 rows; `partnership_release_log` has 188 rows; `DAN_Release_Log` has 4,664 rows (dormant since 07-22).
 
 This document is the canonical project status and next-steps reference. It supersedes duplicated planning notes in plan.md and other plan documents.
 
 > **Historical traceability**: Fix narratives, root-cause analyses, and execution histories are preserved in git history. This file contains only current live state and actionable next steps.
 
 ## Current State Summary
+
+- **Emerald release-log fix + Apollo August 2026 batch enrollment (2026-08-20)**: All three campaign dispatchers (Emerald `8UXlpoMJnQ229AuG`→`d6737e68`, DAN `toUG1yPDmFG48KEP`→`f8f29288`, Partnership `Xshck23cKo1yXL9D`→`2663f32b`) had the same release-log single-row write bug (`mode: runOnceForAllItems` + `$json` read only the first item, so 1 row persisted per run regardless of how many were queued/sent). All fixed by iterating `$input.all()` in `Build SQL - Write Release Log` and setting `queryBatching: "independently"` on the Postgres node. Separately, 73 clean `apollo_august2026` contacts (from `Sales - New Leads - Cannabis _ Hemp _ CBD.csv`, 86 imported) were enrolled into the Emerald **Executives MSO** sequence via dispatcher run `769889`; all 73 confirmed enrolled in GHL (`seq emerald - executives mso` + `seq enrolled - emerald`) and marked released + release-logged. The 58 prior-run contacts left unlogged by the bug were backfilled to released + release-logged, leaving **0 pending+unlogged candidates** so no re-dispatch occurs.
 
 - **Executive Report response-rate + social-engagement fixes (2026-08-04)**: User reported that 1 LinkedIn partnership response and 1 email partnership response showed as 0 response rate, and that LinkedIn/email data for the 3 campaigns (New attribution model - brands, New attribution model - dispensaries, Partnerships) looked wrong. Root-cause investigation found 4 bugs, all fixed and published:
   1. **Reply Poller wrong HTTP method (CRITICAL)**: `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`) called `POST /conversations/search` which returns 404; the correct endpoint is `GET /conversations/search` (200). Every poll run failed with `email_reply_lookup_failed` on all ~59 contacts, so the email reply was never detected. Fixed to GET with query params; smoke-tested execution `522221` now returns `errors: []` (was 59 errors). Published version `736386a2-a7d2-434d-b9ba-72026e49c98b`.
@@ -195,8 +197,8 @@ This document is the canonical project status and next-steps reference. It super
 - **n8n reactivation and recovery**: after redeploy, the seven non-SimpleTexting workflows were republished and verified with matching `versionId`/`activeVersionId`. SimpleTexting production workflows were then temporarily paused after the execution-dispatcher incident recurred. The stale scheduled queue was cleared through the n8n API; nine webhook `new` executions were preserved and one webhook execution remained running. Timeout and pool settings are staged in `n8n/docker-compose.yml` for the next Coolify redeploy.
 - **SimpleTexting workflow hardening (2026-08-06 through 2026-08-17)**: bootstrapped campaign state/event tables and indexes, removed runtime DDL, split Warmup preparation from sending, removed unsafe HTTP wrappers, added overlap/claim guards, hardened send/provider/callback boundaries, and reconciled historical state without replaying uncertain sends. Step Runner, Warmup, Pool, and Campaign Sequencer are unpublished; Phone Backfill is active and non-sending. See [docs/n8n-stale-execution-recovery.md](docs/n8n-stale-execution-recovery.md).
 - **SimpleTexting audit/authentication pass (2026-08-06)**: live definitions and recent executions were rechecked. Step Runner and Phone Backfill exited cleanly with no work; provider health returned HTTP 200. Fixed provider-ID validation, active-event runtime DDL, webhook payload preservation, the stale nested Set assignment, the GHL intake HTTP wrapper, unresolved-contact handling, duplicate-event claims, and internal webhook authentication. Unauthorized requests now short-circuit without provider/state side effects; authorized dry-run sending succeeds. The authenticated GHL manual-send caller was updated in the UI to send `x-lt-simpletexting-key` and is published. SimpleTexting provider event headers are only required for inbound reply, delivery, and unsubscribe tracking; they do not block outbound API sending.
-- **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences. Reply suppression was repaired in GHL on 2026-07-26 after an inbound email continued into a later sequence step.
-- **DAN email campaign**: FULLY LIVE AND SENDING since 2026-07-14. 10 templates, 3 GHL workflows, n8n dispatcher active (65/run every 30 min, 1,560/day capacity). ghl_contact_id backfilled 2026-07-13 (13,705 IDs). 181+ contacts queued first day with verified email delivery.
+- **Emerald email campaign**: ACTIVE since 2026-07-07. Dispatches ~14,702 unenrolled contacts through GHL email sequences. Reply suppression was repaired in GHL on 2026-07-26 after an inbound email continued into a later sequence step. **2026-08-20**: fixed the dispatcher's release-log single-row write bug (published `d6737e68`) and enrolled 73 `apollo_august2026` imports into `executives_mso` (GHL enrollment confirmed on all 73).
+- **DAN email campaign**: FULLY LIVE AND SENDING since 2026-07-14. 10 templates, 3 GHL workflows, n8n dispatcher active (85/run every 30 min). ghl_contact_id backfilled 2026-07-13 (13,705 IDs). 181+ contacts queued first day with verified email delivery. **2026-08-20**: fixed the dispatcher's release-log single-row write bug (published `f8f29288`); DAN pool currently exhausted so the fix is dormant until candidates reappear.
 - **Apollo phone enrichment**: ACTIVE and hardened 2026-07-16. Production path is polling + V4 callback + reaper. Legacy staged webhook orphans were canceled, poller now re-discovers `queued_phone`, callback provider failures map to `callback_failed`, and known blank contacts were backfilled into `queued_phone`.
 - **LinkedIn**: Production path is dispatcher -> acceptance/state sync -> canonical 4-message DM sequence. Follower DM and misconfigured Instagram DM sender paths are unpublished. The dispatcher now explicitly reads Config, atomically claims `ready` rows as `requested_pending`, performs immediate GHL tag/reply checks, and fails closed on provider/state errors. State sync uses direct HTTP requests, bounded contact/API budgets, retries/timeouts, explicit error reporting, and preserves terminal/replied state. The shared state-upsert workflow promotes explicit terminal payloads to `completed` and preserves active replies. The state-upsert webhook now requires the protected `X-LT-LinkedIn-State-Secret` header; all discovered callers were updated and published, and unauthorized requests return `403`.
 - **Instagram**: old DM Sequence is unpublished after it was found using the LinkedIn Unipile account. New inbound bridge is active and posts messages into GHL Conversations under `Instagram via Unipile`. **Company-page DM sender is LIVE (2026-08-18)**: `IeovbYnhCsetXS89`, brands-first priority, Message 1 only until everyone has it.
@@ -222,7 +224,7 @@ This document is the canonical project status and next-steps reference. It super
 ## Prioritized Next Steps
 
 1. ~~**Repair GHL Daily Sales Ingest first**~~ **DONE.** Published version `91603d56`; execution `743094` wrote 7,984 opportunities.
-2. **Restore source coverage one system at a time** with supported ingest/replay and provenance. Opportunities now restored; voice, email, LinkedIn, SMS still at zero.
+2. **Restore source coverage one system at a time** with supported ingest/replay and provenance. Opportunities now restored; **email is flowing again (73 `apollo_august2026` contacts enrolled into Emerald Executives MSO on 2026-08-20)**; voice, LinkedIn, SMS still need recovery.
 3. ~~**Authenticate public write boundaries**~~ **DONE for Call Outcome Ingest and SimpleTexting.** Review the remaining Warm intake boundaries; retain explicit approval gates for manual sends/calls.
 4. **Audit and backfill `emerging_pool_contacts.ghl_contact_id`** — Sales Ingest is now healthy, audit can proceed.
 5. **Verify voice persistence safely**, then recover campaign/email/LinkedIn/SMS reporting state.
@@ -310,6 +312,12 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 - Backlog: ~10,618 unreleased after DNC/DND SQL filtering
 - Email events flowing within 3 min of dispatch
 
+### Release-Log Single-Row Bug + Apollo August Batch (2026-08-20)
+
+- **Bug fixed (dispatcher `8UXlpoMJnQ229AuG`, published `d6737e68`)**: `Build SQL - Write Release Log` used `mode: runOnceForAllItems` with `$json`, so only **1 release-log row persisted per run** even when 60–132 contacts were queued. The unlogged contacts stayed `pending` and were re-selected on the next hour (re-tag risk). Fixed by iterating `$input.all()` and setting `queryBatching: "independently"` on the Postgres node. Verified `versionId == activeVersionId`.
+- **Apollo August 2026 batch enrolled**: 86 contacts imported with tag `apollo_august2026` from `Sales - New Leads - Cannabis _ Hemp _ CBD.csv`. Of these, 73 were clean and enrolled into `bucket=executives_mso` via dispatcher run `769889` (queue tag `Enrollment Queue - Emerald - Executives MSO` → GHL `WL - Seq - Enrollment Queue Entry` → Cannabis Ads Emerald - Executives MSO). All 73 confirmed with `seq emerald - executives mso` + `seq enrolled - emerald` in GHL, and all 73 marked `released` + release-logged. 12 were already Emerald-enrolled (dedup) and 1 was DAN-only (skipped). The 58 prior-run contacts the bug had left unlogged were also marked released + release-logged so no re-dispatch occurs.
+- **Same bug fixed in DAN (`toUG1yPDmFG48KEP`, published `f8f29288`) and Partnership (`Xshck23cKo1yXL9D`, published `2663f32b`) dispatchers**: identical `$json` single-row write in their `Build SQL - Write Release Log` nodes. Partnership was actively manifesting (run `766371` sent 3 step-4 emails but logged only 1, creating duplicate re-send risk). Functional test (`test_workflow` execution `769961`) confirmed 3 sent items → 3 release-log writes; the 3 live test rows were deleted (partnership log restored to 188).
+
 ### Reply Suppression Repair (2026-07-26)
 
 - **Incident**: Christy Essex replied on 2026-07-23 that she had left Vangst and referred new/current-project questions to Logan Humiston. An automated Emerald follow-up was still sent on 2026-07-26.
@@ -322,8 +330,8 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 
 | Table | Rows | Notes |
 |-------|------|-------|
-| Emerald_Campaign_Contacts | 20,165 | ~14,702 pending, ~5,463 released |
-| Emerald_Release_Log | 250+ | Dispatched contacts by sender |
+| Emerald_Campaign_Contacts | 20,238 | 16,672 pending, 3,566 released (includes 73 `apollo_august2026` in `executives_mso` released 2026-08-20) |
+| Emerald_Release_Log | 16,154 | Dispatched contacts by sender |
 | Email_Events | growing | From 5 GHL event automations |
 
 ## Email Campaign — DAN Brands & Dispensaries (LIVE 2026-07-10, Backfilled 2026-07-13)
@@ -341,6 +349,7 @@ Snapshot -> Postgres (Emerald_Campaign_Contacts) -> Dispatcher -> GHL tags + sen
 - **Rate limiting fix**: 250ms delay added between GHL API calls — errors dropped from 40% to 0%
 - **2026-07-15 audit**: 5 fixes applied (brand starvation, HTTP wrapper, sender rotation, error logging, jitter)
 - **GHL templates verified**: All 10 DAN templates in GHL match repo HTML files exactly
+- **2026-08-20 release-log fix**: `Build SQL - Write Release Log` (published `f8f29288`) now iterates `$input.all()` instead of `$json`, so every dispatched/skipped contact is logged per run (was 1 row per run). `Write Release Log` uses `queryBatching: "independently"`. DAN pool currently exhausted (no log entries since 07-22; dispatcher runs with zero candidates).
 
 ### GHL Workflows
 
@@ -728,7 +737,7 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 
 GHL, Unipile, and state-upsert values remain configured in the live workflow runtime; values are intentionally omitted from documentation. Credential migration and rotation remain open.
 
-All 7 partnership workflows are active and published. The dispatcher schedules are explicit weekday cron schedules: email at 11:00 America/New_York, LinkedIn requests at 15:00 America/Chicago, and LinkedIn DMs at 12:00 America/Chicago. Outbound was explicitly activated on 2026-07-31 with `defaultDryRun=false`; do not manually execute these workflows unless intentionally sending an additional batch. The post-recovery database currently has 0 partnership release rows and 18 partnership LinkedIn state rows, so persistence/source restoration must be verified before trusting campaign totals.
+All 7 partnership workflows are active and published. The dispatcher schedules are explicit weekday cron schedules: email at 11:00 America/New_York, LinkedIn requests at 15:00 America/Chicago, and LinkedIn DMs at 12:00 America/Chicago. Outbound was explicitly activated on 2026-07-31 with `defaultDryRun=false`; do not manually execute these workflows unless intentionally sending an additional batch. `partnership_release_log` currently holds 188 rows (restored to 188 on 2026-08-20 after a 3-row functional test was cleaned up). On 2026-08-20 the Email Dispatcher's `Build SQL - Write Release Log` node was fixed (published `2663f32b`) to persist **all** sent emails per run instead of only 1 (previously run `766371` sent 3 step-4 emails but logged only 1, creating a duplicate re-send risk).
 
 ### Tags
 
@@ -747,7 +756,7 @@ All 7 partnership workflows are active and published. The dispatcher schedules a
 
 | Workflow | ID | Status | Role |
 |----------|----|--------|------|
-| LT - Partnership Email Dispatcher | Xshck23cKo1yXL9D | Active | Sends 4-step email sequence via GHL Conversations API. 60/day cap, 11am ET Mon-Fri, 2-weekday intervals. |
+| LT - Partnership Email Dispatcher | Xshck23cKo1yXL9D | Active | Sends 4-step email sequence via GHL Conversations API. 60/day cap, 11am ET Mon-Fri, 2-weekday intervals. Release-log write fixed 2026-08-20 (`2663f32b`). |
 | LT - Partnership LinkedIn Dispatcher | crKIsaL5k3YBfqDZ | Active | Sends LinkedIn connection requests via Unipile. 30/day cap, 3pm CT Mon-Fri. Atomic ready→requested_pending claim. |
 | LT - Partnership LinkedIn DM Sequence | nspggypNF245xzeL | Active | 4-step LinkedIn DM cadence for connected partnership contacts. 2-weekday intervals. |
 | LT - Partnership Reply Handler | mRDw57IHtnQe4wOo | Active webhook | POST `/webhook/lt-partnership-reply`. Tags contact `partner_replied`, creates opportunity in Partnership Pipeline → New Partner Lead, posts Slack alert. |
