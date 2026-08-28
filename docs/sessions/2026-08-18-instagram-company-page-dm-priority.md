@@ -1,6 +1,6 @@
 # Session Handoff: Instagram Company Page DM Priority
 
-Updated: 2026-08-18
+Updated: 2026-08-24
 
 Treat live n8n and the deployed Postgres state as authoritative. The company-page Instagram DM sender is now live; this document records the 2026-08-18 priority change and the current delivery strategy.
 
@@ -11,6 +11,7 @@ Treat live n8n and the deployed Postgres state as authoritative. The company-pag
 3. **Unipile key verified working** on 2026-08-18 — accounts list returned HTTP 200 with Instagram account `F2UprZ8aQc6Qm9CYYWU6cg` status OK. The earlier 401 blocking is resolved.
 4. **Brand pool IG/FB enrichment complete**: workflow `LT - IG & FB Company Page Enrichment` (`BIVAw1AWTTzC0igW`) unpublished; last run found zero unresolved companies.
 5. **Dispensary and Partnership enrichment active** (`Qd7sn9MPq4W24WKi`, `RlogFNDYjtjkuRFJ`) on a 5-minute schedule; temporarily blocked by an OpenRouter weekly key limit that the user fixed.
+6. **Message 2 enabled**: the live sender now selects Message-1-complete rows, waits two business days after `last_sent_at`, sends the approved campaign-specific Message 2 copy, and advances the send log/state to step 2. Published version: `3d721cec-04e6-45cc-9ebb-fb21589b61a6`. Message 3 remains disabled.
 
 ## Live Sender
 
@@ -22,9 +23,9 @@ Treat live n8n and the deployed Postgres state as authoritative. The company-pag
 | Daily cap | 45, hourly cap 10 |
 | Unipile account | `F2UprZ8aQc6Qm9CYYWU6cg` |
 | State table | `instagram_company_dm_state` (direct `require('pg')`) |
-| Guards | `dryRun !== false` and `firstWeekMessage1Only !== true` both throw |
+| Guards | `dryRun !== false` throws; Message 2 requires `firstWeekMessage1Only=false` |
 
-The sender's `msgFor()` function carries campaign-specific approved copy for `partnerships`, `dan_brands`, and `dan_dispensaries`. The SQL selects only `message_step = 0` rows with valid provider/attendee IDs, no reply evidence, no suppression, and no existing send log for step 1. Each send is idempotently reserved, sent through Unipile `POST /chats`, then committed with state, send-log, and activity-event writes inside a transaction.
+The sender's `msgFor()` function carries approved Message 2 copy for `partnerships`, `dan_brands`, and `dan_dispensaries`. The SQL selects only `message_step = 1` rows with valid provider/attendee IDs, no reply evidence, no suppression, and no existing send log for step 2; a JavaScript business-day gate requires two weekdays after Message 1. Each send is idempotently reserved, sent through Unipile `POST /chats`, then committed with state, send-log, and activity-event writes inside a transaction.
 
 ## State Inventory (instagram_company_dm_state, 2026-08-18)
 
@@ -37,7 +38,7 @@ The sender's `msgFor()` function carries campaign-specific approved copy for `pa
 ## Delivery Plan
 
 1. **Message 1 to everyone** — starting tomorrow (Mon-Fri schedule), brands are processed first, then dispensaries, then the remaining partnerships. 45 partnerships already received Message 1 on 2026-08-17 before the priority change, so their state is at `message_step = 1`.
-2. **Message 2** — after every row has received Message 1, explicitly enable Message 2 (update the sender's step selection and turn off the first-week guard) before extending.
+2. **Message 2** — enabled on 2026-08-24 with the approved copy, step selection, two-business-day gate, and first-week guard disabled.
 3. **Message 3** — same gate, two business days after Message 2.
 
 ## Enrichment Status
@@ -62,7 +63,7 @@ All enrichment workflows use DeepSeek V4 Flash via OpenRouter with web-search pl
 - Do not change the approved message text.
 - Do not send to personal Instagram profiles.
 - Do not republish `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`).
-- Do not enable Message 2/3 until every row has Message 1.
+- Message 2 is enabled; do not enable Message 3 until Message 2 delivery has been reviewed.
 - Do not manually execute the live sender without explicit approval.
 - Fetch live state before every mutation and verify state after it.
 - After workflow mutation, verify `versionId == activeVersionId`; publish if necessary.

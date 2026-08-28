@@ -42,7 +42,7 @@ Independent pipeline for content partnership outreach.
 3. `Proposal Sent`: Partnership proposal delivered.
 4. `Closed`: Partnership confirmed or declined.
 - Owner: Janvi (`ck6TRlU3wnTmMxuVpn5F`)
-- 131 contacts: 98 email + 33 LinkedIn-only
+- Original cohort: 131 contacts. August 26 cohort: 404 new contacts, with 427 actionable contacts enrolled in both partnership selectors. The 404 new contacts carry `august_26_partnership_contact`.
 - Email dispatcher: 60/day, 11am ET Mon-Fri. LinkedIn dispatcher: 30/day, 3pm CT Mon-Fri.
 - Terminal tags: `partner_replied`, `partner_not_interested`, `partner_do_not_contact`
 

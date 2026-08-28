@@ -42,6 +42,8 @@ The fix is to switch n8n from embedded task runner mode to **external task runne
 | **LinkedIn send-path double-escape corruption** (2026-08-19) | A 2026-08-11 MCP mutation (version `3b70854e`) double-escaped regex literals in the Code nodes. Two distinct failures resulted. (1) The Dispatcher **crashed at parse time** (`SyntaxError: Invalid regular expression flags` on the `identifier()` `\\/` regex), so it sent **no invites at all** from 08-11 to 08-18. (2) After the 08-18 REST PUT fixed that crash, `sanitize()` char classes matched literal letters `u`/`C`/`D` + digits instead of smart quotes (`u`→`'`, `C`→`"`, producing `"ameron co-fo'nder of Transparent e"om`) and `/\\{first_name\\}/gi` matched only literal `\{first_name\}`, leaving `{first_name}` unreplaced — so **garbled invites were sent only from 08-18 00:15 through 08-19 04:45**, bounded by the 60/day cap, not since 08-11. The 08-18 REST PUT inherited but did not touch these regexes. Fixed via `scripts/fix_linkedin_sanitize_double_escape.py`: Dispatcher `fXxw5lanZcDmUrst` (sanitize 8 escapes + `{first_name}` + `[^\\s,]` URL class) → `0a349cdb-295f-45a5-978a-2f3e46022ace`; LinkedIn DM Sequence `d0tEtijajisIsYcs` (`{first_name}` in Sync Connected from Unipile + Send DM Sequence Messages) → `db7dde63-2f6e-42e8-92f0-7f68c66e7445`; both published + active. Full-instance scan of all 164 workflows confirmed no other Code nodes affected. Same failure class as the 2026-07-15 mojibake fix. Full narrative: `docs/sessions/2026-08-19-linkedin-double-escape-fix.md`. |
 | **Emerald release-log single-row bug + Apollo August batch enrollment** (2026-08-20) | `LT - Emerald Campaign Sender Release Dispatcher` (`8UXlpoMJnQ229AuG`) `Write Release Log` node used `mode: runOnceForAllItems` with `$json`, so only **1 release-log row persisted per run** even when 60–132 were queued — the other queued contacts stayed pending+unlogged and were re-selected on the next hour (re-tagging risk). Fixed by iterating `$input.all()` in `Build SQL - Write Release Log` and setting `queryBatching: "independently"` on the Postgres node; published version `d6737e68-b2b1-4163-bd99-19d0176640c2`. Separately enrolled 73 clean `apollo_august2026` imports (of 86) into `Emerald_Campaign_Contacts` with `bucket=executives_mso` (dispatcher run `769889`, all queued + GHL enrollment confirmed via `seq emerald - executives mso`/`seq enrolled - emerald`); 12 were already Emerald-enrolled and 1 DAN-only (skipped). Marked the 73 released + release-logged, then backfilled release-log + released status for the 58 prior-run contacts the bug had left unlogged so no re-dispatch occurs. Postgres campaign tables live in the `postgres` default DB (container `postgres-uokgs4c04ko0s4scccg40cgg`), not `n8n`. |
 | **Same release-log single-row bug fixed in DAN + Partnership dispatchers** (2026-08-20) | Audit found `LT - DAN Campaign Sender Release Dispatcher` (`toUG1yPDmFG48KEP`) and `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`) had the identical `mode: runOnceForAllItems` + `$json` bug in their `Build SQL - Write Release Log` nodes. **Partnership was actively manifesting**: run `766371` (2026-08-19) sent 3 step-4 emails but logged only 1 (robert@herb.co), leaving the other 2 contacts unlogged for their step → duplicate re-send risk. DAN was dormant (pool exhausted, no log entries since 07-22). Fixed both with the same `$input.all()` iteration + `queryBatching: "independently"` on the Postgres node. Published: Partnership `2663f32b-4e45-4a5c-9b7f-e9db58ff9bc4`, DAN `f8f29288-45d9-4f35-81a6-a60d2b54ad11` (both `versionId == activeVersionId`). Functional test (`test_workflow` execution `769961`) confirmed 3 sent items → 3 release-log writes; the 3 test rows written to the live `partnership_release_log` were deleted afterward (total restored to 188). |
+| **August 2026 Emerald contact enrollment reconciled** (2026-08-26) | Reconciled 2,620 cleaned Brand/Agency/Dispensary rows against live GHL. The bounded reconciliation created 36 genuinely new email-only contacts and completed 319 contact-level repair groups representing 325 tag assignments: 313 Emerald MSO queue enrollments plus six Dispensary pool and six DAN queue assignments. Final dry run returned 0 unmatched rows and 0 pending tag actions. Five AURI emails were identified as additional emails on existing contact `Amy Lund` and intentionally skipped; `scripts/reconcile_august_2026_emerald_live.ps1` now prevents retrying them. Details: `docs/sessions/2026-08-26-august-emerald-contact-enrollment.md`. |
+| **August 2026 partnership contact enrollment** (2026-08-27) | Reconciled the August 26 partnership CSVs as 431 people / 429 unique emails. Created 404 new GHL contacts and enrolled 427 actionable contacts with both `partner_candidate_email` and `partner_candidate_linkedin`; added `august_26_partnership_contact` to the 404 new contacts. Three existing contacts received missing LinkedIn URLs. Four rows across two shared-email groups were skipped for manual resolution. No Vapi selector tags were applied. Details: `docs/sessions/2026-08-27-august-partnership-contact-enrollment.md`. |
 
 ### Resolution
 
@@ -179,6 +181,7 @@ Full cross-file review of AGENTS.md, plan.md, Project Status and Next Steps.md, 
 - Partnership LinkedIn reply recovery (2026-08-12): Campaign Channels now reports 3 verified Partnership replies. Jaret Christopher was already present; David Schachter (`rvWEW2K2WYeQ7v6zypDdZQ`, 2026-08-10) and Gretchen Gailey (`8UF3lxibUmKYaG87h1F5Pg`, 2026-08-06) were recovered from the Unipile API with their original timestamps and inserted idempotently into `linkedin_activity_events`. `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) is published on `f96dafba-9818-4aab-8656-c2e4e2ab8480` with a malformed form-payload fallback so unescaped Unipile JSON no longer loses critical inbound fields.
 - On 2026-08-08 the live reports container was missing the repository nginx proxy route for `/api/report/executive/outgoing-calls`; the route was copied into `reports-livetransparent`, `nginx -t` passed, nginx was reloaded, and the proxy now returns the healthy n8n endpoint response.
 - Campaign summary active version `1cea3b9c-d587-4135-806d-46d301e2c7f4` now counts SimpleTexting `sent_step_1` through `sent_step_4` events and exposes a selected-window `smsSummary` with sent, `delivery_failed`, reply, and normalized failure-reason counts. The Executive Report displays this as the SMS delivery summary; the verified 2026-07-09 through 2026-08-07 window returned 294 sent, 1,095 failed, and 0 replies. Failure reasons were `simpletext_provider_failed` (1,010), `duplicate_send` (63), `unknown` (16), `invalid_phone` (5), and `idempotent_webhook_error` (1).
+- **Newsletter reporting (2026-08-24)**: the Campaign Channel Summary (`MvPLbUAN9IIQikxb`, active `2b8608aa-86e3-466f-9347-2ceb6f0b6818`) returns a `Newsletter` campaign channel row (sent/opened/clicked from `newsletter_send_log` + `newsletter_events` mapped into the existing `email_*` columns, grouped as `Newsletter`). The Executive Summary (`Bukc0mgOD2r7V6ED`) folds newsletter sends into `emailsSent` and newsletter opened/clicked/unsubscribed into `emailsOpened`/`emailsClicked`/`emailsUnsubscribed`, and newsletter `failed` rows into a new top-level `newsletterFailed` metric. Because the reports window defaults to ending yesterday, newsletter data (sent Mon–Wed) only appears when the window includes the send day. The dispatcher sets `sent_at` on `failed` rows too so the failure metric is window-able.
 - The same campaign summary response now includes distinct selected-window opportunity counts matched from current contact campaign tags in `report_raw_ghl_opportunities`. The Executive Report displays these in campaign rows, detail cards, and comparison view. The verified window returned Emerald 3,909, Partnership 8, and Vapi Brand 13; DAN and Vapi Dispensary had zero matched opportunities.
 - The root `GHL_PIT` was directly verified against the official REST location and contacts endpoints on 2026-07-31; both returned HTTP 200 with the required Bearer/Version headers. The native GHL report `6a67dce4a51a4360c60963a3` was also verified in an authenticated GHL UI session: it supports editing. Its `Campaign Opportunities` widget is filtered to `Partnership Pipeline`, its `Contacts by tag` widget uses `Tags -> Is one of` with `partner_candidate_email` and `partner_candidate_linkedin`, its saved date range is now `Last 30 days`, and the duplicate page-3 outgoing-call widget was removed.
 - The official GHL API/SDK does not expose Custom Report widget-layout mutation. Do not guess undocumented report-builder endpoints; native widget changes require authenticated GHL UI access or an explicitly approved internal API path.
@@ -211,7 +214,7 @@ The company-page Instagram DM delivery pipeline is LIVE. The sender `LT - Instag
 
 **Send priority (2026-08-18):** `campaign_priority` in `instagram_company_dm_state` is `dan_brands`=1, `dan_dispensaries`=2, `partnerships`=3. Brands go first, then Dispensaries, then Partnerships. The 379 state rows are 245 Brands, 58 Dispensaries, 76 Partnerships.
 
-**Message strategy:** `firstWeekMessage1Only=true` — only Message 1 is sent right now (the SQL selects `message_step = 0`, and the code throws if the guard is off). Message 1 goes to everyone first; after that, explicitly enable Message 2 (then 3) before extending the workflow.
+**Message strategy:** Message 2 is now enabled in the live sender (published version `3d721cec-04e6-45cc-9ebb-fb21589b61a6`). It selects `message_step = 1`, waits two business days after Message 1, sends the approved campaign-specific Message 2 copy, and advances state/log idempotently to step 2. Message 3 remains disabled. Do not manually execute the live sender without explicit approval.
 
 **Current state:** 45 Partnerships received Message 1 on 2026-08-17 (before the priority change). The remaining Partnerships and all Brands/Dispensaries are pending Message 1. Unipile key tested OK on 2026-08-18.
 
@@ -1206,6 +1209,7 @@ Raw Ingest → Attribution Bridge → Daily Rollups → Executive Summary API (G
 | Report Config Sync | aomO3Z4AXJIgEvvN | Active |
 | Report Publish Refresh | 3gXztCnBEN6sGINb | Active |
 | Report Postgres Bootstrap Apply | 3XHThUiUSNa4sTb9 | Active |
+| LT - MQL Tag Event Ingest | U9oc2tZRsr4zq6IM | Active webhook (`POST /webhook/lt-mql-tag-event`, secret header; logs `mql` tag adds to `mql_tag_events`) |
 
 ### Executive Summary Runtime Recovery (2026-08-12)
 
@@ -1214,6 +1218,25 @@ Raw Ingest → Attribution Bridge → Daily Rollups → Executive Summary API (G
 - The query then completed, but the response still exceeded nginx's 60-second proxy window because `Shape Response` synchronously called the Campaign Channel Summary endpoint even though the frontend already fetches that endpoint in parallel.
 - Removed the redundant internal HTTP lookup and projected the existing `email_direct` totals/rates into the summary response. Final active version is `d177a923-da94-43ac-ac97-dbba1a664ab4` with `versionId == activeVersionId`.
 - Verification: current 30-day summary returned HTTP 200 with a 33.7 KB body in 19.9 seconds; the prior equal-length period returned HTTP 200 with a 22.1 KB body in 12.3 seconds. Browser verification rendered 1,847 visits, 160 contacts, 4,368 opportunities, 5,743 email opens, and 362 email clicks.
+
+### Executive Report Accuracy Audit (2026-08-25)
+
+Full 30d cross-check of the Executive Summary, Campaign Channel Summary, and Outgoing Calls against source Postgres tables. Most figures were already exact (`emailsSent`/`opened`/`clicked`/`bounced`/`unsubscribed`, Vapi 50 calls by disposition + campaign, LinkedIn 44 invites/26 DMs/4 replies, Instagram 204 DMs, social posts/account stats, appointments 4, calls 828, Meta ads spend/clicks/impressions, MQL summary, SMS). Fixed these reporting bugs:
+
+- **Raw pipeline/stage IDs exposed** — `pipelineDropoff` showed Partnership pipeline as `tQkFYrHjALgoLz6oq0uz`; `stageDropoff`/`stageVelocity`/`opportunityStageBreakdown` showed raw stage IDs (`91517911…`=Sales Outreach Qualified, `16fb26a2…`=Warm vapi_qualified, `67d47ef7…`=Warm New_Not Qualified, etc.). Added the full canonical pipeline/stage name CASE mappings (incl. Partnership Pipeline `tQkFYrHjALgoLz6oq0uz` and its 4 stages, plus `91517911`, `67d47ef7`, `0741e8b5`, `967292f9`, `16fb26a2`, `5112b5c8`, `268ed432`) to: Exec Summary `Build Query` (opportunity_snapshots CTE), Daily Rollups `Build Rollup SQL` (both tmp_report_opps and opp_transitions CASE blocks), and Pipeline Velocity `Build Velocity SQL` (timeline CTE). Re-ran the rollup and velocity workflows; stage tables now fully resolved. Exec Summary `stageVelocity` filter changed from `DATE(computed_at) BETWEEN window` to `computed_at = MAX(computed_at)` so it always shows the latest velocity compute (was going to return empty after a fresh compute lands outside the window).
+- **Campaign Channel Partnership email undercount** — `Partnership emails email_sent` showed 59 (COUNT DISTINCT contacts) while the release log has 233 sent emails (59 contacts × 4 steps); Exec Summary correctly counted 233. Changed `email_sent` to `COUNT(*)` for DAN/Emerald/Partnership in the Campaign Channel Query so it matches the Exec Summary definition (release-log rows = emails sent). Now 2692 total on both.
+- **Email rates were hardcoded `NULL`** — Exec Summary now computes cohort-based `emailOpenRate`/`emailClickRate`/`emailBounceRate` = unique recipients opened/clicked/bounced among the window send cohort / unique sent recipients (e.g. 44.6% / 11.4% / 4.7% for 30d). The `email_direct` CTE gained `emails_sent_unique`/`emails_opened_unique`/`emails_clicked_unique`/`emails_bounced_unique` (opens/clicks/bounces restricted to the window send cohort to avoid inflation from historical sends opening in-window). `emailRateBasis` = `unique_recipient_rates_over_window_sent_cohort`.
+- **`salesQuality.topLossReason` mislabeled** — returned a stage name (e.g. "New") instead of a loss reason; renamed to `topLossStage` (GHL has no structured loss-reason field captured).
+- **MQL tag ledger (2026-08-25)**: the business counts MQLs by the `mql` **tag being added** (e.g. past week), not by the Warm Qualified (MQL) stage. GHL does not expose tag-add timestamps and the hourly contact snapshot can't reconstruct them, so we built a forward-looking ledger: `mql_tag_events` table (UNIQUE `(contact_id, tag)`, first-add wins) + active workflow `LT - MQL Tag Event Ingest` (`U9oc2tZRsr4zq6IM`, POST `/webhook/lt-mql-tag-event`, requires `X-LT-MQL-Tag-Secret` from its Config node; 403 on unauthorized/missing contact, `duplicate` on re-add). **Pending operator step**: create the GHL automation `WL - MQL Tag Ledger` (Contact → Tag Added → `mql` → webhook POST with the secret header and `{"contact_id":"{{contact.id}}",...}` body) — runbook: `docs/sessions/2026-08-25-mql-tag-ledger.md`. Exec Summary `mqlSummary` now also returns `taggedMqlsTotal`/`taggedMqlsThisPeriod`/`taggedAsOfDate`/`tagBasis: mql_tag_events_ledger` (0 until events flow; forward-looking only). The 443 current `mql`-tagged contacts are noisy (mailer-daemon bounces, `not qualified`) — the ledger records whatever GHL fires.
+- **Workflow version notes**: Exec Summary `Bukc0mgOD2r7V6ED` active `f49277bb-dc64-4855-933e-c38e53991bff`; Daily Rollups `EUeOiRttoVLQ9zF9` active `ddded785-2d31-4818-8ced-8a9c881a689f`; Pipeline Velocity `iFfwh0jpYUZoDhDR` active `43515531-dd9f-4462-bbe6-e58e321ab130`; Campaign Channel Summary `MvPLbUAN9IIQikxb` active `6ec148ff-6f1c-42b5-8b72-157d40d0a74a`; MQL Tag Event Ingest `U9oc2tZRsr4zq6IM` active `298be9d4-692b-4787-9bcb-a7f5de138e8c`. All `versionId == activeVersionId` after the REST PUT (PUT auto-publishes; the Query Summary postgres credential was restored to `pgAzUqpwOiGkGXzO` after the first PUT stripped it).
+
+**Remaining data-source issues (need operator action, not logic fixes):**
+- **GA4 credential is expired** — `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`) has errored on every hourly run since 2026-08-14 (`The credential "Google Analytics account" needs to be reconnected`). `report_raw_ga4_sessions`/daily summary sessions freeze at 08-13, so `traffic` is UNDERCOUNTED (the 30d window's last ~13 days are missing). The `health` section already flags GA4 as stale. Reconnect the Google OAuth credential in n8n.
+- **Pipeline Velocity schedule stopped firing** — active but 0 executions since ~08-07; data was stale until the manual re-run above. Verify the 24h Schedule Trigger is registering.
+- **GSC ingest stale** since 08-07 (low volume: 1 click/41 impressions in window).
+- **Sales Ingest snapshot gap 08-12…08-20** — no `report_raw_ghl_opportunities` snapshot rows those days (resumed 08-21), so stage-movement history for that span is absent.
+- **`poolDistribution` always 0** — the GHL Leads Ingest snapshots only ~500 contacts, so pool tags (`brands_pool` 3k+, `dispensaries_pool` 7k+) never appear. Not a logic bug; data-coverage limitation.
+- **`metaAttribution` empty / Meta leads 0** — no contacts in the 500-row snapshot carry Meta UTM attribution; genuine 0 given current data coverage.
 
 ### MQL / Company Sync
 
@@ -1247,7 +1270,7 @@ The `Report Executive Summary API` (`GET /webhook/lt-report-executive-summary?ra
 | **`vapiCampaignBreakdown`** | `voice_call_attempt` JOIN `voice_call_queue` | Per-campaign call totals, answered, qualified, booked (added 2026-07-21) |
 | **Outgoing Call Detail** | `voice_call_attempt` JOIN `voice_call_queue` + latest `report_raw_ghl_contacts` snapshot | Seven completed days of paginated Vapi call rows with disposition, duration, contact ID/name fallback, campaign, first-attempt flag, and signed recording URL |
 | **`vapiQueueDistribution`** | `voice_call_queue` (status=pending) | Pending queue by campaign (added 2026-07-21) |
-| **`mqlSummary`** | `report_raw_ghl_opportunities` (stage IDs) | Total MQLs (ever in Warm Qualified (MQL)), converted-to-SQL (also in Sales Outreach pipeline), current MQLs awaiting sales, plus entered/converted in the selected window |
+| **`mqlSummary`** | `report_raw_ghl_opportunities` (stage IDs) + `mql_tag_events` (tag ledger) | Total MQLs (ever in Warm Qualified (MQL)), converted-to-SQL (also in Sales Outreach pipeline), current MQLs awaiting sales, entered/converted in the selected window, plus `taggedMqlsTotal`/`taggedMqlsThisPeriod` from the `mql` tag-add ledger |
 | **`sqlContacts`** | `report_raw_ghl_contacts` (tag search) | Contacts with SQL tag (added 2026-07-21) |
 | **`poolDistribution`** | `report_raw_ghl_contacts` (tag counts) | brands_pool, dispensaries_pool, vapi brand/dispensary (added 2026-07-21) |
 
@@ -1311,13 +1334,13 @@ The Executive Report at `https://reports.livetransparent.com` (build `2026-08-17
 
 ## Partnership Marketing Pipeline (Infrastructure Live, Outbound Live 2026-07-31)
 
-131 content partnership contacts imported. Two parallel sequences from Cameron's accounts: a 4-step email sequence and a 4-step LinkedIn DM cadence. All infrastructure isolated from DAN/Emerald (separate Postgres tables, workflows, GHL pipeline).
+The original 131 content partnership contacts remain enrolled. A separate August 26 cohort added 404 new contacts and 427 actionable contacts to both partnership selectors. Two parallel sequences from Cameron's accounts: a 4-step email sequence and a 4-step LinkedIn DM cadence. All infrastructure isolated from DAN/Emerald (separate Postgres tables, workflows, GHL pipeline).
 
 ### Pipeline
 
 - **GHL Pipeline**: `Partnership Pipeline` (`tQkFYrHjALgoLz6oq0uz`) — New Partner Lead → Contacted → Proposal Sent → Closed
-- **Contacts**: 98 email + 33 LinkedIn-only, all assigned to Janvi (`ck6TRlU3wnTmMxuVpn5F`)
-- **Tags**: `partner_candidate_email`, `partner_candidate_linkedin`, `partner_email_queued`, `partner_linkedin_requested`, `partner_email_sequence_completed`, `partner_replied`, `partner_not_interested`, `partner_do_not_contact`
+- **Contacts**: original 131 contacts plus 404 new August 26 contacts; the 404 new contacts are identified by `august_26_partnership_contact`
+- **Tags**: `partner_candidate_email`, `partner_candidate_linkedin`, `august_26_partnership_contact`, `partner_email_queued`, `partner_linkedin_requested`, `partner_email_sequence_completed`, `partner_replied`, `partner_not_interested`, `partner_do_not_contact`
 - **GHL API key**: configured in the live dispatcher Config nodes and Reply Poller runtime; value intentionally omitted from documentation
 - **14 contacts excluded** from original CSVs due to wrong company/email domain mismatches — awaiting corrections
 
@@ -1365,6 +1388,9 @@ The Executive Report at `https://reports.livetransparent.com` (build `2026-08-17
 
 ### Remaining
 
+- **August 26 shared-email records**: resolve the two skipped shared-email groups before adding them to email outreach.
+- **August 26 campaign monitoring**: monitor the next scheduled email and LinkedIn dispatcher runs; confirm release-log/state writes and verify that no Vapi selector tags appear on the cohort.
+
 - **GHL Custom Report**: Partnership widgets are configured and verified in native report `6a67dce4a51a4360c60963a3`; MQL, owner, and stage-split widgets remain limited by the builder. PIT REST access cannot mutate widget layouts; do not guess undocumented report-builder endpoints.
 - **Re-import 14 excluded contacts** after corrected company names provided
 - **Outbound activation**: Approved and enabled 2026-07-31. Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence now use `defaultDryRun=false`; their published active versions are `6b7490a9-05d8-44e1-8f94-3c4427a7f969`, `29089175-1b37-4271-8b03-d4722b809692`, and `3bd0b759-4740-4e67-85ef-9540bf31c08e`. The dispatcher seeds 127 partnership `ready` state rows before queue fetch.
@@ -1408,6 +1434,28 @@ Full audit passed:
 - **LinkedIn invite copy**: n8n defaults say Transparent eCom. If LiveTransparent appears, check GHL-side body.message overrides first. Use [/] character class instead of \/ in regex literals to avoid SDK serialization corruption.
 - **GHL warm intake/routing**, Apollo enrichment, Emerald and DAN email campaigns are active.
 - **SMS campaign**: The canonical send webhook is `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`; template registry details are in `docs/outreach/sms_edited_templatekeys.md`. Send, provider-router, idempotency, and callback boundaries were hardened on 2026-08-17. Registered provider callbacks use protected secret URLs because SimpleTexting cannot attach custom headers. Historical reconciliation restored 41 confirmed sends, terminalized 202 exhausted provider failures, quarantined 55 `send_unknown` rows, and replayed nothing. Keep sender schedules and legacy diagnostics inactive until an approved live provider test or natural traffic verifies the final boundary.
+
+### Weekly Newsletter Pipeline (Built 2026-08-21 — DNS GATE PENDING)
+
+Recurring weekly newsletter to all eligible GHL contacts, spread over Mon–Wed (3 hourly batches/day) from 3 senders (`.co`, `.agency`, `.org` — NOT `.com`). Content lives in a GHL **Email Template** (NOT Campaigns) named `Newsletter <n> <Monday-date> (<subject>)`, pulled automatically at send time. Custom open/click/unsubscribe tracking is injected by the dispatcher into `newsletter_events` (GHL does NOT emit webhooks for `POST /conversations/messages` sends, so native GHL Campaign stats are unavailable on this path).
+
+**⚠️ DNS GATE — DO NOT SEND until confirmed:** the email-sender domains still have duplicate SPF + DMARC records (permerror). The fix was sent to the domain admin on 2026-08-21 (`docs/dns-email-authentication-fix.md`). The next agent should treat the phrase **"the DNS of the email senders have been fixed"** as the trigger to run the Go-Live sequence below. Until then, prep + dispatcher stay **unpublished** and `defaultDryRun=true`.
+
+| Workflow | ID | Schedule | Status |
+|---|---|---|---|
+| LT - Newsletter Contact Prep | vvPdJMzBJMgcf5I9 | Mon 06:30 America/Los_Angeles (`30 6 * * 1`) | Created, unpublished, tz LA |
+| LT - Newsletter Dispatcher | vru7OtCkDnPJkWt2 | Mon–Wed 07:00/08:00/09:00 LA (`0 7-9 * * 1-3`) | Created, unpublished, dry-run |
+| LT - Newsletter Open Pixel | HkTQ9mqwHcpg3AIM | `GET /webhook/lt-newsletter-pixel` | **Active** |
+| LT - Newsletter Click Track | HZ8ndNF4p80PrQjf | `GET /webhook/lt-newsletter-click` | **Active** |
+| LT - Newsletter Unsubscribe | RvYusUSGB79K2e2k | `GET /webhook/lt-newsletter-unsub` | **Active** |
+
+- **Eligibility (measured 2026-08-21):** 31,800 GHL contacts → 22,169 eligible (excludes no-email + `do not contact`/`do not nurture`, email-deduped). Per sender: ~7,390/week, ~2,463/day (under `maxPerSenderPerDay=3000`).
+- **Dispatcher behavior:** `maxPerRun=2500`, `maxPerSenderPerDay=3000`, 400–600ms delay, 429/transient retry (4 attempts, 2/4/6s backoff), dry-run emits `planned` and never mutates DB. Template matcher accepts `builder` OR `html` types and fails closed if the week's template is missing.
+- **Tracking:** HMAC-signed URLs (`trackSecret` in Config nodes). Pixel `log_id`+`tok`, click `log_id|u`+`tok`, unsub `log_id`+`tok`. Tables `newsletter_send_log` (UNIQUE `(ghl_contact_id, week_key)`) + `newsletter_events` in the `postgres` DB.
+- **Template:** ID `6a87716221922afe5eda9e6f` (`Newsletter 1 2026-08-24 (The real reason regulated ads get disapproved)`), proper logo applied 2026-08-21.
+- **Full build + Go-Live runbook + verification:** `docs/sessions/2026-08-21-weekly-newsletter-pipeline.md`.
+
+**Go-Live sequence (after DNS confirmed):** (1) re-check SPF/DMARC on `.co`/`.agency`/`.org` (one `v=spf1` and one `v=DMARC1` each; mxtoolbox recommended), (2) confirm this week's `Newsletter 1 <next-Monday> (<subject>)` exists in GHL Templates, (3) `publish_workflow` both prep + dispatcher, (4) flip dispatcher `defaultDryRun=false` via direct n8n REST PUT (Config Set node is unsafe via MCP pointer ops), (5) verify `versionId == activeVersionId` after each mutation, (6) monitor first run.
 
 ### SimpleTexting SMS via GHL — Bidirectional Provider (LIVE 2026-07-20)
 
@@ -1483,6 +1531,8 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - docs/campaigns/Vapi_Brand_Campaign.docx
 - docs/campaigns/Vapi_Dispensary_Campaign.docx
 - docs/strategy/unipile-ghl-bidirectional-integration.md
+- docs/sessions/2026-08-21-weekly-newsletter-pipeline.md
+- docs/dns-email-authentication-fix.md
 - plan.md
 - marketing/email-marketing/emerald-email-campaign/plan.md
 - marketing/email-marketing/emerald-email-campaign/dispatcher-plan.md

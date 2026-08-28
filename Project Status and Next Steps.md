@@ -1,14 +1,26 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-08-19 (LinkedIn send-path double-escape corruption fixed)
+Updated: 2026-08-26 (August Emerald contact enrollment reconciled; newsletter DNS gate pending)
 
 ## Source Of Truth
+
+### Weekly Newsletter Pipeline (Built 2026-08-21 — DNS GATE PENDING)
+
+Recurring weekly newsletter to all eligible GHL contacts (Mon–Wed, 3 hourly batches/day, senders `.co`/`.agency`/`.org` — NOT `.com`). Built and fully dry-run verified.
+
+- **Eligible count:** 31,800 GHL contacts → **22,169 eligible** (excludes no-email + `do not contact`/`do not nurture`, email-deduped). Per sender: ~7,390/week, ~2,463/day (under `maxPerSenderPerDay=3000`).
+- **Workflows:** Prep `vvPdJMzBJMgcf5I9` (Mon 06:30 LA, unpublished) + Dispatcher `vru7OtCkDnPJkWt2` (Mon–Wed 07:00/08:00/09:00 LA, unpublished, `defaultDryRun=true`). Tracking handlers all active: Open Pixel `HkTQ9mqwHcpg3AIM`, Click Track `HZ8ndNF4p80PrQjf`, Unsubscribe `RvYusUSGB79K2e2k`.
+- **Verified:** prep exec `774082` wrote 22,169 rows (0 sends); dispatcher dry run `773957` matched template + emitted `planned` with 0 DB mutation; tracking pixel/click/unsub E2E tested. Test artifacts cleaned.
+- **Template:** `Newsletter 1 2026-08-24 (The real reason regulated ads get disapproved)` (ID `6a87716221922afe5eda9e6f`), proper logo applied.
+- **⚠️ DNS GATE:** email-sender domains still have duplicate SPF + DMARC records. Fix sent to domain admin 2026-08-21. **Do NOT send until confirmed.** The phrase **"the DNS of the email senders have been fixed"** is the trigger for the Go-Live sequence.
+- **Go-Live sequence + full runbook:** `docs/sessions/2026-08-21-weekly-newsletter-pipeline.md`.
+
 
 ### Instagram Company Page DM Sender Live — Brands First (2026-08-18)
 
 - The company-page Instagram DM sender `LT - Instagram Company Page Partnership Sender` (`IeovbYnhCsetXS89`) is **live** (dryRun=false), Mon-Fri 10:00-15:00 America/Los_Angeles, 45/day cap, 10/hour. Unipile key verified working.
 - `campaign_priority` in `instagram_company_dm_state` flipped to **dan_brands=1, dan_dispensaries=2, partnerships=3** (379 rows: 245 Brands, 58 Dispensaries, 76 Partnerships). Brands are sent first starting tomorrow, then Dispensaries, then the remaining Partnerships.
-- `firstWeekMessage1Only=true` — only Message 1 is sent until everyone has it; Message 2/3 are enabled explicitly afterward. 45 Partnerships already received Message 1 on 2026-08-17.
+- Message 2 is enabled in the live company-page sender (`IeovbYnhCsetXS89`, published version `3d721cec-04e6-45cc-9ebb-fb21589b61a6`). It selects Message-1-complete rows after a two-business-day gate and advances them idempotently to step 2. Message 3 remains disabled.
 - `brand_pool - IG & FB` enrichment is COMPLETE (`BIVAw1AWTTzC0igW` unpublished, 0 unresolved). Dispensary (`Qd7sn9MPq4W24WKi`) and Partnership (`RlogFNDYjtjkuRFJ`) enrichment remain active on a 5-minute schedule; an OpenRouter weekly key limit blocked them until the user fixed it on 2026-08-18.
 - Session details: [`docs/sessions/2026-08-18-instagram-company-page-dm-priority.md`](docs/sessions/2026-08-18-instagram-company-page-dm-priority.md).
 
@@ -29,6 +41,31 @@ Updated: 2026-08-19 (LinkedIn send-path double-escape corruption fixed)
 - **Two distinct failures, not one**: (1) `identifier()` `/^https?:\\\\/\\\\//i` crashed the Dispatcher at parse time, so it sent **no invites at all** 08-11→08-18; (2) after the 08-18 REST PUT fixed only that crash, `sanitize()` matched literal `u`/`C`/`D`+digits (garbling `Cameron`→`"ameron`, `co-founder`→`co-fo'nder`) and `/\\{first_name\\}/gi` left `{first_name}` unreplaced. **Garbled invites were sent only from 08-18 00:15 → 08-19 04:45**, bounded by the 60/day cap — not since 08-11.
 - **Fixed** with `scripts/fix_linkedin_sanitize_double_escape.py`: Dispatcher `fXxw5lanZcDmUrst` → published `0a349cdb-295f-45a5-978a-2f3e46022ace`; DM Sequence `d0tEtijajisIsYcs` → published `db7dde63-2f6e-42e8-92f0-7f68c66e7445`. Both verified `versionId == activeVersionId`. A full-instance scan of all 164 workflows confirmed no other Code nodes affected.
 - Full timeline, root cause, and prevention notes: [`docs/sessions/2026-08-19-linkedin-double-escape-fix.md`](docs/sessions/2026-08-19-linkedin-double-escape-fix.md).
+
+### Executive Report Accuracy Audit (2026-08-25)
+
+- Full 30d cross-check of the Executive Summary, Campaign Channel Summary, and Outgoing Calls against source Postgres tables. Already-exact figures: `emailsSent` 2,692 / `opened` 7,505 / `clicked` 467 / `bounced` 459 / `unsubscribed` 51, Vapi 50 calls, LinkedIn 44 invites / 26 DMs / 4 replies, Instagram 204 DMs, social 29 posts + account stats, appointments 4, calls 828, Meta ads spend $14,832.79 / 9,460 clicks / 488,777 impressions, MQL summary, SMS 184 sent / 1,095 failed.
+- **Raw pipeline/stage IDs exposed** in `pipelineDropoff` (Partnership pipeline), `stageDropoff`, `opportunityStageBreakdown`, and `stageVelocity`. Added the full canonical CASE mappings (Partnership Pipeline `tQkFYrHjALgoLz6oq0uz` + 4 stages, plus Sales Outreach `91517911`=Qualified/`5112b5c8`=Discovery No Shows for Rescheduling, Warm `67d47ef7`=New_Not Qualified/`0741e8b5`=vapi_voicemail/`967292f9`=vapi_nurture/`16fb26a2`=vapi_qualified, Sales `268ed432`=Discovery No Shows) to Exec Summary `Build Query` (opportunity_snapshots), Daily Rollups `Build Rollup SQL` (tmp_report_opps + opp_transitions), and Pipeline Velocity `Build Velocity SQL` (timeline). Re-ran rollup + velocity; `stageVelocity` now uses `computed_at = MAX(computed_at)` so it always shows the latest compute. No raw IDs remain in the current window.
+- **Campaign Channel Partnership email undercount**: `Partnership emails email_sent` was 59 (COUNT DISTINCT contacts); the release log has 233 (59 contacts × 4 steps) and the Exec Summary counted 233. Changed `email_sent` to `COUNT(*)` for DAN/Emerald/Partnership. Both endpoints now report 2,692 total.
+- **Email rates hardcoded NULL** → now cohort-based `emailOpenRate`/`ClickRate`/`BounceRate` = unique recipients opened/clicked/bounced within the window send cohort ÷ unique sent recipients (44.6% / 11.4% / 4.7% for 30d; `emailRateBasis=unique_recipient_rates_over_window_sent_cohort`). Restricting to the send cohort avoids inflation from historical sends opening in-window.
+- **`salesQuality.topLossReason` renamed `topLossStage`** (it returned a stage name; GHL has no structured loss-reason).
+- **Workflow versions (all `versionId == activeVersionId`)**: Exec Summary `d01f7757-eb14-4072-9a96-c4fbf8017091`; Daily Rollups `ddded785-2d31-4818-8ced-8a9c881a689f`; Pipeline Velocity `43515531-dd9f-4462-bbe6-e58e321ab130`; Campaign Channel `6ec148ff-6f1c-42b5-8b72-157d40d0a74a`. (REST PUT auto-publishes; the Query Summary postgres credential `pgAzUqpwOiGkGXzO` had to be re-attached after the first PUT stripped it.)
+- **Remaining data-source issues (operator action, not logic)**: GA4 credential expired 08-14 (traffic undercounted; reconnect the Google OAuth credential in n8n — `health` already flags GA4 stale); Pipeline Velocity schedule stopped firing ~08-07 (now manually refreshed); GSC stale since 08-07; opportunities snapshot gap 08-12…08-20; `poolDistribution` always 0 (leads ingest only snapshots ~500 contacts); `metaAttribution` empty (no Meta-UTM contacts in the 500-row snapshot).
+
+### MQL Tag Ledger (2026-08-25)
+
+- The business counts MQLs by the **`mql` tag being added** (e.g. past week), not by the Warm Qualified (MQL) stage. GHL does not expose tag-add timestamps and the hourly contact snapshot can't reconstruct them, so we built a forward-looking ledger.
+- `mql_tag_events` table (UNIQUE `(contact_id, tag)`, first-add wins) + active workflow `LT - MQL Tag Event Ingest` (`U9oc2tZRsr4zq6IM`, POST `/webhook/lt-mql-tag-event`, requires `X-LT-MQL-Tag-Secret` from its Config node; 403 on unauthorized/missing contact, `duplicate` on re-add). Tested: unauthorized 403, authorized insert, duplicate no-op, then test rows deleted.
+- Exec Summary `mqlSummary` now returns `taggedMqlsTotal`/`taggedMqlsThisPeriod`/`taggedAsOfDate`/`tagBasis: mql_tag_events_ledger` (0 until events flow).
+- **GHL automation created and published**: `WL - MQL Tag Ledger` (`203163a4-262a-4195-9a15-b4aa0b712c5a`) uses Contact → Tag Added → `mql` → authenticated webhook POST with `{"contact_id":"{{contact.id}}",...}`. Forward-looking only; cannot backfill prior weeks. Runbook: [`docs/sessions/2026-08-25-mql-tag-ledger.md`](docs/sessions/2026-08-25-mql-tag-ledger.md).
+
+### August 2026 Emerald Contact Enrollment (2026-08-26)
+
+- Reconciled 2,620 cleaned Brand, Agency, and Dispensary source rows against live GHL. Final dry run: 0 unmatched rows and 0 pending tag actions.
+- Created 36 additional email-only contacts where the source email was genuinely absent from GHL. Existing contacts were not overwritten.
+- Completed 319 contact-level repair groups representing 325 tag assignments: 313 Emerald MSO queue enrollments plus six Dispensary pool and six DAN queue assignments. Queue tags use the existing GHL enrollment automations; no manual email sends were performed.
+- Five AURI addresses were intentionally skipped because GHL stores them as additional emails on existing contact `Amy Lund` (`ZtDaBakEXm0yPi2jW8mi`). The reconciliation script now recognizes these duplicates and will not retry them.
+- Detailed handoff: [`docs/sessions/2026-08-26-august-emerald-contact-enrollment.md`](docs/sessions/2026-08-26-august-emerald-contact-enrollment.md).
 
 ### Executive Report MQL and Account Statistics (2026-08-17)
 
@@ -73,7 +110,7 @@ Updated: 2026-08-19 (LinkedIn send-path double-escape corruption fixed)
 The company-page Instagram DM sender is **LIVE**: `LT - Instagram Company Page Partnership Sender` (`IeovbYnhCsetXS89`), active and published (dryRun=false), Mon-Fri 10:00-15:00 America/Los_Angeles, 45/day cap, 10/hour. It reads `instagram_company_dm_state` and sends via Unipile account `F2UprZ8aQc6Qm9CYYWU6cg`. Do not republish `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`): it used the LinkedIn account and old `instagram_dm_state` model.
 
 - **Send priority (2026-08-18):** `campaign_priority` is `dan_brands`=1, `dan_dispensaries`=2, `partnerships`=3 (379 rows: 245 Brands, 58 Dispensaries, 76 Partnerships). Brands go first, then Dispensaries, then Partnerships.
-- **Message strategy:** `firstWeekMessage1Only=true` — only Message 1 is sent; Message 2 (then 3) is enabled only after everyone has received Message 1. 45 Partnerships received Message 1 on 2026-08-17 before the priority change.
+- **Message strategy:** Message 2 is now enabled after the Message-1-first rollout. The sender uses the approved campaign-specific Message 2 copy, a two-business-day delay, and step-2 idempotency/state transitions. Message 3 remains disabled.
 - **Unipile key verified working** on 2026-08-18 (HTTP 200 accounts list; Instagram account status OK).
 - **IG/FB enrichment:** `brand_pool - IG & FB` is COMPLETE (workflow `BIVAw1AWTTzC0igW` unpublished, 0 unresolved). Dispensary (`Qd7sn9MPq4W24WKi`) and Partnership (`RlogFNDYjtjkuRFJ`) enrichment remain active on a 5-minute schedule; temporarily blocked by an OpenRouter weekly key limit the user fixed on 2026-08-18.
 - Session details: [`docs/sessions/2026-08-18-instagram-company-page-dm-priority.md`](docs/sessions/2026-08-18-instagram-company-page-dm-priority.md). Full contract: [`docs/sessions/2026-08-14-company-instagram-page-dm-handoff.md`](docs/sessions/2026-08-14-company-instagram-page-dm-handoff.md).
@@ -232,7 +269,7 @@ This document is the canonical project status and next-steps reference. It super
 7. **Fix Executive Summary/date correctness debt** after source recovery.
 8. **Add OAuth social statistics and finish native GHL report UI configuration**.
 9. **Clean legacy artifacts and reconcile historical prose last**.
-10. ~~**Build company-page Instagram enrichment and delivery**~~ **LIVE (2026-08-18).** The weekday sender `IeovbYnhCsetXS89` is active and published with send priority brands (1) → dispensaries (2) → partnerships (3). Message 1 goes to everyone first, then Message 2/3 are enabled explicitly. Remaining work: finish Dispensary/Partnership IG/FB enrichment, create the eight company-level GHL fields (still not created), and after everyone has Message 1, extend the sender to step 2. Facebook Messenger remains deferred to native GHL Messenger and cannot use public Page URLs/Page IDs as recipient IDs.
+10. ~~**Build company-page Instagram enrichment and delivery**~~ **LIVE (2026-08-18; Message 2 enabled 2026-08-24).** The weekday sender `IeovbYnhCsetXS89` is active and published with send priority brands (1) → dispensaries (2) → partnerships (3). Message 2 now uses the approved campaign copy, a two-business-day gate, and step-2 idempotent state updates. Message 3 remains disabled. Remaining work: finish Dispensary/Partnership IG/FB enrichment and create the eight company-level GHL fields (still not created). Facebook Messenger remains deferred to native GHL Messenger and cannot use public Page URLs/Page IDs as recipient IDs.
 
 ### Explicit Reporting Notes
 
@@ -695,7 +732,7 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 
 ## Partnership Marketing Pipeline (LIVE 2026-07-31)
 
-131 content partnership contacts imported from two CSV lists ("Email" and "LinkedIn") and merged/deduplicated. Two parallel outbound sequences run from Cameron's accounts: a 4-step email sequence (60/day, 11am ET Mon-Fri) and a 4-step LinkedIn DM cadence dispatched through Unipile (30 connection requests/day, 3pm CT Mon-Fri). Both sequences use 2-weekday intervals between steps. All infrastructure is fully isolated from the main DAN/Emerald pipelines (separate Postgres tables, separate n8n workflows, separate GHL pipeline).
+The original 131 content partnership contacts remain in the partnership pipeline. On 2026-08-27, a separate August 26 source cohort was reconciled as 431 people, with 427 actionable contacts enrolled in both partnership selectors. Two parallel outbound sequences run from Cameron's accounts: a 4-step email sequence (60/day, 11am ET Mon-Fri) and a 4-step LinkedIn DM cadence dispatched through Unipile (30 connection requests/day, 3pm CT Mon-Fri). Both sequences use 2-weekday intervals between steps. All infrastructure is fully isolated from the main DAN/Emerald pipelines (separate Postgres tables, separate n8n workflows, separate GHL pipeline).
 
 ### Import
 
@@ -704,6 +741,7 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - 33 LinkedIn-only contacts created in GHL via MCP (no email; LinkedIn URLs set via `ew6uQQnAjgCbjeGn` webhook)
 - All contacts assigned to Janvi (`ck6TRlU3wnTmMxuVpn5F`)
 - Tags: `partner_candidate_email` (email contacts), `partner_candidate_linkedin` (LinkedIn contacts), or both
+- August 26 cohort: 404 newly created contacts carry `august_26_partnership_contact`; 427 actionable contacts carry both campaign selector tags. Four rows across two shared-email groups were skipped pending manual resolution.
 - 14 contacts excluded from original CSV due to wrong company/email domain mismatches — awaiting corrections from user
 - Test contact `NVAp2GdpbWXLheyUgVf2` (edmundocadorniga@gmail.com) cleaned — partnership tags removed
 
@@ -745,6 +783,7 @@ All 7 partnership workflows are active and published. The dispatcher schedules a
 |-----|---------|
 | `partner_candidate_email` | Import tag — marks contact for email sequence |
 | `partner_candidate_linkedin` | Import tag — marks contact for LinkedIn sequence |
+| `august_26_partnership_contact` | Source tag — identifies contacts newly created from the August 26, 2026 partnership cohort |
 | `partner_email_queued` | Applied after first email send — marks contact as active in email sequence |
 | `partner_linkedin_requested` | Applied after LinkedIn connection request sent |
 | `partner_email_sequence_completed` | Terminal — all 4 emails sent |

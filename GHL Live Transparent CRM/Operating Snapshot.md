@@ -151,7 +151,7 @@ Keep these aligned with routing and report logic:
 - `LT - LinkedIn Follower DM Sequence (Unipile)` (`pq7XVajNFnnwMUTr`) — unpublished; redundant with canonical LinkedIn DM sequence.
 
 ### Partnership Marketing (LIVE 2026-07-31)
-- 131 content partnership contacts: 98 email + 33 LinkedIn-only. Owner: Janvi (`ck6TRlU3wnTmMxuVpn5F`).
+- Original partnership cohort: 131 contacts (98 email + 33 LinkedIn-only). August 26 cohort: 431 source rows, 404 new contacts, 427 actionable contacts enrolled in both partnership selectors. The 404 new contacts carry `august_26_partnership_contact`. Owner: Janvi (`ck6TRlU3wnTmMxuVpn5F`) where assigned.
 - Independent pipeline, Postgres tables, and n8n workflows — fully isolated from DAN/Emerald.
 - `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`) — active, 60/day, 11am ET Mon-Fri, 2-weekday intervals
 - `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`) — active, 30/day, 3pm CT Mon-Fri
@@ -164,6 +164,7 @@ Keep these aligned with routing and report logic:
 - Reporting: Campaign Channel Summary includes separate `Partnership emails` and `Partnership LinkedIn` rows. The selected 30-day LinkedIn row shows 17 invites and 3 verified replies. Postgres tables were bootstrapped 2026-07-31.
 - Partnership outbound was explicitly activated on 2026-07-31. Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence use `defaultDryRun=false`; do not manually execute them unless an extra live batch is intended.
 - GHL Custom Report partnership widgets are configured; native GHL still cannot display Unipile invite, DM, or reply activity.
+- August 26 enrollment deliberately applied no Vapi campaign-selector tags. Four rows across two shared-email groups remain skipped pending manual resolution.
 
 ### Emerald (Staged — Marketing Email Paused 2026-06-05)
 - All 7 Emerald workflows are inactive (staged by design since pause):

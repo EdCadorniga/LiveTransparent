@@ -25,8 +25,9 @@ Use this pipeline for content partnership outreach — independent of the main s
 ### `Partnership Pipeline` (`tQkFYrHjALgoLz6oq0uz`)
 - Purpose: Track content partnership conversations (guest spots, co-written pieces, newsletter features). This pipeline runs alongside the main sales pipelines and is not a qualification gate for Warm/Sales Outreach.
 - Owner: Janvi (`ck6TRlU3wnTmMxuVpn5F`)
-- Contacts: 131 total — 98 via email + 33 LinkedIn-only
+- Contacts: original 131 plus the August 26 cohort. The August 26 cohort contains 431 source rows; 404 new contacts were created and 427 actionable contacts were enrolled in both selectors.
 - All contacts are tagged `partner_candidate_email` or `partner_candidate_linkedin` (or both)
+- The 404 newly created August 26 contacts also carry `august_26_partnership_contact`. They are intentionally not tagged `vapi_campaign_brand` or `vapi_campaign_dispensary`.
 
 #### Pipeline Stages
 1. **New Partner Lead** (`ccc3d423-ff86-46b4-bd53-064458910eba`): Initial entry when a contact replies to email or LinkedIn DM. Opportunity is automatically created by the Reply Handler workflow.

@@ -272,6 +272,14 @@ P3 (after findings):
 - Historical scheduled executions `277633` and `277645` failed because the published SQL at that time contained doubled quotes around `ready` and `connected`. The current published versions use valid SQL, but the scheduled path still needs monitoring after its next production tick.
 - The previous `POST /contacts/search` concern was resolved by replacing partnership candidate/active-contact reads with paginated `GET /contacts/` and explicit failure handling. Direct PIT checks now return HTTP 200 for location and contacts access.
 - `partnership_linkedin_connection_state` was initially empty. The LinkedIn dispatcher now runs `Seed Partnership State` before its ready-queue read and has 127 seeded `ready` rows.
+
+### August 2026 Cohort Enrollment (2026-08-27)
+
+- The August 26 partnership source files were reconciled as one 431-person cohort. There were 429 unique emails; two shared-email groups (four rows) were skipped for manual resolution.
+- 404 new GHL contacts were created. All 427 actionable contacts were tagged with `partner_candidate_email` and `partner_candidate_linkedin`; all 404 new contacts were additionally tagged `august_26_partnership_contact`.
+- Three existing contacts received missing person LinkedIn URLs. No Vapi selector tags were applied, and no terminal Vapi outcome tags were changed.
+- The active Email Dispatcher and LinkedIn Dispatcher will process the cohort on their existing schedules. No manual outbound execution was performed during enrollment.
+- Reconciliation scripts: `scripts/reconcile_august_2026_partnership_live.ps1` and `scripts/tag_august_26_partnership_contacts.ps1`. Final source-tag verification: 404/404 tagged, zero errors.
 - `partnership_release_log` has zero rows and no contacts currently have `partner_email_queued`, which is expected while live email sending is withheld. The scheduled email run `277632` reported zero candidates, but its result cannot distinguish an empty queue from the swallowed contacts-search failure.
 - Partnership workflows contain provider/API secrets and the protected state-upsert secret directly in Set/Code node configuration and fallback literals. This is an operational security gap even though the values are redacted from this report; they should move to managed credentials or protected runtime configuration and be rotated after migration.
 - The native GHL Custom Report was verified through the authenticated browser session. The report contains 11 widgets across opportunities, email, SMS, calls, contacts, appointments, and social posts; partnership-specific filters are still missing.
