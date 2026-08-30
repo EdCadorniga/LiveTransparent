@@ -34,7 +34,9 @@ services:
           - n8n
 
   n8n-runner:
-    image: 'n8nio/runners-custom:latest'
+    build:
+      context: ./runners
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       N8N_RUNNERS_AUTH_TOKEN: '${N8N_RUNNERS_AUTH_TOKEN:?Set the runner authentication token}'
