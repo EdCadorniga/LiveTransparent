@@ -11,6 +11,13 @@ services:
       DB_PING_TIMEOUT_MS: '5000'
       EXECUTIONS_TIMEOUT: '1800'
       EXECUTIONS_TIMEOUT_MAX: '3600'
+      N8N_RUNNERS_MODE: 'external'
+      N8N_RUNNERS_AUTH_TOKEN: '${N8N_RUNNERS_AUTH_TOKEN:?Set the runner authentication token}'
+      N8N_RUNNERS_BROKER_LISTEN_ADDRESS: '0.0.0.0'
+      N8N_RUNNERS_TASK_TIMEOUT: '600'
+      N8N_RUNNERS_TASK_REQUEST_TIMEOUT: '300'
+      NODE_FUNCTION_ALLOW_EXTERNAL: '*'
+      NODE_FUNCTION_ALLOW_BUILTIN: 'crypto,path,fs,net,tls'
     labels:
       - traefik.enable=true
       - traefik.docker.network=coolify-shared
@@ -25,6 +32,22 @@ services:
       coolify-shared:
         aliases:
           - n8n
+
+  n8n-runner:
+    image: 'n8nio/runners-custom:latest'
+    restart: unless-stopped
+    environment:
+      N8N_RUNNERS_AUTH_TOKEN: '${N8N_RUNNERS_AUTH_TOKEN:?Set the runner authentication token}'
+      N8N_RUNNERS_TASK_BROKER_URI: 'http://n8n:5679'
+      N8N_RUNNERS_TASK_TIMEOUT: '600'
+      NODE_PATH: '/opt/pg-node_modules'
+    volumes:
+      - './runners/n8n-task-runners.json:/etc/n8n-task-runners.json'
+    networks:
+      coolify-shared:
+    depends_on:
+      - n8n
+
 volumes:
   n8n_data: null
 networks:
