@@ -6,7 +6,8 @@ WORKDIR /tmp/pg
 # symlinks and does not satisfy the task runner's dependency resolver.
 RUN npm install --omit=dev --no-package-lock --no-save pg@8.21.0
 
-FROM n8nio/runners:latest
+# Keep the external runner protocol/runtime aligned with the n8n main image.
+FROM n8nio/runners:2.36.8
 
 USER root
 
