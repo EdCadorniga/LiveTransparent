@@ -35,16 +35,49 @@ services:
 
   n8n-runner:
     build:
-      context: ./runners
-      dockerfile: Dockerfile
+      context: .
+      dockerfile_inline: |
+        FROM n8nio/runners:2.36.8
+        USER root
+        RUN mkdir -p /opt/pg-node_modules \
+          && printf '%s\n' '{"name":"pg-dependencies","private":true}' > /opt/pg-node_modules/package.json \
+          && pnpm add pg@8.21.0 --dir /opt/pg-node_modules --prod --no-lockfile
+        RUN printf '%s\n' \
+          '{' \
+          '  "task-runners": [' \
+          '    {' \
+          '      "runner-type": "javascript",' \
+          '      "workdir": "/home/runner",' \
+          '      "command": "/usr/local/bin/node",' \
+          '      "args": ["--disallow-code-generation-from-strings", "--disable-proto=delete", "/opt/runners/task-runner-javascript/dist/start.js"],' \
+          '      "health-check-server-port": "5681",' \
+          '      "allowed-env": ["PATH", "GENERIC_TIMEZONE", "NODE_OPTIONS", "NODE_PATH", "N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT", "N8N_RUNNERS_TASK_TIMEOUT", "N8N_RUNNERS_MAX_CONCURRENCY", "N8N_SENTRY_DSN", "N8N_VERSION", "ENVIRONMENT", "DEPLOYMENT_NAME", "HOME"],' \
+          '      "env-overrides": {' \
+          '        "NODE_FUNCTION_ALLOW_BUILTIN": "crypto,path,fs,net,tls",' \
+          '        "NODE_FUNCTION_ALLOW_EXTERNAL": "*",' \
+          '        "NODE_PATH": "/opt/pg-node_modules",' \
+          '        "N8N_RUNNERS_HEALTH_CHECK_SERVER_HOST": "0.0.0.0"' \
+          '      }' \
+          '    },' \
+          '    {' \
+          '      "runner-type": "python",' \
+          '      "workdir": "/home/runner",' \
+          '      "command": "/opt/runners/task-runner-python/.venv/bin/python",' \
+          '      "args": ["-I", "-B", "-X", "disable_remote_debug", "-m", "src.main"],' \
+          '      "health-check-server-port": "5682",' \
+          '      "allowed-env": ["PATH", "N8N_RUNNERS_LAUNCHER_LOG_LEVEL", "N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT", "N8N_RUNNERS_TASK_TIMEOUT", "N8N_RUNNERS_MAX_CONCURRENCY", "N8N_SENTRY_DSN", "N8N_VERSION", "ENVIRONMENT", "DEPLOYMENT_NAME"],' \
+          '      "env-overrides": {}' \
+          '    }' \
+          '  ]' \
+          '}' \
+          > /etc/n8n-task-runners.json
+        USER runner
     restart: unless-stopped
     environment:
       N8N_RUNNERS_AUTH_TOKEN: '${N8N_RUNNERS_AUTH_TOKEN:?Set the runner authentication token}'
       N8N_RUNNERS_TASK_BROKER_URI: 'http://n8n:5679'
       N8N_RUNNERS_TASK_TIMEOUT: '600'
       NODE_PATH: '/opt/pg-node_modules'
-    volumes:
-      - './runners/n8n-task-runners.json:/etc/n8n-task-runners.json'
     networks:
       coolify-shared:
     depends_on:
