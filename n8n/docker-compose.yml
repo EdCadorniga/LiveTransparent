@@ -55,7 +55,7 @@ services:
           '      "env-overrides": {' \
           '        "NODE_FUNCTION_ALLOW_BUILTIN": "crypto,path,fs,net,tls",' \
           '        "NODE_FUNCTION_ALLOW_EXTERNAL": "*",' \
-          '        "NODE_PATH": "/opt/pg-node_modules",' \
+          '        "NODE_PATH": "/opt/pg-node_modules/node_modules",' \
           '        "N8N_RUNNERS_HEALTH_CHECK_SERVER_HOST": "0.0.0.0"' \
           '      }' \
           '    },' \
@@ -77,7 +77,7 @@ services:
       N8N_RUNNERS_AUTH_TOKEN: '${N8N_RUNNERS_AUTH_TOKEN:?Set the runner authentication token}'
       N8N_RUNNERS_TASK_BROKER_URI: 'http://n8n:5679'
       N8N_RUNNERS_TASK_TIMEOUT: '600'
-      NODE_PATH: '/opt/pg-node_modules'
+      NODE_PATH: '/opt/pg-node_modules/node_modules'
     networks:
       coolify-shared:
     depends_on:
