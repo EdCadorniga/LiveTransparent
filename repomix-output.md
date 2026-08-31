@@ -71,6 +71,42 @@ vapi-campaign-prompts-summary.md
 ````markdown
 # LiveTransparent Agent Notes
 
+## ✅ RESOLVED: 2026-08-30 Executive Report Audit & Fixes
+
+Full 7d/30d cross-check of the Executive Report (`https://reports.livetransparent.com/embed/executive/`) against source Postgres tables. The report page was **completely down** — nginx returned 504 because the Executive Summary query took 76.5s (nginx default proxy_read_timeout is 60s). Fixed everything and cut query time to ~15s.
+
+### Changes made (all in `LT - Report Executive Summary API`, active version `11ca17d6-fba7-4fe3-b45c-4c8522ca9e49`)
+
+| Fix | Detail |
+|-----|--------|
+| **nginx 504** | `reports/nginx.conf` now sets `proxy_read_timeout 300s; proxy_send_timeout 300s; proxy_connect_timeout 10s`. Applied to the running `reports-livetransparent` container + `nginx -s reload`, and committed to the repo. **Image must be rebuilt on next deploy or the timeout reverts to 60s.** |
+| **GHL Calls read wrong table** | The `calls` / `call_status_breakdown` / `call_outcome_breakdown` / `call_outcomes` CTEs read `report_raw_ghl_call_outcomes` (Vapi/GHL outcome table, stale since 08-10) → reported **0 calls**. They now read `report_raw_ghl_calls` (the working GHL Conversations ingest, every 4h). 7d window: 201 calls (115 completed, 51 no-answer, 19 busy, 12 failed, 4 ringing; 4 inbound / 197 outbound; answered 115, missed 82). |
+| **Duplicate "Unassigned" channels** | `channels` CTE outer SELECT used `COALESCE(NULLIF(g.channel,''),'Unassigned')` so any row coming only from the rollup side (`r`) was labeled "Unassigned", producing two identical rows. Fixed to `COALESCE(NULLIF(COALESCE(g.channel, r.channel),''),'Unassigned')`. |
+| **Vapi timezone buckets** | `vapi_timezone_buckets` counted ALL queue rows ever (2708) and emitted camelCase keys the frontend can't read. Now `WHERE status='pending'` (39) and emits both camelCase AND snake_case keys (`total_queued`/`explicit_count`/`inferred_count`/`none_count`) the deployed frontend expects. |
+| **Stage movedIn boundary bug** | `stage_daily` CTE fetched from `$1 - 1 day` for the LAG baseline but did NOT filter the output to the window, so the entire previous day's `stage_count` was counted as "moved in" (Warm New movedIn 5476 vs true 1679). Added `WHERE x.report_date >= $1::date`. |
+| **Perf: vapi timezone cross join** | `vapi_timezone_buckets` joined `voice_call_queue` to `vapi_contact_timezone_snapshots` with an `OR` on two normalized IDs → forced a 6.28M-row nested loop (~12s). Replaced with a single equality join on `LOWER(TRIM(REPLACE(q.contact_id,'contact:','')))`. |
+
+Overall Exec Summary query went from **73–77s → ~15–21s** (both 7d and 30d verified through the proxy).
+
+### Pipeline fixes
+- **Pipeline Velocity** (`iFfwh0jpYUZoDhDR`): schedule was `hoursInterval:24` and had **0 executions ever** (stale data since 08-24). Changed to daily cron `0 9 * * *` (UTC), published (`09e0f2e7-193b-4102-9008-4ec33bda02d2`), and manually re-ran (execution `832368`) so `report_stage_velocity_summary` is fresh. Health now `ready`.
+- **Sender schedules are NOT broken** — the Vapi dialer (`*/2 9-16 * * 1-5`), LinkedIn DM Sequence (`0 12-22 * * 1-5`), IG Company Sender (`0 10-15 * * 1-5`), and LinkedIn Dispatcher (`*/15 15-21 * * 1-5`) are all **weekday-only cron schedules** in America/Chicago or America/Los_Angeles; the apparent "outage" was just the weekend. They will resume Monday. (A harmless deactivate/reactivate cycle was done during diagnosis.)
+
+### Findings needing operator action
+- **GA4 resolved 2026-08-31** — the Google OAuth credential was reconnected by the user. `LT - GA4 Daily Ingest` was manually re-run (execution `832654`) and backfilled the entire 08-14…08-29 gap; the GA4 Traffic Rollup Bridge + Daily Rollups were re-run so `report_daily_summary.sessions` is current. The 7d report now shows traffic=174, users=166, real channel breakdown (Direct 43, Email 102, Organic Search 15…), and ga4 health `ready`.
+- **LinkedIn senders: root cause = temporary LinkedIn restriction, now cleared + fixed.** Around 08-28 17:00 UTC the Unipile LinkedIn account hit a temporary LinkedIn sending restriction — every `/users/invite` and `/chats` returned 422. **Verified cleared 2026-08-31**: a live `/users/invite` to a previously-failed ready-pool target returned HTTP 201 (invitation_id `7499980380033150976`). The restriction was likely the weekly invitation limit. Fixes applied:
+  - **Dispatcher stuck-claim bug (the real accumulation)**: `Fetch Ready Queue` claimed `ready`→`requested_pending` and when the daily invite limit was reached it returned early WITHOUT releasing the claim — so claimed rows accumulated forever (5,046 stuck rows, all `request_sent_at IS NULL`). Released all 5,046 back to `ready` and added a self-healing `released` CTE to the claim SQL (releases `requested_pending` rows older than 30 min with no confirmed send). Dispatcher published `7b002976-9e3e-450e-9c36-073e13c4e342`.
+  - **DM Sequence unreachable recipients**: 5 connected contacts (perrychase, darrylbryanallen, adolfo-araiza, cceciliaw, alison-li-lin) have genuinely unreachable LinkedIn profiles (Unipile `errors/invalid_recipient` on both provider-id and public-identifier lookups) and were clogging the hourly batch. The selection query now excludes `payload_json.dm_unreachable='true'`, the send code marks contacts `dm_unreachable` on invalid_recipient detection, and the 5 current ones are flagged. DM Sequence published `e99b0d0d-b90f-4e41-89bd-164c98e48c7e`.
+  - The dispatcher's 08-28 invite failures were the temporary restriction (not a code bug); the DM sequence's 08-28 failures were the 5 unreachable profiles + the restriction. Sender schedules resume Monday.
+- **GSC reconnected 2026-08-31** — the user reconnected the Search Console credential; `LT - GSC Daily Ingest` re-ran successfully (execution `832997`) and health is now `success`. It uses a 3-day rolling window (Config computes `end=yesterday, start=end-2`), so the 08-08…08-29 outage gap was NOT backfilled — but GSC volume is negligible (0 clicks, ~30 impressions/month), so the impact is immaterial.
+- **Contact acquisition UI cleanup (2026-08-31)** — `contact_sources` CTE now relabels GHL/msgsndr tracking-link landings (`/links/`, `msgsndr.com`) as a single `Email/SMS link` source with a blanked landing page instead of ~17 one-contact rows carrying unreadable `services.leadconnectorhq.com/links/r/2/{JWT}` URLs. 18 link-click contacts now aggregate into one row. Exec Summary version `a66e1914-7ff0-4414-b218-9f688b52803a`.
+- **OpenRouter credits restored 2026-08-31** — user added credits; no further `402 Insufficient credits` errors in n8n logs (affects IG/Dispensary/Partnership enrichment + DeepSeek classifier).
+- **`sqlContacts`/`poolDistribution` fixed (2026-08-31)** — these read `report_raw_ghl_contacts`, but the pool tags are NOT real GHL tags (`brands_pool`/`dispensaries_pool`/`vapi_campaign_*` return 0 via GHL `/contacts/search`; they are source-list designations in `emerging_pool_contacts`). Exec Summary `pool_distribution` now reads `emerging_pool_contacts` for `brandsPool` (3,668) / `dispensariesPool` (10,200) and `voice_call_queue` for `vapiBrand` (106) / `vapiDispensary` (66 distinct contacts). `sqlContacts` reads the `sql` GHL tag (36 contacts): backfilled once into `report_raw_ghl_contacts` and now re-snapshotted daily by a `sql`-tag fetch added to `LT - GHL Daily Leads Ingest` (idempotent, `report_date` = LA-yesterday so it lands in the current window). Exec Summary version `9c43be7d-7160-448f-82be-00e5f8303b88`.
+- **n8n runner `pg` + network fix (2026-08-31)** — the Coolify-managed runner (`n8n-runner-n44wksswcocwk88ogcog8c48`, auth token `<N8N_RUNNERS_AUTH_TOKEN — see Coolify env>`) had `NODE_PATH=/opt/pg-node_modules` which does NOT work with the pnpm pg layout (pg lives at `/opt/pg-node_modules/node_modules/pg`), so every pg-using Code node failed `Cannot find module 'pg'` (this is why Leads Ingest errored on 57 consecutive runs). Fixed `/etc/n8n-task-runners.json` to `NODE_PATH=/opt/pg-node_modules/node_modules` (via `docker cp`, running container only) and attached the runner to `coolify-shared` so it resolves the `postgres` hostname (it was only on the app-private network). Both are **ephemeral** — the repo config `n8n/runners/n8n-task-runners.json` is updated, but the image must be rebuilt and the network attach must be part of the Coolify compose on next deploy or the pg nodes fail again.
+- **`report_raw_ghl_call_outcomes`** is now effectively deprecated for the report (reads `report_raw_ghl_calls`). Note: `LT - Call Outcome Ingest` (`PUCfTZBANSPcgS0c`) writes to database **`n8n`** (not `postgres`), so its rows never reach the report DB — a pre-existing misconfiguration worth fixing.
+- **Newsletter is live** — `newsletter_send_log` shows 19,739 sent + 101 failed in the 08-23…08-29 window (Mon–Wed batches). The AGENTS.md DNS-gate note is stale; go-live happened. Report now folds newsletter sends/opens/clicks/unsubs into the email metrics.
+- `sqlContacts`/`poolDistribution` remain 0 (GHL Leads Ingest snapshots only ~500 contacts; pool tags aren't in that slice). Known data-coverage limitation.
+
 ## ✅ RESOLVED: 2026-08-12 Postgres Write Blocker
 
 **The n8n Postgres node v2.5+ has a known bug where `queryReplacement` silently fails to persist data.** This affects ~25 Postgres nodes across ~12 workflows. The root cause is that parameterized queries (`$1, $2, ...`) fail to commit in n8n's embedded task runner.
@@ -3543,19 +3579,40 @@ Normalized callback output:
 ````markdown
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-08-26 (August Emerald contact enrollment reconciled; newsletter DNS gate pending)
+Updated: 2026-08-31 (Executive Report audit + fixes; GA4/LinkedIn/GSC reconnected; runner pg fix)
+
+### Executive Report Audit + Fixes (2026-08-30 / 2026-08-31)
+
+Full 7d/30d/90d cross-check of the Executive Report against source Postgres tables. The page was completely down (nginx 504 — summary query took 76.5s vs 60s proxy timeout). Fixed everything; query now ~15–27s per range and the page loads.
+
+- **nginx 504** — `reports/nginx.conf` now sets `proxy_read_timeout 300s` on the API locations, applied to the running `reports-livetransparent` container + reloaded. **Image must be rebuilt on next deploy or it reverts to 60s.**
+- **Calls read wrong table** — the calls CTEs read `report_raw_ghl_call_outcomes` (stale since 08-10) → showed 0 calls. Now read `report_raw_ghl_calls` (working GHL Conversations ingest, every 4h). 7d window: 201 calls (115 completed, 51 no-answer, 19 busy, 12 failed, 4 ringing; 115 answered / 82 missed).
+- **Duplicate "Unassigned" channel rows** — rollup-only rows were mislabeled via `COALESCE(g.channel,'Unassigned')`. Fixed to `COALESCE(g.channel, r.channel)`.
+- **Vapi timezone buckets** — counted all-time queue (2708) and used camelCase keys the frontend can't read. Now `status='pending'` (39) and emits snake_case too.
+- **Stage moved-in boundary bug** — `stage_daily` included the LAG baseline day in output, inflating moved-in (Warm New 5,476→1,679). Added a window filter.
+- **Query perf** — vapi timezone cross-join (6.28M-row nested loop) replaced with a single equality join; total 73s→~15s.
+- **Pipeline Velocity** — 24h interval schedule had **0 executions ever**. Changed to daily `0 9 * * *` UTC cron + manual refresh (exec `832368`). Health `ready`.
+- **GA4** (2026-08-31) — user reconnected the Google OAuth credential; manually re-ran the ingest (exec `832654`), which backfilled 08-14…08-29; re-ran the rollups. 7d now shows traffic 174 / users 166 with real channels. Health `ready`.
+- **LinkedIn senders** (2026-08-31) — the 08-28 17:00 UTC outage was a **temporary LinkedIn restriction** (all `/users/invite` + `/chats` 422; verified cleared with a live 201 invite). Fixed the underlying accumulation: dispatcher claimed `ready`→`requested_pending` and never released on daily-limit early-return, leaving 5,046 stuck rows — released all to `ready` and added a self-healing `released` CTE (30-min stale claims recycle). Dispatcher published `7b002976`. DM sequence: 5 connected contacts have genuinely unreachable profiles (Unipile `invalid_recipient`) and clogged the hourly batch — selection now excludes `dm_unreachable`, send code flags them, and the 5 current ones are marked. DM Sequence published `e99b0d0d`.
+- **GSC** (2026-08-31) — user reconnected the Search Console credential; ingest re-ran (exec `832997`), health `success`. 3-day rolling window so the 08-08…08-29 gap was not backfilled (negligible volume).
+- **Contact acquisition UI** — `contact_sources` CTE relabels GHL/msgsndr tracking-link landings as a single `Email/SMS link` row (18 contacts) instead of ~17 one-contact rows with unreadable JWT URLs.
+- **`sqlContacts`/`poolDistribution`** (2026-08-31) — pool tags are NOT real GHL tags (`brands_pool`/`dispensaries_pool`/`vapi_campaign_*` return 0 via GHL search). `pool_distribution` now reads `emerging_pool_contacts` (brandsPool 3,668 / dispensariesPool 10,200) + `voice_call_queue` (vapiBrand 106 / vapiDispensary 66). `sqlContacts` reads the real GHL `sql` tag (36) — backfilled once + re-snapshotted daily by a `sql`-tag fetch in `LT - GHL Daily Leads Ingest`. Exec Summary active version `9c43be7d-7160-448f-82be-00e5f8303b88`.
+- **n8n runner pg + network** (2026-08-31) — the Coolify-managed runner had `NODE_PATH=/opt/pg-node_modules` (doesn't work with pnpm pg layout; pg is at `…/node_modules/pg`) and wasn't on `coolify-shared` (couldn't resolve `postgres`). Fixed both in the running container (Leads Ingest had been erroring on 57 consecutive runs). **Ephemeral** — repo `n8n/runners/n8n-task-runners.json` updated, but the image must be rebuilt + network attach added to the Coolify compose on next deploy.
+
+**Remaining known limitations (not report bugs):** `metaAttribution` empty (no Meta-UTM contacts in the 500-contact snapshot); OpenRouter 402s previously affected enrichment (credits restored 2026-08-31).
+
+
 
 ## Source Of Truth
 
-### Weekly Newsletter Pipeline (Built 2026-08-21 — DNS GATE PENDING)
+### Weekly Newsletter Pipeline (LIVE 2026-08-27 — DNS gate cleared)
 
-Recurring weekly newsletter to all eligible GHL contacts (Mon–Wed, 3 hourly batches/day, senders `.co`/`.agency`/`.org` — NOT `.com`). Built and fully dry-run verified.
+Recurring weekly newsletter to all eligible GHL contacts (Mon–Wed, 3 hourly batches/day, senders `.co`/`.agency`/`.org` — NOT `.com`). **Go-live happened** — the DNS gate is cleared; `newsletter_send_log` shows 19,739 sent + 101 failed in the 08-23…08-29 window, and the Executive Report folds newsletter sends/opens/clicks/unsubs into the email metrics.
 
 - **Eligible count:** 31,800 GHL contacts → **22,169 eligible** (excludes no-email + `do not contact`/`do not nurture`, email-deduped). Per sender: ~7,390/week, ~2,463/day (under `maxPerSenderPerDay=3000`).
 - **Workflows:** Prep `vvPdJMzBJMgcf5I9` (Mon 06:30 LA, unpublished) + Dispatcher `vru7OtCkDnPJkWt2` (Mon–Wed 07:00/08:00/09:00 LA, unpublished, `defaultDryRun=true`). Tracking handlers all active: Open Pixel `HkTQ9mqwHcpg3AIM`, Click Track `HZ8ndNF4p80PrQjf`, Unsubscribe `RvYusUSGB79K2e2k`.
 - **Verified:** prep exec `774082` wrote 22,169 rows (0 sends); dispatcher dry run `773957` matched template + emitted `planned` with 0 DB mutation; tracking pixel/click/unsub E2E tested. Test artifacts cleaned.
 - **Template:** `Newsletter 1 2026-08-24 (The real reason regulated ads get disapproved)` (ID `6a87716221922afe5eda9e6f`), proper logo applied.
-- **⚠️ DNS GATE:** email-sender domains still have duplicate SPF + DMARC records. Fix sent to domain admin 2026-08-21. **Do NOT send until confirmed.** The phrase **"the DNS of the email senders have been fixed"** is the trigger for the Go-Live sequence.
 - **Go-Live sequence + full runbook:** `docs/sessions/2026-08-21-weekly-newsletter-pipeline.md`.
 
 
