@@ -1,6 +1,6 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-08-31 (Executive Report audit + fixes; GA4/LinkedIn/GSC reconnected; runner pg fix)
+Updated: 2026-09-01 (Newsletter dispatcher capacity and runner recovery)
 
 ### Executive Report Audit + Fixes (2026-08-30 / 2026-08-31)
 
@@ -26,12 +26,19 @@ Full 7d/30d/90d cross-check of the Executive Report against source Postgres tabl
 
 ## Source Of Truth
 
-### Weekly Newsletter Pipeline (LIVE 2026-08-27 — DNS gate cleared)
+### Weekly Newsletter Pipeline (LIVE 2026-08-27 — capacity retuned 2026-09-01)
 
-Recurring weekly newsletter to all eligible GHL contacts (Mon–Wed, 3 hourly batches/day, senders `.co`/`.agency`/`.org` — NOT `.com`). **Go-live happened** — the DNS gate is cleared; `newsletter_send_log` shows 19,739 sent + 101 failed in the 08-23…08-29 window, and the Executive Report folds newsletter sends/opens/clicks/unsubs into the email metrics.
+Recurring weekly newsletter to all eligible GHL contacts (Monday-Friday, 15-minute runs from 07:00-13:00 LA, senders `.co`/`.agency`/`.org` — NOT `.com`). **Go-live happened** — the DNS gate is cleared; `newsletter_send_log` shows 19,739 sent + 101 failed in the 08-23…08-29 window, and the Executive Report folds newsletter metrics into email metrics with these definitions:
+  - `emailsSent` = **unique sends** (one row per `ghl_contact_id + week_key` in `newsletter_send_log`; UNIQUE constraint ensures no duplicates)
+  - `emailsOpened` = **total open events** (counted from `newsletter_events`; a single contact can have multiple open events tracked via HMAC pixel)
+  - `emailsClicked` = **total click events** (counted from `newsletter_events`; a single contact can have multiple clicks tracked via HMAC link rewriting)
+  - `emailsUnsubscribed` = **unique unsubscribes** (one row per contact who clicked unsubscribe link; logged in `newsletter_events` and `newsletter_send_log`)
+  - `newsletterFailed` = **failed send attempts** (rows marked `status='failed'` in `newsletter_send_log`; 101 in last window)
+  - Rates (`emailOpenRate`/`emailClickRate`/`emailBounceRate`) are computed from **unique recipients** in the window send cohort
 
-- **Eligible count:** 31,800 GHL contacts → **22,169 eligible** (excludes no-email + `do not contact`/`do not nurture`, email-deduped). Per sender: ~7,390/week, ~2,463/day (under `maxPerSenderPerDay=3000`).
-- **Workflows:** Prep `vvPdJMzBJMgcf5I9` (Mon 06:30 LA, unpublished) + Dispatcher `vru7OtCkDnPJkWt2` (Mon–Wed 07:00/08:00/09:00 LA, unpublished, `defaultDryRun=true`). Tracking handlers all active: Open Pixel `HkTQ9mqwHcpg3AIM`, Click Track `HZ8ndNF4p80PrQjf`, Unsubscribe `RvYusUSGB79K2e2k`.
+- **Eligible count:** 31,800 GHL contacts → **22,169 eligible** (excludes no-email + `do not contact`/`do not nurture`, email-deduped). Per sender: ~7,390/week, ~1,478/day across five weekday buckets (under the live `maxPerSenderPerDay=2333` cap).
+- **Workflows:** Prep `vvPdJMzBJMgcf5I9` (Mon 06:30 LA, active/published) + Dispatcher `vru7OtCkDnPJkWt2` (every 15 minutes, 07:00-13:00 LA, Monday-Friday, active/published, `defaultDryRun=false`). Dispatcher uses `maxPerRun=250` and a database-backed `maxPerSenderPerDay=2333` cap. Tracking handlers all active: Open Pixel `HkTQ9mqwHcpg3AIM`, Click Track `HZ8ndNF4p80PrQjf`, Unsubscribe `RvYusUSGB79K2e2k`.
+- **Capacity recovery (2026-09-01):** Prep now assigns weekday buckets 1-5. Thursday/Friday dispatch runs drain remaining pending/failed rows across all buckets. The custom JavaScript runner was rebuilt with `N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT=300`, `N8N_RUNNERS_MAX_CONCURRENCY=10`, isolated `pg`, and `coolify-shared` access. Full pinned graph test `837185` passed; controlled live send `838055` sent one newsletter. August 31 finished with 695 sent and 39 failed; 3,398 rows remain claimed and require normal stale-claim recycling.
 - **Verified:** prep exec `774082` wrote 22,169 rows (0 sends); dispatcher dry run `773957` matched template + emitted `planned` with 0 DB mutation; tracking pixel/click/unsub E2E tested. Test artifacts cleaned.
 - **Template:** `Newsletter 1 2026-08-24 (The real reason regulated ads get disapproved)` (ID `6a87716221922afe5eda9e6f`), proper logo applied.
 - **Go-Live sequence + full runbook:** `docs/sessions/2026-08-21-weekly-newsletter-pipeline.md`.

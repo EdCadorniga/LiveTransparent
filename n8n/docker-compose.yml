@@ -1,14 +1,21 @@
 services:
   n8n:
-    image: 'n8nio/n8n:2.36.8'
+    image: 'n8nio/n8n:2.36.9'
     restart: unless-stopped
     environment:
       N8N_CONCURRENCY: '10'
+      N8N_CONCURRENCY_PRODUCTION_LIMIT: '5'
       DB_POSTGRESDB_POOL_SIZE: '10'
       DB_POSTGRESDB_CONNECTION_TIMEOUT: '3000'
+      DB_POSTGRESDB_IDLE_CONNECTION_TIMEOUT: '30000'
+      DB_POSTGRESDB_MAX_CONNECTION_LIFETIME_MS: '1800000'
       DB_CONNECTION_ACQUISITION_TIMEOUT_MS: '10000'
       DB_POSTGRESDB_STATEMENT_TIMEOUT: '300000'
+      DB_PING_INTERVAL_SECONDS: '5'
       DB_PING_TIMEOUT_MS: '5000'
+      DB_PING_MAX_FAILURES_BEFORE_RECOVERY: '3'
+      DB_RECOVERY_BACKOFF_MIN_MS: '1000'
+      DB_RECOVERY_BACKOFF_MAX_MS: '30000'
       EXECUTIONS_TIMEOUT: '1800'
       EXECUTIONS_TIMEOUT_MAX: '3600'
       N8N_RUNNERS_MODE: 'external'
@@ -37,7 +44,7 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM n8nio/runners:2.36.8
+        FROM n8nio/runners:2.36.9
         USER root
         RUN mkdir -p /opt/pg-node_modules \
           && printf '%s\n' '{"name":"pg-dependencies","private":true}' > /opt/pg-node_modules/package.json \
@@ -77,6 +84,8 @@ services:
       N8N_RUNNERS_AUTH_TOKEN: '${N8N_RUNNERS_AUTH_TOKEN:?Set the runner authentication token}'
       N8N_RUNNERS_TASK_BROKER_URI: 'http://n8n:5679'
       N8N_RUNNERS_TASK_TIMEOUT: '600'
+      N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: '300'
+      N8N_RUNNERS_MAX_CONCURRENCY: '10'
       NODE_PATH: '/opt/pg-node_modules/node_modules'
     networks:
       coolify-shared:
