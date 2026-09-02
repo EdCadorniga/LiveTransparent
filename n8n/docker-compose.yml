@@ -87,6 +87,9 @@ services:
       N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT: '300'
       N8N_RUNNERS_MAX_CONCURRENCY: '10'
       NODE_PATH: '/opt/pg-node_modules/node_modules'
+      NODE_OPTIONS: '--max-old-space-size=2048'
+    extra_hosts:
+      - 'postgres:host-gateway'
     networks:
       coolify-shared:
     depends_on:
