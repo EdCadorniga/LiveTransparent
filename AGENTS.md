@@ -1,5 +1,26 @@
 # LiveTransparent Agent Notes
 
+## ✅ RESOLVED: 2026-09-02 n8n Compose Database/Runner Hardening
+
+Updated `n8n/docker-compose.yml` after diagnosing transient n8n readiness failures and runner `pg` resolution issues. The changes are committed and pushed in commit `27dea1e`.
+
+### Persistent Compose Changes
+
+- n8n and the inline runner base image are pinned to `2.36.9`.
+- Production execution concurrency is capped at 5 with `N8N_CONCURRENCY_PRODUCTION_LIMIT=5`; the runner task concurrency remains 10.
+- PostgreSQL idle connections are recycled after 30 seconds and pooled connections after 30 minutes.
+- n8n database health monitoring pings every 5 seconds and begins recovery after 3 failures, with 1-30 second exponential backoff.
+- Runner idle shutdown is set to 300 seconds and runner concurrency is set to 10 in the Compose service environment.
+- The Coolify/Compose runner uses the pnpm module path `/opt/pg-node_modules/node_modules` for `pg`. Do not use the standalone runner path `/opt/pg-node_modules` here; that npm-layout path applies only to `scripts/deploy_runner.py` and `n8n/runners/Dockerfile`.
+- Both services use the external `coolify-shared` network, and the n8n service retains the `n8n` network alias required by the runner broker URI `http://n8n:5679`.
+
+### Verification
+
+- `docker compose -f n8n/docker-compose.yml config --quiet` passes with `N8N_RUNNERS_AUTH_TOKEN` supplied by the deployment environment.
+- `git diff --check` passes.
+- After the deployment restart, `https://automations.livetransparent.com/healthz/readiness`, `/healthz`, and `/` returned HTTP 200. A temporary 404/bad-gateway symptom occurred during container recreation and cleared without a configuration rollback.
+- Do not commit the untracked PowerShell investigation scripts from the September 2026 session; several contain embedded GHL bearer tokens. Use environment-based `GHL_PIT` access instead.
+
 ## ✅ RESOLVED: 2026-08-30 Executive Report Audit & Fixes
 
 Full 7d/30d cross-check of the Executive Report (`https://reports.livetransparent.com/embed/executive/`) against source Postgres tables. The report page was **completely down** — nginx returned 504 because the Executive Summary query took 76.5s (nginx default proxy_read_timeout is 60s). Fixed everything and cut query time to ~15s.
