@@ -1,8 +1,35 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-09-01 (Newsletter dispatcher capacity and runner recovery)
+Updated: 2026-09-04 (Executive Report runtime and runner recovery)
 
 ### Executive Report Audit + Fixes (2026-08-30 / 2026-08-31)
+
+### Executive Report Runtime Recovery (2026-09-04)
+
+- n8n readiness briefly failed with `Database is not ready!` because the JavaScript task runner had a stale `postgres:host-gateway` entry resolving to `10.0.0.1`, while the healthy PostgreSQL service is on `coolify-shared`.
+- Recreated the live Coolify runner without the stale `extra_hosts` override and attached it to both the private n8n broker network and `coolify-shared`. The runner now resolves `postgres` to the Docker service at `10.0.2.3`.
+- Restarted n8n once to clear the ended connection pool. PostgreSQL was healthy and was not restarted.
+- Verified `healthz/readiness`, Executive Summary, Campaign Channels, and Outgoing Calls all return HTTP 200. Browser verification returned zero console errors.
+- Changed `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`) from a 24-hour interval trigger to the explicit daily cron `0 2 * * *` UTC. Successful executions `887723` and `887730` completed after the change; GSC health is now `success` with 30 rows.
+- The first post-change Summary request hung while the runner and n8n were recovering. One controlled n8n restart cleared the in-flight request; no PostgreSQL restart was performed.
+- Final endpoint checks returned HTTP 200: readiness, Executive Summary, Campaign Channels, Outgoing Calls, and the report page. Browser console verification returned zero errors.
+- Executive Summary source health now reports every source as `ready` or `success`, including `email_events` and `linkedin_activity_events`. Event-ledger sources use their recorded workflow status rather than being marked stale solely because their health timestamp is not a scheduled-ingest heartbeat.
+- Live workflow verification: Executive Summary `Bukc0mgOD2r7V6ED` is active, unarchived, 7 nodes, version `92507a83-2a82-4a1d-8fb0-43a86d116a2d`, with matching `versionId` and `activeVersionId`. GSC workflow `xHqmCC1vOeZ11gCd` is active, unarchived, 9 nodes, version `b72f6cb4-2337-47ab-8a10-54c5a2b87f5b`, with matching `versionId` and `activeVersionId`.
+- Current performance risk: Executive Summary completes successfully but took approximately 59 seconds in the final sequential check. Campaign Channels took approximately 10 seconds and Outgoing Calls approximately 1 second. No further SQL optimization was applied without an execution plan.
+
+### Session Closeout (2026-09-04)
+
+- **Objective completed:** restore report availability and source-health accuracy after the n8n runner/PostgreSQL DNS failure, repair the GSC schedule, and verify the live report path.
+- **Repository changes:** `n8n/docker-compose.yml` removes the stale runner `extra_hosts` PostgreSQL override; this prevents the Coolify runner from resolving `postgres` to the host gateway. `repomix-output.md` was refreshed. This status document records the verified closeout.
+- **Accepted verification:** readiness HTTP 200; Executive Summary HTTP 200; Campaign Channels HTTP 200; Outgoing Calls HTTP 200; report page HTTP 200; zero browser console errors; PostgreSQL healthy; GSC executions `887723` and `887730` successful; no recent GSC executions left in `new`, `running`, or `waiting`.
+- **Not accepted as tests:** direct n8n MCP workflow lookup/execution calls returned permission/not-found errors; the legacy REST `/run` attempt returned HTTP 405; one concurrent Summary curl was locally aborted/timeouted while the server request was in flight. These were harness limitations or interrupted requests, not evidence of a workflow failure.
+- **Open risks:** Executive Summary latency remains high at approximately 59 seconds; the Coolify deployment should be rebuilt or checked to ensure the repository compose change persists; the 1,229 unmatched `emerging_pool_contacts.ghl_contact_id` rows and embedded workflow secrets remain existing project risks.
+- **Next session order:**
+  1. Profile the Executive Summary SQL with `EXPLAIN (ANALYZE, BUFFERS)` during a controlled low-traffic window before changing query logic.
+  2. Rebuild or inspect the Coolify n8n deployment and verify runner `pg` resolution, `getent hosts postgres`, and `coolify-shared` membership after deployment.
+  3. Continue the documented secret migration and rotate exposed credentials only after credential-backed replacements are verified.
+  4. Decide whether to resolve, skip, or re-export the 1,229 unmatched pool contacts.
+- **Safety gates:** do not run live LinkedIn, Instagram, Vapi, newsletter, or SMS sends for testing without explicit approval. Do not restart PostgreSQL or rotate `N8N_ENCRYPTION_KEY` casually.
 
 Full 7d/30d/90d cross-check of the Executive Report against source Postgres tables. The page was completely down (nginx 504 — summary query took 76.5s vs 60s proxy timeout). Fixed everything; query now ~15–27s per range and the page loads.
 
