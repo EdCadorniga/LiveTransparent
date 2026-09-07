@@ -47,3 +47,6 @@ config.toml.bk
 
 # n8n workflow source files (may contain webhook URLs / secrets)
 n8n/workflows/
+
+# LiveTransparent monitor runtime state (dedup + logs; no secrets but ephemeral)
+.monitor/

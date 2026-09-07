@@ -1,5 +1,7 @@
 # Plan Pointer
 
+> **ARCHIVE / HISTORICAL.** This file is a chronological log of completed work and older baselines. It is NOT the operational source of truth. For current status, open issues, and next steps use **`Project Status and Next Steps.md`** (canonical) and the latest dated handoff under `docs/sessions/`. Per AGENTS.md document precedence, this file ranks last.
+>
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
 
 ## ✅ 2026-08-20: Emerald/DAN/Partnership release-log fix + Apollo August enrollment

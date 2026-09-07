@@ -3609,6 +3609,13 @@ Normalized callback output:
 
 Updated: 2026-09-04 (Executive Report runtime and runner recovery)
 
+### Newsletter Dispatcher Timeout Optimization (2026-09-04)
+
+- Execution `887738` of `LT - Newsletter Dispatcher` (`vru7OtCkDnPJkWt2`) was canceled at the 10-minute execution boundary while `Dispatch Emails` was still sending. The failure was throughput-related: up to 250 emails were sent serially, with per-message database writes and 250-400 ms pacing. Recent execution `886414` had taken approximately 9 minutes.
+- Replaced only the `Dispatch Emails` Code node loop with a bounded five-worker pool. Sender-cap reservations are made before work starts, each send retains the existing retry policy and idempotent status update, and each worker retains the pacing delay. No manual production execution was run.
+- Live workflow verification: workflow is active and unarchived, with 8 nodes and matching `versionId`/`activeVersionId` `366610f7-acaf-4d32-980e-1c0d08485185`. The updated Code node passed a syntax-only async-context check.
+- The next scheduled execution is the required live functional verification. Do not manually execute this workflow or increase concurrency without reviewing GHL rate-limit behavior and sender-cap results.
+
 ### Executive Report Audit + Fixes (2026-08-30 / 2026-08-31)
 
 ### Executive Report Runtime Recovery (2026-09-04)

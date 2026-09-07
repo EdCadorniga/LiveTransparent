@@ -1,6 +1,6 @@
 services:
   n8n:
-    image: 'n8nio/n8n:2.36.9'
+    image: 'n8nio/n8n:2.37.10'
     restart: unless-stopped
     environment:
       N8N_CONCURRENCY: '10'
@@ -44,11 +44,11 @@ services:
     build:
       context: .
       dockerfile_inline: |
-        FROM n8nio/runners:2.36.9
+        FROM n8nio/runners:2.37.10
         USER root
         RUN mkdir -p /opt/pg-node_modules \
           && printf '%s\n' '{"name":"pg-dependencies","private":true}' > /opt/pg-node_modules/package.json \
-          && pnpm add pg@8.21.0 --dir /opt/pg-node_modules --prod --no-lockfile
+          && node /usr/local/lib/node_modules/pnpm/bin/pnpm.cjs add pg@8.21.0 --dir /opt/pg-node_modules --prod --no-lockfile
         RUN printf '%s\n' \
           '{' \
           '  "task-runners": [' \

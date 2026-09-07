@@ -1,6 +1,49 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-09-04 (Executive Report runtime and runner recovery)
+Updated: 2026-09-07 (runner network-path fix APPLIED and VERIFIED; monitoring + email alerting live)
+
+### Coolify Runner PostgreSQL Network Path — RESOLVED and under monitoring — 2026-09-07
+
+- Detailed record: [`docs/sessions/2026-09-07-runner-network-path-verification.md`](docs/sessions/2026-09-07-runner-network-path-verification.md) and post-fix results in [`docs/sessions/2026-09-07-runner-network-path-fix-applied.md`](docs/sessions/2026-09-07-runner-network-path-fix-applied.md).
+- Root cause: the authoritative live Coolify-generated Compose file had `n8n-runner` with `extra_hosts: postgres:host-gateway` and attached only to the private resource network `n44wksswcocwk88ogcog8c48`. This caused `postgres` to resolve to the Docker host gateway (stale `10.0.0.1`) instead of the healthy PostgreSQL container on `coolify-shared` (`10.0.2.3`).
+- **FIX APPLIED 2026-09-07 UTC**: removed the runner `extra_hosts` entry and attached `n8n-runner` to `coolify-shared` (alongside its private broker network) in the live Coolify-generated Compose file. A timestamped backup of the file was created before the edit; compose syntax validation passed; the runner container was recreated.
+- **VERIFIED**: runner is dual-homed (`10.0.2.5` on `coolify-shared`, `10.0.4.4` on the private network); `getent hosts postgres` from the runner resolves to `10.0.2.3` (not `10.0.0.1`); TCP `postgres:5432` reachable from runner and n8n main; n8n `/healthz` returns `{"status":"ok"}`; runner registered (`launcher-javascript`, `launcher-python`).
+- **END-TO-END PROOF**: workflow `LT - Voice Agent V1 Outbound Dialer (Vapi)` (`r7UjWLndmc6EqEUW`) failed every 2 minutes with `connect ECONNREFUSED 10.0.0.1:5432` before the fix (through 14:52 UTC) and now succeeds post-fix (14:54, 14:56, 14:58, 15:00, 15:06, 15:07 UTC — all `status=success`).
+- Monitoring continues via the Hermes monitor cron + email alerting (see below). The n8n internal pool-closure incident is SEPARATE and remains unresolved at root-cause level.
+
+### n8n 2.37.10 Force Redeploy and Monitoring — 2026-09-07
+
+- Detailed record: [`docs/sessions/2026-09-07-n8n-force-redeploy-and-monitoring.md`](docs/sessions/2026-09-07-n8n-force-redeploy-and-monitoring.md).
+- The authoritative live Coolify Compose stack was force-recreated with build/pull enabled. n8n is running `n8nio/n8n:2.37.10`; the external runner was rebuilt and both containers had zero restarts at verification time.
+- A VPS-native root cron monitor is installed at `/usr/local/sbin/livetransparent-n8n-health.sh`, scheduled for minute 5 of every hour (`5 * * * *`). It is monitor-only and performs no automatic remediation.
+- **HERMES MONITOR CRON (live)**: job `LT n8n-postgres-runner monitor` (`33eea46dd9b3`) runs every 30 minutes. It SSHes to the VPS and checks n8n `/healthz`, PostgreSQL container health, runner-to-PostgreSQL DNS (`postgres` must resolve to `10.0.2.x`, never `10.0.0.1`), TCP `postgres:5432` reachability from the runner, and bounded recent runner/n8n logs for `ECONNREFUSED`, `10.0.0.1`, pool-closure, and broker signatures. On any problem it emails an alert (deduplicated) to `edmundocadorniga@gmail.com`.
+- **HERMES WATCH-AND-FIX CRON (live)**: job `LT watch-email auto-fix` (`b3f164cd1746`) runs every 30 minutes. It checks Gmail for new monitor alert emails. For the known runner-network problem class it applies the bounded auto-fix (backup compose → remove runner `extra_hosts` → add `coolify-shared` → recreate runner → verify DNS+TCP), then emails a resolution/confirmation. Non-network alerts (postgres/db/pool-closure) are escalated by email, never auto-fixed.
+- **EMAIL TRANSPORT: CONFIGURED AND TESTED.** Hermes Google OAuth token has Gmail scopes (`gmail.send`, `gmail.readonly`, `gmail.modify`) for `edmundocadorniga@gmail.com`. A test message was sent and confirmed (`SENT_OK id=1a07c62cb42810a4`). The OAuth access token auto-refreshes via the refresh token when expired.
+- The earlier n8n pool-closure incident remains unresolved at root-cause level; it is tracked separately and the watch-fix never auto-fixes that class.
+- Required alert recipient: `edmundocadorniga@gmail.com` (configured).
+
+### n8n PostgreSQL Pool Closure Investigation — 2026-09-07
+
+- Follow-up investigation documented in [`docs/sessions/2026-09-07-n8n-pool-closure-investigation.md`](docs/sessions/2026-09-07-n8n-pool-closure-investigation.md).
+- Confirmed immediate mechanism: n8n remained alive while its internal PostgreSQL pool was already ended; `Cannot use a pool after calling end on the pool` caused readiness failure and authenticated workflow API HTTP 503 (`Database is not ready!`).
+- The process, deployment event, database/network event, or n8n code path that first called `pool.end()` remains unresolved. Do not assume the pool issue is fixed because a redeploy succeeded.
+- Do not restart PostgreSQL/Redis or rotate `N8N_ENCRYPTION_KEY` without evidence and explicit approval. If n8n remains unhealthy, a targeted n8n-only restart through Coolify requires approval and post-restart verification.
+
+### Next Session Checklist
+
+1. The runner network-path fix is APPLIED and VERIFIED (see above). Re-inspect live state only if the monitor alerts; do not re-apply blindly.
+2. Continue the Hermes monitor + watch-fix cron jobs (both every 30 min). Verify they stay healthy via `hermes cron list`.
+3. If the runner-network alert recurs, the watch-fix auto-applies the bounded fix and emails a resolution; manual re-verification of the next pg-using workflow is still recommended.
+4. If a pool-closure alert (`Cannot use a pool after calling end on the pool`) recurs: capture the workflow execution, runner and n8n logs, container network/DNS state, and PostgreSQL reachability BEFORE any restart. Do not restart PostgreSQL/Redis or rotate `N8N_ENCRYPTION_KEY` without evidence and explicit approval.
+5. Separately investigate the original `pool.end()` caller that caused the pool-closure incident; the runner network fix does not establish that n8n's internal pool lifecycle bug is resolved.
+6. The GA4 Daily Ingest has a SEPARATE, unrelated Google Analytics credential error; it is out of scope for the network issue and needs its own investigation.
+
+### Newsletter Dispatcher Timeout Optimization (2026-09-04)
+
+- Execution `887738` of `LT - Newsletter Dispatcher` (`vru7OtCkDnPJkWt2`) was canceled at the 10-minute execution boundary while `Dispatch Emails` was still sending. The failure was throughput-related: up to 250 emails were sent serially, with per-message database writes and 250-400 ms pacing. Recent execution `886414` had taken approximately 9 minutes.
+- Replaced only the `Dispatch Emails` Code node loop with a bounded five-worker pool. Sender-cap reservations are made before work starts, each send retains the existing retry policy and idempotent status update, and each worker retains the pacing delay. No manual production execution was run.
+- Live workflow verification: workflow is active and unarchived, with 8 nodes and matching `versionId`/`activeVersionId` `366610f7-acaf-4d32-980e-1c0d08485185`. The updated Code node passed a syntax-only async-context check.
+- The next scheduled execution is the required live functional verification. Do not manually execute this workflow or increase concurrency without reviewing GHL rate-limit behavior and sender-cap results.
 
 ### Executive Report Audit + Fixes (2026-08-30 / 2026-08-31)
 
