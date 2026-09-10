@@ -418,7 +418,7 @@ GHL tag "stop_linkedin_dms" added
 When the user asks to stop DMs for a contact, preferred path is the GHL tag above. If CLI is needed:
 
 ```bash
-python scripts/suppress_linkedin_dms.py "<name or LinkedIn URL>"
+python local-scripts/suppress_linkedin_dms.py "<name or LinkedIn URL>"
 ```
 
 This single command handles everything:
@@ -1100,7 +1100,7 @@ var message = sanitizeMessage(msgTemplate.replace(/\{first_name\}/gi, firstName)
 
 **Verification 2026-07-15 follow-up**: live versions were active/published after patching. Final audit passed for smart/mojibake sanitizer coverage, template registry pre-sanitization where present, immediate send-time sanitization, and no remaining bad literal message text in the audited sender template nodes.
 
-Also created `scripts/suppress_linkedin_dms.py` for one-command DM suppression (resolves LinkedIn profile via Unipile, finds GHL contact, tags + state-table-terminates in both ID paths).
+The local operator helper `local-scripts/suppress_linkedin_dms.py` provides one-command DM suppression (resolves LinkedIn profile via Unipile, finds GHL contact, tags + state-table-terminates in both ID paths).
 
 ### LinkedIn Regex Double-Escaping — Root Cause & Prevention (2026-08-19)
 
@@ -1564,7 +1564,7 @@ Full audit passed:
 - **Instagram inbound bridge**: `LT - Instagram Unipile New Messages` (`pISlgYUsyJIrLuJd`) is active at `/webhook/lt-unipile-instagram-new-messages`. It normalizes Unipile Instagram inbound payloads, conservatively resolves an existing GHL contact before creating one, persists `instagram_conversation_map`, converts the stored agency OAuth token to a location token via `POST /oauth/locationToken`, and posts inbound messages into GHL Conversations under the `Instagram via Unipile` tab. Post-merge cleanup on 2026-07-16 repointed `instagram_conversation_map.id = 1` for chat `yx-R-9J6XdWaFpGOQd1JFA` to canonical GHL contact `XZ4yChllGBdcsVxhFRDe`; the temporary duplicate `4V2oTmM7lWya3Nmtmp1Y` created during verification was deleted.
 - **Social provider outbound router**: `LT - Social Provider Outbound Router` (`kqIi8i1RjFAZKrK3`) is active at `/webhook/lt-social-provider-outbound`. Fixed 2026-07-16: POST webhook `responseMode` now uses `responseNode`, map tables are created defensively, payload message text is preserved through Postgres lookup, and Unipile send uses the working `api42.unipile.com:17256/api/v1` base. Canonical provider IDs are SMS-type additional custom conversation providers: `Instagram via Unipile` = `6a58a1193cdfc36997580a68` and `LinkedIn via Unipile` = `6a58a14ff3023bea3783c152`. Inbound message API must use `type: "Custom"` with `conversationProviderId` + `altId`; do not include `emailTo`/`emailFrom`/`subject` or dummy contact phone/email data. Deleted Email provider IDs `6a5893d11e9368345005f66e` and `6a5892b9107668309b3f85ac` must not be reused. Verified Instagram and LinkedIn inbound as `TYPE_CUSTOM_PROVIDER_SMS`; Instagram chat `yx-R-9J6XdWaFpGOQd1JFA` and LinkedIn chat `60Ult1SrWhOuvuZp1u7nXw` both map to canonical GHL contact `XZ4yChllGBdcsVxhFRDe`, with LinkedIn conversation `Ze8o3KbsrwuAXQ3KK5ge`. LinkedIn normalizer handles Unipile's form-encoded single-JSON-key webhook shape. Direct outbound router smoke tests after map repair passed: Instagram message `vjdEYSk9XD6R0I46oPWLwA`, LinkedIn message `C7I9944kWsSKutX2XhZEpA`.
 - **Social provider bridge handoff**: Full build context, operator inbox runbook, monitoring gaps, and next steps for `LinkedIn via Unipile` + `Instagram via Unipile` GHL bidirectional messaging are in `docs/strategy/unipile-ghl-bidirectional-integration.md`. Read this before changing provider workflows.
-- **Unipile/LinkedIn**: Active production path is dispatcher → acceptance/state sync → canonical DM sequence. Follower DM (`pq7XVajNFnnwMUTr`) is **unpublished**. Current published workflow inventory is documented in `Current Published Workflow Inventory` above. Guardrails block John-branded copy.
+- **Unipile/LinkedIn**: Active production path is dispatcher → acceptance/state sync → canonical DM sequence. Follower DM (`pq7XVajNFnnwMUTr`) is **unpublished**. Current published workflow inventory is documented in `Current Published Workflow Inventory` above. Guardrails block former-owner-branded copy.
 - **LinkedIn invite copy**: n8n defaults say Transparent eCom. If LiveTransparent appears, check GHL-side body.message overrides first. Use [/] character class instead of \/ in regex literals to avoid SDK serialization corruption.
 - **GHL warm intake/routing**, Apollo enrichment, Emerald and DAN email campaigns are active.
 - **SMS campaign**: The canonical send webhook is `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`; template registry details are in `docs/outreach/sms_edited_templatekeys.md`. Send, provider-router, idempotency, and callback boundaries were hardened on 2026-08-17. Registered provider callbacks use protected secret URLs because SimpleTexting cannot attach custom headers. Historical reconciliation restored 41 confirmed sends, terminalized 202 exhausted provider failures, quarantined 55 `send_unknown` rows, and replayed nothing. Keep sender schedules and legacy diagnostics inactive until an approved live provider test or natural traffic verifies the final boundary.
@@ -1651,7 +1651,7 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - n8n/workflows/lt-linkedin-dm-sequence.ts
 - n8n/workflows/lt-apollo-queued-timeout-reaper.ts
 - n8n/workflows/lt-emerging-pool-import.ts
-- scripts/suppress_linkedin_dms.py
+- local-scripts/suppress_linkedin_dms.py
 - scripts/fix_intake_poller.js
 - n8n/workflows/lt-simpletexting-send-sms.json
 - n8n/workflows/lt-simpletexting-pool-dispatcher.json
@@ -1695,7 +1695,7 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
   Fields: emerald_contact_id, source_list, first_name, last_name, primary_email, primary_phone, company_name, tags, ghl_contact_id, ghl_opportunity_id, ghl_import_status, raw_json (JSONB). UNIQUE on (emerald_contact_id, source_list).
   ghl_contact_id coverage: 12,639 filled (from GHL export CSVs), 1,229 null (not in exports).
 
-## John -> Jason Migration (2026-07-07)
+## Former SDR Identity Cleanup (2026-07-07)
 
 ### What changed
 
@@ -1719,9 +1719,9 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 
 ### GHL Status (2026-07-10)
 
-- **John-branded LinkedIn invite resolved**: Workflow 25cd82a2 repointed from "Create Task" to n8n webhook with Cameron default message + send:true.
+- **Former-owner-branded LinkedIn invite resolved**: Workflow 25cd82a2 repointed from "Create Task" to n8n webhook with Cameron default message + send:true.
 - **SMS failed-send workflows verified clean**: 41c6aecd and a99f96d9 -- no hardcoded John messages.
-- **GHL JohnFollowup Emails and SMS** (f6b44e34): Owner manually updated all Send email actions to Jason.
+- **GHL Sales Followup Emails and SMS** (f6b44e34): all Send email actions use the active sales-owner routing and sender defaults.
 - **Jason user ID found**: yU85G6kfhtW4vUtx3QE6 -- was agency-level, reassigned to sub-account.
 
 ## Tool & CLI Preferences
@@ -3362,7 +3362,7 @@ Implementation order after plan approval:
 6. Identify Janvi's authoritative AI assessment field/tag and implement the AI-qualified-cannabis -> Sales Outreach New gate. Apply the canonical ownership alignment/50/50 fallback at that boundary, then update Marc-specific copies/templates and sender identity.
 7. Run the controlled routing and channel test matrix before enabling production traffic.
 8. Publish changed workflows and verify contact owner, opportunity owner, Sales-pipeline Cameron handoff, sender, signature, SMS, and Vapi behavior with controlled test records.
-9. Verify no Jason-only or stale John-branded references remain in active production paths, while preserving intentional legacy template keys and historical reporting identifiers.
+9. Verify no stale former-owner-branded references remain in active production paths, while preserving intentional legacy compatibility keys and historical reporting identifiers.
 10. Monitor the first production assignment batch and confirm the measured Jason/Marc distribution, sticky ownership, and zero sender/owner mismatches.
 
 ### Completed
@@ -3387,7 +3387,7 @@ Implementation order after plan approval:
 - **2026-07-16**: Verified the GHL Custom Conversation Provider bridge for Instagram and LinkedIn via Unipile using canonical SMS-type custom providers. Inbound uses `type: "Custom"` + `conversationProviderId` + `altId` with no dummy phone/email fields. `LT - Instagram Unipile New Messages` and `LT - LinkedIn Unipile New Messages` are active and published; LinkedIn replay verified `TYPE_CUSTOM_PROVIDER_SMS` on contact `XZ4yChllGBdcsVxhFRDe`, conversation `Ze8o3KbsrwuAXQ3KK5ge`. GHL duplicate cleanup consolidated Edmundo Cadorniga to `XZ4yChllGBdcsVxhFRDe`; Instagram map row `1` and LinkedIn map row `2` were repointed there. Direct outbound router checks passed for Instagram and LinkedIn. Full handoff in `docs/strategy/unipile-ghl-bidirectional-integration.md`.
 - **2026-07-16**: Cleaned up duplicate LinkedIn sender paths. Traced malformed LinkedIn screenshot DMs to misconfigured `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`), which used the LinkedIn Unipile account ID and `instagram_dm_state`; unpublished it. Also unpublished redundant `LT - LinkedIn Follower DM Sequence (Unipile)` (`pq7XVajNFnnwMUTr`). Production LinkedIn outreach is now dispatcher → acceptance/state sync → canonical 4-message DM sequence only.
 - **2026-07-15**: Built and published automated LinkedIn DM suppression workflow (`LT - LinkedIn DM Suppression from GHL Tag`, IPN8jnR3XSurX0o1). GHL tag `stop_linkedin_dms` triggers a GHL automation → POSTs to `/webhook/lt-linkedin-suppress-dms` → resolves LinkedIn profile via Unipile, tags `linkedin_dm_sequence_completed`, upserts `linkedin_connection_state` to terminal for both real contact and synthetic `linkedin:follower:{providerId}`. Full audit confirmed all 3 send paths (DM Sequence, Follower DM, Dispatcher) correctly block suppressed contacts. Fixed dispatcher Feeder gap: added `linkedin_dm_sequence_completed` to blocking tag list.
-- **2026-07-15**: Unicode/mojibake encoding fix expanded across all audited Unipile message sender nodes: LinkedIn DM Sequence (`Sync Connected from Unipile`, `Send DM Sequence Messages`), LinkedIn Follower DM, LinkedIn Dispatcher invites, and Instagram DM Sequence. Templates are pre-sanitized at runtime and final outbound text is sanitized immediately before Unipile API calls. Handles smart punctuation plus already-garbled forms like `canâ€™t` / `canΓÇÖt`. Created `scripts/suppress_linkedin_dms.py` for one-command DM suppression.
+- **2026-07-15**: Unicode/mojibake encoding fix expanded across all audited Unipile message sender nodes: LinkedIn DM Sequence (`Sync Connected from Unipile`, `Send DM Sequence Messages`), LinkedIn Follower DM, LinkedIn Dispatcher invites, and Instagram DM Sequence. Templates are pre-sanitized at runtime and final outbound text is sanitized immediately before Unipile API calls. Handles smart punctuation plus already-garbled forms like `canâ€™t` / `canΓÇÖt`. Created the local operator helper `local-scripts/suppress_linkedin_dms.py` for one-command DM suppression.
 - **2026-07-14**: Vapi voice system activated. Published Intake Poller + Outbound Dialer. Fixed Trigger Apollo Enrichment auth and Remove Tag - Enriching URL. Added pagination, 30-contact cap, brands_pool/dispensaries_pool tag search, and tag rotation. Added state-to-timezone inference for both poller and dialer. Historical dialer cron was shifted to `*/2 13-22` UTC for 9am ET start; the current implementation uses a native two-minute Schedule Trigger and the timezone-aware business-hours guard remains authoritative.
 - **2026-07-14**: Apollo phone enrichment repaired. Created and published LT - Apollo Phone Enrichment Polling (JH8ShfpglWmLMZ3l, every 30 min). Replaces dead webhook-based pipeline. Syncs profile data immediately, requests phone numbers via async callback to V4 handler.
 - **2026-07-13**: Backfilled 13,705 ghl_contact_id values into emerging_pool_contacts from GHL export CSVs (email + phone + name/company match). DAN dispatcher now has 5,373 eligible contacts.
@@ -3914,7 +3914,7 @@ This document is the canonical project status and next-steps reference. It super
  - **GHL PIT verification**: The root `GHL_PIT` was tested directly against the official REST API on 2026-07-31. `GET /locations/Zwz4relUXVPxx8uohnjV` and `GET /contacts/?locationId=Zwz4relUXVPxx8uohnjV&limit=1` both returned HTTP 200 with `Authorization: Bearer` and `Version: 2021-07-28`. The PIT is valid for CRM/API data access. It does not resolve the native Custom Report builder page's Firebase/browser-session failure, and the supported API/SDK still does not expose widget-layout mutation.
 - **SMS campaign**: Automated sending is paused. Step Runner, Warmup, Pool, and Campaign Sequencer are unpublished behind dry-run/approval gates. Phone Backfill is active and only repairs campaign phone state. The send webhook, provider router, idempotent sender, inbound, delivery, and unsubscribe workflows are active with fail-closed validation.
 - **SimpleTexting remediation**: Boundary hardening, callback registration, and database reconciliation are complete. The next gate is one approved live provider send or natural callback traffic; do not activate schedules solely to perform validation.
-- **John->Jason migration**: Complete on n8n side. GHL workflows updated. Template keys preserved.
+- **Former-SDR identity cleanup**: Complete on n8n side. GHL workflows updated. Required legacy compatibility keys preserved.
 - **Regulated-business classification / SDR boundary (contract clarified 2026-07-30)**: `qualified` means the contact's business is related to a regulated vertical such as nicotine, cannabis, CBD, vape, or hemp; `not qualified` means it is not a regulated business. The live classifier now writes the canonical classification tags and the Vapi intake is published with a `qualified` gate. Qualified opportunities now enter `Sales Outreach -> Qualified` through published GHL workflow version 10. Existing contact/opportunity ownership alignment is handled separately; the live Jason/Marc allocator handles records entering that stage without a native owner.
 - **SDR ownership synchronization**: Published GHL workflow `LT - Opportunity Owner Alignment` (`b26326a5-77af-4df8-8d86-3f636e73afe0`, version 7) now keeps contact owner, native opportunity owner, custom opportunity `Owner`, and routing audit fields aligned for Jason and Marc when the opportunity owner changes. It does not replace the unresolved Janvi qualification gate or allocate unowned Warm records.
 - **Classification and promotion implementation (2026-07-30)**: `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) is published on version `9eae8a33-319a-4c8a-9ee7-2b3b3d5fb45f`; `LT - Voice Queue Vapi Intake Poller` (`bYk1Ai6MJLyhTsDZ`) is published on version `99244f60-3c68-4c08-9bcb-1cf5d8bf20d1`; and GHL workflow `Move Contact's Opportunity to Sales Outreach New` (`cd29d8e6-5e0f-45f8-ba4f-c30804ad9b49`) is published as version 10 with both opportunity actions targeting `Sales Outreach -> Qualified`.
@@ -4214,12 +4214,12 @@ Legacy step-4 LinkedIn DM rows are now marked with `linkedin_dm_sequence_complet
 
 Intentionally stopped non-canonical sender: `LT - Instagram DM Sequence (Unipile)` (`iCnY6ccdHhfJg3sf`) is unpublished. It was using the LinkedIn Unipile account ID and sending Instagram templates as LinkedIn DMs via `instagram_dm_state`.
 
-Guardrails: John-branded copy blocked before Unipile send. Invite defaults say Transparent eCom (not LiveTransparent).
+Guardrails: former-owner-branded copy blocked before Unipile send. Invite defaults say Transparent eCom (not LiveTransparent).
 
 Outbound guardrails: DM sends now fail closed if the reply lookup fails, and both DM / request paths skip when an inbound conversation is already present.
 
 ### 2026-07-15 Unicode Encoding Fix
-All audited Unipile message sender nodes now sanitize message text before API calls, and template registries are pre-sanitized where present. Coverage includes LinkedIn DM Sequence (`Sync Connected from Unipile` and `Send DM Sequence Messages`), LinkedIn Follower DM, LinkedIn Dispatcher invites, and Instagram DM Sequence. `sanitizeMessage()` handles smart punctuation plus mojibake forms like `canâ€™t` / `canΓÇÖt`. Final live audit passed: active versions published, send-time sanitization present, registry pre-sanitization present where applicable, and no remaining bad literal template text in audited sender nodes. Created `scripts/suppress_linkedin_dms.py` for one-command DM suppression.
+All audited Unipile message sender nodes now sanitize message text before API calls, and template registries are pre-sanitized where present. Coverage includes LinkedIn DM Sequence (`Sync Connected from Unipile` and `Send DM Sequence Messages`), LinkedIn Follower DM, LinkedIn Dispatcher invites, and Instagram DM Sequence. `sanitizeMessage()` handles smart punctuation plus mojibake forms like `canâ€™t` / `canΓÇÖt`. Final live audit passed: active versions published, send-time sanitization present, registry pre-sanitization present where applicable, and no remaining bad literal template text in audited sender nodes. Created the local operator helper `local-scripts/suppress_linkedin_dms.py` for one-command DM suppression.
 
 ### 2026-07-16 Sender Path Cleanup
 Malformed LinkedIn screenshot messages were traced to `LT - Instagram DM Sequence (Unipile)`, not the canonical LinkedIn DM Sequence. Unpublished both `iCnY6ccdHhfJg3sf` and redundant `pq7XVajNFnnwMUTr`; production LinkedIn outreach is now dispatcher → acceptance/state sync → canonical 4-message DM sequence only.

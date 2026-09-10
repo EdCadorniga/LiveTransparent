@@ -93,7 +93,7 @@ SQL change in the live "Build Query" node of Exec Summary (`Bukc0mgOD2r7V6ED`):
 1. **(Ed/Cameron)** GHL UI: create *contact* custom field `Originating SDR` (text). Store the SDR's GHL user id.
 2. **(Ed)** GHL workflow editor: in `LT - Opportunity Owner Alignment` (`b26326a5-77af-4df8-8d86-3f636e73afe0`, v7 — the workflow that branches "Owner is Jason"/"Owner is Marc" on `assignedTo` and writes the routing stamps `opportunity_owner_sync`/`opportunity_owner_change`), add a first step BEFORE the owner flip: set `Originating SDR` = `{{opportunity.assignedTo}}` (pre-flip owner = the SDR). If the trigger can't expose the pre-flip owner, use the per-SDR booking-link fallback (`?sdr=<userid>`).
 3. **(Ed → assistant)** send the new field's GHL id. Assistant then: replace `__ORIGINATING_SDR_FIELD_ID__` in the Build Query SQL of Exec Summary `Bukc0mgOD2r7V6ED`, PUT/deploy, re-fetch to verify, and confirm real SDR attribution (dry-run on Postgres first).
-4. **(assistant)** cleanup: remove remaining `_tmp_*` files/logs from the diagnosis phase (26 files), keep `scripts/_vps_psql.py` (reusable read-only psql-over-SSH runner).
+4. **(assistant)** cleanup: remove remaining `_tmp_*` files/logs from the diagnosis phase (26 files), keep `local-scripts/_vps_psql.py` (reusable read-only psql-over-SSH runner).
 5. **(Ed)** approve the staged durable memory entry (pending_id `75849f49`) about this fix (see Memory pending).
 
 ## Out of scope / known limits

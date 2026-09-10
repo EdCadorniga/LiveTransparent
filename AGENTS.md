@@ -424,7 +424,7 @@ GHL tag "stop_linkedin_dms" added
 When the user asks to stop DMs for a contact, preferred path is the GHL tag above. If CLI is needed:
 
 ```bash
-python scripts/suppress_linkedin_dms.py "<name or LinkedIn URL>"
+python local-scripts/suppress_linkedin_dms.py "<name or LinkedIn URL>"
 ```
 
 This single command handles everything:
@@ -1106,7 +1106,7 @@ var message = sanitizeMessage(msgTemplate.replace(/\{first_name\}/gi, firstName)
 
 **Verification 2026-07-15 follow-up**: live versions were active/published after patching. Final audit passed for smart/mojibake sanitizer coverage, template registry pre-sanitization where present, immediate send-time sanitization, and no remaining bad literal message text in the audited sender template nodes.
 
-Also created `scripts/suppress_linkedin_dms.py` for one-command DM suppression (resolves LinkedIn profile via Unipile, finds GHL contact, tags + state-table-terminates in both ID paths).
+The local operator helper `local-scripts/suppress_linkedin_dms.py` provides one-command DM suppression (resolves LinkedIn profile via Unipile, finds GHL contact, tags + state-table-terminates in both ID paths).
 
 ### LinkedIn Regex Double-Escaping — Root Cause & Prevention (2026-08-19)
 
@@ -1658,7 +1658,7 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - n8n/workflows/lt-linkedin-dm-sequence.ts
 - n8n/workflows/lt-apollo-queued-timeout-reaper.ts
 - n8n/workflows/lt-emerging-pool-import.ts
-- scripts/suppress_linkedin_dms.py
+- local-scripts/suppress_linkedin_dms.py
 - scripts/fix_intake_poller.js
 - n8n/workflows/lt-simpletexting-send-sms.json
 - n8n/workflows/lt-simpletexting-pool-dispatcher.json

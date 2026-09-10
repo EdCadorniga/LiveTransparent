@@ -53,7 +53,7 @@ whether the "API key" and the PIT are the same in form and function.
     deleting them.
 - **~19 non-JSON helper scripts** (`_check_ghl_from_n8n.py`, `_query_dispatch.py`,
   `n8n/workflows/*.ts`, `n8n/reporting/*.ts`, `scripts/fix_intake_poller.js`,
-  `scripts/suppress_linkedin_dms.py`, etc.) still embed old tokens (some dead). Dev helpers,
+  `local-scripts/suppress_linkedin_dms.py`, etc.) still embed old tokens (some dead). Dev helpers,
   not production workflows — left untouched this session; offered to Ed for rotation/trim.
 - Nothing committed or pushed (repo currently on branch `codex/social-outreach-sync` with
   many pre-existing modified files from prior sessions). Committing the 17 refreshed JSON

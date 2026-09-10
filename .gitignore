@@ -53,3 +53,6 @@ n8n/workflows/
 
 # Review-only landing page prototype (not part of the main repository)
 /Sample Landing Page/
+
+# Local operator helpers and reusable probes (may contain machine-specific paths)
+/local-scripts/
