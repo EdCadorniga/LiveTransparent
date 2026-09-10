@@ -2,6 +2,15 @@
 
 Updated: 2026-09-10 (Executive Report SDR Performance & Owner Attribution — Phases 1–4 live; future booking SDR capture deployed and GHL publication verified)
 
+### Script And n8n Archive Organization — CLOSEOUT 2026-09-10
+
+- Reusable operator helpers are kept in ignored `local-scripts/`; historical n8n exports, backups, and one-off patch inputs are kept in ignored `local-archive/n8n/`.
+- Fifty historical n8n snapshot files were moved out of Git but retained locally for audit/reference. Live n8n remains the production source of truth; archived files must not be redeployed without reconciliation.
+- Retained generator/reporting sources use environment placeholders instead of credential literals. `node --check` passed for `n8n/gen.js` and `scripts/fix_intake_poller.js`; `git diff --check` and the added-change credential scan passed.
+- The branch is clean and synchronized with `origin/codex/social-outreach-sync` at `daf0432`. This organization pass made no live workflow, CRM, campaign, sender, deployment, or production-test changes.
+- Closeout: `docs/sessions/2026-09-10-script-and-n8n-archive-closeout.md`.
+- Next: treat `local-archive/n8n/` as workstation-only storage, keep future raw exports ignored, and run a dedicated full-repository secret audit before any broad staging operation.
+
 ### Business Improvement Plan and Shareable Guides — CLOSEOUT 2026-09-10
 
 - The review-only strategy plan is `improvementPlan.md`. It now opens with a plain-language `Start Here` guide, a 60-second summary, document map, jump links, role-specific reading paths, video-informed positioning, customer FAQ, reusable messaging, booking bridge to Cameron, and Executive Report recommendations.
