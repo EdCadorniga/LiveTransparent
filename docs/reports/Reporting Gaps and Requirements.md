@@ -1,7 +1,7 @@
 # Reporting Gaps and Requirements
 
-**Updated:** 2026-08-17
-**Status:** Campaign attribution, SMS delivery diagnostics, opportunity counts, LinkedIn activity, partnership reply attribution, account-level social statistics, and MQL-to-SQL movement are live. Remaining: native GHL stage/tag/email/custom-metric widgets, and reporting owner dimensions.
+**Updated:** 2026-09-09
+**Status:** Campaign attribution, SMS delivery diagnostics, opportunity counts, LinkedIn activity, partnership reply attribution, account-level social statistics, MQL-to-SQL movement, **SDR Performance / owner attribution (Phases 1–2)**, and the **MQL/SQL lead-source breakdown (Phase 4)** are live. Remaining: native GHL stage/tag/email/custom-metric widgets, GHL appointment-status update post-meeting (SDR Phase 3), and Team Active Deals glossary polish. See `docs/sessions/2026-09-09-executive-report-sdr-attribution-plan.md` (plan), `docs/sessions/2026-09-09-executive-report-sdr-attribution-phase1-2.md` (Phases 1–2 implementation), and `docs/sessions/2026-09-09-executive-report-sdr-attribution-phase4-lead-source.md` (Phase 4 implementation).
 
 ## Purpose
 
@@ -109,6 +109,15 @@ Native GHL still will not show Unipile activity unless it is synchronized into G
 
 Normalize contact owner, native opportunity owner, custom opportunity `Owner`, canonical SDR identity, owner conflict flag, assignment source, assignment timestamp, and unassigned Sales Outreach count in the reporting read model.
 
+**Implemented 2026-09-09 (Phases 1–2)**:
+- `report_sdr_registry` table (user-id → name → role → `is_sdr`) created in `postgres/reporting-bootstrap.sql` and applied on the live `postgres` DB. Seeded: Jason Bornillo (`yU85G6kfhtW4vUtx3QE6`, sdr), Marc (`sqGx5rp3oAUG610NXyjU`, sdr), Cameron Karkut (`03p5GatJBH7i9zjMaIzm`, leadership), Ed Cadorniga (`gePIeuHOEsAiPVA1mfOR`, exec). Pending IDs to identify before ranking: `ck6TRlU3wnTmMxuVpn5F` and Janvi.
+- Daily Rollups (`EUeOiRttoVLQ9zF9`, active `1af59845…`) now carries `assigned_to` through `tmp_report_opps` and `tmp_daily_opps_fixed`.
+- `LT - Report QA and Alerts` (`M5mXcDTFSko6EdHb`, active `a21c0f4a…`) adds two owner-coverage probes to `report_source_health`: `ghl_opp_owner_coverage` (34.6% assigned on latest snapshot, 3,618/10,466) and `ghl_appt_owner_coverage` (11/31 appointments attributable to an SDR via contact→opp owner).
+- Exec Summary (`Bukc0mgOD2r7V6ED`, active `162bbba8…`) projects owner via native `assigned_to` (primary) with contact-owner fallback and an explicit `Unassigned` bucket, resolves names via `report_sdr_registry`, and returns `sdrPerformance` rows plus `leadSourceBreakdown`/`leadSourceCoverage`. The query now runs with `SET jit=off` (16–19s vs ~71s before).
+- Opportunities: `report_raw_ghl_opportunities.dimensions_json->>'assigned_to'`; Appointments: `report_raw_ghl_appointments.assigned_user_id` + `contact_id`; Contacts: full object in `report_raw_ghl_contacts.payload_json`.
+
+Remaining owner work: GHL appointment-status update so showed/no-show flows (Phase 3), and identifying the two unknown owner IDs.
+
 ### P1: Source Health and Coverage
 
 Expose last successful sync, latest attempt, row count, selected-window coverage, and failure message for GHL contacts, opportunities, pipeline history, calls, appointments, email events, SimpleTexting events, Unipile LinkedIn activity, Vapi queue/outcomes, GA4, and GSC. GSC is currently live after OAuth renewal and must retain its health/coverage status. Historical SimpleTexting HTTP 409 failures are terminalized and reported; current provider acceptance remains unverified until approved live or natural traffic supplies a new result.
@@ -134,6 +143,19 @@ Expose last successful sync, latest attempt, row count, selected-window coverage
 ### Executive KPI Cards
 
 Show current, prior, change, and definition for recorded visits/users, GHL contacts, MQLs, SQL contacts, opportunities, meetings, closed-won opportunities, closed-won revenue, email sent/opened/clicked/bounced/complained/unsubscribed, email rates, SMS sent/delivered/replied/failed/opted out, LinkedIn invites/accepted/DMs/replies, and Vapi calls/answered/qualified/booked.
+
+### SDR Performance (IMPLEMENTED 2026-09-09 — Phases 1–2) and Lead Source (IMPLEMENTED 2026-09-09 — Phase 4)
+
+Per-SDR breakouts for the end-of-month SDR assessment are live via the `sdrPerformance` payload + frontend panel. Definitions agreed with the operator (Cameron/Janvi sign-off still recommended on ranking scope):
+
+- **Owner attribution field** — canonical SDR identity on every surfaced opportunity/appointment: native opportunity `assigned_to` primary, contact-owner fallback, custom opportunity `Owner` cross-check; names resolved via `report_sdr_registry`. Unassigned rolls into an explicit `Unassigned` row.
+- **Booked Meetings by SDR** — Regulated Ads calendar (`SrtXcFVyea7pFl3nTiIK`) appointments windowed by `start_at`, attributed via appointment → contact → opportunity `assigned_to`. The top KPI `meetingsBooked` now uses this definition (`basis: appointments_start_at`; `meetingsBookedStageBasis` keeps the old opportunity-stage figure). Current 30d: 5 booked.
+- **Meetings Showed / No-show / Cancelled by SDR** — status bucket per SDR. **"Showed" is still 0 because GHL `appointmentStatus` is never updated post-meeting — Phase 3 (GHL-side status-update automation) is required; the report query logic is correct.**
+- **SQLs Created by SDR** — Sales Outreach opportunities created in the window grouped by owner (primary); the cumulative `sql`-tag contact count stays a secondary figure. Current 30d: Marc 156, Jason 8.
+- **MQL → SQL conversion by SDR** — MQL opportunities that entered Sales Outreach in the window, grouped by owner. Current 30d: Marc 49, Jason 7.
+- **Won / Lost / Revenue by SDR** — closed opportunities created in the window by owner (latest-snapshot status).
+- **Lead source for MQL/SQL** — Phase 4 (implemented 2026-09-09): Exec Summary returns `leadSourceBreakdown` (per source+medium: MQLs Entered / SQLs Created in the window) and `leadSourceCoverage` (attributed/total). Resolution: contact first UTM source/medium/campaign → `report_bridge_traffic_to_lead` fallback → GHL contact `source`; rows without a resolvable source are grouped under "Unknown / Unattributed" (current 30d coverage bounded by the ~500-row Leads snapshot: 32/164 SQLs, 0/3 MQLs attributed).
+- **"Team Active Deals"** — the team-wide opportunity payload relabeled as a deal-centred view; no owner filter is applied.
 
 ### Campaign Channel Table
 
@@ -199,7 +221,7 @@ Every widget must use the shared report date range, have a documented filter, an
 5. Update Campaign Channel Summary to aggregate `Partnership LinkedIn` from the ledger. — **done** (linkedin_invites/linkedin_accepted/linkedin_replies columns).
 6. Add event coverage and error counts to the Executive Report API payload.
 7. Verify partnership email event delivery and correlate message IDs. — **partially done**: the Partnership Email Dispatcher (`Xshck23cKo1yXL9D`) stores `ghl_message_id`/`ghl_conversation_id` per send in `partnership_release_log`, and the Campaign Channel Summary attributes partnership email opens/clicks via a release-log fallback keyed on `contact_id`. The known historical reply is backfilled and the selected-window row shows 59 sent / 1 reply / 1.69%. Still open: confirming GHL emits all per-message open/click webhooks for inline `POST /conversations/messages` sends and correlating those events consistently.
-8. Add owner dimensions and conflict state to the reporting read model.
+8. Add owner dimensions and conflict state to the reporting read model. — **implemented 2026-09-09 (Phases 1–2)** via `report_sdr_registry` + `assigned_to` through the rollups + Exec Summary `sdrPerformance` and owner-coverage health probes; see `docs/sessions/2026-09-09-executive-report-sdr-attribution-phase1-2.md`.
 9. Reconnect GSC OAuth and resume GSC ingestion.
 10. Keep historical SimpleTexting HTTP 409 failures distinct from current provider health. Count only rows with confirmed provider IDs as sent/delivered; retain `send_unknown` rows in quarantine until provider evidence resolves them.
 11. Configure native GHL widgets through authenticated UI access; do not guess undocumented report-builder APIs. **Partially done**: saved `Last 30 days` and removed the duplicate page-3 outgoing-call widget on 2026-08-08. MQL, owner, stage-split, campaign-tag, email-detail, page-name, and custom-metric widgets remain open because the builder has no stage-group dimension, no Owner-custom-field group-by, and some tag selections are virtualized.
@@ -221,6 +243,7 @@ Every widget must use the shared report date range, have a documented filter, an
 - No report contains credentials, PITs, OAuth tokens, or signed URLs.
 - Outgoing Call Detail returns HTTP 200 with a valid empty payload when the selected seven-day window has no rows.
 - Outgoing Call Detail production and manual smoke executions complete without Postgres, Code-node, or webhook-response errors.
+- SDR Performance (2026-09-09): Exec Summary returns `sdrPerformance` with per-owner `booked / showed / no_show / cancelled / sqls_created / mqls_converted / won / lost / revenue`; `summary.meetingsBooked` equals the sum of per-owner `booked` (basis `appointments_start_at`); `report_source_health` contains `ghl_opp_owner_coverage` and `ghl_appt_owner_coverage`; the SDR panel renders on desktop and 390px with no horizontal overflow and no console errors.
 
 ## References
 

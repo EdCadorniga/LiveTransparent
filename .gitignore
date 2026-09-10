@@ -50,3 +50,6 @@ n8n/workflows/
 
 # LiveTransparent monitor runtime state (dedup + logs; no secrets but ephemeral)
 .monitor/
+
+# Review-only landing page prototype (not part of the main repository)
+/Sample Landing Page/

@@ -141,7 +141,7 @@ These are potential automations we want to do using Unipile for our regulated-in
 
 **Purpose:** Manage multiple LinkedIn accounts with centralized reporting.
 
-**Use Case:** One account for John, one for Cameron, one for sales team.
+**Use Case:** Separate accounts for the former SDR identity, Cameron, and the broader sales team.
 
 **Implementation:**
 - Use Unipile's team features for multiple accounts

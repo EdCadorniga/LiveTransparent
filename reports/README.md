@@ -60,7 +60,7 @@ This folder holds the external dashboard surface that GHL will load inside an if
 - Week-on-week cards show the selected-period value, prior-period value, absolute change, and percentage change for contacts, opportunities, meetings, closed won, email opens, email clicks, and Vapi calls.
 - The `Acquisition Sources` sidebar entry opens the contact-level attribution view.
 - The `UTM / Campaign Breakdown` section shows observed traffic rows, not every UTM ever created in GHL.
-- `Active Opportunities Summary` and `John's Active Deals` are two presentations of the same opportunity payload, with the latter framed as a deal-centred view.
+- `Active Opportunities Summary` and `Team Active Deals` are two presentations of the same opportunity payload, with the latter framed as a deal-centred view.
 - In the active-opportunity view, `active` means the latest open snapshot, `worked` means the opportunity was updated or moved stage in the selected window, and `stage movers` means the opportunity changed stage at least once in that window.
 - Contacts are not guaranteed to be created by forms; they can also arrive through routing, manual CRM entry, imports, and follow-up.
 - The GHL sidebar menu record is already live in GHL.

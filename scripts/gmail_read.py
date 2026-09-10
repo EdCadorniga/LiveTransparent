@@ -1,6 +1,7 @@
 """Read Gmail via the Hermes Google OAuth token (gmail.readonly scope), refreshing token if needed.
-Usage: python gmail_read.py [--query STRING] [--max N]
-Lists up to N messages matching query: id, date, subject, snippet. No secrets printed.
+Usage: python gmail_read.py [--query STRING] [--max N] [--body]
+Lists up to N messages matching query: id, date, subject, snippet.
+With --body, each message also includes 'body' (full plaintext, decoded). No secrets printed.
 """
 import os, sys, json, ssl, time, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
@@ -46,16 +47,37 @@ def api_get(path, tok):
     with urllib.request.urlopen(req, timeout=30, context=ssl.create_default_context()) as resp:
         return json.loads(resp.read().decode())
 
+def extract_body(payload):
+    """Walk Gmail payload parts and return the plaintext body (best effort)."""
+    import base64
+    parts = []
+    def walk(p):
+        mt = p.get("mimeType", "")
+        b = p.get("body", {})
+        if mt == "text/plain" and b.get("data"):
+            try:
+                parts.append(base64.urlsafe_b64decode(b["data"]).decode("utf-8", "ignore"))
+            except Exception:
+                pass
+        for sp in p.get("parts", []) or []:
+            walk(sp)
+    walk(payload)
+    return "\n".join(parts)
+
+
 def main():
     args = sys.argv[1:]
     query = "from:me subject:[LiveTransparent]"
     maxn = 10
+    with_body = False
     i = 0
     while i < len(args):
         if args[i] == "--query" and i+1 < len(args):
             query = args[i+1]; i += 2
         elif args[i] == "--max" and i+1 < len(args):
             maxn = int(args[i+1]); i += 2
+        elif args[i] == "--body":
+            with_body = True; i += 1
         else:
             i += 1
     d = load_token(); d = refresh_if_needed(d); tok = d["token"]
@@ -64,14 +86,18 @@ def main():
     msgs = res.get("messages", [])
     out = []
     for m in msgs:
-        full = api_get("users/me/messages/%s?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date" % m["id"], tok)
+        fmt = "full" if with_body else "metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date"
+        full = api_get("users/me/messages/%s?format=%s" % (m["id"], fmt), tok)
         hdrs = {h["name"].lower(): h["value"] for h in full.get("payload",{}).get("headers",[])}
-        out.append({
+        item = {
             "id": m["id"],
             "date": hdrs.get("date",""),
             "subject": hdrs.get("subject",""),
             "snippet": full.get("snippet","")[:200],
-        })
+        }
+        if with_body:
+            item["body"] = extract_body(full.get("payload", {}))
+        out.append(item)
     print(json.dumps(out))
 
 if __name__ == "__main__":

@@ -5,10 +5,10 @@ When a contact accumulates 3 email opens (across any sequence emails), wait 45 m
 - If booked: do nothing.
 - If still in Warm or AI-pending/unverified: record the engagement signal but do not assign an SDR or promote the record.
 - If already in Sales Outreach: preserve the existing owner/alignment contract; do not independently allocate an SDR.
-- If a later Janvi AI assessment promotes the record into `Sales Outreach -> New`, resolve ownership there using the single-owner/matching-owner/conflict/no-owner rules.
+- If a later marketing or sales assessment promotes the record into `Sales Outreach -> New`, resolve ownership there using the single-owner/matching-owner/conflict/no-owner rules.
 
 Ownership boundary:
-- This workflow must not assign John, Jason, Marc, or any other SDR.
+- This workflow must not assign a named SDR or independently allocate ownership.
 - SDR assignment occurs only when a record enters `Sales Outreach -> New`.
 
 ## Required Field + Tags
@@ -54,7 +54,7 @@ Steps:
 
 ## Workflow 2: Delayed Engagement Review + Booking Exception
 Name:
-- Existing legacy GHL workflow: `WL - Seq - Email Open 3x Assign John`
+- Existing legacy GHL workflow: former owner-labelled email-open assignment workflow
 - Target behavior/name: `WL - Seq - Email Open 3x Engagement Review`
 
 Trigger:
@@ -86,7 +86,7 @@ False branch (not booked):
 - Remove tag `Email Open 3x - Pending Assign`
 
 ## Important Settings
-- Keep Workflow 2 re-entry OFF so John assignment is one-time.
+- Keep Workflow 2 re-entry OFF so engagement review is one-time.
 - Workflow 1 can re-enter to continue counting opens, but the `Assigned` tag guard prevents repeated assignment.
 - Keep your existing stop workflow (`WL - Seq - Stop on Booked/Reply/Closed`) active; this logic complements it.
 

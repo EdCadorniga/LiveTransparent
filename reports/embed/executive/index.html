@@ -213,6 +213,8 @@
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-acquisition" data-view="overview" data-scroll="section-acquisition"><span class="nav-dot"></span> Acquisition Sources</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-pages" data-view="overview" data-scroll="section-pages"><span class="nav-dot"></span> Top Pages</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-sales" data-view="overview" data-scroll="section-sales"><span class="nav-dot"></span> Sales &amp; Pipeline</a>
+            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-sdr" data-view="overview" data-scroll="section-sdr"><span class="nav-dot"></span> SDR Performance</a>
+            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-lead-source" data-view="overview" data-scroll="section-lead-source"><span class="nav-dot"></span> Lead Source</a>
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-gsc" data-view="overview" data-scroll="section-gsc"><span class="nav-dot"></span> Search Console</a>
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-calls" data-view="overview" data-scroll="section-calls"><span class="nav-dot"></span> Calls &amp; Conversations</a>
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-campaigns" data-view="overview" data-scroll="section-campaigns"><span class="nav-dot"></span> Campaign Channels</a>
@@ -340,7 +342,15 @@
               </div>
               <div class="definition-card">
                 <strong>Sales Panels</strong>
-                <p><b>Active Opportunities Summary</b> is the team-wide open-deal view. <b>John's Active Deals</b> is the same opportunity payload presented as a deal-centred view, not a separate source table.</p>
+                <p><b>Active Opportunities Summary</b> is the team-wide open-deal view. <b>Team Active Deals</b> is the same opportunity payload presented as a deal-centred view, not a separate source table (formerly labelled "John's Active Deals").</p>
+              </div>
+              <div class="definition-card">
+                <strong>SDR Performance</strong>
+                <p>Per-owner breakout for the end-of-month SDR assessment. <b>Booked</b> counts Regulated Ads calendar appointments (start date in the window) attributed to the SDR via appointment → contact → opportunity <b>assigned to</b>. <b>Showed / No-show / Cancelled</b> use the GHL appointment status saved on each record — status is not yet updated after meetings, so Showed stays 0 until the Phase-3 status-update automation. <b>SQLs Created</b> = Sales Outreach opportunities created in the window by owner. <b>MQL→SQL</b> = MQL opportunities that entered Sales Outreach in the window. <b>Won / Lost / Revenue</b> = closed opportunities created in the window by owner. Unassigned opportunities roll into an explicit Unassigned row; owner-coverage % is surfaced in Source Health.</p>
+              </div>
+              <div class="definition-card">
+                <strong>Lead Source — MQL &amp; SQL</strong>
+                <p>Breakout of MQLs Entered (Warm Qualified stage entries in the window) and SQLs Created (Sales Outreach opportunities created in the window) by the originating lead source. Each MQL/SQL opportunity is joined to its contact; the lead source is resolved from the contact's first UTM source/medium/campaign, falling back to the traffic-to-lead bridge attribution, then to the GHL contact source field. Coverage is bounded by the leads snapshot — rows without a resolvable source are grouped under <b>Unknown / Unattributed</b>, and the coverage note shows how many MQLs/SQLs were attributed in the window.</p>
               </div>
               <div class="definition-card">
                 <strong>Calls &amp; Conversations</strong>
@@ -636,7 +646,7 @@
           </div>
           <div class="panel">
             <div class="panel-head">
-              <h2>John's Active Deals</h2>
+              <h2>Team Active Deals</h2>
               <span>GHL</span>
             </div>
             <div class="panel-body">
@@ -649,6 +659,46 @@
                 <div class="mini"><strong>Win Rate</strong><div id="jd-win-rate">—</div></div>
               </div>
               <div class="footer-note">This is the same opportunity payload as the team summary. Active open is the latest open snapshot; worked and stage movers are the opportunities that were touched or moved inside the selected window.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SDR PERFORMANCE -->
+        <div class="section-label" id="section-sdr">SDR Performance</div>
+        <section class="grid" style="margin-bottom:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>SDR Performance</h2>
+              <span>GHL owner attribution</span>
+            </div>
+            <div class="panel-body">
+              <div class="table-scroll">
+                <table class="campaign-table">
+                  <thead><tr><th>SDR</th><th>Booked</th><th>Showed</th><th>No-show</th><th>Cancelled</th><th>SQLs Created</th><th>MQL→SQL</th><th>Won</th><th>Lost</th><th>Revenue</th></tr></thead>
+                  <tbody id="sdr-performance-table"><tr><td colspan="10" class="loading">Loading SDR performance data...</td></tr></tbody>
+                </table>
+              </div>
+              <div class="footer-note">Owner = native opportunity "assigned to" (contact-owner fallback). Booked meetings are Regulated Ads calendar appointments windowed by start date, attributed to the SDR via appointment → contact → opportunity owner. Unassigned opportunities roll into an explicit Unassigned row; owner-coverage % is shown in Source Health.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LEAD SOURCE -->
+        <div class="section-label" id="section-lead-source">Lead Source</div>
+        <section class="grid" style="margin-bottom:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Lead Source — MQL &amp; SQL</h2>
+              <span>What is working</span>
+            </div>
+            <div class="panel-body">
+              <div class="table-scroll">
+                <table class="campaign-table">
+                  <thead><tr><th>Lead Source</th><th>Medium</th><th>MQLs Entered</th><th>SQLs Created</th></tr></thead>
+                  <tbody id="lead-source-table"><tr><td colspan="4" class="loading">Loading lead source data...</td></tr></tbody>
+                </table>
+              </div>
+              <div class="footer-note" id="lead-source-note">MQLs Entered = Warm Qualified (MQL) opportunities that entered the stage in the window. SQLs Created = Sales Outreach opportunities created in the window. Lead source resolved from the contact's first UTM source (medium/campaign), falling back to the traffic-to-lead bridge, then to the GHL contact source field. Coverage is limited by the leads snapshot — unattributed rows are labelled "Unknown / Unattributed".</div>
             </div>
           </div>
         </section>
@@ -922,7 +972,7 @@
     </div>
     <script>
       (function () {
-             var BUILD_STAMP = "2026-08-17-v27-social-mql";
+             var BUILD_STAMP = "2026-09-09-v29-lead-source";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -1641,12 +1691,76 @@
                if (periodNote) periodNote.textContent = "Comparing against " + windowLabel(previousWindow) + ".";
              } catch (err) { console.warn("Report load failed:", err); }
            }
-         function render(data) {
-           if (!data || typeof data !== "object") return;
+function renderSdrPerformance(rows) {
+            var list = Array.isArray(rows) ? rows : [];
+            var body = document.getElementById("sdr-performance-table");
+            if (!body) return;
+            if (list.length === 0) {
+              body.innerHTML = '<tr><td colspan="10" class="loading">No SDR performance data in this window.</td></tr>';
+              return;
+            }
+            var html = list.map(function (row) {
+              var role = row.owner_role === "sdr" ? "SDR" : (row.owner_role === "leadership" ? "Sales lead" : (row.owner_role === "exec" ? "Exec" : "—"));
+              var name = String(row.owner_name || "Unknown SDR");
+              return "<tr>" +
+                "<td><strong>" + escapeHtml(name) + "</strong><div class=\"sub\">" + escapeHtml(role) + "</div></td>" +
+                "<td>" + formatNumber(row.booked || 0) + "</td>" +
+                "<td>" + formatNumber(row.showed || 0) + "</td>" +
+                "<td>" + formatNumber(row.no_show || 0) + "</td>" +
+                "<td>" + formatNumber(row.cancelled || 0) + "</td>" +
+                "<td>" + formatNumber(row.sqls_created || 0) + "</td>" +
+                "<td>" + formatNumber(row.mqls_converted || 0) + "</td>" +
+                "<td>" + formatNumber(row.won || 0) + "</td>" +
+                "<td>" + formatNumber(row.lost || 0) + "</td>" +
+                "<td>" + formatCurrency(row.revenue || 0) + "</td>" +
+                "</tr>";
+            }).join("");
+            body.innerHTML = html;
+          }
+          function renderLeadSource(rows, coverage) {
+            var list = Array.isArray(rows) ? rows : [];
+            var body = document.getElementById("lead-source-table");
+            if (!body) return;
+            if (list.length === 0) {
+              body.innerHTML = '<tr><td colspan="4" class="loading">No lead source data in this window.</td></tr>';
+              return;
+            }
+            var html = list.map(function (row) {
+              var mqls = formatNumber(row.mqls || 0);
+              var sqls = formatNumber(row.sqls || 0);
+              var source = String(row.source || "Unknown / Unattributed");
+              var medium = String(row.medium || "—");
+              var unattributed = source === "Unknown / Unattributed";
+              var sourceCell = unattributed
+                ? "<strong><span style=\"color:var(--faint);\">" + escapeHtml(source) + "</span></strong>"
+                : "<strong>" + escapeHtml(source) + "</strong>";
+              var mediumCell = unattributed
+                ? "<span style=\"color:var(--faint);\">—</span>"
+                : escapeHtml(medium);
+              return "<tr>" +
+                "<td>" + sourceCell + "</td>" +
+                "<td>" + mediumCell + "</td>" +
+                "<td>" + mqls + "</td>" +
+                "<td>" + sqls + "</td>" +
+                "</tr>";
+            }).join("");
+            body.innerHTML = html;
+            var note = document.getElementById("lead-source-note");
+            if (note && coverage && typeof coverage === "object") {
+              var cov = "Attribution basis: contact first UTM source (medium/campaign) with traffic-to-lead bridge fallback, then GHL contact source. Coverage is limited by the leads snapshot. Attributed in this window: " +
+                formatNumber(coverage.sqlsAttributed || 0) + " of " + formatNumber(coverage.sqlsTotal || 0) + " SQLs, " +
+                formatNumber(coverage.mqlsAttributed || 0) + " of " + formatNumber(coverage.mqlsTotal || 0) + " MQLs. Unattributed rows are labelled \"Unknown / Unattributed\".";
+              note.textContent = cov;
+            }
+          }
+          function render(data) {
+            if (!data || typeof data !== "object") return;
              renderCampaignChannels(data.campaignChannelBreakdown || []);
               renderCampaignBreakdown(data.campaignBreakdown || []);
               renderSmsSummary(data.smsSummary || {});
               renderInstagramSummary(data.instagramActivity || {});
+               renderSdrPerformance(data.sdrPerformance || []);
+                renderLeadSource(data.leadSourceBreakdown || [], data.leadSourceCoverage || {});
           var summary = data.summary || {};
           var captureGaps = data.captureGaps || {};
           var salesQuality = data.salesQuality || {};

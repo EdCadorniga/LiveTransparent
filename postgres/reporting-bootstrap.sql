@@ -553,6 +553,44 @@ SET source_name = EXCLUDED.source_name,
     notes = EXCLUDED.notes,
   updated_at = NOW();
 
+-- SDR / owner registry — user-id -> name -> role map for owner attribution.
+-- The report renders SDR names from this table instead of raw GHL user UUIDs.
+-- Owner/assigned data is captured by the ingests (opportunities
+-- dimensions_json->>'assigned_to', appointments assigned_user_id + contact_id,
+-- contacts payload_json). This table only resolves those user ids to names.
+-- User IDs resolved from the live GHL users list (GET /users/?locationId=...)
+-- on 2026-09-09: ck6TRlU3wnTmMxuVpn5F = Janvi Mahajan (formerly rendered as
+-- "Unknown SDR"); Kevin/Mike/Remus added as informational non-SDR rows.
+CREATE TABLE IF NOT EXISTS report_sdr_registry (
+  user_id TEXT PRIMARY KEY,
+  user_name TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'unknown',
+  is_sdr BOOLEAN NOT NULL DEFAULT FALSE,
+  email TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  notes TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO report_sdr_registry (user_id, user_name, role, is_sdr, email, notes)
+VALUES
+  ('yU85G6kfhtW4vUtx3QE6', 'Jason Bornillo', 'sdr', TRUE, 'jason@livetransparent.com', 'SDR. Also the fallback owner for unassigned follow-up routing.'),
+  ('sqGx5rp3oAUG610NXyjU', 'Marc', 'sdr', TRUE, 'marc@livetransparent.com', 'SDR. Marc-routing path; no Marc-owned opps in trigger stages as of 2026-07-30.'),
+  ('03p5GatJBH7i9zjMaIzm', 'Cameron Karkut', 'leadership', FALSE, 'cameron@livetransparent.com', 'Co-founder / Head of Sales and Strategy. Owns Regulated Ads calendar SrtXcFVyea7pFl3nTiIK.'),
+  ('gePIeuHOEsAiPVA1mfOR', 'Ed Cadorniga', 'exec', FALSE, 'ed@livetransparent.com', 'Co-founder / operations and automation.'),
+  ('ck6TRlU3wnTmMxuVpn5F', 'Janvi Mahajan', 'marketing', FALSE, 'janvi@livetransparent.com', 'Partnership + qualification gate owner. Resolved from live GHL users list 2026-09-09; formerly rendered as "Unknown SDR" (ck6TRlU3…). Non-SDR.'),
+  ('7s3brzxGF4WSiz95DPkF', 'Kevin Lagudgud', 'staff', FALSE, 'kevin@livetransparent.com', 'GHL user (account admin). No opp ownership in current data; informational.'),
+  ('D8NgkeZYX481rR4J2gOc', 'Mike deVries', 'staff', FALSE, 'mike@livetransparent.com', 'GHL user (account admin). No opp ownership in current data; informational.'),
+  ('R5VljBpXah3LaVXFNfCV', 'Remus Borela', 'staff', FALSE, 'remus@livetransparent.com', 'GHL user (account admin). No opp ownership in current data; informational.')
+ON CONFLICT (user_id) DO UPDATE
+SET user_name = EXCLUDED.user_name,
+    role = EXCLUDED.role,
+    is_sdr = EXCLUDED.is_sdr,
+    email = EXCLUDED.email,
+    notes = EXCLUDED.notes,
+    is_active = TRUE,
+    updated_at = NOW();
+
 -- GHL Social Planner posts — ingested from /social-media-posting/{locationId}/posts/list
 CREATE TABLE IF NOT EXISTS report_raw_ghl_social_posts (
   post_id TEXT PRIMARY KEY,

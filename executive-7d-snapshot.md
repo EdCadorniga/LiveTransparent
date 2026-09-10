@@ -156,7 +156,7 @@
             - paragraph [ref=e157]: This table shows observed UTM traffic rows. A UTM created in GHL will only appear here once it is actually observed in traffic or matched through the bridge.
           - generic [ref=e158]:
             - strong [ref=e159]: Sales Panels
-            - paragraph [ref=e160]: Active Opportunities Summary is the team-wide open-deal view. John's Active Deals is the same opportunity payload presented as a deal-centred view, not a separate source table.
+            - paragraph [ref=e160]: Active Opportunities Summary is the team-wide open-deal view. Team Active Deals is the same opportunity payload presented as a deal-centred view, not a separate source table.
           - generic [ref=e161]:
             - strong [ref=e162]: Calls & Conversations
             - paragraph [ref=e163]: This panel shows GHL conversation call records. It groups calls by the raw CRM status so the team can see answered, missed, and voicemail activity without guessing from SMS or Twilio data.
@@ -431,7 +431,7 @@
           - generic [ref=e449]: Appointments from calendar SrtXcFVyea7pFl3nTiIK — Regulated Ads On Social/Search. The status counts below come from the current GHL appointment status saved on each record. Call activity is shown separately in the Calls & Conversations section.
       - generic [ref=e450]:
         - generic [ref=e451]:
-          - heading "John's Active Deals" [level=2] [ref=e452]
+          - heading "Team Active Deals" [level=2] [ref=e452]
           - generic [ref=e453]: GHL
         - generic [ref=e454]:
           - generic [ref=e455]:

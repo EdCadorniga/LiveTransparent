@@ -22,7 +22,7 @@ The main business outcomes were:
 
 - Repaired existing automations that were timing out, stopping unexpectedly, or using outdated information.
 - Corrected Instagram and LinkedIn messaging paths, including reply protection and follower-message issues.
-- Completed the John-to-Jason transition across email, SMS, templates, documents, and automation references while preserving live campaign identifiers.
+- Completed the former-SDR identity transition across email, SMS, templates, documents, and automation references while preserving live campaign identifiers.
 - Activated the Emerald email campaign for approximately 14,702 contacts with controlled sending, event tracking, and sequence connections.
 - Prepared and launched the DAN brand and dispensary email campaign with ten templates, enrollment rules, sender controls, and reply suppression.
 - Updated Apollo monitoring and documented live automation operating, publishing, and recovery procedures.

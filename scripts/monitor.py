@@ -181,7 +181,7 @@ def main():
         body_lines += evidence
         body_lines.append("")
         body_lines.append("Next: check docs/sessions in the LiveTransparent repo; do not restart postgres/redis or rotate keys without explicit approval.")
-        raw = "To: " + RECIPIENT + "\r\nFrom: " + RECIPIENT + "\r\nSubject: " + subject + "\r\n\r\n" + "\n".join(body_lines)
+        raw = "To: " + RECIPIENT + "\nFrom: " + RECIPIENT + "\nSubject: " + subject + "\n\n" + "\n".join(body_lines)
         rc = subprocess.run([sys.executable, os.path.join(SCRIPTS, "gmail_send.py"), "--stdin"], input=raw,
                             capture_output=True, text=True, timeout=60)
         if "SENT_OK" in rc.stdout:
@@ -211,7 +211,7 @@ def main():
     sys.exit(0 if severity in ("healthy","recovered") else 2)
 
 def send_alert(subject, body):
-    raw = "To: " + RECIPIENT + "\r\nFrom: " + RECIPIENT + "\r\nSubject: " + subject + "\r\n\r\n" + body
+    raw = "To: " + RECIPIENT + "\nFrom: " + RECIPIENT + "\nSubject: " + subject + "\n\n" + body
     subprocess.run([sys.executable, os.path.join(SCRIPTS, "gmail_send.py"), "--stdin"], input=raw,
                    capture_output=True, text=True, timeout=60)
 

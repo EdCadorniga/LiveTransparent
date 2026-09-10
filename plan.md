@@ -4,6 +4,15 @@
 >
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
 
+## ✅ 2026-09-09: Executive Report — SDR Performance & Owner Attribution (Phases 1–2 + Phase 4 IMPLEMENTED)
+
+- Request: track booked meetings by SDR for Cameron's end-of-month SDR assessment (focus SQL/booked meetings), plus marketing's requirements for owner/SDR attribution everywhere, booked meetings by SDR, showed/no-show by SDR, SQLs created by SDR, MQL→SQL conversion by SDR, clarification of the former owner-labelled active deals view, and lead-source breakdown for MQL/SQL.
+- **Verified:** owner data is already captured by the ingests (opportunities `dimensions_json->>'assigned_to'`, appointments `assigned_user_id`+`contact_id`, contacts `payload_json`). The Exec Summary SQL never projected any owner field. Root causes: `meetingsBooked` KPI (opportunity-stage-based via Daily Rollups) vs Meetings panel (appointments by `start_at`) were two different sources → 3 vs 7; "Team Active Deals" is the team-wide payload relabeled.
+- **Phases 1–2 IMPLEMENTED + verified:** `report_sdr_registry` (user map) + owner-coverage health probes; Daily Rollups carries `assigned_to`; Exec Summary returns `sdrPerformance` per-owner rows + `meetingsBooked` aligned to appointments (`basis appointments_start_at`); `SET jit=off` (16–19s). Frontend build `2026-09-09-v28-sdr-performance`.
+- **Phase 4 IMPLEMENTED + verified:** Exec Summary adds `leadSourceBreakdown`/`leadSourceCoverage` (MQL/SQL by originating source: contact first UTM → bridge fallback → GHL `source`; "Unknown / Unattributed" for unresolvable rows). Active version `162bbba8…`. Frontend build `2026-09-09-v29-lead-source` with Lead Source panel + glossary.
+- **Remaining (Phases 3 & 5):** GHL appointment-status update automation (Phase 3, explicit approval before enabling), unknown-owner-ID identification (`ck6TRlU3…` + Janvi), MQL-definition reconciliation + final QA/sign-off.
+- Full plan: `docs/sessions/2026-09-09-executive-report-sdr-attribution-plan.md`. Implementation + verification: `docs/sessions/2026-09-09-executive-report-sdr-attribution-phase1-2.md` and `docs/sessions/2026-09-09-executive-report-sdr-attribution-phase4-lead-source.md`.
+
 ## ✅ 2026-08-20: Emerald/DAN/Partnership release-log fix + Apollo August enrollment
 
 - Fixed the same release-log single-row write bug (`runOnceForAllItems` + `$json` read only the first item) in all three campaign dispatchers:
@@ -181,7 +190,7 @@ Both workflows published and running:
 - ~~Update GHL promotion workflow `Move Contact's Opportunity to Sales Outreach New` (`cd29d8e6-5e0f-45f8-ba4f-c30804ad9b49`) so the destination is `Sales Outreach -> Qualified`.~~ **Done 2026-07-30 — GHL version 10 published; both opportunity actions target `Sales Outreach -> Qualified`.**
 - ~~Implement the Jason/Marc no-owner allocator at Sales Outreach entry.~~ **Live 2026-07-30 — n8n workflow `LT - Sales Outreach Jason Marc No-Owner Allocator` (`eeksgD0fbGHUqh4r`) runs every 30 minutes, selects open `Sales Outreach -> Qualified` opportunities, filters blank native owners in code, and assigns Jason/Marc by deterministic opportunity-ID hash. It writes only native opportunity ownership; the published GHL alignment workflow handles the contact and custom opportunity owner cascade.**
 - Ownership audit result: the allocator assigns only the native opportunity owner, then lets the published GHL `LT - Opportunity Owner Alignment` workflow assign the contact and mirror the custom opportunity `Owner`. The staged n8n owner-sync workflow remains inactive.
-- ~~Complete legacy-owner migration for open Sales Outreach opportunities whose custom `Owner` was John or Kevin.~~ **Done 2026-07-30 — authoritative opportunity search returned zero remaining John/Kevin custom-owner records; native ownership cascaded through the published GHL alignment workflow.**
+- ~~Complete legacy-owner migration for open Sales Outreach opportunities whose custom `Owner` was a former owner or Kevin.~~ **Done 2026-07-30 — authoritative opportunity search returned zero remaining former-owner/Kevin custom-owner records; native ownership cascaded through the published GHL alignment workflow.**
 - Verify Vapi dashboard still points all tools and end-of-call webhook to canonical callback URL. This remains a manual dashboard check because it cannot be safely simulated through n8n.
 - Run a controlled live Brand and Dispensary call after the 2026-07-25 prompt/variable patch and verify no unresolved placeholders, no disclosure in voicemail, and one-question turn-taking.
 - **SimpleTexting next step**: keep Step Runner, Warmup, Pool, and Campaign Sequencer unpublished. Allow active Phone Backfill to maintain phone state. Use one explicitly approved live SMS or natural provider traffic to verify current provider acceptance and callback persistence before publishing any sender schedule.
@@ -234,7 +243,7 @@ Required pre-cutover cleanup for any future legacy-owner migration:
 - Verify the cleanup count before proceeding. No former-staff-owned contact should remain unless it is explicitly excluded and documented.
 - This cleanup is separate from the qualification gate. Do not enable a new allocator or make Warm assignments until the Janvi gate and Sales Outreach boundary are implemented.
 
-The 2026-07-30 migration is complete. The initial audit identified 307 open Sales Outreach opportunities with custom owner John or Kevin (305 John, 2 Kevin); the final authoritative search found zero remaining records. The migration changed native opportunity ownership and allowed the published GHL alignment workflow to cascade contact ownership and the custom opportunity `Owner`; no direct duplicate writer was activated.
+The 2026-07-30 migration is complete. The initial audit identified 307 open Sales Outreach opportunities with a former owner or Kevin as custom owner; the final authoritative search found zero remaining records. The migration changed native opportunity ownership and allowed the published GHL alignment workflow to cascade contact ownership and the custom opportunity `Owner`; no direct duplicate writer was activated.
 
 Allocator rollout note (2026-07-30): the first controlled run assigned 73 previously unowned Qualified opportunities successfully. A live verification confirmed native opportunity owner, contact owner, and custom opportunity `Owner` agree for Jason and Marc. The remaining unowned Qualified backlog is processed in bounded batches by the active allocator; do not manually assign records while the backlog drains.
 
@@ -244,7 +253,7 @@ Before executing any live changes, audit and map every Jason-specific reference 
 - Contact owner assignment paths and opportunity owner assignment paths; confirm whether each path uses a GHL user ID, a custom field, a round-robin rule, or a hardcoded name.
 - GHL email templates, HTML signatures, sender addresses, reply-from values, and any sequence/template folder naming that is Jason-specific.
 - Current live Jason-specific GHL templates identified: `Jason - 01` (`69e0d86b9af59801b580f4b5`), `Jason - 02` (`69e0db27d6a707bbf190d022`), `Jason - 03` (`69e0db9ab02114c1ba3c29d3`), `Jason - 04` (`69e0dc56d6a707c0ac90e074`), `Jason - 05` (`69e0dcad8ffabf47b4d987c5`), and `Jason - 06` (`69e0ddd0b021145bab3c4569`). All require backup and a decision between Marc-specific copies versus shared rep-merge templates.
-- `Jason - 04 - Appropriate Marketing Contact` currently contains a stale `Best, John` signature and must be corrected during the template audit, regardless of whether it becomes a Marc copy.
+- The former-owner follow-up template currently contains a stale former-owner signature and must be corrected during the template audit, regardless of whether it becomes an SDR-specific copy.
 - SMS template registries and GHL SMS workflow payloads, including preserved legacy keys such as `john_sms1` through `john_sms5`; do not rename keys without mapping review.
 - Vapi assistant `firstMessage`, prompt identity, transfer language, metadata, notes, and any campaign-specific sales-rep references.
 - GHL automations and micro-workflows that assign contacts or opportunities after opens, clicks, replies, deck downloads, bookings, or other engagement events.
@@ -266,7 +275,7 @@ Canonical SDR Routing Contract:
 - Persist the decision on the contact before any outbound message is sent, and treat the assignment as sticky. Retries, webhook replays, sequence steps, and later engagement events must reuse the existing SDR.
 - Store both the GHL user ID and the rep identity needed by outbound channels. At minimum verify fields for `sdr_user_id`, `sdr_name`, `sdr_email`, `sdr_phone`, `sdr_signature`, `sdr_vapi_assistant_id`, and `sdr_calendar_id` or an equivalent canonical mapping.
 - Define behavior for contacts that already have an owner, are already assigned to Jason, are assigned to another team member, or have conflicting owner/custom-field values. Do not silently overwrite existing non-SDR ownership.
-- Precedence rule: former Kevin/John-owned contacts are migrated to Jason before round-robin assignment. Existing contacts owned by active staff remain unchanged unless separately approved.
+- Precedence rule: former-owner/Kevin contacts are migrated to the approved active owner before round-robin assignment. Existing contacts owned by active staff remain unchanged unless separately approved.
 - Define the cutover scope: new contacts only, or a controlled rebalance/backfill of existing Jason-owned contacts. If rebalancing existing contacts is requested, preserve active conversations, booked meetings, opt-outs, and opportunity history.
 - Make the assignment idempotent using contact ID plus a routing version/cutover marker. A duplicate event must return the prior assignment rather than consume the next round-robin slot.
 - Add a routing audit trail containing contact ID, previous owner, assigned SDR, assignment timestamp, trigger/source, routing version, and idempotency key.
@@ -278,7 +287,7 @@ Canonical SDR Routing Contract:
 Assignment Surfaces To Audit And Update:
 
 - `WL - Micro - Email Open Counter + Assignment to Jason` (`42aa5940`): email-open threshold, contact owner action, opportunity owner action, assignment state, retry/replay behavior, and notification recipient.
-- `Jason Followup Emails and SMS` (`f6b44e34`): all email/SMS actions, owner fields, sender fields, transfer/notification recipients, and legacy John/Jason names. **Completed (2026-07-29), re-audited (2026-07-30)** — all 7 Send Email actions confirmed with `{{opportunity.owner}} from Transparent eCom` + `{{user.email}}`; workflow defaults `Jason from Transparent eCom` / `jason@livetransparent.com` confirmed via `senderAddress` API field; published v39. Six templates (one reused by 2 actions) with literal Jason fallback. 14 SMS follow-ups via `john_sms1`–`john_sms5` (not owner-routed). Marc path (`sqGx5rp3oAUG610NXyjU`) is configured but untested — zero Marc-owned opportunities have entered a trigger stage (New, 1st/2nd/3rd Attempt, Engaged).
+- `Sales Followup Emails and SMS` (`f6b44e34`): all email/SMS actions, owner fields, sender fields, transfer/notification recipients, and legacy sender identities. **Completed (2026-07-29), re-audited (2026-07-30)** — all 7 Send Email actions confirmed with owner-driven sender fields; the workflow defaults and active-owner fallback were verified; published v39. The 14 SMS follow-ups are not owner-routed. The active SDR routing path remains subject to controlled verification.
 - Warm intake workflows for email inbound, email outbound, and SMS: `SmMf8QIfysuxQJbG`, `J4B0n0QeSeOeqAci`, and `5nYzp9DgQUopzWhR`. Confirm they only tag/intake contacts or whether they also assign owners.
 - Email enrollment and stop workflows for DAN and Emerald: sender selection, owner persistence, reply/booked stop logic, and any GHL sequence action that assigns or notifies Jason.
 - Vapi intake, queue, dialer, callback, and tool paths: `bYk1Ai6MJLyhTsDZ`, `XzcpOBi9YcIhJPck`, `r7UjWLndmc6EqEUW`, and `fx4UvKUWbqJEY3LK`. Carry the canonical SDR identity through queue metadata, Vapi variables, notes, callbacks, Slack alerts, transfers, and bookings.
@@ -309,9 +318,9 @@ Assignment Surfaces To Audit And Update:
 
 Rep-Specific Message And Channel Configuration:
 
-- Email: decide whether to create Marc copies of the six Jason templates or convert them to shared templates driven by SDR merge fields. Update subject/preheader/body signatures, sender/from/reply-to, meeting links, phone numbers, template names/folders, and any GHL sequence references. Correct the stale `Best, John` in Jason Template 04 before reuse.
+- Email: decide whether to create SDR-specific copies of the six follow-up templates or convert them to shared templates driven by SDR merge fields. Update subject/preheader/body signatures, sender/from/reply-to, meeting links, phone numbers, template names/folders, and any GHL sequence references. Correct the stale former-owner signature in Template 04 before reuse.
 - Email: ensure a sequence step cannot send Jason copy from a Marc-owned contact or vice versa. Add a pre-send identity check and fail closed when the SDR mapping is missing or invalid.
-- SMS: add Marc message variants or a rep-aware template registry. Preserve `john_sms1` through `john_sms5` only as historical compatibility keys, and define new keys/mappings rather than changing keys referenced by live GHL automations without a migration map.
+- SMS: add SDR-specific message variants or a rep-aware template registry. Preserve existing legacy compatibility keys only where live GHL automations require them, and define new keys/mappings rather than changing keys without a migration map.
 - SMS: make the selected message, sender label, conversation mirror, reply notification, and idempotency/external ID use the assigned SDR. Confirm STOP, DND, and reply suppression remain global and are not weakened by routing branches.
 - Vapi: document the mapping from SDR to assistant identity, first message, system-prompt name, transfer target, calendar, meeting link, phone number, callback metadata, GHL note signature, and Slack notification destination. Do not rely on a generic campaign assistant ID if the spoken rep identity must vary.
 - Vapi: pass the SDR identity in `assistantOverrides.variableValues` and metadata, guard against missing/unresolved placeholders, and ensure the callback uses the same owner for notes, outcomes, booking, and follow-up.
@@ -332,15 +341,15 @@ Equal-Split Validation And Monitoring:
 
 Implementation order after plan approval:
 
-1. Resolve Kevin's and John's live GHL user IDs and inventory all contacts and associated opportunities they currently own.
-2. Back up the affected contact ownership records and transfer former Kevin/John-owned contacts to Jason; verify the complete migration before continuing.
+1. Resolve former-owner and Kevin live GHL user IDs and inventory all contacts and associated opportunities they currently own.
+2. Back up the affected contact ownership records and transfer former-owner/Kevin contacts to the approved active owner; verify the complete migration before continuing.
 3. Confirm Marc's GHL user record, permissions, email identity, calendar/meeting routing, and any required Vapi or sending-account access.
 4. Fetch current live GHL workflow definitions and all referenced n8n workflow versions before editing.
 5. Back up every affected GHL email template and record current sender/signature values.
 6. Identify Janvi's authoritative AI assessment field/tag and implement the AI-qualified-cannabis -> Sales Outreach New gate. Apply the canonical ownership alignment/50/50 fallback at that boundary, then update Marc-specific copies/templates and sender identity.
 7. Run the controlled routing and channel test matrix before enabling production traffic.
 8. Publish changed workflows and verify contact owner, opportunity owner, Sales-pipeline Cameron handoff, sender, signature, SMS, and Vapi behavior with controlled test records.
-9. Verify no Jason-only or stale John-branded references remain in active production paths, while preserving intentional legacy template keys and historical reporting identifiers.
+9. Verify no stale former-owner-branded references remain in active production paths, while preserving intentional legacy compatibility keys and historical reporting identifiers.
 10. Monitor the first production assignment batch and confirm the measured Jason/Marc distribution, sticky ownership, and zero sender/owner mismatches.
 
 ### Completed
@@ -351,11 +360,11 @@ Implementation order after plan approval:
 - **2026-07-25**: Reconnected the six-hour Schedule Trigger paths for `LT - Report Config Sync` (`aomO3Z4AXJIgEvvN`) and `LT - Report Publish Refresh` (`3gXztCnBEN6sGINb`). Both were published and manual executions `242576` and `242577` succeeded.
 - **2026-07-25**: Unpublished superseded Apollo Sheet First webhook `WmKAhG7mIaXonNsh` after confirming zero executions; canonical polling `JH8ShfpglWmLMZ3l` remains active.
 
-- **2026-07-25**: Neutralized live Vapi transfer and voicemail language across the transfer tool and Savannah/Alex/Jordan assistants. Human-facing copy no longer names Jason or John; the compatibility function name and shared destination remain unchanged.
+- **2026-07-25**: Neutralized live Vapi transfer and voicemail language across the transfer tool and assistants. Human-facing copy no longer names individual owners; the compatibility function name and shared destination remain unchanged.
 - **2026-07-25**: Disabled the hardcoded Kevin follow-up task in live RB2B workflow `3kjsIUeoEQFx26cC`. Warm intake now persists the contact/lead and returns without creating an SDR task; the legacy task node remains disconnected for future owner-resolved Sales Outreach use.
 
 - **2026-07-24**: Fixed SimpleTexting campaign delivery. `LT - SMS Idempotent Send` now sends multi-segment messages with `AUTO`, records provider errors without crashing, and reclaims failed claims. `LT - SimpleTexting SMS Send (Webhook, Staged)` now gates GHL mirroring on a real provider message ID. Published both workflows and passed safe simulation executions `241272` and `241275`. Live provider confirmation is explicitly queued for the next dispatcher run.
-- **2026-07-26**: Refreshed the live SimpleTexting template registry in `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`). Updated `sms_1`, `sms_3`, and `sms_5` with clearer copy and selective `https://livetransparent.com/` references; preserved `sms_2`, `sms_4`, and `sms_6`, plus legacy `john_sms*` payload aliases. Republished and verified the workflow's draft and active versions match.
+- **2026-07-26**: Refreshed the live SimpleTexting template registry in `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`). Updated `sms_1`, `sms_3`, and `sms_5` with clearer copy and selective `https://livetransparent.com/` references; preserved the other templates and required legacy payload aliases. Republished and verified the workflow's draft and active versions match.
 
 - **2026-07-25**: Audited Vapi callback execution `241579` and its successful end-of-call follow-up `241581`. Fixed the Brand assistant opener and system prompt, added `company_name` extraction/propagation in the outbound dialer, and published/verified dialer version `b3c80814-d7f0-442b-b5d2-f350377a0f2c` as active.
 - **2026-07-25**: Recovered n8n from 745 orphaned queued `new` executions that were producing “Starting soon” records and competing recovery messages. Preserved legitimate `waiting` executions, republished the Vapi dialer, and verified the native trigger and manual execution path.
