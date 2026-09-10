@@ -24,7 +24,7 @@ whether the "API key" and the PIT are the same in form and function.
   **all HTTP 200**. The previously dead 401 token (`13c5a02e54a2` = `pit-2d2e...`) is gone
   from active workflows.
 - Repo exports: refreshed 17 JSON files under `n8n/workflows/`, `n8n/voice-agent/`,
-  `n8n/backups/` (36 token replacements total). Verified `grep` across the repo's `*.json`:
+  `local-archive/n8n/backups/` (36 token replacements total). Verified `grep` across the repo's `*.json`:
   **zero old-token matches remain**.
 - API key vs PIT answer (delivered to Ed): in this deployment both old values were
   `pit-<uuid>` format and both authenticated identically as `Authorization: Bearer ...`

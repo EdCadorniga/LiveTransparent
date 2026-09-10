@@ -28,7 +28,7 @@ const config = node({
         { id: 'locationName', name: 'locationName', type: 'string', value: 'Live Transparent' },
         { id: 'timezone', name: 'timezone', type: 'string', value: 'America/Los_Angeles' },
         { id: 'apiBaseUrl', name: 'apiBaseUrl', type: 'string', value: 'https://services.leadconnectorhq.com' },
-        { id: 'apiKey', name: 'apiKey', type: 'string', value: 'pit-2d2ed8c3-9297-482e-b8f2-3615e7003c86' },
+        { id: 'apiKey', name: 'apiKey', type: 'string', value: process.env.GHL_PIT || '<GHL_PIT_FROM_ENV>' },
         { id: 'sourceSystem', name: 'sourceSystem', type: 'string', value: 'ghl' },
         { id: 'pageSize', name: 'pageSize', type: 'number', value: 50 },
         { id: 'overlapDays', name: 'overlapDays', type: 'number', value: 7 },

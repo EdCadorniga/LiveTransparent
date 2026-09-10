@@ -1642,6 +1642,13 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - A provider result is accepted only when the idempotent boundary confirms `sent` or `duplicate`; ambiguous responses fail closed.
 - Controlled live validation still requires explicit approval. Safe pinned/dry-run tests are not proof of provider acceptance.
 
+## Local Script And Archive Boundaries
+
+- `local-scripts/` is an intentionally Git-ignored workspace for reusable operator-only helpers and machine-specific probes.
+- `local-archive/n8n/` is an intentionally Git-ignored workspace for historical n8n exports, backups, and one-off patch inputs. Live n8n remains authoritative; these files are for audit/reference only and must not be redeployed without reconciliation.
+- Keep reviewed, versioned automation and migration sources in `scripts/` and the retained `n8n/**/*.ts` blueprints; do not move them into the ignored archive merely because they contain code.
+- Retained source blueprints must use environment placeholders and must not contain live PITs, API keys, webhook secrets, or provider tokens.
+
 ## Key Files
 
 - repomix-output.md
@@ -1655,17 +1662,11 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 - n8n/docker-compose.yml
 - n8n/voice-agent/
 - n8n/lt-linkedin-dispatcher.ts
-- n8n/workflows/lt-linkedin-dm-sequence.ts
-- n8n/workflows/lt-apollo-queued-timeout-reaper.ts
-- n8n/workflows/lt-emerging-pool-import.ts
+- local-archive/n8n/workflows/
 - local-scripts/suppress_linkedin_dms.py
+- local-scripts/_vps_psql.py
+- local-archive/n8n/
 - scripts/fix_intake_poller.js
-- n8n/workflows/lt-simpletexting-send-sms.json
-- n8n/workflows/lt-simpletexting-pool-dispatcher.json
-- n8n/workflows/lt-simpletexting-campaign-sequencer.json
-- n8n/workflows/lt-simpletexting-inbound-reply.json
-- n8n/workflows/lt-simpletexting-delivery-events.json
-- n8n/workflows/lt-simpletexting-unsubscribe-events.json
 - reports/embed/executive/index.html
 - reports/nginx.conf
 - Backup of all n8n workflows/

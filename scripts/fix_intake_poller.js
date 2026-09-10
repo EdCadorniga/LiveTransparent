@@ -19,7 +19,7 @@ const configNode = node({
     parameters: {
       mode: 'runOnceForAllItems',
       language: 'javaScript',
-      jsCode: "return [{ json: {\n  GHL_API_KEY: 'pit-b278b3ad-96bd-41fb-ba03-9f927039eb28',\n  GHL_LOCATION_ID: 'Zwz4relUXVPxx8uohnjV',\n  BASE_URL: 'https://services.leadconnectorhq.com',\n  ENRICHMENT_STATUS_FIELD_ID: 'rgYJ7UqoznGoe3WeUAtH',\n  ENRICH_PHONE_FIELD_ID: 'gdJDuZelIxEBE6n9i5Q6'\n} }];"
+      jsCode: "return [{ json: {\n  GHL_API_KEY: '<GHL_PIT_FROM_ENV>',\n  GHL_LOCATION_ID: 'Zwz4relUXVPxx8uohnjV',\n  BASE_URL: 'https://services.leadconnectorhq.com',\n  ENRICHMENT_STATUS_FIELD_ID: 'rgYJ7UqoznGoe3WeUAtH',\n  ENRICH_PHONE_FIELD_ID: 'gdJDuZelIxEBE6n9i5Q6'\n} }];"
     },
     position: [224, -16]
   },

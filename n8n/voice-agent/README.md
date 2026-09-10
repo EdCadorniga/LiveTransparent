@@ -12,10 +12,7 @@ This package documents the current production Vapi voice-agent implementation an
 - `Voice_Agent_V1_Implementation_Spec.md` - historical V1 implementation spec retained for reference.
 - `Call_Agent_Prompt_Policy.md` - historical V1 prompt policy retained for reference.
 - `postgres/voice_agent_schema.sql` - queue/attempt/transcript schema.
-- `dialer-workflow-clean.mjs` - historical/local scaffold; live n8n workflow `r7UjWLndmc6EqEUW` is the outbound dialer source of truth.
-- `dialer-workflow-clean.json` - historical inspectable export; do not redeploy without reconciling it against live n8n.
-- `workflow-1ogCy-DIALER-EXPORT.json` - legacy outbound dialer export retained for archive/reference.
-- `n8n-workflow/lt-voice-agent-vapi-callback-v1-merged.json` - historical callback export; live n8n workflow `fx4UvKUWbqJEY3LK` is canonical and must be fetched before redeployment.
+- `../local-archive/n8n/voice-agent/` - historical/local workflow exports and scaffolds; live n8n workflows are the source of truth and must be fetched before redeployment.
 - `runbooks/Voice_Agent_Operations_Runbook.md` - production deployment and operations checks, including the 8-minute call limit.
 - `runbooks/Vapi_Outbound_Call_Training.md` - training guide for how the dialer and callback workflows work with Vapi.
 - `ARCHIVE.md` - archive index for retired voice workflows and exports.

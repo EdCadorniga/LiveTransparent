@@ -123,10 +123,10 @@ field. Many contacts (especially after CSV imports) have a known phone in the
 `Em_All_Known_Phones` custom field (`F8iUFGsA8CqdzEzjY3Eh`, LARGE_TEXT) but no
 primary `phone`. We need to fall back to the parsed list when primary is empty.
 
-**Where to edit**: `n8n/voice-agent/dialer-workflow-clean.mjs`, the
+**Historical scaffold**: `local-archive/n8n/voice-agent/dialer-workflow-clean.mjs`, the
 `Code - Check Phone` node. JSON export lives at
-`n8n/voice-agent/dialer-workflow-clean.json` and legacy backup at
-`n8n/voice-agent/workflow-1ogCy-DIALER-EXPORT.json`. Active deployed workflow
+`local-archive/n8n/voice-agent/dialer-workflow-clean.json` and legacy backup at
+`local-archive/n8n/voice-agent/workflow-1ogCy-DIALER-EXPORT.json`. Active deployed workflow
 is `r7UjWLndmc6EqEUW`.
 
 **Plan**:
@@ -219,5 +219,5 @@ end-of-call webhook URL. If any drift, fix in Vapi.
 - [repomix-output.md](./repomix-output.md)
   - regenerate via `. $PROFILE && packlive` after significant work
 - `n8n/workflows/lt-apollo-queued-timeout-reaper.ts` — reaper source
-- `n8n/voice-agent/dialer-workflow-clean.mjs` — VAPI dialer source (edit for Goal A)
-- `n8n/voice-agent/intake-poller-update.mjs` — VAPI poller source (reference pattern)
+- `local-archive/n8n/voice-agent/dialer-workflow-clean.mjs` — historical VAPI dialer scaffold; reconcile against live n8n before use
+- `local-archive/n8n/voice-agent/intake-poller-update.mjs` — historical VAPI poller patch; reference only

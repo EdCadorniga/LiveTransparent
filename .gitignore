@@ -56,3 +56,11 @@ n8n/workflows/
 
 # Local operator helpers and reusable probes (may contain machine-specific paths)
 /local-scripts/
+
+# Historical n8n exports and local workflow archives
+/local-archive/
+/n8n/backups/
+/n8n/workflows/*.ts
+/n8n/workflows/*.json
+/n8n/voice-agent/**/*.json
+/n8n/voice-agent/*.mjs
