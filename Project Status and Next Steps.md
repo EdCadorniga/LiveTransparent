@@ -2,6 +2,15 @@
 
 Updated: 2026-09-10 (Executive Report SDR Performance & Owner Attribution — Phases 1–4 live; future booking SDR capture deployed and GHL publication verified)
 
+### LinkedIn Conversations Inbound Fix — CLOSEOUT 2026-09-10
+
+- **Objective**: Fix GHL `/conversations/messages` 422 errors in `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) to enable proper inbound message posting to GHL Conversations.
+- **Root cause**: `Create LinkedIn Contact and Add Inbound Message` node was posting to wrong GHL endpoint `/conversations/messages` instead of `/conversations/messages/inbound` — the `/inbound` suffix is required by GHL for posting inbound messages.
+- **Fix applied and published**: Changed `this.helpers.request(` → `this.helpers.httpRequest(`, `uri` → `url`, corrected URL to `/conversations/messages/inbound`. Published version `127504a5-08ae-41b4-ad5c-f2a39a068e82` (versionId == activeVersionId). Workflow is active with 19 nodes.
+- **GHL API details verified**: Correct endpoint `https://services.leadconnectorhq.com/conversations/messages/inbound`, body `{"type":"Custom","contactId":"<ghl_contact_id>","message":"<text>","conversationProviderId":"6a58a14ff3023bea3783c152"}`, OAuth flow: POST `/oauth/locationToken` → get `access_token` → Bearer for `/conversations/messages/inbound`.
+- **Remaining blocker**: OAuth `ghl_oauth_access_token` is stored in Postgres `linkedin_conversation_map` table which is NOT accessible from local machine. Postgres connection from local is refused. The n8n webhook returns 200 with empty body — workflow likely timing out at Postgres-dependent nodes (`Find LinkedIn State Row By Provider`, `Lookup LinkedIn Map and OAuth Token`).
+- **Closeout**: `docs/sessions/2026-09-10-linkedin-conversations-fix-closeout.md`.
+
 ### Script And n8n Archive Organization — CLOSEOUT 2026-09-10
 
 - Reusable operator helpers are kept in ignored `local-scripts/`; historical n8n exports, backups, and one-off patch inputs are kept in ignored `local-archive/n8n/`.
