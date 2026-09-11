@@ -1,22 +1,62 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-09-10 (Executive Report SDR Performance & Owner Attribution — Phases 1–4 live; future booking SDR capture deployed and GHL publication verified)
+Updated: 2026-09-11 (LinkedIn backfill incident contained; sender and eligibility safeguards audited and published)
 
-### LinkedIn Conversations Inbound Fix — CLOSEOUT 2026-09-10
+### LinkedIn Backfill Encoding / Provider-Routing Incident — CONTAINED 2026-09-11
+
+- The Caio Aguilar example was reproduced in live GHL conversation `ekMEbotkDTlLayytKs6Z`: the outbound body was stored as `canΓÇÖt`, and the source Unipile payload already contained the malformed `\u0393\u00C7\u0096` sequence.
+- Root cause had two layers: the historical batch helper posted raw Unipile outbound messages without applying the 60-day filter, and GHL's live custom-provider callback routed those outbound history posts back to Unipile. Router execution `938260` confirmed Caio's historical post was sent to chat `lv_RFArVVG-esf6_QQrZWg` at `2026-09-11T12:07:50Z`.
+- The worklist is drained: 381 chats done, 16 held for ambiguous GHL contact matching, 12 held for Unipile profile `422` failures; 1,528 messages posted and 78 skipped. No further backfill batch should run without redesign.
+- Containment: `scripts/run_linkedin_backfill_batch.py` now skips historical outbound messages so it cannot invoke the live provider sender. The earlier canonical LinkedIn DM Sequence sanitizer version `4ca4d791-37d1-4da0-a4ef-6fbe40db1b3f` was superseded by the permanent formatter/eligibility hardening recorded below.
+- Existing malformed/duplicate messages were not deleted or edited. Do not send a cleanup reply until the operator decides whether to leave them, manually remove them, or send a corrected follow-up.
+
+### LinkedIn Outbound Formatting and Eligibility Audit — CLOSED 2026-09-11
+
+- **DM workflow**: `LT - LinkedIn DM Sequence (Unipile)` (`d0tEtijajisIsYcs`) is active and published on `fcb0d053-7cac-456f-a4ad-41ba240966c0` (`versionId == activeVersionId`, 12 nodes).
+- **Connection dispatcher**: `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`) is active and published on `346f28be-a6a4-4fc1-99c3-5b5d6ba2d0ea` (`versionId == activeVersionId`, 10 nodes).
+- Both workflows now use regex-free placeholder replacement and character/code-point normalization, with fail-closed rejection of unresolved placeholders and known mojibake markers before provider sends.
+- Real GHL contacts require a successful GHL inbound-reply check; an existing inbound reply skips the message and a failed check also skips it. LinkedIn-only records with synthetic IDs beginning `linkedin:` bypass only the GHL check because no GHL contact exists; they remain subject to LinkedIn state, suppression, and provider eligibility checks.
+- Audit verification: both live workflows retained their expected schedules and graph connections; recent DM runs `938923` and `937817` completed without Code-node errors but sent zero before the synthetic-ID eligibility change because all five candidates failed the invalid GHL lookup. Dispatcher execution `936647` completed without a workflow crash but had 10 provider `422` invite failures before the formatter patch. No uncontrolled or manual production test was run.
+- **Next verification**: observe the next scheduled DM run and inspect its `Send DM Sequence Messages` result for `sent`, `skipped`, and `dm_failed` outcomes. Do not manually execute either sender workflow or send a test message without explicit approval.
+
+### LinkedIn 60-Day Message Backfill — EXECUTION CONTAINED 2026-09-11
+
+- **Approved scope (user):** backfill the last 60 days of LinkedIn messages into GHL Conversations.
+- **Discovery baseline:** 8,753 total Unipile LinkedIn chats; **409 chats** with last activity on/after the 2026-07-12 cutoff; **818 messages** in the window (**176 inbound / 642 outbound**). Largest single chat: 24 messages. Artifacts are preserved in git-ignored `local-scripts/` (no secrets).
+- **GHL automation impact assessed:** `WL - Micro - LinkedIn DM` and `WL - Micro - LinkedIn` (both published) trigger on LinkedIn DM reply/engagement events but only add tags (`Warm  LinkedIn DM` / `Warm  LinkedIn`) and set UTM First-if-empty / Last attribution — no Slack, tasks, or SDR assignment. Backfilled inbound messages will mark conversations unread in the operator inbox.
+- **Execution outcome:** the worklist-driven backfill completed 381 chats, posting 1,528 messages and skipping 78. Sixteen chats remain held for ambiguous GHL contact matching and 12 for Unipile profile `422` failures. No further broad batch should run without redesign and manual resolution of held rows.
+- **Containment:** `scripts/run_linkedin_backfill_batch.py` now skips historical outbound messages so it cannot invoke the live provider sender. Existing malformed or duplicate messages were not deleted or edited.
+- **Safety gates:** the backfill remains inactive; production posts require explicit user approval; do not clear `only_chat_id` or launch another broad batch without a redesigned/idempotent process and a fresh operator decision.
+- **Foundation verified earlier 2026-09-11:** the live inbound workflow (`7o5EBdvwAuIaWW7k`, version `3dab7e61-b2e4-45c6-8e6d-055b8c05623e`, active, 19 nodes) and the patched backfill (outbound endpoint + dedup + `only_chat_id`, draft `11378e3a-8c81-46f1-bda7-933b1884c78d`, inactive, 5 nodes) are the correct building blocks; see the LinkedIn Conversations Fix section below.
+- **Held rows:** do not post the 16 ambiguous-match or 12 profile-failure chats without manual resolution and explicit approval.
+
+### LinkedIn Conversations Inbound Fix — CLOSED + E2E VERIFIED 2026-09-11
 
 - **Objective**: Fix GHL `/conversations/messages` 422 errors in `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) to enable proper inbound message posting to GHL Conversations.
-- **Root cause**: `Create LinkedIn Contact and Add Inbound Message` node was posting to wrong GHL endpoint `/conversations/messages` instead of `/conversations/messages/inbound` — the `/inbound` suffix is required by GHL for posting inbound messages.
-- **Fix applied and published**: Changed `this.helpers.request(` → `this.helpers.httpRequest(`, `uri` → `url`, corrected URL to `/conversations/messages/inbound`. Published version `127504a5-08ae-41b4-ad5c-f2a39a068e82` (versionId == activeVersionId). Workflow is active with 19 nodes.
-- **GHL API details verified**: Correct endpoint `https://services.leadconnectorhq.com/conversations/messages/inbound`, body `{"type":"Custom","contactId":"<ghl_contact_id>","message":"<text>","conversationProviderId":"6a58a14ff3023bea3783c152"}`, OAuth flow: POST `/oauth/locationToken` → get `access_token` → Bearer for `/conversations/messages/inbound`.
-- **Remaining blocker**: OAuth `ghl_oauth_access_token` is stored in Postgres `linkedin_conversation_map` table which is NOT accessible from local machine. Postgres connection from local is refused. The n8n webhook returns 200 with empty body — workflow likely timing out at Postgres-dependent nodes (`Find LinkedIn State Row By Provider`, `Lookup LinkedIn Map and OAuth Token`).
-- **Closeout**: `docs/sessions/2026-09-10-linkedin-conversations-fix-closeout.md`.
+- **Root cause 1 (endpoint)**: the node posted to `/conversations/messages` instead of `/conversations/messages/inbound` — the `/inbound` suffix is required for posting inbound messages. Fixed and published in the 2026-09-10 session.
+- **Root cause 2 (response misinterpretation, fixed 2026-09-11)**: the node used `resolveWithFullResponse: true` with `this.helpers.httpRequest` — silently ignored, so every successful post was misread as `inbound_failed: status=undefined body={}`. Fixed to `returnFullResponse: true` with a hardened error describer; prior test posts had actually landed in GHL.
+- **Root cause 3 (jsonb corruption, fixed 2026-09-11)**: all 6 `Build * SQL` Code nodes double-escaped backslashes in `'...'::jsonb` literals, crashing `Upsert LinkedIn Map` ("invalid input syntax for type json") and preventing `linkedin_conversation_map` persistence whenever a payload contained an embedded quote. Backslash doubling removed; `'` → `''` retained.
+- **Published version**: `3dab7e61-b2e4-45c6-8e6d-055b8c05623e` (`versionId == activeVersionId`), active, 19 nodes. Script: `scripts/fix_linkedin_inbound_response_and_jsonb.py`.
+- **E2E verified (approved)**: one labeled test post through the production webhook returned `status=processed` with extracted `ghl_conversation_id`/`ghl_message_id` and `mapping_row_id=42` persisted. The 3 test messages were then removed by deleting the test conversation (`B6Enrm2D2LtsXPhi1qLY`); the synthetic `Test Sender` contact remains by user choice.
+- **Gretchen 422 resolved**: the inactive backfill routed historical OUTBOUND messages to the nonexistent `/conversations/messages/outbound` path (the 422 cause). Backfill patched (outbound → `/conversations/messages`, conversation-message dedup, Config `only_chat_id` = Gretchen chat) and a Gretchen-only retry posted both historical outbound messages (execution `934099`, verified in conversation `I3w8fRaPzecv7CXnI8oe`). GHL stamps `dateAdded` at post time; historical dates are not backdated.
+- **Postgres timeout theory disproven**: lookup/upsert Postgres nodes complete in ~2s; the OAuth token is read from `ghl_oauth_tokens` in-reach of n8n. Local python calls to `services.leadconnectorhq.com` need a browser `User-Agent` (Cloudflare 1010 blocks python-urllib).
+- **Remaining follow-ups**: controlled reply test from GHL Conversations against a backfilled chat (user-requested, not yet run); clear the backfill `only_chat_id` before any broader backfill; broader historical backfill still requires idempotency review.
+- **Closeout**: `docs/sessions/2026-09-10-linkedin-conversations-fix-closeout.md` (with 2026-09-11 follow-up section).
+
+### LinkedIn Inbound DM Contact-Gating — DECISION PENDING 2026-09-11
+
+- **Verified (live, read-only):** `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`, active, version `3dab7e61-b2e4-45c6-8e6d-055b8c05623e`) has **NO connection-invite gate** — Unipile webhook `linkedin-new-messages` (enabled, `message_received`) fires for any chat on the account; the code only gates on payload valid → `is_inbound` → account LINKEDIN. New incoming DMs from non-invited senders ARE processed today.
+- **Verified behavior mismatch:** when the sender has no state/map row and no scored GHL match, the `Create LinkedIn Contact and Add Inbound Message` node **creates a brand-new GHL contact** (`reason: created_new_contact`, tags `linkedin_inbound`/`unipile_linkedin`) and imports the message anyway; `mapped_id_fallback` can also post to a contact ID that no longer exists in GHL. This does NOT match Ed's rule: *"import them as long as the contact is in GHL."*
+- **PENDING DECISION (Ed, 2026-09-11):** apply "import only if contact exists in GHL" — skip with `status: skipped / reason: contact_not_in_ghl`, never create contacts, drop `mapped_id_fallback` (or require a live fetched contact). Ed wants to decide later, flag as resolve-soon. **No workflow change made.**
+- **Scope note for the eventual fix:** revisit the backfill's "safe contact-create fallback only when GHL returns no candidates" (line 15 above) so the contact-gating rule is consistent across webhook inbound AND backfill execution.
+- **Closeout**: `docs/sessions/2026-09-11-linkedin-inbound-dm-gating-decision.md`.
 
 ### Script And n8n Archive Organization — CLOSEOUT 2026-09-10
 
 - Reusable operator helpers are kept in ignored `local-scripts/`; historical n8n exports, backups, and one-off patch inputs are kept in ignored `local-archive/n8n/`.
 - Fifty historical n8n snapshot files were moved out of Git but retained locally for audit/reference. Live n8n remains the production source of truth; archived files must not be redeployed without reconciliation.
 - Retained generator/reporting sources use environment placeholders instead of credential literals. `node --check` passed for `n8n/gen.js` and `scripts/fix_intake_poller.js`; `git diff --check` and the added-change credential scan passed.
-- The branch is clean and synchronized with `origin/codex/social-outreach-sync` at `daf0432`. This organization pass made no live workflow, CRM, campaign, sender, deployment, or production-test changes.
+- At that closeout, the branch was clean and synchronized with `origin/codex/social-outreach-sync` at `daf0432`. This organization pass made no live workflow, CRM, campaign, sender, deployment, or production-test changes. The current worktree has since accumulated documented session changes; do not treat this historical statement as current branch status.
 - Closeout: `docs/sessions/2026-09-10-script-and-n8n-archive-closeout.md`.
 - Next: treat `local-archive/n8n/` as workstation-only storage, keep future raw exports ignored, and run a dedicated full-repository secret audit before any broad staging operation.
 
@@ -60,14 +100,14 @@ Updated: 2026-09-10 (Executive Report SDR Performance & Owner Attribution — Ph
 - **Next session order:** (1) fetch the exact live Platinum tag and cohort count; (2) produce a read-only quality and suppression report; (3) reconcile email workflow executions, send logs, and event ingest; (4) audit sender authentication and domain reputation; (5) obtain approval for one segment, offer, and 10-15-contact pilot; (6) build only the approved research/review and measurement pieces before any send.
 - **Safety gates:** do not send live email, SMS, LinkedIn, Instagram, or Vapi tests without explicit approval; do not add senders to evade limits; do not publish new email workflows; do not place unreviewed or unverified Platinum contacts into an automated sequence; preserve DND, unsubscribe, complaint, reply, duplicate, and active-opportunity suppression.
 
-### LinkedIn OAuth and Historical Message Backfill — PARTIAL 2026-09-10
+### LinkedIn OAuth and Historical Message Backfill — HISTORICAL SNAPSHOT, SUPERSEDED 2026-09-11
 
 - **OAuth reinstall verified:** `Transparent eCom Social Inbox` was reinstalled for Live Transparent. Social Provider Outbound Router (`kqIi8i1RjFAZKrK3`) received the authorization callback and exchanged the code successfully in execution `930484` (HTTP 200); a fresh token is stored in `ghl_oauth_tokens`.
 - **Redirect contract clarified:** The app's default Auth redirect must remain `https://automations.livetransparent.com/webhook/lt-social-provider-outbound`. Its GET branch handles OAuth installation; its POST branch handles LinkedIn/Instagram provider payloads. Do not replace or remove this route from the app Auth configuration.
 - **Backfill workflow hardened:** Inactive `LT - LinkedIn Conversation Backfill` (`JUvrA7qMa24SwAZG`) now reads the current OAuth token from `ghl_oauth_tokens` through the `Postgres account` credential; the embedded stale token was removed. It remains inactive.
-- **Backfill execution `930588`:** Six messages posted across David Schachter (1), Julia Granowicz-Johnson (1), Azeez Agunbiade (1), and Morgan Ruzowitzky (3). Gretchen Gailey's two outbound historical messages returned HTTP 422 and were not retried. The execution's final summary node also failed due invalid pre-existing Set expressions; those expressions were fixed afterward, but the batch was intentionally not rerun because it is not idempotent.
-- **Verification boundary:** No outbound LinkedIn sender was run. A controlled reply from GHL Conversations against one successful backfilled chat remains unverified. No executions were left in `new`, `running`, or `waiting` at closeout.
-- **Next action:** Diagnose Gretchen's two 422 responses, add message-level deduplication before any retry, then run one approved reply test. Full closeout: [`docs/sessions/2026-09-10-linkedin-oauth-backfill-closeout.md`](docs/sessions/2026-09-10-linkedin-oauth-backfill-closeout.md).
+- **Historical snapshot:** Execution `930588` posted six messages and left Gretchen's two outbound messages at HTTP 422. This was superseded by the 2026-09-11 backfill repair and incident closeout: the worklist is now drained for 381 chats, with 16 ambiguous matches and 12 Unipile profile failures held; no further broad batch should run without redesign.
+- **Current verification boundary:** The backfill remains inactive. Existing malformed or duplicate messages were not deleted or edited. A controlled reply test against a backfilled chat remains optional and requires explicit approval.
+- **Current closeout:** [`docs/sessions/2026-09-10-linkedin-conversations-fix-closeout.md`](docs/sessions/2026-09-10-linkedin-conversations-fix-closeout.md) and the 2026-09-11 incident section above are authoritative for this work.
 
 ### SimpleTexting GHL Provider Route — FIXED 2026-09-09
 
@@ -78,7 +118,7 @@ Updated: 2026-09-10 (Executive Report SDR Performance & Owner Attribution — Ph
 - **Verification boundary:** No live SMS was sent as a test. The next operator-initiated GHL SMS is the required functional validation; inspect the router and canonical send execution for `sent` plus a provider message ID. If it still returns HTTP 409 after this route fix, investigate the SimpleTexting account/provider response rather than changing retry behavior blindly.
 - **Detailed closeout:** [`docs/sessions/2026-09-09-simpletexting-ghl-provider-route-fix.md`](docs/sessions/2026-09-09-simpletexting-ghl-provider-route-fix.md).
 
-### Executive Report — SDR Performance & Owner Attribution (IMPLEMENTED 2026-09-09 — Phases 1–2 + Phase 4)
+### Executive Report — SDR Performance & Owner Attribution (IMPLEMENTED 2026-09-09 — Phases 1–5; monitoring/sign-off remains)
 
 - **Request:** Cameron needs booked meetings tracked by SDR for the end-of-month SDR assessment (focus on SQL / booked meetings; MQL secondary). Marketing requires per-SDR owner attribution, booked meetings, showed/no-show, SQLs created, MQL→SQL conversion, clarification of the former owner-labelled active deals view, and lead-source breakdown for MQL/SQL.
 - **Verified:** owner data is ALREADY captured in the ingests — `report_raw_ghl_opportunities.dimensions_json->>'assigned_to'` (Sales Ingest extracts `assignedTo`/`ownerId`), `report_raw_ghl_appointments.assigned_user_id` + `contact_id` (Appointments Ingest), and full contact objects in `report_raw_ghl_contacts.payload_json`. The Executive Summary SQL previously never projected any owner field.
@@ -96,7 +136,7 @@ Updated: 2026-09-10 (Executive Report SDR Performance & Owner Attribution — Ph
 - **n8n booking handler LIVE:** `WL - Webhook to Slack Channel Update` (`lQTW0QPwBcf3o7j8`) version `1cb05fcd-e0c0-4ae1-9413-637878325e8e`, active and published. `Build Slack Payload` maps Jason/Marc/Cameron email values to GHL user IDs and stamps `Originating SDR` before SQL-tag/opportunity writes.
 - **Exec Summary activation LIVE:** `Bukc0mgOD2r7V6ED` reads field id `wBGXjev0rKowcfxTSWNa` in active version `08abd9cb-7100-4e31-88d1-4413aadee625`; the placeholder is removed and the fallback owner chain remains intact.
 - **Verification boundary:** Workflow state/version reads passed and no production test execution was run because the handler mutates GHL and posts Slack. No executions are currently `new`, `running`, or `waiting`.
-- **Next session:** confirm the GHL workflow is saved/published, observe the next real booking, verify the contact custom field contains the expected GHL user ID, check n8n `sync.originatingSdr = stamped`, and confirm the Exec Summary SDR booked count. Historical bookings remain unrecoverable.
+- **Next session:** observe the next real booking, verify the already-published GHL workflow supplies the expected `assignedSDR` value, confirm the contact custom field contains the expected GHL user ID, check n8n `sync.originatingSdr = stamped`, and confirm the Exec Summary SDR booked count. Historical bookings remain unrecoverable.
 - **Docs:** diagnosis `docs/sessions/2026-09-09-sdr-attribution-success-booking-gap-diagnosis.md`; design `docs/sessions/2026-09-09-sdr-attribution-fix-design-option-a.md`; this closeout `docs/sessions/2026-09-10-sdr-attribution-booking-webhook-closeout.md`.
 
 ### Coolify Runner PostgreSQL Network Path — RESOLVED and under monitoring — 2026-09-07
@@ -133,7 +173,7 @@ Updated: 2026-09-10 (Executive Report SDR Performance & Owner Attribution — Ph
 3. If the runner-network alert recurs, the hourly agent auto-applies only the bounded, reversible fix class and escalates via Telegram; manual re-verification of the next pg-using workflow is still recommended.
 4. If a pool-closure alert (`Cannot use a pool after calling end on the pool`) recurs: capture the workflow execution, runner and n8n logs, container network/DNS state, and PostgreSQL reachability BEFORE any restart. Do not restart PostgreSQL/Redis or rotate `N8N_ENCRYPTION_KEY` without evidence and explicit approval.
 5. Separately investigate the original `pool.end()` caller that caused the pool-closure incident; the runner network fix does not establish that n8n's internal pool lifecycle bug is resolved.
-6. The GA4 Daily Ingest has a SEPARATE, unrelated Google Analytics credential error; it is out of scope for the network issue and needs its own investigation.
+- The previously separate GA4/GSC credential issue was resolved and verified on 2026-09-09; investigate again only if the report source-health monitor regresses.
 
 ### Newsletter Dispatcher Timeout Optimization (2026-09-04)
 
@@ -185,7 +225,7 @@ Full 7d/30d/90d cross-check of the Executive Report against source Postgres tabl
 - **GSC** (2026-08-31) — user reconnected the Search Console credential; ingest re-ran (exec `832997`), health `success`. 3-day rolling window so the 08-08…08-29 gap was not backfilled (negligible volume).
 - **Contact acquisition UI** — `contact_sources` CTE relabels GHL/msgsndr tracking-link landings as a single `Email/SMS link` row (18 contacts) instead of ~17 one-contact rows with unreadable JWT URLs.
 - **`sqlContacts`/`poolDistribution`** (2026-08-31) — pool tags are NOT real GHL tags (`brands_pool`/`dispensaries_pool`/`vapi_campaign_*` return 0 via GHL search). `pool_distribution` now reads `emerging_pool_contacts` (brandsPool 3,668 / dispensariesPool 10,200) + `voice_call_queue` (vapiBrand 106 / vapiDispensary 66). `sqlContacts` reads the real GHL `sql` tag (36) — backfilled once + re-snapshotted daily by a `sql`-tag fetch in `LT - GHL Daily Leads Ingest`. Exec Summary active version `9c43be7d-7160-448f-82be-00e5f8303b88`.
-- **n8n runner pg + network** (2026-08-31) — the Coolify-managed runner had `NODE_PATH=/opt/pg-node_modules` (doesn't work with the compose's pnpm pg layout; pg is at `…/node_modules/pg`) and wasn't on `coolify-shared` (couldn't resolve `postgres`). Fixed both in the running container (Leads Ingest had been erroring on 57 consecutive runs) **and baked them into `n8n/docker-compose.yml`** (`NODE_PATH=/opt/pg-node_modules/node_modules` in the `dockerfile_inline` + runner `environment`; runner service already declares `coolify-shared`). Next Coolify rebuild should be self-sufficient; verify `require('pg')` resolves and `getent hosts postgres` works on the runner after redeploy.
+- **n8n runner pg + network** (2026-08-31 diagnosis, resolved and verified 2026-09-07) — the runner initially had an incompatible `NODE_PATH` and stale PostgreSQL host mapping. The live Coolify stack was corrected, the runner was recreated on `coolify-shared`, DNS/TCP resolution was verified, and a pg-using dialer workflow returned continuous success. Re-inspect only if the monitor alerts; do not re-apply the old drift diagnosis blindly.
 
 **Remaining known limitations (not report bugs):** `metaAttribution` empty (no Meta-UTM contacts in the 500-contact snapshot); OpenRouter 402s previously affected enrichment (credits restored 2026-08-31).
 
@@ -456,7 +496,7 @@ This document is the canonical project status and next-steps reference. It super
 
 ## Prioritized Next Steps
 
-0. **Executive Report SDR Performance & Owner Attribution (2026-09-10 closeout)** — Phases 1–2, Phase 3 reminder flow, and Phase 4 are implemented/live. Remaining: (a) monitor the daily meeting-outcome digest and confirm Showed/No-show updates; (b) Cameron/Janvi final sign-off on ranking wording; (c) nightly Rollups/QA monitoring; (d) verify the newly deployed booking-webhook attribution on the next real booking. Do not regress Exec Summary `SET jit=off` performance (~16–19s).
+0. **Executive Report SDR Performance & Owner Attribution (2026-09-10 closeout)** — Phases 1–5 are implemented/live. Remaining: (a) monitor the daily meeting-outcome digest and confirm Showed/No-show updates; (b) Cameron/Janvi final sign-off on ranking wording; (c) nightly Rollups/QA monitoring; (d) verify the deployed booking-webhook attribution on the next real booking. Do not regress Exec Summary `SET jit=off` performance (~16–19s).
 1. ~~**Repair GHL Daily Sales Ingest first**~~ **DONE.** Published version `91603d56`; execution `743094` wrote 7,984 opportunities.
 2. **Restore source coverage one system at a time** with supported ingest/replay and provenance. Opportunities now restored; **email is flowing again (73 `apollo_august2026` contacts enrolled into Emerald Executives MSO on 2026-08-20)**; voice, LinkedIn, SMS still need recovery.
 3. ~~**Authenticate public write boundaries**~~ **DONE for Call Outcome Ingest and SimpleTexting.** Review the remaining Warm intake boundaries; retain explicit approval gates for manual sends/calls.

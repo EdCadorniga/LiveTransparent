@@ -59,6 +59,11 @@ FIRST_NAME_SINGLE = "\\{first_name\\}"
 WS_CLASS_DOUBLE = "[^\\\\s,]"
 WS_CLASS_SINGLE = "[^\\s,]"
 
+# Some older Unipile payloads contain the CP1252 smart-apostrophe byte as the
+# third character in the mojibake sequence (Gamma-Cedilla-0x96), rather than
+# the more common U+00D6/U+00FF variants.
+MISSING_APOSTROPHE_VARIANT = r'.replace(/\u0393\u00C7\u0096/g, "\'")'
+
 
 def load_env() -> dict[str, str]:
     values: dict[str, str] = {}
@@ -119,6 +124,11 @@ def fix_code(code: str, report: list[str], node_name: str) -> str:
     if ws_hits:
         report.append(f"    [{node_name}] URL whitespace class [^\\\\s,]: {ws_hits} -> [^\\s,]")
         code = code.replace(WS_CLASS_DOUBLE, WS_CLASS_SINGLE)
+    if "function sanitizeMessage" in code and MISSING_APOSTROPHE_VARIANT not in code:
+        marker = ".replace(/\\u00A0/g, ' ')"
+        if marker in code:
+            code = code.replace(marker, marker + "\n    " + MISSING_APOSTROPHE_VARIANT, 1)
+            report.append(f"    [{node_name}] added missing Gamma-Cedilla-0x96 apostrophe normalization")
     return code
 
 
@@ -160,7 +170,9 @@ def process(workflow_id: str, apply: bool) -> bool:
             if node.get("type") != "n8n-nodes-base.code":
                 continue
             code = (node.get("parameters") or {}).get("jsCode") or ""
-            if DOUBLE_ESCAPED_UNICODE.search(code) or FIRST_NAME_DOUBLE in code or WS_CLASS_DOUBLE in code:
+            if (DOUBLE_ESCAPED_UNICODE.search(code) or FIRST_NAME_DOUBLE in code or
+                    WS_CLASS_DOUBLE in code or
+                    ("function sanitizeMessage" in code and MISSING_APOSTROPHE_VARIANT not in code)):
                 remaining.append(node.get("name"))
         print(
             json.dumps(

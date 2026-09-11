@@ -4,13 +4,13 @@
 >
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
 
-## ✅ 2026-09-09: Executive Report — SDR Performance & Owner Attribution (Phases 1–2 + Phase 4 IMPLEMENTED)
+## ✅ 2026-09-09: Executive Report — SDR Performance & Owner Attribution (Phases 1–5 IMPLEMENTED; monitoring/sign-off remains)
 
 - Request: track booked meetings by SDR for Cameron's end-of-month SDR assessment (focus SQL/booked meetings), plus marketing's requirements for owner/SDR attribution everywhere, booked meetings by SDR, showed/no-show by SDR, SQLs created by SDR, MQL→SQL conversion by SDR, clarification of the former owner-labelled active deals view, and lead-source breakdown for MQL/SQL.
 - **Verified:** owner data is already captured by the ingests (opportunities `dimensions_json->>'assigned_to'`, appointments `assigned_user_id`+`contact_id`, contacts `payload_json`). The Exec Summary SQL never projected any owner field. Root causes: `meetingsBooked` KPI (opportunity-stage-based via Daily Rollups) vs Meetings panel (appointments by `start_at`) were two different sources → 3 vs 7; "Team Active Deals" is the team-wide payload relabeled.
 - **Phases 1–2 IMPLEMENTED + verified:** `report_sdr_registry` (user map) + owner-coverage health probes; Daily Rollups carries `assigned_to`; Exec Summary returns `sdrPerformance` per-owner rows + `meetingsBooked` aligned to appointments (`basis appointments_start_at`); `SET jit=off` (16–19s). Frontend build `2026-09-09-v28-sdr-performance`.
 - **Phase 4 IMPLEMENTED + verified:** Exec Summary adds `leadSourceBreakdown`/`leadSourceCoverage` (MQL/SQL by originating source: contact first UTM → bridge fallback → GHL `source`; "Unknown / Unattributed" for unresolvable rows). Active version `162bbba8…`. Frontend build `2026-09-09-v29-lead-source` with Lead Source panel + glossary.
-- **Remaining (Phases 3 & 5):** GHL appointment-status update automation (Phase 3, explicit approval before enabling), unknown-owner-ID identification (`ck6TRlU3…` + Janvi), MQL-definition reconciliation + final QA/sign-off.
+- **Post-implementation follow-up:** monitor the 08:00 LA meeting-outcome reminder and Showed/No-show updates, obtain Cameron/Janvi sign-off on the ranking wording (Booked + SQLs + MQL→SQL), reconcile MQL definitions if needed, and verify future booking SDR capture at runtime. Janvi and the previously unknown owner IDs are resolved and seeded.
 - Full plan: `docs/sessions/2026-09-09-executive-report-sdr-attribution-plan.md`. Implementation + verification: `docs/sessions/2026-09-09-executive-report-sdr-attribution-phase1-2.md` and `docs/sessions/2026-09-09-executive-report-sdr-attribution-phase4-lead-source.md`.
 
 ## ✅ 2026-08-20: Emerald/DAN/Partnership release-log fix + Apollo August enrollment
