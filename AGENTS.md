@@ -1,5 +1,13 @@
 # LiveTransparent Agent Notes
 
+## ⚠️ IN PROGRESS: 2026-09-14 LinkedIn Reply Suppression Review and Handoff
+
+- Read [`docs/sessions/2026-09-14-linkedin-reply-suppression-audit-and-plan.md`](docs/sessions/2026-09-14-linkedin-reply-suppression-audit-and-plan.md) before changing LinkedIn senders. It records the live workflow IDs/versions, verified gaps, the refined design, test boundaries, and next steps.
+- Current decision: do not treat a per-send GHL `lastMessageDirection=inbound` lookup as the primary guarantee. Build a durable LinkedIn-specific reply suppression record from inbound Unipile events before slower CRM writes; gate every automated LinkedIn invite/DM sender on it, with GHL checks as a fail-closed reconciliation fallback.
+- Confirm the exact prospect/conversation and originating sender execution before attributing the supplied repeated-message screenshot to a workflow. Its repeated copy matches the connect-invite template; the partnership DM sender has a separate, confirmed cached-state-only gap.
+- Preserve normal human replies through the GHL custom-provider outbound router. Scope suppression to automated outreach; do not block all GHL-originated LinkedIn messages.
+- No production workflow, CRM record, campaign, sender, or live test was changed during this read-only review. Production workflow changes and live sends require explicit approval. The supplied screenshot is identifying prospect data and remains untracked/local; do not stage it.
+
 ## ✅ CLOSED OUT: 2026-09-11 Documentation Staleness Audit
 
 - `AGENTS.md`, `plan.md`, and `Project Status and Next Steps.md` were reconciled against the September 2026 LinkedIn, runner, reporting, and SDR closeouts.

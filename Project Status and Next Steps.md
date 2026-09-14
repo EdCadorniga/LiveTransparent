@@ -1,6 +1,15 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-09-11 (LinkedIn backfill incident contained; sender and eligibility safeguards audited and published)
+Updated: 2026-09-14 (LinkedIn reply suppression reviewed; implementation plan handed off)
+
+### LinkedIn Reply Suppression — IMPLEMENTATION PLAN / APPROVAL PENDING 2026-09-14
+
+- Read-only audit and detailed next-session handoff: [`docs/sessions/2026-09-14-linkedin-reply-suppression-audit-and-plan.md`](docs/sessions/2026-09-14-linkedin-reply-suppression-audit-and-plan.md). The same handoff is linked near the top of `AGENTS.md`.
+- Live checks found uneven protections: the main DM sequence and GHL connection-request dispatcher perform a GHL inbound-conversation lookup before sending; the partnership DM sequence relies only on cached `dm_conversation_status`. The active inbound webhook writes that cache only after GHL inbound posting and conversation-map persistence. The 10-minute reply poller rechecks an individual row only when its prior check is at least 6 hours old. Therefore the partnership path has a confirmed stale-state window, and inbound suppression can be delayed by preceding CRM/map work.
+- The existing GHL filter `lastMessageDirection=inbound` describes the latest message direction, not a durable “has ever replied” fact, and current sender checks are not restricted to LinkedIn-provider conversations. Retain it as a fail-closed fallback/reconciliation check, not the primary suppression source.
+- **Recommended design:** record confirmed inbound LinkedIn replies idempotently in a canonical suppression table keyed by Unipile account + sender provider ID (with GHL/contact aliases and message ID). Persist it immediately after inbound/outbound direction is established, before GHL post/map work. Gate every automated LinkedIn connection invite and DM sequence on this record immediately before the provider send; fail closed on read errors. Keep existing GHL and cached-state checks as defense in depth. Preserve human-initiated replies through the GHL custom-provider outbound router.
+- Screenshot attribution remains unverified. The repeated text matches the connection-invite template; confirm the prospect/contact and sender execution before naming the exact workflow. The partnership sender gap is independent and verified.
+- No production workflow, CRM record, sender, or live test changed. **No implementation or live send without explicit approval.** The supplied screenshot is local, untracked prospect data and is intentionally excluded from commits.
 
 ### LinkedIn Backfill Encoding / Provider-Routing Incident — CONTAINED 2026-09-11
 
