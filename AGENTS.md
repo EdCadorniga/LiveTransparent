@@ -1,5 +1,20 @@
 # LiveTransparent Agent Notes
 
+## ⚠️ IN PROGRESS: 2026-09-16 GHL-Triggered Mass Email Delivery
+
+- The generic email-template mass-delivery design is staged only. Intake workflow `t5frjtbuKzVZI294` (`LT - GHL Email Template Trigger Intake (STAGED)`) is inactive at live version `b785df4c-2188-4697-ad0c-24dff29abdf0`; its schema node is `Ensure Mass Email Tracking Tables`.
+- Three supporting tracking workflows are also staged/inactive: open `J7xZH6BBnoXEQsoB`, click `TbYFpB80xSlRZ6gy`, and provider events `f87KRQ1Slhs9VUxJ`.
+- The versioned schema source is `postgres/mass-email-bootstrap.sql`. The metrics view was corrected to aggregate events separately, so repeated open/click events cannot multiply delivery counts; view column ordering is preserved for safe reruns.
+- Verified boundary: the live intake node matches the versioned SQL, workflow remains inactive, and no mass-email tables, contacts, campaigns, provider messages, or sends have been created/executed.
+- Next steps: obtain approval for a non-sending schema migration, execute and verify the schema, then build campaign idempotency, paginated contact/suppression handling, sender assignment/caps, dispatcher/provider correlation, and inactive dry-run acceptance tests. Separate approval is required before activation or live sending.
+- Detailed handoff: [`docs/sessions/2026-09-16-ghl-triggered-newsletter-design.md`](docs/sessions/2026-09-16-ghl-triggered-newsletter-design.md). Project status: [`Project Status and Next Steps.md`](Project%20Status%20and%20Next%20Steps.md).
+
+## ✅ CLOSED OUT: 2026-09-16 LinkedIn Outbound Safety Bug Fixes
+
+- Active LinkedIn dispatcher, DM, Partnership dispatcher/DM, and suppression workflows were updated and published after the confirmed daily-limit, duplicate-send, literal-secret, and outbound-message-validation audit. Fresh GETs verified all five are active with `versionId == activeVersionId`; exact versions and evidence are recorded in [`docs/sessions/2026-09-16-linkedin-outbound-safety-bugfix-closeout.md`](docs/sessions/2026-09-16-linkedin-outbound-safety-bugfix-closeout.md) and `Project Status and Next Steps.md`.
+- Actual template literals were parsed from the live registries: zero apostrophes and zero non-ASCII characters. Do not use whole-node character counts as copy proof because sanitizer tables and JavaScript syntax create false positives; use literal-level extraction.
+- Remaining approval-gated work: validate `X-LT-LinkedIn-State-Secret` on the receiver, migrate hardcoded credential fallbacks, and implement the durable inbound-reply suppression design. Do not manually execute sender workflows or send tests without explicit approval.
+
 ## ⚠️ IN PROGRESS: 2026-09-14 LinkedIn Reply Suppression Review and Handoff
 
 - Read [`docs/sessions/2026-09-14-linkedin-reply-suppression-audit-and-plan.md`](docs/sessions/2026-09-14-linkedin-reply-suppression-audit-and-plan.md) before changing LinkedIn senders. It records the live workflow IDs/versions, verified gaps, the refined design, test boundaries, and next steps.

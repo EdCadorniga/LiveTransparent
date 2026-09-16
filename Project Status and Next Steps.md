@@ -1,6 +1,51 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-09-14 (LinkedIn reply suppression reviewed; implementation plan handed off)
+Updated: 2026-09-16 (GHL-triggered generic email-template mass-delivery tracking staged; metrics-counting defect corrected; no sends activated)
+
+### GHL Email-Template Mass Delivery and Reporting — STAGED BUILD 2026-09-16
+
+- **Objective:** allow a GHL automation to submit any GHL email template—newsletter, announcement, follow-up, promotion, or another approved message—to a protected n8n webhook. n8n will snapshot eligible GHL contacts, exclude suppression/DND states, distribute delivery across the three existing sender identities, and retain delivery/event reporting.
+- **Template contract:** the webhook requires `event=email_template.requested`, a stable `idempotencyKey`, `campaignKey`, and `templateId`. `templateName` is optional but is snapshotted when supplied. The future immutable campaign label is `Template Name — campaign-key`; template renames will not rewrite historical attribution.
+- **Staged intake:** `LT - GHL Email Template Trigger Intake (STAGED)` (`t5frjtbuKzVZI294`), current version `b785df4c-2188-4697-ad0c-24dff29abdf0`, inactive. Webhook path: `/webhook/lt-email-template-trigger-stage`. It validates the generic email-template request and has an `Ensure Mass Email Tracking Tables` PostgreSQL node before the staged response.
+- **PostgreSQL schema:** `postgres/mass-email-bootstrap.sql` is the versioned schema source. The live staged node uses the same SQL. Its metrics view uses a correlated event aggregate, preventing repeated open/click events from multiplying delivery counts. The schema has not yet been executed because the workflow remains inactive.
+- **Staged tracking workflows:** `LT - Mass Email Open Tracking (STAGED)` (`J7xZH6BBnoXEQsoB`) at `/webhook/lt-mass-email-open`; `LT - Mass Email Click Tracking (STAGED)` (`TbYFpB80xSlRZ6gy`) at `/webhook/lt-mass-email-click`; and `LT - Mass Email Provider Event Ingest (STAGED)` (`f87KRQ1Slhs9VUxJ`) at `/webhook/lt-mass-email-event`. All are inactive and were verified by fresh n8n API read-back.
+- **Event model:** signed open/click URLs will identify the delivery row; provider events will correlate by delivery ID or provider message ID. The generic provider event handler accepts sent, delivered, bounced, unsubscribed, complained, replied, failed, and retrying events and updates the delivery ledger.
+- **Existing baseline preserved:** the live newsletter workflows (`vvPdJMzBJMgcf5I9` and `vru7OtCkDnPJkWt2`) and existing `newsletter_send_log`/`newsletter_events` tracking were not modified. The new `lt_mass_email_*` model is separate and generic.
+- **Safety boundary:** no workflow in this staged build is active; no table creation has been executed; no GHL contacts, campaigns, senders, provider messages, or production reporting data were changed; no email was sent.
+- **Detailed handoff:** `docs/sessions/2026-09-16-ghl-triggered-newsletter-design.md`.
+
+**Next steps, in order:**
+
+1. Reconcile the PostgreSQL schema with the existing database conventions and execute it once through an approved non-sending migration/schema run.
+2. Build the campaign-request persistence/idempotency path so accepted webhook requests create one campaign row and retries return the existing campaign.
+3. Build the paginated GHL contact snapshot and fail-closed suppression checks, including DNC, Do Not Contact, Do Not Nurture, Email-DND, bounce, unsubscribe, invalid email, duplicate, and missing-email states.
+4. Build delivery-row creation with sender round-robin assignment and per-sender caps.
+5. Build the dispatcher around the approved GHL email-template resolution/send boundary, provider message-ID capture, signed tracking URL injection, retry/backoff, and final suppression re-check.
+6. Connect provider delivery events and activate open/click tracking only after schema and correlation tests pass.
+7. Run inactive/dry-run acceptance tests: duplicate webhook retry, template attribution, schema idempotency, suppression fixtures, sender reconciliation, tracking-token validation, and metric-view calculations.
+8. Obtain separate approval naming the template, cohort, maximum recipient count, sender boundary, and live-send window before activation or any controlled send.
+
+**EOS closeout — 2026-09-16**
+
+- Reviewed the staged design, project instructions, live workflow state, relevant changes, and repository status.
+- Corrected the metrics-view event-join defect in `postgres/mass-email-bootstrap.sql` and synchronized the exact SQL into the inactive intake workflow.
+- Live verification: workflow `t5frjtbuKzVZI294` remains inactive, version `b785df4c-2188-4697-ad0c-24dff29abdf0`, 4 nodes, 3 connection groups, Postgres credential reference retained, and the schema node contains the correlated event aggregate.
+- `git diff --check` passed. `packlive` was attempted but is unavailable in the current shell/profile, so `repomix-output.md` was not regenerated.
+- Worktree remains intentionally uncommitted and contains unrelated changes/untracked material; stage only reviewed files. Do not stage `repeated linkedin messages.png` or credential-bearing investigation artifacts.
+- The PostgreSQL schema has not been executed. All mass-email workflows remain inactive; no contacts, campaigns, senders, provider messages, or production data were changed.
+- **Next session action:** execute the versioned schema once as an approved non-sending migration, then verify the tables/view and build the campaign-request persistence/idempotency path. Continue with paginated contact suppression, sender assignment/caps, dispatcher, event correlation, and dry-run acceptance tests before any activation or send.
+
+
+### LinkedIn Outbound Safety Bug Fixes — CLOSED 2026-09-16
+
+- **Objective:** prevent malformed/garbage-character LinkedIn messages and correct confirmed daily-limit, duplicate-send, state-secret, and outbound-validation defects in the active LinkedIn paths. Scope was limited to the active dispatcher/DM and Partnership dispatcher/DM workflows plus the active suppression workflow; inactive Follower/Test copies and repository archive sources were not changed.
+- **Live workflows updated and published:** `LT - GHL LinkedIn Connect Dispatcher` (`fXxw5lanZcDmUrst`, active version `6ae708aa-990f-4784-87b2-573ab81dc4f4`, 10 nodes); `LT - LinkedIn DM Sequence (Unipile)` (`d0tEtijajisIsYcs`, active version `afcdad57-a770-4bb0-8eae-be1f7623e674`, 12 nodes); `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`, active version `0fc1611f-80c9-45f8-8c93-89c74f2eeca1`, 10 nodes); `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`, active version `92e85568-3e4a-4677-b3ee-ab66dd0915a4`, 6 nodes); and `LT - LinkedIn DM Suppression from GHL Tag` (`IPN8jnR3XSurX0o1`, active version `ededf18b-1355-4f8d-ad4d-1b0381382cb8`, 5 nodes). All five were fresh-GET verified active with `versionId == activeVersionId`.
+- **Fixes applied:** daily counter now accumulates passed sends (`dailySent + passed`); Partnership DM and invite paths have stable event deduplication; state-upsert callers use evaluated runtime secrets rather than literal placeholder text; active senders have final fail-closed printable-ASCII/message validation, unresolved-placeholder and mojibake checks, and per-contact failure handling where applicable.
+- **Copy proof:** fresh live GETs parsed the actual template registries: dispatcher invites and the five DM literals in both DM sender nodes contain zero apostrophes and zero non-ASCII characters; the ten canonical rewritten strings remain present. A whole-node character scan was rejected as unreliable because it counts JavaScript syntax and sanitizer tables; literal-level parsing is authoritative.
+- **Verification artifacts:** temporary backups and proof outputs are under `%LOCALAPPDATA%\\Temp\\lt_bugfix_*`; no project files or credentials were copied into the report. The apply script returned an initial false-negative on two prefix-insertion checks; computed expected-text re-verification passed, followed by the fresh GET and literal-level copy proof.
+- **Not run:** no manual sender execution, provider test send, CRM mutation, activation change, commit, or push was performed during EOS. Do not execute a production sender merely as a smoke test without explicit approval.
+- **Remaining risks/blockers:** the LinkedIn state-upsert receiver still needs a separate approved change to validate `X-LT-LinkedIn-State-Secret`; hardcoded credential fallbacks remain in some node JS and should be migrated under a separate approval. The broader LinkedIn reply-suppression design in the next section remains pending and was not silently combined with this fix.
+- **Closeout:** [`docs/sessions/2026-09-16-linkedin-outbound-safety-bugfix-closeout.md`](docs/sessions/2026-09-16-linkedin-outbound-safety-bugfix-closeout.md).
 
 ### LinkedIn Reply Suppression — IMPLEMENTATION PLAN / APPROVAL PENDING 2026-09-14
 
