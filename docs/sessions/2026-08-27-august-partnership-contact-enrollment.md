@@ -45,8 +45,8 @@ No `vapi_campaign_brand` or `vapi_campaign_dispensary` selector tag was applied.
 
 ## Scripts and Verification
 
-- `scripts/reconcile_august_2026_partnership_live.ps1` performed the contact reconciliation and campaign-tag enrollment.
-- `scripts/tag_august_26_partnership_contacts.ps1` applied the source tag to the 404 newly created contacts.
+- `scripts/partnerships/reconcile_august_2026_partnership_live.ps1` performed the contact reconciliation and campaign-tag enrollment.
+- `scripts/partnerships/tag_august_26_partnership_contacts.ps1` applied the source tag to the 404 newly created contacts.
 - Final dry-run verification found 404/404 new contacts with `august_26_partnership_contact`, with zero missing tags and zero errors.
 - The action log is stored beside the source CSVs at `Contacts added August 25 2026/Partnership contacts August 26 2026 1/August_2026_Partnership_Action_Log.json`.
 

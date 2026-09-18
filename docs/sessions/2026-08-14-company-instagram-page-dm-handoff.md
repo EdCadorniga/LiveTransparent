@@ -19,7 +19,7 @@ The Postgres state model, source import, fail-closed Unipile identity validator,
 
 ## Implementation Status: 2026-08-16
 
-- Deployed `instagram_company_dm_state`, `instagram_company_dm_send_log`, `instagram_company_dm_run`, and `instagram_inbound_reply_events` to the `n8n` database. The initial bootstrap accidentally targeted the container default database; `scripts/apply_instagram_company_dm_bootstrap.py` now explicitly targets `n8n`.
+- Deployed `instagram_company_dm_state`, `instagram_company_dm_send_log`, `instagram_company_dm_run`, and `instagram_inbound_reply_events` to the `n8n` database. The initial bootstrap accidentally targeted the container default database; `scripts/instagram/apply_instagram_company_dm_bootstrap.py` now explicitly targets `n8n`.
 - Imported 412 populated source rows from the approved Google Sheet into 379 globally unique page candidates: 76 Partnerships, 245 Brands, and 58 Dispensaries. Global duplicate-handle count is zero.
 - Source import workflow: `LT - Instagram Company Page Source Import` (`iQ80zfEH3JiulLNv`), inactive/unpublished, version `b66c1409-1d3a-415c-b064-d3dd0367903c`. Successful import execution: `757050`.
 - Identity validator: `LT - Instagram Company Page Identity Validator` (`HpgL5E5CcHKqz7Oi`), inactive/unpublished, version `726bca16-007b-4ca4-83ce-75eb4e648f3e`. It uses documented Unipile fields only: exact `public_identifier`, `provider_id`, `provider_messaging_id`, `profile_type`, and `category`.

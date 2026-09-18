@@ -75,6 +75,6 @@ The reconciliation script records these as known duplicate additional-email skip
 
 ## Operational Artifacts
 
-- Reconciliation script: `scripts/reconcile_august_2026_emerald_live.ps1`
+- Reconciliation script: `scripts/emerald/reconcile_august_2026_emerald_live.ps1`
 - Tag success log: `Contacts added August 25 2026/cleaned/August_2026_Emerald_Tag_Success.log`
 - The generated `August_2026_Emerald_Enrollment_Actions.csv` predates the final bounded reconciliation and should not be used as an execution manifest.

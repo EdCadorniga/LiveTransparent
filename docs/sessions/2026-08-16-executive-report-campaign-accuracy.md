@@ -51,7 +51,7 @@ Browser verification passed on desktop and a 390px viewport. Executive Summary, 
 
 ## Files
 
-- `scripts/fix_executive_report_metrics.py`
-- `scripts/recover_missed_linkedin_reply.py`
+- `scripts/social-reporting/fix_executive_report_metrics.py`
+- `scripts/linkedin/recover_missed_linkedin_reply.py`
 - `reports/embed/executive/index.html`
-- `scripts/deploy_report_vps_local.py`
+- `scripts/deploy/deploy_report_vps_local.py`

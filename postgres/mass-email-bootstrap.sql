@@ -52,8 +52,18 @@ CREATE TABLE IF NOT EXISTS lt_mass_email_events (
   metadata JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
+-- Additive columns required by the queue/dispatcher claim model. Safe to re-run;
+-- column ordering of lt_mass_email_campaign_metrics is unaffected.
+ALTER TABLE lt_mass_email_campaigns ADD COLUMN IF NOT EXISTS subject TEXT;
+ALTER TABLE lt_mass_email_campaigns ADD COLUMN IF NOT EXISTS queued_at TIMESTAMPTZ;
+ALTER TABLE lt_mass_email_campaigns ADD COLUMN IF NOT EXISTS planned_count INTEGER;
+ALTER TABLE lt_mass_email_deliveries ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ;
+ALTER TABLE lt_mass_email_deliveries ADD COLUMN IF NOT EXISTS run_id TEXT;
+
 CREATE INDEX IF NOT EXISTS lt_mass_email_deliveries_campaign_status_idx
   ON lt_mass_email_deliveries (campaign_id, status);
+CREATE INDEX IF NOT EXISTS lt_mass_email_deliveries_status_idx
+  ON lt_mass_email_deliveries (status);
 CREATE INDEX IF NOT EXISTS lt_mass_email_deliveries_provider_idx
   ON lt_mass_email_deliveries (provider_message_id)
   WHERE provider_message_id IS NOT NULL;

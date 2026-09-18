@@ -121,6 +121,8 @@
       .bar-track { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
       .bar-fill { height: 100%; border-radius: inherit; width: var(--w); background: linear-gradient(90deg, var(--c1), var(--c2)); }
       .bar-value { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .metric-glossary > summary { list-style: none; cursor: pointer; }
+      .metric-glossary > summary::-webkit-details-marker { display: none; }
       .campaign-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
       .campaign-filters .chip { padding: 7px 11px; font-size: 0.78rem; }
       .campaign-table { width: 100%; border-collapse: collapse; min-width: 760px; }
@@ -215,7 +217,7 @@
           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-sales" data-view="overview" data-scroll="section-sales"><span class="nav-dot"></span> Sales &amp; Pipeline</a>
             <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-sdr" data-view="overview" data-scroll="section-sdr"><span class="nav-dot"></span> SDR Performance</a>
             <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-lead-source" data-view="overview" data-scroll="section-lead-source"><span class="nav-dot"></span> Lead Source</a>
-          <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-gsc" data-view="overview" data-scroll="section-gsc"><span class="nav-dot"></span> Search Console</a>
+          <!-- Search Console remains in source health and the dedicated Website report. -->
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-calls" data-view="overview" data-scroll="section-calls"><span class="nav-dot"></span> Calls &amp; Conversations</a>
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-campaigns" data-view="overview" data-scroll="section-campaigns"><span class="nav-dot"></span> Campaign Channels</a>
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-outgoing-calls" data-view="overview" data-scroll="section-outgoing-calls"><span class="nav-dot"></span> Outgoing Calls</a>
@@ -266,7 +268,6 @@
               <div class="mini"><strong>Closed Won</strong><div id="wow-closed-won">—</div><span class="delta" id="wow-closed-won-delta">—</span></div>
               <div class="mini"><strong>Email Opens</strong><div id="wow-email-opened">—</div><span class="delta" id="wow-email-opened-delta">—</span></div>
               <div class="mini"><strong>Email Clicks</strong><div id="wow-email-clicked">—</div><span class="delta" id="wow-email-clicked-delta">—</span></div>
-              <div class="mini"><strong>Vapi Calls</strong><div id="wow-vapi-calls">—</div><span class="delta" id="wow-vapi-calls-delta">—</span></div>
               <div class="mini"><strong>LinkedIn DMs</strong><div id="wow-linkedin-dms">—</div><span class="delta" id="wow-linkedin-dms-delta">—</span></div>
               <div class="mini"><strong>LinkedIn Replies</strong><div id="wow-linkedin-replies">—</div><span class="delta" id="wow-linkedin-replies-delta">—</span></div>
             </div>
@@ -309,11 +310,11 @@
         </section>
 
         <!-- METRIC GLOSSARY -->
-        <section class="panel" style="margin-bottom:16px;">
-          <div class="panel-head">
-            <h2>Metric Glossary</h2>
-            <span>Definitions as shown</span>
-          </div>
+         <details class="panel metric-glossary" style="margin-bottom:16px;">
+           <summary class="panel-head">
+             <h2>Metric Glossary</h2>
+             <span>Definitions as shown</span>
+           </summary>
           <div class="panel-body">
               <div class="definition-grid">
               <div class="definition-card">
@@ -322,11 +323,11 @@
               </div>
               <div class="definition-card">
                 <strong>Lead Capture</strong>
-                <p><b>Forms</b> are tracked submissions. <b>Contacts</b> are GHL contacts created in the window from any source, so the counts are not 1:1.</p>
+                <p><b>Contacts</b> are GHL contacts created in the window from any source. Form metrics remain stored but are not shown here until tracking is validated.</p>
               </div>
               <div class="definition-card">
                 <strong>Funnel Efficiency</strong>
-                <p><b>User → Form</b> and <b>User → Contact</b> show how efficiently unique visitors become form submissions or CRM contacts. Recorded-visit-based rates stay available only as secondary context.</p>
+                <p><b>User → Contact</b> shows how efficiently unique visitors become CRM contacts. Form conversion is not shown until form tracking is validated.</p>
               </div>
               <div class="definition-card">
                 <strong>Attribution Coverage</strong>
@@ -342,7 +343,7 @@
               </div>
               <div class="definition-card">
                 <strong>Sales Panels</strong>
-                <p><b>Active Opportunities Summary</b> is the team-wide open-deal view. <b>Team Active Deals</b> is the same opportunity payload presented as a deal-centred view, not a separate source table (formerly labelled "John's Active Deals").</p>
+                <p><b>Active Opportunities Summary</b> is the team-wide open-deal view. Duplicate deal panels are omitted so the same opportunity payload is not counted twice visually.</p>
               </div>
               <div class="definition-card">
                 <strong>SDR Performance</strong>
@@ -381,9 +382,9 @@
                 <p>This is the GA4 channel summary for the selected window. It is traffic volume, not contact volume.</p>
               </div>
             </div>
-            <div class="footer-note">The glossary is the source of truth for how each visible card should be read. If a metric is not defined here, it should be treated as incomplete until the definition is added.</div>
-          </div>
-        </section>
+             <div class="footer-note">The glossary is the source of truth for how each visible card should be read. If a metric is not defined here, it should be treated as incomplete until the definition is added.</div>
+           </div>
+         </details>
 
         <!-- SECTION 1: TRAFFIC & CHANNELS -->
         <div class="section-label" id="section-traffic">Traffic &amp; Channels</div>
@@ -451,16 +452,6 @@
               <div class="footer-note">Shows which sources brought in contacts. Campaign details enriched from GA4 bridge when contact-level UTM data is available.</div>
             </div>
           </div>
-          <div class="panel">
-            <div class="panel-head">
-              <h2>Observed UTM &amp; Ad Traffic</h2>
-              <span>GA4 UTM</span>
-            </div>
-            <div class="panel-body">
-              <div class="bar-list" id="ad-utm-list"><div class="loading">Loading...</div></div>
-              <div class="footer-note">Observed recorded visits from UTM-tagged traffic. Source <code>an</code> = Leadform/AdForm; <code>facebook/instagram</code> = Meta Ads. A UTM created in GHL will only appear here once it is actually observed in traffic or matched through the bridge.</div>
-            </div>
-          </div>
         </section>
 
         <!-- SECTION: TOP PAGES -->
@@ -488,7 +479,6 @@
             </div>
             <div class="panel-body">
               <div class="mini-grid" id="funnel-grid">
-                <div class="mini"><strong>User → Form</strong><div id="fn-session-to-form">—</div></div>
                 <div class="mini"><strong>User → Contact</strong><div id="fn-session-to-contact">—</div></div>
                 <div class="mini"><strong>Contact → Opp</strong><div id="fn-contact-to-opp">—</div></div>
                 <div class="mini"><strong>Opp → Meeting</strong><div id="fn-opp-to-meeting">—</div></div>
@@ -527,7 +517,6 @@
             <div class="panel-body">
               <div class="mini-grid" id="capture-gaps-grid">
                 <div class="mini"><strong>Recorded Visits</strong><div id="cg-sessions">—</div></div>
-                <div class="mini"><strong>Forms</strong><div id="cg-forms">—</div></div>
                 <div class="mini"><strong>Contacts</strong><div id="cg-contacts">—</div></div>
                 <div class="mini"><strong>Opportunities</strong><div id="cg-opportunities">—</div></div>
                 <div class="mini"><strong>Meetings</strong><div id="cg-meetings">—</div></div>
@@ -554,10 +543,6 @@
               </div>
               <div class="divider"></div>
               <div class="bar-list" id="stage-movement-list"><div class="loading">Loading stage data...</div></div>
-              <div class="divider"></div>
-              <div class="sub-head">Pipeline Velocity (days per stage)</div>
-              <div class="bar-list" id="velocity-list"><div class="loading">Velocity data pending first run...</div></div>
-              <div class="footer-note">Stage counts with moved-in / moved-out values from GHL rollups. Velocity computed from pipeline history event timestamps.</div>
             </div>
           </div>
           <div class="panel">
@@ -600,16 +585,6 @@
         <section class="grid two-col" style="margin-bottom:16px;">
           <div class="panel">
             <div class="panel-head">
-              <h2>Current Open Deals by Stage</h2>
-              <span>GHL</span>
-            </div>
-            <div class="panel-body">
-              <div class="bar-list" id="deals-pipeline-list"><div class="loading">Loading pipeline data...</div></div>
-              <div class="footer-note">Active opportunities are current open deals as of the selected end date. Worked deals are those with a recent update or stage movement in the selected window.</div>
-            </div>
-          </div>
-          <div class="panel">
-            <div class="panel-head">
               <h2>Active Opportunities Summary</h2>
               <span>GHL</span>
             </div>
@@ -642,23 +617,6 @@
               </div>
               <div class="bar-list" id="appointments-list"><div class="loading">Loading appointment data...</div></div>
               <div class="footer-note">Appointments from calendar SrtXcFVyea7pFl3nTiIK — Regulated Ads On Social/Search. The status counts below come from the current GHL appointment status saved on each record. Call activity is shown separately in the Calls &amp; Conversations section.</div>
-            </div>
-          </div>
-          <div class="panel">
-            <div class="panel-head">
-              <h2>Team Active Deals</h2>
-              <span>GHL</span>
-            </div>
-            <div class="panel-body">
-              <div class="mini-grid" id="john-deals-grid">
-                <div class="mini"><strong>Active Open</strong><div id="jd-opps">—</div></div>
-                <div class="mini"><strong>Worked</strong><div id="jd-worked">—</div></div>
-                <div class="mini"><strong>Stage Movers</strong><div id="jd-stage-movers">—</div></div>
-                <div class="mini"><strong>Won</strong><div id="jd-won">—</div></div>
-                <div class="mini"><strong>Lost</strong><div id="jd-lost">—</div></div>
-                <div class="mini"><strong>Win Rate</strong><div id="jd-win-rate">—</div></div>
-              </div>
-              <div class="footer-note">This is the same opportunity payload as the team summary. Active open is the latest open snapshot; worked and stage movers are the opportunities that were touched or moved inside the selected window.</div>
             </div>
           </div>
         </section>
@@ -725,9 +683,10 @@
               <div class="divider"></div>
               <div class="sub-head">Outbound Call Outcomes</div>
               <div class="bar-list" id="call-outcome-list"><div class="loading">Loading call outcome data...</div></div>
-              <div class="divider"></div>
-              <div class="sub-head">Vapi Queue Timezones</div>
-              <div class="mini-grid" id="vapi-timezone-grid" style="margin-bottom:12px;">
+               <div hidden>
+               <div class="divider"></div>
+               <div class="sub-head">Vapi Queue Timezones</div>
+               <div class="mini-grid" id="vapi-timezone-grid" style="margin-bottom:12px;">
                 <div class="mini"><strong>Total Queued</strong><div id="vapi-tz-total">—</div></div>
                 <div class="mini"><strong>Explicit</strong><div id="vapi-tz-explicit">—</div></div>
                 <div class="mini"><strong>Inferred</strong><div id="vapi-tz-inferred">—</div></div>
@@ -746,7 +705,8 @@
               </div>
               <div class="bar-list" id="vapi-weekly-breakdown-list"><div class="loading">Loading Vapi weekly data...</div></div>
               <div class="footer-note">This is a trailing selected-range rollup from <code>voice_call_attempt</code>. Attempts may include repeat calls to the same contact; answered counts live contacts; qualified is the strongest intent signal we currently store; handoff counts calls that requested a sales follow-up.</div>
-              <div class="footer-note">Calls are read from GHL Conversations. Status groups use the raw CRM status plus answered timestamp so the report reflects what the CRM actually stores.</div>
+               <div class="footer-note">Calls are read from GHL Conversations. Status groups use the raw CRM status plus answered timestamp so the report reflects what the CRM actually stores.</div>
+               </div>
             </div>
           </div>
          </section>
@@ -850,7 +810,8 @@
                   <div class="mini"><strong>Weekly DMs Sent</strong><div id="linkedin-weekly-dms">—</div></div>
                   <div class="mini"><strong>Weekly Replies</strong><div id="linkedin-weekly-replies">—</div></div>
                 </div>
-                <div class="footer-note">Total MQLs are opportunities that ever reached the Warm pipeline Qualified (MQL) stage. Converted to SQL means the opportunity also entered the Sales Outreach pipeline; Current MQLs are still sitting in Warm without a Sales Outreach record. A Converted MQL is no longer counted as Current. The snapshot values are cumulative; Entered/Converted This Period follow the selected reporting range. LinkedIn state values are current snapshots; activity follows the selected period from the LinkedIn activity ledger.</div>
+                 <div class="footer-note">Total MQLs are opportunities that ever reached the Warm pipeline Qualified (MQL) stage. Converted to SQL means the opportunity also entered the Sales Outreach pipeline; Current MQLs are still sitting in Warm without a Sales Outreach record. A Converted MQL is no longer counted as Current. The snapshot values are cumulative; Entered/Converted This Period follow the selected reporting range. LinkedIn state values are current snapshots; activity follows the selected period from the LinkedIn activity ledger.</div>
+             </div>
            </div>
          </section>
 
@@ -892,7 +853,6 @@
                 <div class="mini"><strong>Recorded Visits</strong><div id="st-sessions">—</div></div>
                 <div class="mini"><strong>Users</strong><div id="st-users">—</div></div>
                 <div class="mini"><strong>Engaged</strong><div id="st-engaged">—</div></div>
-                <div class="mini"><strong>Forms</strong><div id="st-forms">—</div></div>
                 <div class="mini"><strong>Top Page</strong><div id="st-top-page">—</div></div>
                 <div class="mini"><strong>Eng. Rate</strong><div id="st-eng-rate">—</div></div>
               </div>
@@ -924,9 +884,9 @@
           </div>
         </section>
 
-        <!-- SEARCH CONSOLE -->
-        <div class="section-label" id="section-gsc">Search Console</div>
-        <section class="grid" style="margin-bottom:16px;">
+         <!-- SEARCH CONSOLE (hidden from Executive Report; source data retained) -->
+         <div class="section-label" id="section-gsc" hidden>Search Console</div>
+         <section class="grid" style="margin-bottom:16px; display:none;">
           <div class="panel">
             <div class="panel-head">
               <h2>GSC Search</h2>
@@ -967,12 +927,12 @@
                <div class="footer-note" id="outgoing-calls-note">Calls are limited to the last 7 completed calendar days. Recordings load only when requested.</div>
              </div>
            </div>
-         </section>
+          </section>
        </main>
     </div>
     <script>
       (function () {
-             var BUILD_STAMP = "2026-09-09-v29-lead-source";
+           var BUILD_STAMP = "2026-09-19-v32-campaign-zero-row-filter";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -1325,11 +1285,18 @@
               if (target === "vapi") return channel === "vapi";
               return campaign.indexOf(target) !== -1;
             }
+            var CAMPAIGN_CHANNEL_ACTIVITY_FIELDS = ["sms_sent", "sms_replies", "email_sent", "email_recipients", "email_delivered", "email_opened", "email_clicked", "email_replies", "email_bounced", "linkedin_invites", "linkedin_accepted", "linkedin_dms", "linkedin_replies", "instagram_dms", "instagram_replies", "vapi_calls", "vapi_answered", "vapi_qualified", "vapi_booked"];
+            var CAMPAIGN_BREAKDOWN_ACTIVITY_FIELDS = ["opportunities", "email_sent", "email_recipients", "email_delivered", "email_opened", "email_clicked", "email_replies", "email_bounced", "linkedin_invites", "linkedin_accepted", "linkedin_dms", "linkedin_replies", "instagram_dms", "instagram_replies", "sms_sent", "sms_replies", "vapi_calls", "vapi_answered", "vapi_qualified", "vapi_booked"];
+            function campaignRowHasActivity(row, fields) {
+              return fields.some(function (field) { return Number(row && row[field] || 0) !== 0; });
+            }
             function renderCampaignChannels(rows) {
              var body = document.getElementById("campaign-channel-table");
              if (!body) return;
              campaignChannelRows = Array.isArray(rows) ? rows : [];
-             var visibleRows = campaignChannelRows;
+             var visibleRows = campaignChannelRows.filter(function (row) {
+               return campaignRowHasActivity(row, CAMPAIGN_CHANNEL_ACTIVITY_FIELDS);
+             });
              if (campaignChannelFilter !== "all") {
                visibleRows = visibleRows.filter(function (row) {
                  return String(row.channel || "").toLowerCase() === campaignChannelFilter;
@@ -1341,7 +1308,7 @@
                });
              }
             if (visibleRows.length === 0) {
-                 body.innerHTML = '<tr><td colspan="22" class="loading">No campaign channel data yet.</td></tr>';
+                  body.innerHTML = '<tr><td colspan="22" class="loading">No non-zero campaign channel data yet.</td></tr>';
               return;
             }
              body.innerHTML = visibleRows.map(function (r) {
@@ -1391,15 +1358,18 @@
              if (!body) return;
              campaignBreakdownRows = Array.isArray(rows) ? rows : [];
               if (campaignBreakdownRows.length === 0) {
-                    body.innerHTML = '<tr><td colspan="21" class="loading">No campaign breakdown data yet.</td></tr>';
+                    body.innerHTML = '<tr><td colspan="21" class="loading">No non-zero campaign breakdown data yet.</td></tr>';
                renderCampaignDetail(null, null);
                return;
              }
-              var visibleBreakdownRows = campaignNameFilter === "all"
-                ? campaignBreakdownRows
-                : campaignBreakdownRows.filter(function (r) { return campaignMatchesGroup(r, campaignNameFilter); });
+               var visibleBreakdownRows = campaignBreakdownRows.filter(function (r) {
+                 return campaignRowHasActivity(r, CAMPAIGN_BREAKDOWN_ACTIVITY_FIELDS);
+               });
+               if (campaignNameFilter !== "all") {
+                 visibleBreakdownRows = visibleBreakdownRows.filter(function (r) { return campaignMatchesGroup(r, campaignNameFilter); });
+               }
               if (visibleBreakdownRows.length === 0) {
-                 body.innerHTML = '<tr><td colspan="21" class="loading">No campaign breakdown data for this filter.</td></tr>';
+                  body.innerHTML = '<tr><td colspan="21" class="loading">No non-zero campaign breakdown data for this filter.</td></tr>';
                 renderCampaignDetail(null, null);
                 return;
               }
@@ -1718,7 +1688,20 @@ function renderSdrPerformance(rows) {
             body.innerHTML = html;
           }
           function renderLeadSource(rows, coverage) {
-            var list = Array.isArray(rows) ? rows : [];
+             var raw = Array.isArray(rows) ? rows : [];
+             var merged = {};
+             raw.forEach(function (row) {
+               var source = String(row.source || "Unknown / Unattributed").trim();
+               var sourceKey = source.toLowerCase();
+               var isLinkedInUnipile = sourceKey.indexOf("linkedin via unipile") === 0;
+               var displaySource = isLinkedInUnipile ? "LinkedIn via Unipile" : source;
+               var medium = isLinkedInUnipile ? "" : String(row.medium || "").trim();
+               var key = displaySource.toLowerCase() + "\u0000" + medium.toLowerCase();
+               if (!merged[key]) merged[key] = { source: displaySource, medium: medium, mqls: 0, sqls: 0 };
+               merged[key].mqls += Number(row.mqls || 0);
+               merged[key].sqls += Number(row.sqls || 0);
+             });
+             var list = Object.keys(merged).map(function (key) { return merged[key]; });
             var body = document.getElementById("lead-source-table");
             if (!body) return;
             if (list.length === 0) {

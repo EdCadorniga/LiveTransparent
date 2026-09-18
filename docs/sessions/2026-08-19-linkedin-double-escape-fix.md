@@ -24,7 +24,7 @@ The 08-18 REST PUT inherited these bodies without touching them (it only replace
 
 ## Fixes applied
 
-Automated with `scripts/fix_linkedin_sanitize_double_escape.py` (idempotent jsCode transform; dry-run report mode), then re-published via the n8n API so each workflow is **updated AND published**.
+Automated with `scripts/linkedin/fix_linkedin_sanitize_double_escape.py` (idempotent jsCode transform; dry-run report mode), then re-published via the n8n API so each workflow is **updated AND published**.
 
 | Workflow | ID | Change | Published active version |
 |---|---|---|---|
@@ -46,5 +46,5 @@ Scanned all 164 non-archived workflows for any remaining `\\u2018`/`\\u2019`/`\\
 
 ## Files
 
-- Fix script: `scripts/fix_linkedin_sanitize_double_escape.py`
+- Fix script: `scripts/linkedin/fix_linkedin_sanitize_double_escape.py`
 - Session notes (this file): `docs/sessions/2026-08-19-linkedin-double-escape-fix.md`

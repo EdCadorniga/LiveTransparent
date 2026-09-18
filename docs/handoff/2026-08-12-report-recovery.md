@@ -7,7 +7,7 @@ Updated: 2026-08-12
 This is the canonical continuation handoff for the next session. Live n8n is the workflow source of truth; repository workflow files may be stale. Do not begin by changing the frontend or rebuilding the runner: both are currently verified.
 
 1. Read `repomix-output.md`, `AGENTS.md`, this handoff, and the first 120 lines of `Project Status and Next Steps.md`.
-2. Run `python scripts/report_runtime_audit.py` and re-query the database baseline before any mutation. The counts below are a measured 2026-08-12 checkpoint, not a permanent expectation.
+2. Run `python scripts/social-reporting/report_runtime_audit.py` and re-query the database baseline before any mutation. The counts below are a measured 2026-08-12 checkpoint, not a permanent expectation.
 3. ~~Fetch live workflow details and recent executions for `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) with `n8n-lt`.~~ **DONE.** Repaired and published as version `91603d56`; execution `743094` succeeded with 7,984 opportunities + 7,984 pipeline history rows via atomic direct-`pg` transaction.
 4. ~~Repair that workflow first.~~ **DONE.** Replaced stale GHL authentication and migrated `Upsert Raw Sales` plus `Finalize Run Records` from Postgres v2.6 nodes to one atomic direct-`pg` transaction. Preserved existing bounded pagination, retry, cursor, watermark, and fail-closed behavior.
 5. ~~Validate the changed nodes/workflow, update the live workflow, publish it, then fetch it again and verify `versionId == activeVersionId` before executing it manually.~~ **DONE.** Published version `91603d56`; `versionId === activeVersionId` confirmed.
@@ -54,7 +54,7 @@ Full cross-file documentation review completed. 18 issues fixed across 4 files. 
 13. Published and verified voice fixes: dialer `r7UjWLndmc6EqEUW` version `39318747-4387-4c95-8c36-b83adb30f27a` at that checkpoint, intake poller `bYk1Ai6MJLyhTsDZ` version `85c0cdf4-959b-438d-8dfc-37c8f5690237`, and Call Outcome Ingest `PUCfTZBANSPcgS0c` version `d83800a0-8234-4f63-965d-72ca359d9ddc`. Intake execution `742828` and synthetic call-outcome execution `742834` succeeded; the synthetic outcome row was removed. The dialer was subsequently migrated to direct `pg` and verified on published version `b8e9c57a-f81f-49fd-b469-1388320568c5` as documented below.
 14. Rechecked the live database after recovery. Current counts are: contacts `500`, opportunities `0`, voice queue `1` pending, voice attempts `0`, call outcomes `0`, `Email_Events` `0`, DAN releases `0`, Emerald releases `0`, partnership releases `0`, partnership LinkedIn state `18`, main LinkedIn state `0`, SimpleTexting campaign state/events `0`, emerging pool `13,868`, and emerging-pool rows with `ghl_contact_id` `0`.
 15. Identified the next critical blocker: `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) is active/published on `4f3e8068-8864-4b4d-9286-ba4d618cc3a8`, but scheduled execution `742754` failed at `Fetch Opportunities` with GHL HTTP `401`. Its two Postgres v2.6 write nodes also still use the broken SQL-string/Postgres-node path and must be migrated before a successful run can be trusted.
-16. Deployed Executive Report build `2026-08-12-v23-mobile-overflow`. The frontend resolves raw GHL pipeline/stage IDs in Current Open Deals, Active Deals, stage movement, velocity, and pipeline overview. Stage names were reconciled against the live official GHL pipelines response. Desktop and 390px mobile checks found no raw stage IDs or page-level horizontal overflow; wide tables scroll within their panels. The report container must remain attached to `coolify-shared`; `scripts/deploy_report_vps_local.py` now reattaches, restarts, and verifies the current build after recreation.
+16. Deployed Executive Report build `2026-08-12-v23-mobile-overflow`. The frontend resolves raw GHL pipeline/stage IDs in Current Open Deals, Active Deals, stage movement, velocity, and pipeline overview. Stage names were reconciled against the live official GHL pipelines response. Desktop and 390px mobile checks found no raw stage IDs or page-level horizontal overflow; wide tables scroll within their panels. The report container must remain attached to `coolify-shared`; `scripts/deploy/deploy_report_vps_local.py` now reattaches, restarts, and verifies the current build after recreation.
 
 ### Session 2: Sales Ingest Repair + Call Outcome Auth (2026-08-12)
 
@@ -138,7 +138,7 @@ Direct `require('pg')` and the affected Code-node path succeeded in GHL Leads In
 ## Verification Commands
 
 ```powershell
-python scripts/report_runtime_audit.py
+python scripts/social-reporting/report_runtime_audit.py
 Invoke-WebRequest -Uri 'https://reports.livetransparent.com/api/report/executive/summary?range=30d' -UseBasicParsing
 ```
 
@@ -147,14 +147,20 @@ Expected: HTTP 200 and JSON containing `window` and `summary`.
 Runner deployment:
 
 ```powershell
-python scripts/deploy_runner.py
+python scripts/deploy/deploy_runner.py
 ```
 
 High-risk encryption-key recreation, only after inspecting the remote service `.env`:
 
 ```powershell
-python scripts/align_n8n_encryption_key.py
+python scripts/n8n/align_n8n_encryption_key.py
 ```
+
+## Current Executive Report State — 2026-09-17
+
+The Executive Summary API is currently active/published at `da17ea49-6473-4e33-9df5-9d93bf6cf273`. This includes the original report recovery fixes, the email attribution response fields, and the follow-up qualification of `s.campaign_key` / `s.campaign_group` after `Email_Events.campaign_key` was added. The embed-query endpoint returned HTTP 200 with populated JSON (36,184 bytes) and current report metrics.
+
+The attribution follow-up also updated the Newsletter Dispatcher (`88c53670-6e0a-4f2d-a4c4-3f27ca3ffdff`), Campaign Channel Summary (`9bcb5e46-f2a4-484a-ad6e-7761c6538cef`), and Email Event Ingest (`e57c2664-f0f1-484f-b3a6-32bba41ff125`). No production sender workflow or email was executed. For future report checks, validate both HTTP status and non-empty JSON; HTTP 200 with an empty body is a failure symptom.
 
 ## Safe Continuation Order
 
@@ -177,9 +183,9 @@ python scripts/align_n8n_encryption_key.py
 - `n8n/runners/Dockerfile`
 - `n8n/runners/n8n-task-runners.json`
 - `reports/nginx.conf`
-- `scripts/report_runtime_audit.py`
-- `scripts/deploy_runner.py`
-- `scripts/align_n8n_encryption_key.py`
+- `scripts/social-reporting/report_runtime_audit.py`
+- `scripts/deploy/deploy_runner.py`
+- `scripts/n8n/align_n8n_encryption_key.py`
 - `n8n/reporting/leads_ingest_sdk_v3.ts`
 - `postgres/backfill-emerging-pool-ghl-ids.sql`
 - `postgres/audit-emerging-pool-linkage.sql`

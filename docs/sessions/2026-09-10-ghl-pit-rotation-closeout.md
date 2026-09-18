@@ -19,7 +19,7 @@ whether the "API key" and the PIT are the same in form and function.
   settings/staticData/pinData` — the API rejects read-only GET fields like `id/active/
   versionId/createdAt`). Every affected workflow's pre-change JSON was backed up to
   `%LOCALAPPDATA%\Temp\lt_pit_rotation\<workflowId>__<name>.pre.json`.
-- Re-verified with the repo's own `scripts/inventory_n8n_pits.py` (read-only): the only
+- Re-verified with the repo's own `scripts/n8n/inventory_n8n_pits.py` (read-only): the only
   working token now present in live workflows is the new PIT (fingerprint `1f0706f0fc2d`),
   **all HTTP 200**. The previously dead 401 token (`13c5a02e54a2` = `pit-2d2e...`) is gone
   from active workflows.
@@ -52,7 +52,7 @@ whether the "API key" and the PIT are the same in form and function.
   - Cleanup requires unarchiving in the n8n UI first, then re-running the rotation, or
     deleting them.
 - **~19 non-JSON helper scripts** (`_check_ghl_from_n8n.py`, `_query_dispatch.py`,
-  `n8n/workflows/*.ts`, `n8n/reporting/*.ts`, `scripts/fix_intake_poller.js`,
+  `n8n/workflows/*.ts`, `n8n/reporting/*.ts`, `scripts/n8n/fix_intake_poller.js`,
   `local-scripts/suppress_linkedin_dms.py`, etc.) still embed old tokens (some dead). Dev helpers,
   not production workflows — left untouched this session; offered to Ed for rotation/trim.
 - Nothing committed or pushed (repo currently on branch `codex/social-outreach-sync` with

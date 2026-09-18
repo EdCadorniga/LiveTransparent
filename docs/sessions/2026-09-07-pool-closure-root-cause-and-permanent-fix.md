@@ -55,7 +55,7 @@ self-healed or escalated until a manual container restart.
 
 ## Permanent fixes applied (2026-09-07, each verified)
 
-### A. watch_fix v2 — scripts/watch_fix.py (local repo; cron job b3f164cd1746)
+### A. watch_fix v2 — scripts/linkedin/watch_fix.py (local repo; cron job b3f164cd1746)
 - New highest-priority `pool` class: auto-restart ONLY the n8n main container
   after live preconditions: fresh `Cannot use a pool` in last 600 s, readiness
   != 200, postgres healthy, n8n up > 300 s, <= 3 auto-restarts/hour. Captures

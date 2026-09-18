@@ -80,8 +80,8 @@ Execution `934032` data disproved several prior assumptions:
 
 ### Fixes applied and published
 
-- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`): published version `3dab7e61-b2e4-45c6-8e6d-055b8c05623e` (`versionId == activeVersionId`), active, 19 nodes intact. Applied via `scripts/fix_linkedin_inbound_response_and_jsonb.py` (surgical REST PUT; dry-run + node syntax check first).
-- `LT - LinkedIn Conversation Backfill` (`JUvrA7qMa24SwAZG`, inactive): outbound posts routed to `/conversations/messages`, conversation-message dedup added (skips bodies already present in the contact's LinkedIn conversation), and Config gained `only_chat_id` (set to Gretchen's chat `8NOmhtWSUpKbsec3YdsxlA`) so the retry touched only Gretchen. Applied via `scripts/fix_linkedin_backfill_outbound_direction.py`.
+- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`): published version `3dab7e61-b2e4-45c6-8e6d-055b8c05623e` (`versionId == activeVersionId`), active, 19 nodes intact. Applied via `scripts/linkedin/fix_linkedin_inbound_response_and_jsonb.py` (surgical REST PUT; dry-run + node syntax check first).
+- `LT - LinkedIn Conversation Backfill` (`JUvrA7qMa24SwAZG`, inactive): outbound posts routed to `/conversations/messages`, conversation-message dedup added (skips bodies already present in the contact's LinkedIn conversation), and Config gained `only_chat_id` (set to Gretchen's chat `8NOmhtWSUpKbsec3YdsxlA`) so the retry touched only Gretchen. Applied via `scripts/linkedin/fix_linkedin_backfill_outbound_direction.py`.
 
 ### Verification (all user-approved)
 

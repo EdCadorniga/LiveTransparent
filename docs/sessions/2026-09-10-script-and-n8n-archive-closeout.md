@@ -19,7 +19,7 @@ Organize reusable local helpers and historical n8n exports without committing li
 ## Verification
 
 - `node --check n8n/gen.js` passed.
-- `node --check scripts/fix_intake_poller.js` passed.
+- `node --check scripts/n8n/fix_intake_poller.js` passed.
 - `git diff --check` passed.
 - Added-change credential scan found no live PIT, Unipile key, SimpleTexting token, webhook secret, or Bearer credential.
 - `local-archive/n8n/` contains 50 retained local files and is covered by `.gitignore`.
