@@ -1,6 +1,15 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-09-19 (Executive Report presentation cleanup deployed; source data preserved)
+Updated: 2026-09-19 (Executive Report source health, progressive loading, and 20-minute caching deployed)
+
+### Executive Report Source Health and Cache — DEPLOYED 2026-09-19
+
+- Source Health now exposes runtime-path rows for `n8n` and `postgres`, plus appointment snapshot freshness from `report_raw_ghl_appointments`; the dashboard maps all three instead of leaving misleading `—`/`Pending` placeholders.
+- The primary report now renders as soon as the Executive Summary response arrives; Campaign Channels and prior-period comparison load asynchronously afterward.
+- Executive Summary workflow `Bukc0mgOD2r7V6ED` is active/published at `00285be3-e4b5-4741-95a9-474b2c74ce00`.
+- Both report API caches now use a 20-minute successful-response TTL, with cache locking, stale-if-error fallback, and a 10-minute inactive cache window preserved. Live nginx verification confirmed `proxy_cache_valid 200 20m` in both locations.
+- Live 7-day verification returned HTTP 200, 29,909 bytes, cache `HIT`, and health `appointments=ready`, `n8n=ready`, `postgres=ready`.
+- Detailed closeout: [`docs/sessions/2026-09-19-executive-report-source-health-cache-closeout.md`](docs/sessions/2026-09-19-executive-report-source-health-cache-closeout.md).
 
 ### GHL OAuth Renewal Hardening — ACTIVE, runtime follow-up required 2026-09-19
 
@@ -17,7 +26,7 @@ Updated: 2026-09-19 (Executive Report presentation cleanup deployed; source data
 - Fixed the September 6–12 contradiction where Contacts showed 260 but Attribution Coverage showed 259. A shared distinct, non-backfill contact cohort now drives Contacts, coverage, source attribution, and funnel denominators.
 - Excluded Unipile/historical-backfill contacts from current-period Contacts, opportunities, MQL/SQL facts, Lead Source totals, and SDR SQL counts. Raw records remain preserved for historical/audit use.
 - Restored Campaign Channels and Campaign Breakdown in the Executive Report. Fully zero activity rows are now hidden in both tables; any non-zero metric keeps the row/campaign visible. The API/source data remains unchanged. Sept 6–12 verification: Contacts `25`, cohort `25`, Lead Source SQL total `52`, SDR SQL total `52`; campaign APIs returned 13 and 7 rows.
-- Executive Summary workflow active/published version: `13ecaf43-3219-448a-bb55-300638bff697`. Frontend build: `2026-09-19-v32-campaign-zero-row-filter`.
+- Executive Summary workflow and frontend state in this intermediate repair were superseded later on 2026-09-19 by the Source Health and Cache closeout below; the backfill-accuracy findings remain valid.
 - Detailed closeout: [`docs/sessions/2026-09-19-executive-report-backfill-accuracy-repair.md`](docs/sessions/2026-09-19-executive-report-backfill-accuracy-repair.md).
 
 ### Executive Report Presentation Cleanup — DEPLOYED 2026-09-19

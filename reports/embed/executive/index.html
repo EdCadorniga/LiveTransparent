@@ -867,7 +867,7 @@
           <div class="panel">
             <div class="panel-head">
               <h2>Source Health</h2>
-              <span>n8n + Postgres</span>
+                <span>Runtime, pipeline, and snapshot freshness</span>
             </div>
             <div class="panel-body">
               <div class="mini-grid" id="health-grid">
@@ -932,7 +932,7 @@
     </div>
     <script>
       (function () {
-           var BUILD_STAMP = "2026-09-19-v32-campaign-zero-row-filter";
+           var BUILD_STAMP = "2026-09-19-v33-cache-and-progressive-load";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -1639,27 +1639,52 @@
              if (from) campaignUrl += "&from=" + encodeURIComponent(from);
              if (to) campaignUrl += "&to=" + encodeURIComponent(to);
              try {
-               var results = await Promise.all([
-                 loadJson(currentUrl).catch(function () { return {}; }),
-                 previousUrl ? loadJson(previousUrl).catch(function () { return {}; }) : Promise.resolve({}),
-                 loadJson(campaignUrl).catch(function () { return {}; })
-               ]);
-               var data = results[0];
-               var previousData = results[1];
+               // Render the selected window as soon as the primary summary is ready.
+               // Campaign channels and prior-period comparison enrich the page afterward.
+               var data = await loadJson(currentUrl);
+               if (!data || !data.summary) throw new Error("Summary response was empty or malformed");
                var currentWindow = data.window || estimatedWindow || { from: from, to: to };
                var previousWindow = getPreviousWindow(currentWindow);
-                setPeriodInputs(currentWindow);
-                data.campaignChannelBreakdown = (results[2].campaignChannelBreakdown || []);
-                 data.campaignBreakdown = (results[2].campaignBreakdown || []);
-                 data.smsSummary = results[2].smsSummary || { sent: 0, failed: 0, replies: 0 };
-                 data.instagramActivity = results[2].instagramActivity || { dmsSent: 0, inboundReplies: 0, coverage: "unavailable" };
+               setPeriodInputs(currentWindow);
+               data.campaignChannelBreakdown = [];
+               data.campaignBreakdown = [];
+               data.smsSummary = { sent: 0, failed: 0, replies: 0 };
+               data.instagramActivity = { dmsSent: 0, inboundReplies: 0, coverage: "loading" };
                render(data);
-               renderWeekComparison(data, previousData || {});
+               renderWeekComparison(data, {});
                var comparisonLabel = document.getElementById("comparison-period-label");
-               if (comparisonLabel) comparisonLabel.textContent = windowLabel(currentWindow) + " vs " + windowLabel(previousWindow);
+               if (comparisonLabel) comparisonLabel.textContent = windowLabel(currentWindow) + " vs prior period loading…";
                var periodNote = document.getElementById("period-note");
-               if (periodNote) periodNote.textContent = "Comparing against " + windowLabel(previousWindow) + ".";
-             } catch (err) { console.warn("Report load failed:", err); }
+               if (periodNote) periodNote.textContent = "Current period loaded. Loading prior-period comparison…";
+
+               loadJson(campaignUrl).then(function (campaignData) {
+                 data.campaignChannelBreakdown = campaignData.campaignChannelBreakdown || [];
+                 data.campaignBreakdown = campaignData.campaignBreakdown || [];
+                 data.smsSummary = campaignData.smsSummary || { sent: 0, failed: 0, replies: 0 };
+                 data.instagramActivity = campaignData.instagramActivity || { dmsSent: 0, inboundReplies: 0, coverage: "unavailable" };
+                 render(data);
+               }).catch(function (err) {
+                 console.warn("Campaign channel load failed:", err);
+               });
+
+               if (previousUrl) {
+                 loadJson(previousUrl).then(function (previousData) {
+                   renderWeekComparison(data, previousData || {});
+                   if (comparisonLabel) comparisonLabel.textContent = windowLabel(currentWindow) + " vs " + windowLabel(previousWindow);
+                   if (periodNote) periodNote.textContent = "Comparing against " + windowLabel(previousWindow) + ".";
+                 }).catch(function (err) {
+                   console.warn("Prior-period report load failed:", err);
+                   if (comparisonLabel) comparisonLabel.textContent = windowLabel(currentWindow) + " vs prior period unavailable";
+                   if (periodNote) periodNote.textContent = "Current period loaded; prior-period comparison is temporarily unavailable.";
+                 });
+               } else if (periodNote) {
+                 periodNote.textContent = "Current period loaded.";
+               }
+             } catch (err) {
+               console.warn("Report load failed:", err);
+               var errorNote = document.getElementById("period-note");
+               if (errorNote) errorNote.textContent = "Report data is temporarily unavailable. Please retry in a moment.";
+             }
            }
 function renderSdrPerformance(rows) {
             var list = Array.isArray(rows) ? rows : [];
@@ -2063,6 +2088,8 @@ el = document.getElementById("snapshot-mql-total"); if (el) el.textContent = for
               "ga4": "hl-ga4",
               "gsc": "hl-gsc",
               "meta_ads": "hl-meta",
+              "n8n": "hl-n8n",
+              "postgres": "hl-postgres",
               "rollups": "hl-rollups",
               "bridge": "hl-bridge",
               "velocity": "hl-velocity",

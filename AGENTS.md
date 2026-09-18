@@ -1,5 +1,11 @@
 # LiveTransparent Agent Notes
 
+## ✅ CURRENT 2026-09-19 Executive Report Source Health and Cache State
+
+- The Executive Summary API (`Bukc0mgOD2r7V6ED`) is active/published at `00285be3-e4b5-4741-95a9-474b2c74ce00`. It emits `n8n`, `postgres`, and appointment snapshot health rows; the 7-day endpoint returned HTTP 200 with populated data and all three rows `ready`.
+- The Executive Report frontend renders the primary summary before campaign-channel and prior-period requests finish. Both report API caches use a 20-minute successful-response TTL with cache locking and stale-if-error fallback.
+- This current state supersedes the older Executive Summary version references below. Treat HTTP 200 with an empty report body as a failure, not valid zero data.
+
 ## ⚠️ IN PROGRESS: 2026-09-17 Executive Report Email Attribution Audit
 
 - Read-only audit handoff: [`docs/sessions/2026-09-17-executive-report-api-regression-and-email-attribution-audit.md`](docs/sessions/2026-09-17-executive-report-api-regression-and-email-attribution-audit.md).
