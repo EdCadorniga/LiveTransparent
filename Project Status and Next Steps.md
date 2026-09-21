@@ -2,6 +2,15 @@
 
 Updated: 2026-09-19 (Executive Report source health, progressive loading, and 20-minute caching deployed)
 
+### EOS Closeout — Hide Executive Report Outgoing Calls — 2026-09-19
+
+- **Objective:** hide the Executive Report's empty `Outgoing Call Detail` panel while retaining aggregate Calls & Conversations metrics and the diagnostic endpoint.
+- **Repository implementation:** `reports/embed/executive/index.html` removes the sidebar link, section markup, outgoing-call loader/pagination code, and client request to `/api/report/executive/outgoing-calls`; build stamp is `2026-09-19-v34-hide-outgoing-calls`.
+- **Documentation:** `reports/README.md` now records that the endpoint remains available for diagnostics while the report UI hides the detail section.
+- **Verification:** `git diff --check` passed; the Executive Report inline script parsed successfully with Node; no outgoing-call UI or API-request references remain in the frontend.
+- **Live-state boundary:** no deployment, publish, container mutation, n8n change, or external-service write was performed in this session. The worktree contains the uncommitted frontend and documentation changes recorded in the dated closeout handoff.
+- **Next session:** review the diff, deploy the report host when approved, then verify the public page returns build stamp `2026-09-19-v34-hide-outgoing-calls`, the sidebar and panel are absent, and aggregate call metrics still render. Keep the outgoing-call endpoint and nginx route available for diagnostics.
+
 ### Executive Report Source Health and Cache — DEPLOYED 2026-09-19
 
 - Source Health now exposes runtime-path rows for `n8n` and `postgres`, plus appointment snapshot freshness from `report_raw_ghl_appointments`; the dashboard maps all three instead of leaving misleading `—`/`Pending` placeholders.

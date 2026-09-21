@@ -220,7 +220,6 @@
           <!-- Search Console remains in source health and the dedicated Website report. -->
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-calls" data-view="overview" data-scroll="section-calls"><span class="nav-dot"></span> Calls &amp; Conversations</a>
            <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-campaigns" data-view="overview" data-scroll="section-campaigns"><span class="nav-dot"></span> Campaign Channels</a>
-           <a class="nav-item" href="?view=overview&range=30d&embed=1&section=section-outgoing-calls" data-view="overview" data-scroll="section-outgoing-calls"><span class="nav-dot"></span> Outgoing Calls</a>
         </div>
         <div class="nav-group">
           <div class="nav-title">Channels</div>
@@ -905,34 +904,11 @@
           </div>
          </section>
 
-         <!-- OUTGOING CALL DETAIL -->
-         <div class="section-label" id="section-outgoing-calls">Outgoing Calls</div>
-         <section class="grid" style="margin-bottom:16px;">
-           <div class="panel">
-             <div class="panel-head">
-               <h2>Outgoing Call Detail</h2>
-               <span>Last 7 completed days</span>
-             </div>
-             <div class="panel-body">
-               <div class="call-controls">
-                 <span class="call-page-size">100 calls per page</span>
-                 <div class="call-pagination" id="outgoing-calls-pagination" aria-label="Outgoing calls pagination"></div>
-               </div>
-               <div class="table-scroll">
-                 <table class="call-table">
-                   <thead><tr><th>Date &amp; Time</th><th>Contact</th><th>Number</th><th>Status</th><th>Disposition</th><th>Duration</th><th>Recording</th><th>First Time</th><th>Campaign</th></tr></thead>
-                   <tbody id="outgoing-calls-table"><tr><td colspan="9" class="loading">Loading outgoing call detail...</td></tr></tbody>
-                 </table>
-               </div>
-               <div class="footer-note" id="outgoing-calls-note">Calls are limited to the last 7 completed calendar days. Recordings load only when requested.</div>
-             </div>
-           </div>
-          </section>
        </main>
     </div>
     <script>
       (function () {
-           var BUILD_STAMP = "2026-09-19-v33-cache-and-progressive-load";
+           var BUILD_STAMP = "2026-09-19-v34-hide-outgoing-calls";
         // Pipeline and stage name map (GHL LiveTransparent location Zwz4relUXVPxx8uohnjV)
         var PIPELINE_NAMES = {
           "FRjpDZ1HWj3UPgczsu3t": "Warm",
@@ -1190,9 +1166,6 @@
            var campaignNameFilter = "all";
            var campaignBreakdownRows = [];
            var expandedCampaign = null;
-          var outgoingCallsPage = 0;
-          var outgoingCallsTotal = 0;
-          var outgoingCallsPageSize = 100;
           function escapeHtml(value) {
             return String(value == null ? "" : value)
               .replace(/&/g, "&amp;")
@@ -1200,77 +1173,6 @@
               .replace(/>/g, "&gt;")
               .replace(/\"/g, "&quot;")
               .replace(/'/g, "&#39;");
-          }
-          function formatCallDuration(value) {
-            var seconds = Number(value || 0);
-            if (!Number.isFinite(seconds) || seconds < 0) return "—";
-            seconds = Math.round(seconds);
-            if (seconds < 60) return seconds + "s";
-            var minutes = Math.floor(seconds / 60);
-            var remainder = seconds % 60;
-            return minutes + "m" + (remainder ? " " + remainder + "s" : "");
-          }
-          function formatCallDate(value) {
-            if (!value) return "—";
-            var date = new Date(value);
-            if (!Number.isFinite(date.getTime())) return escapeHtml(value);
-            return escapeHtml(date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }));
-          }
-          function renderOutgoingCalls(payload) {
-            var body = document.getElementById("outgoing-calls-table");
-            var pagination = document.getElementById("outgoing-calls-pagination");
-            if (!body || !pagination) return;
-            var rows = Array.isArray(payload && payload.calls) ? payload.calls : [];
-            outgoingCallsTotal = Number(payload && (payload.total || 0) || 0);
-            if (!rows.length) {
-              body.innerHTML = '<tr><td colspan="9" class="loading">No outgoing calls found in the last 7 completed days.</td></tr>';
-            } else {
-              body.innerHTML = rows.map(function (call) {
-                var contact = call.contact_name || call.contactName || "Unknown";
-                var phone = call.contact_phone || call.contactPhone || "";
-                var recording = call.recording_url || call.recordingUrl || "";
-                var recordingCell = recording
-                  ? '<audio class="call-audio" controls preload="none" src="' + escapeHtml(recording) + '"></audio>'
-                  : '<span class="muted">No recording</span>';
-                return "<tr>" +
-                  "<td>" + formatCallDate(call.started_at || call.date_time || call.dateTime) + "</td>" +
-                  "<td><div class=\"contact\"><span>" + escapeHtml(contact) + "</span>" + (phone ? "<small>" + escapeHtml(phone) + "</small>" : "") + "</div></td>" +
-                  "<td>" + escapeHtml(call.number_name || call.numberName || "—") + "</td>" +
-                  "<td>" + escapeHtml(call.call_status || call.status || "—") + "</td>" +
-                  "<td>" + escapeHtml(call.disposition || "—") + "</td>" +
-                  "<td class=\"numeric\">" + formatCallDuration(call.duration_seconds || call.durationSeconds || call.duration) + "</td>" +
-                  "<td>" + recordingCell + "</td>" +
-                  "<td>" + escapeHtml(call.first_time === true || call.firstTime === true ? "Yes" : "No") + "</td>" +
-                  "<td>" + escapeHtml(call.marketing_campaign || call.marketingCampaign || "—") + "</td>" +
-                  "</tr>";
-              }).join("");
-            }
-            var pages = Math.max(1, Math.ceil(outgoingCallsTotal / outgoingCallsPageSize));
-            pagination.innerHTML = "<button type=\"button\" data-outgoing-page=\"prev\"" + (outgoingCallsPage <= 0 ? " disabled" : "") + ">Previous</button>" +
-              "<span>Page " + (outgoingCallsPage + 1) + " of " + pages + "</span>" +
-              "<button type=\"button\" data-outgoing-page=\"next\"" + (outgoingCallsPage + 1 >= pages ? " disabled" : "") + ">Next</button>";
-            pagination.querySelectorAll("[data-outgoing-page]").forEach(function (button) {
-              button.addEventListener("click", function () {
-                var direction = button.getAttribute("data-outgoing-page");
-                if (direction === "prev" && outgoingCallsPage > 0) outgoingCallsPage -= 1;
-                if (direction === "next" && outgoingCallsPage + 1 < pages) outgoingCallsPage += 1;
-                loadOutgoingCalls();
-              });
-            });
-          }
-          async function loadOutgoingCalls() {
-            var body = document.getElementById("outgoing-calls-table");
-            if (!body) return;
-             var url = "/api/report/executive/outgoing-calls?range=" + encodeURIComponent(range) + "&limit=" + outgoingCallsPageSize + "&offset=" + (outgoingCallsPage * outgoingCallsPageSize);
-            try {
-              var payload = await loadJson(url);
-              renderOutgoingCalls(payload);
-            } catch (err) {
-              body.innerHTML = '<tr><td colspan="9" class="loading">Outgoing call detail is temporarily unavailable.</td></tr>';
-              var note = document.getElementById("outgoing-calls-note");
-              if (note) note.textContent = "The call detail source did not respond. Aggregate call metrics remain available above.";
-              console.warn("Outgoing call detail load failed:", err);
-            }
           }
             function campaignMatchesGroup(row, group) {
               var channel = String(row.channel || "").toLowerCase();
@@ -2161,8 +2063,6 @@ el = document.getElementById("snapshot-mql-total"); if (el) el.textContent = for
               });
             });
             loadReport();
-           outgoingCallsPage = 0;
-           loadOutgoingCalls();
         if (section) window.setTimeout(function () { scrollToSection(section); }, 150);
       })();
     </script>
