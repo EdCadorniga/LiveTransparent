@@ -10,7 +10,7 @@ APP_DIR = "/data/coolify/applications/v3ud1lum1svamymuor21upog"
 SOURCE_DIR = "/tmp/livetransparent-report-local"
 IMAGE = "v3ud1lum1svamymuor21upog:social-mql-20260817"
 BUILD_STAMP = "2026-08-17-v27-social-mql"
-LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reports"))
+LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "reports"))
 
 
 def run(client, label, command):

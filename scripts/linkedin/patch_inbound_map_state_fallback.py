@@ -88,7 +88,10 @@ const sql = `WITH main_match AS (
     NULL::text AS request_message,
     NULL::text AS request_message_hash,
     0::integer AS sequence_step,
-    COALESCE(m.raw_payload, m.payload_json, '{}'::jsonb) AS payload_json,
+    -- The live map table stores the normalized payload in raw_payload.
+    -- Do not reference the historical payload_json column here: it is not
+    -- present in the current production schema.
+    COALESCE(m.raw_payload, '{}'::jsonb) AS payload_json,
     jsonb_build_object('source', 'linkedin_conversation_map_fallback') AS metadata_json,
     'linkedin_connection_state'::text AS source_table
   FROM linkedin_conversation_map m

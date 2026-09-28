@@ -131,3 +131,20 @@ Confirmed live control values (no secrets recorded):
 - Repair: qualified the attribution CTE projection and grouping as `s.campaign_key` and `s.campaign_group`. Published Executive Summary version `da17ea49-6473-4e33-9df5-9d93bf6cf273`; read-back confirmed `versionId == activeVersionId`.
 - Verification: `GET https://reports.livetransparent.com/api/report/executive/summary?view=overview&range=30d&embed=1` returned HTTP 200 with 36,184 bytes. The latest Executive Summary execution succeeded and returned current values including 1,855 recorded visits, 2,131 contacts, 2,929 opportunities, 9 meetings, and email metrics. No sender workflow or email was executed.
 - Operational lesson: validate both HTTP status and non-empty JSON body, and treat `200 + zero bytes` as an API failure. The report query remains slow (roughly one to two minutes), so the embed should eventually receive a visible loading/error state or a backend cache rather than silently rendering zero-like placeholders.
+
+## 6. Newsletter Fail-Closed Repair (2026-09-26)
+
+- Live inspection confirmed the newsletter dispatcher already selected the newest pending week dynamically and contained no hardcoded historical week keys.
+- Scheduled executions were failing because no GHL template matched active pending week `2026-09-21`.
+- `Fetch Newsletter Template` now returns a closed no-op result with `templateMissingWeekKey` when the active template is absent. The bucket query therefore selects no rows and cannot send.
+- Published active version: `dacd2df9-4647-4910-8ea3-857cf889f9b5`; fresh read-back confirmed `versionId == activeVersionId` and zero hardcoded date keys in the selector nodes.
+- No manual or production execution was run. A matching current-week GHL template remains required before newsletter delivery can resume.
+
+## 7. Executive Report QA and V1 Meeting Window Repair (2026-09-26)
+
+- `ghl_opp_owner_coverage` status is intentionally `attention`: the successful QA probe counted 11,569 latest opportunities, with 4,371 direct opportunity owners and 243 contact-owner fallbacks, totaling 39.9%. The workflow marks coverage below 50% as `attention`; this is a source-data coverage problem, not a probe execution failure.
+- `ghl_appt_owner_coverage` is separate and currently `ready`.
+- V1 Facts `Build V1 Facts Query` filtered appointments by `(start_at AT TIME ZONE 'America/Los_Angeles')::date`, so the dates shown are scheduled start times. It does not use a booked/created timestamp for the meeting panel.
+- The frontend sent `range=7d`, but the API ignored that parameter and defaulted to 30 days when `from` and `to` were absent. The API now maps `range=7d|30d|90d` to the corresponding LA date window.
+- Published active version: `677e728d-8f33-4e78-a406-3a0dca56b19e`; `versionId == activeVersionId`. Public verification returned `from=2026-09-18`, `to=2026-09-24`, and 3 appointment rows for `range=7d`.
+- **Next-session todo:** establish an approved universal inbound-intent routing rule for LinkedIn DMs, inbound calls, email replies, Instagram/SMS replies, and other inbound channels to the canonical opportunity `Priority` stage. No universal inbound-to-`Priority` workflow was confirmed. Identify the canonical pipeline/stage and confirm create-versus-update behavior before changing GHL stages.

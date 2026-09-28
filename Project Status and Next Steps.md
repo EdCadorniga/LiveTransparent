@@ -1,6 +1,148 @@
 # LiveTransparent Project Status and Next Steps
 
-Updated: 2026-09-19 (Executive Report source health, progressive loading, and 20-minute caching deployed)
+### LinkedIn Sales Navigator and Identity EOS — 2026-09-29
+
+- **Personal identity guard:** Alexis Mora's GHL contact is `RGjMxzMqOR2L14ao8qmg` with `firstName=Alexis`, company `A.MORA Marketing`, and LinkedIn URL `alexistaylormora`. No authoritative source for the historical `Angel` greeting was found.
+- **Live behavior:** personal dispatcher `fXxw5lanZcDmUrst` and personal DM sequence `d0tEtijajisIsYcs` now require a non-empty LinkedIn provider first name and use it for outbound copy. Partnership/company dispatcher `crKIsaL5k3YBfqDZ` and DM sequence `nspggypNF245xzeL` remain GHL-based.
+- **Conversation mirroring:** outbound mirrors use `/conversations/messages`; inbound LinkedIn events continue using `/conversations/messages/inbound`. The helper scope defect found during review was corrected.
+- **Published versions:** dispatcher `ca663633-143f-4312-9cc3-d0a4ac262661`; personal DM `96f7cf60-97c2-4f54-ba13-20ebf9d49ef1`; partnership dispatcher `44c4ed5f-d5e3-4c75-94f0-1ac21cd7355e`; partnership DM `9c04b07a-812d-4755-850d-125cadec8c7a`. REST readback confirmed `versionId == activeVersionId` for all four.
+- **Sales Navigator research:** Unipile Hosted Auth must be configured with `products: ["classic", "sales_navigator"]`; Sales Navigator recipient IDs use `ACw...`, v2 account IDs use `acc_...`, and `SALES_NAVIGATOR_PRIMARY` is the inbox for starting a new Sales Navigator conversation. The current legacy `/api/v1` account has not been migrated or verified for that v2 inbox.
+- **Safety boundary:** no live LinkedIn send, account registration, or historical message backfill was performed. Cameron must authenticate directly in Unipile; never request or store `li_at`, `li_a`, cookies, API keys, or other session secrets in the repository.
+- **Next:** provision/verify the Sales Navigator-capable v2 account, preserve the existing Classic connection during transition, add durable personal/hiring exclusions, then produce a deduplicated historical report limited to canonical DM-sequence messages, connection requests, and connection approvals before any import.
+- **Detailed handoff:** [`docs/sessions/2026-09-29-linkedin-sales-navigator-and-identity-eos-closeout.md`](docs/sessions/2026-09-29-linkedin-sales-navigator-and-identity-eos-closeout.md).
+
+Updated: 2026-09-29 (LinkedIn identity and Sales Navigator EOS)
+
+### SimpleTexting Follow-up SMS Sender Personalization — LIVE 2026-09-29
+
+- **Objective/scope:** ensure Jason/Marc GHL follow-up SMS messages identify the opportunity owner/assignee, retain Jason as the fallback, and run through the SimpleTexting text-only path.
+- **Root cause found:** the GHL webhook already supplied top-level `owner` and `user` data, but the SMS sender ignored both; `john_sms1`/`john_sms2` hardcoded Jason and `john_sms3`–`john_sms5` had no sender name. A real invocation, execution `1062395`, returned `outside_business_hours` because the sender gate was Eastern-time based.
+- **Live fix:** active `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) now has `Resolve Sender + SMS Templates` between `Config` and `Validate + Send SMS`. It prefers GHL opportunity `owner`, then named assignee, then workflow `user`; it renders Marc/Jason and falls back to Jason. The gate is now weekdays 10:00–17:00 `America/Los_Angeles`.
+- **Templates:** the resolver dynamically overrides `john_sms1` through `john_sms5` per invocation. Each message includes the resolved sender name; the current GHL template keys are retained. No media is included, so these sends remain `AUTO` SMS, not MMS.
+- **Published state:** active version `b69a183e-273a-43f9-b06d-b2bd1575543b`; `versionId == activeVersionId`; 7 nodes; active, not archived.
+- **Verification:** dry-run executions `1062414` (Marc owner vs Jason workflow user) and `1062422` (Jason owner vs Marc workflow user) both succeeded and rendered the owner-preferred name. No SimpleTexting provider call was made. Final read-only execution search found no `new`, `running`, or `waiting` executions. `git diff --check` passed with only existing LF→CRLF warnings.
+- **Delivery boundary:** execution `1062395` was rejected before provider dispatch by the former time-zone gate, so it is not proof of delivery. Previously blocked GHL runs are not automatically replayed. The next step is to observe a natural GHL invocation in Pacific business hours and verify the provider message ID plus delivery event; a controlled SMS requires explicit approval.
+- **Files:** [`AGENTS.md`](AGENTS.md), this status handoff, and [`GHL_To_SimpleTexting_SMS_Send_Runbook.md`](GHL%20Live%20Transparent%20CRM/GHL_To_SimpleTexting_SMS_Send_Runbook.md).
+
+### Continuation — Inbound Priority Router Integration 2026-09-26
+
+- Published `LT - Inbound Intent Priority Router` (`URpjcm2k5isHUyls`) at active version `3a3a6ab2-79a3-4fcc-822f-52677b6ae38c`; `versionId == activeVersionId`. Its execute-workflow trigger remains `triggerCount=0` because it is invoked by caller workflows rather than a schedule/webhook.
+- The router targets `Sales Outreach` (`dhdlf3O4tymxFtHk4aqq`) → `Priority` (`be636da7-3c15-48ab-b589-c75bcd6f9955`), atomically claims `(contact_id, source_event_id)`, uses a short contact lock, preserves owner/attribution fields, and fails closed for duplicate, closed, already-Priority, or ambiguous opportunity states.
+- Mocked pin-data tests passed for create, update, already-Priority, closed-protected, duplicate-terminal, and ambiguous-open branches. Pinning bypassed Postgres and GHL nodes, so no database table, CRM record, or opportunity was changed.
+- The router accepts normalized LinkedIn, Instagram, SMS, call, voicemail, and qualifying email events. All four inbound source families are now attached after their persistence/qualification boundaries.
+- Executive Report API caching is now active in the reports proxy with a 30-minute TTL for Summary, Campaign Channels, and V1 Facts. The V1 Facts endpoint was previously uncached; cold 7-day requests measured about 3.8 seconds after queue recovery, and immediate cached repeats measured about 0.5 seconds.
+- LinkedIn workflow `7o5EBdvwAuIaWW7k` is published at `dd98c27b-0fca-491c-bac1-3ff38b1b147b`. Main and partnership branches route after conversation-state persistence using resolved `ghl_contact_id`, Unipile `message_id`, normalized `timestamp`, `sender_name`, and the normalized event payload. The router fetches the live contact owner before a create and fails closed when unresolved.
+- Instagram workflow `pISlgYUsyJIrLuJd` is published at `e09111d7-2c63-4925-b335-741c57f5ab5d` and routes after durable reply claiming, contact resolution/message persistence, and mapping upsert. SMS workflow `i0pROHpFtN4LYR0Q` is published at `599995a9-72ce-467d-9892-c7ddf496c3fa` and routes after state upsert; STOP/unsubscribe events are excluded.
+- Read-only official GHL opportunity search returned the exact normal response fields parsed by the router: `id`, `pipelineId`, `pipelineStageId`, `assignedTo`, `status`, and `contactId`. Create/update responses remain unverified because testing them would mutate CRM data.
+- No live CRM mutation smoke test has been run. Caller routing nodes use non-blocking error handling so inbound persistence and webhook responses are not made dependent on Priority routing.
+- Call/voicemail integration is published in `PUCfTZBANSPcgS0c` version `f9388b9a-ab70-45b2-bc77-4f5c2efef829`; its non-blocking branch emits only inbound events with resolved contact ID, original timestamp, and stable call ID/composite. Voicemail uses `channel=voicemail`.
+- DAN/Emerald email integration is published in `hxiiYCpEfMuoSt5H` version `6e60f832-f175-41a8-a4b7-193f286bef18`; it re-fetches the actual message and rejects automated mail before routing. Partnership email integration is published in `mRDw57IHtnQe4wOo` version `42da3b2e-4b6a-4f2f-9341-880b36292eb4` with the same qualifier.
+- GHL request contracts are otherwise grounded: read-only opportunity search returned the parsed fields, official update inputs are `pipelineId`/`pipelineStageId`, and historical successful create execution `1050287` returned a usable opportunity ID. No Priority opportunity was created or updated.
+- Failure-path blocker: expired contact locks can be reacquired after five minutes, but recovery requires a source replay or reconciler. Define a durable retry handoff that does not silently swallow router failures or break existing inbound-message persistence before caller integration.
+
+### Continuation — Executive Report QA and V1 Meeting Window Repair 2026-09-26
+
+- `ghl_opp_owner_coverage` is red by design, not because the QA workflow failed. The latest successful probe evaluated 11,569 opportunities: 4,371 had a direct opportunity owner and 243 received a contact-owner fallback, for 4,614/11,569 = 39.9%. The QA threshold is 50%, so status remains `attention`.
+- The appointment owner coverage probe is separate and currently `ready`; the latest health row contains 38 appointment rows.
+- V1 meeting detail was incorrectly using the API's 30-day default whenever the frontend sent only `range=7d`. The query filters scheduled `start_at` dates, not booking/creation dates. The API now converts `range=7d|30d|90d` into the correct LA date window.
+- Published `LT - Executive Report V1 Facts API` (`oxYDg6XnRBKhl1Xd`) at `677e728d-8f33-4e78-a406-3a0dca56b19e`; `versionId == activeVersionId`.
+- Verification: `/api/report/executive-v1/facts?range=7d` returned `from=2026-09-18`, `to=2026-09-24`, and 3 appointment rows, all inside that window. No sender workflow or email was executed.
+- **Superseded by the draft above:** the canonical destination and shared router are now defined, but no live source is attached. Source-contract audit and activation approval remain required.
+
+### Continuation — Newsletter Fail-Closed Repair 2026-09-26
+
+- Live inspection confirmed `LT - Newsletter Dispatcher` (`vru7OtCkDnPJkWt2`) already selected the newest pending week dynamically and contained no hardcoded historical week keys.
+- Scheduled runs were failing because no GHL template matched active pending week `2026-09-21`. `Fetch Newsletter Template` now returns a closed no-op result when the active template is absent; the bucket query consequently selects no rows.
+- Published active version: `dacd2df9-4647-4910-8ea3-857cf889f9b5`; `versionId == activeVersionId`. No manual execution or email send was performed.
+- A matching current-week GHL template is still required before newsletter delivery can resume. DAN event wiring and fresh attribution coverage measurement remain open.
+
+Updated: 2026-09-26 (Executive Report V1 credential replacement and EOS health verification)
+
+### EOS Authoritative TODOs — 2026-09-26
+
+The following list supersedes scattered older “next session” lists. Historical sections below remain for traceability; use this order for new work.
+
+1. [ complete ] Verify the first post-repair scheduled execution of `LT - Campaign Contact Classifier` (`IduCoT5YOs0g2faT`) after published version `07e53f3b-c427-4aea-b286-e1071e2b7839`. Execution `1052265` succeeded at `2026-09-25T22:00:20Z`: 10 DeepSeek classifications (7 accept, 3 reject), 10 tag actions plus 3 cleanups, 11 writes with 0 failures, successful qualified-domain upsert, and 1 Warm MQL skipped as `not qualified`.
+2. Define and audit the separate Warm -> New qualification path. The campaign/Vapi classifier does not classify the entire Warm -> New backlog; do not broaden it without confirming the explicit AI qualification contract.
+3. Reconcile the report's 22 current MQLs against the 15 currently returned by the live GHL Warm -> Qualified (MQL) search. Separate snapshot lag, moved records, bounce records, and `not qualified` conflicts before routing.
+4. Reconcile `ghl_opp_owner_coverage` by exact opportunity/contact ID. Current accepted result is 4,614 assigned/fallback owners of 11,569 opportunities (39.9%), below the intentional 50% threshold. Do not lower the threshold or write owners without an approved definition.
+5. Obtain approval for the minimal Attribution Bridge alias repair identified in execution `1045692`; publish only after approval, verify a successful run, and confirm public `bridge: ready`.
+6. Verify the next GA4/GSC bridges and Report Daily Rollups after ingest executions `1048537` and `1048538`, then re-fetch V1 with a cache-busting query.
+7. Build a durable retry/reconciler for inbound Priority events whose claimed router executions fail or expire.
+8. Preserve all outbound-send, CRM-mutation smoke-test, campaign-activation, and sender-change approval gates.
+
+Classifier repair is runtime-accepted for scheduled execution `1052265`. The operator verification was read-only; the scheduled workflow performed its normal production tag/write actions. No manual CRM mutation smoke test or outbound send was performed for this EOS review.
+
+### Executive Report V1 — GA4/GSC credential replacement and health closeout — 2026-09-26
+
+- Created operator-owned n8n credentials `Google Analytics account - Ed OAuth` (`rhKm0YiMSBu0Lval`) and `GSC - Ed OAuth` (`awVQ5MnyCYFFCT0v`). GSC uses `https://www.googleapis.com/auth/webmasters.readonly`.
+- Active production workflow references now use the operator credentials: GA4 `LT - GA4 Daily Ingest` (`6pCSGzFmrMDFL5Yq`, version `34a63b5f-db3b-43d1-ba12-4961cc15e2c3`) and GSC `LT - GSC Daily Ingest` (`xHqmCC1vOeZ11gCd`, version `ed3c59c1-05fc-4c2a-ab88-eef523c13651`). The prior Cameron GSC credential record (`EKnNrSvlEd0A99AX`) was restored from the local Cameron environment entries and is no longer referenced by the active GSC workflow. The archived inactive GA4 test workflow remains unchanged because n8n refuses edits to archived workflows.
+- Post-connection verification: GA4 execution `1048537` succeeded with 925 rows; GSC execution `1048538` succeeded with 5 rows. The public Executive Summary returned HTTP 200 with populated JSON and health `ga4=success`, `gsc=success`; V1 returned HTTP 200 with 25,060 bytes.
+- `bridge: stale` is the separate general Attribution Bridge, not GA4/GSC. Its last accepted success is 2026-09-12; latest checked execution `1045692` failed. Keep this warning visible until a successful bridge execution is verified.
+- `ghl_opp_owner_coverage: attention` is fresh QA coverage status (11,569 measured rows, updated 2026-09-26), not an OAuth or freshness failure. Exact coverage percentages and the direct-owner/contact-fallback split still require node-level/metadata inspection.
+- Next order: diagnose Attribution Bridge execution `1045692`; inspect Report QA execution `1048389`/health metadata for exact owner coverage; verify post-ingest GA4/GSC bridges and Daily Rollups; then re-fetch V1 with a cache-busting query. No sender workflow, outbound message, CRM write, or deployment was performed for this closeout.
+
+### Executive Report V1 — EOS superseding state — 2026-09-25
+
+- V1 remains isolated at `https://reports.livetransparent.com/embed/executive-v1/`; the current report at `/embed/executive/` was preserved. V1 static deployment uses image `v3ud1lum1svamymuor21upog:social-mql-20260817`; the current-report build remains `2026-08-17-v27-social-mql`.
+- Meetings are now restricted to the canonical `Regulated Ads On Social/Search` calendar (`SrtXcFVyea7pFl3nTiIK`) and count distinct contact IDs. The V1 title is `Meetings - Regulated Ads On Social/Search`; repeated owner/calendar text was removed. The contact-name join fix is live in materializer version `47c5aaf8-047c-4cfe-996f-bdcbb97bb04d`; execution `988447` verified the six previously missing names.
+- V1 Facts API is published at `677e728d-8f33-4e78-a406-3a0dca56b19e`. Executive Summary is published at `4c5b5611-841b-48a4-9d78-c0700e599e6a`; Campaign Channel Summary is published at `24492be1-3b62-436a-8dbe-7f46c64c314e`; Leads Ingest is published at `7057fd10-a7db-4888-98ad-4adb1af1c2cc` with the repaired pagination boundary.
+- Attribution now checks LinkedIn request/DM/reply ledgers, Apollo tags, and Emerald tags before using Unknown. Apollo/Emerald labels are explicitly evidence-based, not inferred from campaign membership alone. The next successful Executive Summary run must verify the exact classification of the prior 83 unattributed opportunities; do not report that split as final until verified.
+- SMS reporting is repaired: the Campaign Channel Summary now reads `report_sms_sent` plus provider delivery events; the verified 30-day check returned 909 sent, 529 delivered, 14 replies, and 0 failed. Voicemail remains unavailable for the 30-day window because no Vapi attempts exist there; the 90-day facts response returned 57 unique voicemail dispositions.
+- **Next session:** perform one read-only successful Executive Summary execution after the latest attribution version, capture the exact opportunity-source breakdown, reconcile the residual Unknown rows by contact/opportunity ID, and update this section plus `executive_report_v1_plan.md`. Do not send messages or alter the current report as part of that audit.
+
+- **EOS verification boundary:** Executive Summary execution `989640` and V1 Facts execution `989659` were still `new`/queued at closeout. Last accepted successes were `988482` and `988484`, before the final attribution fallback was verified end-to-end. Exact post-fallback source counts remain unverified.
+- **Reporting health repair boundary:** Attribution Bridge (`Y0TU7Il71JswxOBp`) is active/published at `08d15fa4-e513-4ada-939e-51c3584440a7` with deterministic identity-key deduplication; Leads Ingest is active/published at `7057fd10-a7db-4888-98ad-4adb1af1c2cc` with contact-owner preservation; Report QA (`M5mXcDTFSko6EdHb`) is active/published at `004f260e-7153-4ab7-9e30-dc066ea2458`. Queued bridge executions `989774` and `989781` remain unaccepted; verify the next successful bridge and QA runs before calling `bridge` or owner coverage healthy.
+
+### EOS Closeout — LinkedIn Inbound OAuth Renewal and Retry — 2026-09-24
+
+- **Root causes:** the LinkedIn inbound fallback SQL referenced the nonexistent live column `linkedin_conversation_map.payload_json` instead of `raw_payload`; the stored GHL OAuth access token then returned HTTP 401 from `/oauth/locationToken`; and the six-hour OAuth renewal workflow was failing at `Check Refresh Token Source` with `Could not get parameter "jsCode"`.
+- **Live fixes:** published the map SQL correction; refreshed the OAuth token; replaced the OAuth renewal workflow's two successful-path Code nodes with native Set nodes and expressions; and changed inbound OAuth 401s to enter a durable retry queue instead of bypassing renewal with the location PIT.
+- **Post-renewal retry:** `LT - LinkedIn Inbound OAuth Retry` (`4Qww6KyTxnoRAs9m`) runs at `10 */6 * * *`, ten minutes after the six-hour renewal, claims up to 50 queued messages, exchanges the renewed agency token for a location token, replays the GHL inbound message, and finalizes each row with bounded retry state (maximum five attempts). Its active path uses native HTTP Request/Set/IF/Postgres nodes and has no Code node.
+- **Recovered messages:** Andrew Timmons → conversation `XuidkqTq5Mk6eZqSmDxo`, message `c9vhcydCCtoSV3hs6wQZ`; Anthony Riley → conversation `NVqlWtYpYDCrUZNVg0Vb`, message `J1UZapNyJEHEEwus4k0V`.
+- **Verification:** LinkedIn executions `986969` and `986971` succeeded with `status=processed`. OAuth renewal execution `986997` succeeded with GHL HTTP 200, `expires_in=86399`, active token row `42`, and expiry `2026-09-25T11:36:12.632Z`.
+- **Current live state:** inbound workflow `7o5EBdvwAuIaWW7k` is active/published at `ec870256-8946-4ff6-be46-e55eab4710b7` (reverted Sales Navigator exclusion; all LinkedIn DMs accepted); OAuth refresh workflow `Mf4wdFNurt5vyQu4` is active/published at `c04eadaa-507f-4066-90ea-341ea2b2be45`; retry workflow `4Qww6KyTxnoRAs9m` is active/published at `c0f666a1-fb11-4423-955f-b284fdc600d0`.
+- **Verification:** empty-queue retry execution `987023` completed successfully through claim, token-exchange/context, no-token branch, and finalizer with no outbound GHL message. No live send was performed for this change.
+- **Cron verification 2026-09-25:** the six-hour OAuth renewal cron ran at `2026-09-24T13:00:00Z` as execution `987233` and completed successfully. It refreshed and stored a new active token; the stored expiry was `2026-09-25T13:00:00Z`. The workflow remains active/published at version `c04eadaa-507f-4066-90ea-341ea2b2be45` with schedule `0 */6 * * *`.
+- **Next session:** verify the next scheduled renewal at the next six-hour boundary and inspect node-level data if it fails. Detailed handoff: [`docs/sessions/2026-09-24-linkedin-inbound-and-ghl-oauth-eos-closeout.md`](docs/sessions/2026-09-24-linkedin-inbound-and-ghl-oauth-eos-closeout.md).
+
+### SimpleTexting Automatic SMS/MMS Routing — LIVE 2026-09-24
+
+- The canonical SimpleTexting path now reads GHL provider `attachments[]` and automatically chooses text-only `AUTO` mode or `MMS_PREFERRED` for one HTTPS attachment.
+- The first implementation supports one attachment. More than one attachment, invalid/non-HTTPS media, and invalid send modes fail closed before the provider call.
+- The idempotency hash now includes the media URL, mode, and fallback text, so an SMS and an MMS with the same caption cannot collide. Successful GHL mirroring carries the media URL in `attachments`.
+- If SimpleTexting rejects the MMS provider request, the idempotent boundary sends one fallback `AUTO` SMS containing the original text plus the hosted media URL. The result records `deliveryMode = SMS_LINK_FALLBACK` and `fallbackUsed = true`.
+- **Live versions:** Send `Q3Ivnwe4z2Y3cD7A` = `47de44fe-d1bf-4f3d-8040-a70f759466a1`; Provider Router `f4VoO1lBWkYRcQai` = `444e2709-b6c1-4e61-9087-2e79387e8648`; Idempotent Sender `gwaEpWDpTIwsafi8` = `52eefd2a-70be-41c9-a60a-2fce0f037929`. All three are active and each `versionId` matches `activeVersionId`.
+- **Verification:** dry-run webhook checks passed for text-only (`AUTO`), one attachment (`MMS_PREFERRED`), and two attachments (`multiple_attachments_unsupported`). JavaScript syntax checks and `git diff --check` passed. No provider send, live MMS, fallback send, campaign activation, or sender schedule change was performed.
+- **Backups:** exact pre-change workflow definitions are in `local-archive/n8n/workflows/*-before-simpletexting-mms-20260924T112004Z.json`.
+- **Repository source:** [`scripts/utilities/fix_simpletexting_boundaries.py`](scripts/utilities/fix_simpletexting_boundaries.py). The operator payload contract is documented in [`GHL Live Transparent CRM/GHL_To_SimpleTexting_SMS_Send_Runbook.md`](GHL%20Live%20Transparent%20CRM/GHL_To_SimpleTexting_SMS_Send_Runbook.md).
+
+### SimpleTexting GHL Conversation Mirror Guard — LIVE 2026-09-24
+
+- **Follow-up finding:** the contact URL showed two identical GHL custom-provider conversation records (`nc6gtHV3I8SijxVNDxZe` and `7ytLOPgjzWcASmXZoCR3`) even though the idempotent sender recorded only one SimpleTexting provider message (`6ab4344e1cfe7305284262c8`). The duplicate was the successful-send mirror branch, not a second provider API send.
+- **Fix:** `LT - SimpleTexting SMS Send (Webhook, Staged)` (`Q3Ivnwe4z2Y3cD7A`) now includes the resolved source on successful output and requires `source != ghl_workflow` before `Mirror to GHL Conversations` runs. Normal GHL-originated sends therefore retain the GHL-created message and skip the second mirror; explicitly external sources can still mirror.
+- **Live version:** `17dae562-5f38-4438-a8bd-ee19adc6eb57`, active and equal to `activeVersionId`; read-back confirmed the three-condition success route and `sms-no-ghl-mirror` guard.
+- **Verification boundary:** no SMS was sent or manually executed. `git diff --check` passed. Next validation is one natural or explicitly approved controlled send, confirming one GHL custom-provider record and one provider message ID.
+
+### EOS Closeout — SimpleTexting Duplicate Send Loop — 2026-09-24
+
+- **Objective:** stop each SimpleTexting message from being delivered twice.
+- **Root cause:** the legacy SimpleTexting send workflow sent the SMS, then mirrored it into GHL Conversations. GHL emitted that mirror as a provider-outbound event, and the SimpleTexting Provider Outbound Router sent the same body again. The two paths used different idempotency identities (`Q3Ivnwe4z2Y3cD7A` versus `provider_outbound`), so the second path was not deduplicated.
+- **Live fix:** Provider Router `f4VoO1lBWkYRcQai` now calls the canonical idempotent sender with workflow identity `Q3Ivnwe4z2Y3cD7A`. Idempotent Sender `gwaEpWDpTIwsafi8` now hashes the message body consistently instead of preferring a template label, making the original send and its GHL mirror share one idempotency key.
+- **Live versions:** Provider Router `8aa3dc21-2178-4d45-85d1-7081f35164e9`; Idempotent Sender `9d587b17-fa9a-409c-90ac-0cc8a68c2fba`. Both are active and each `versionId` matches `activeVersionId`.
+- **Evidence:** paired live executions showed the original send followed by the provider-mirror send, with distinct provider message IDs; the later provider retry was then recognized as `duplicate_send`. No live SMS was sent as part of the repair. No pending executions remained at verification.
+- **Repository:** the reproducible source change is in [`scripts/utilities/fix_simpletexting_boundaries.py`](scripts/utilities/fix_simpletexting_boundaries.py). `git diff --check` passed. The worktree also contains the prior uncommitted SimpleTexting 2026-09-22 closeout changes; do not stage unrelated work.
+- **Next session:** observe one natural outbound event or obtain approval for one controlled SMS to an approved recipient. Confirm exactly one SimpleTexting provider message ID, one GHL mirror, and a duplicate/accepted router result. Do not activate campaign schedules or send additional tests without approval.
+- **Detailed closeout:** [`docs/sessions/2026-09-24-simpletexting-duplicate-send-closeout.md`](docs/sessions/2026-09-24-simpletexting-duplicate-send-closeout.md).
+
+### EOS Closeout — SimpleTexting Router Response Fix — 2026-09-22
+
+- **Objective:** correctly classify provider-accepted GHL outbound SMS responses without sending a live SMS during the fix.
+- **Root cause:** the live Provider Outbound Router accepted only `status=sent` or `status=duplicate`, while the canonical sender returned `action=message_sent` with a provider message ID. Accepted sends were therefore reported as `provider_send_failed`.
+- **Live fix:** Router `f4VoO1lBWkYRcQai`, node `Process Provider Outbound`, now accepts `action=message_sent`, preserves `status=sent`, and preserves duplicate handling. The workflow remains active with 7 nodes; live version `02483e18-3776-415a-9630-160adb66cb94` matches `activeVersionId`.
+- **Verification:** read-back confirmed the exact code is live; `git diff --check` passed; no live SMS was sent. Pre-change backup: `local-archive/n8n/workflows/f4VoO1lBWkYRcQai-before-simpletexting-response-fix-20260921T182447Z.json`.
+- **Next session:** obtain explicit approval for one controlled GHL SMS to an approved recipient, then verify router/canonical execution success, provider message ID, GHL conversation mirroring, and delivery callback state. Keep campaign sender workflows paused/staged.
+- **Detailed closeout:** [`docs/sessions/2026-09-22-simpletexting-router-response-fix-closeout.md`](docs/sessions/2026-09-22-simpletexting-router-response-fix-closeout.md).
 
 ### EOS Closeout — Hide Executive Report Outgoing Calls — 2026-09-19
 
@@ -16,11 +158,13 @@ Updated: 2026-09-19 (Executive Report source health, progressive loading, and 20
 - Source Health now exposes runtime-path rows for `n8n` and `postgres`, plus appointment snapshot freshness from `report_raw_ghl_appointments`; the dashboard maps all three instead of leaving misleading `—`/`Pending` placeholders.
 - The primary report now renders as soon as the Executive Summary response arrives; Campaign Channels and prior-period comparison load asynchronously afterward.
 - Executive Summary workflow `Bukc0mgOD2r7V6ED` is active/published at `00285be3-e4b5-4741-95a9-474b2c74ce00`.
-- Both report API caches now use a 20-minute successful-response TTL, with cache locking, stale-if-error fallback, and a 10-minute inactive cache window preserved. Live nginx verification confirmed `proxy_cache_valid 200 20m` in both locations.
+- This older 2026-09-19 cache state is superseded by the 2026-09-26 deployment: Summary, Campaign Channels, and V1 Facts now use a 30-minute successful-response TTL, cache locking, and stale-if-error fallback. Cache keys include selected range/from/to values.
 - Live 7-day verification returned HTTP 200, 29,909 bytes, cache `HIT`, and health `appointments=ready`, `n8n=ready`, `postgres=ready`.
 - Detailed closeout: [`docs/sessions/2026-09-19-executive-report-source-health-cache-closeout.md`](docs/sessions/2026-09-19-executive-report-source-health-cache-closeout.md).
 
-### GHL OAuth Renewal Hardening — ACTIVE, runtime follow-up required 2026-09-19
+### GHL OAuth Renewal Hardening — SUPERSEDED BY 2026-09-24 CLOSEOUT
+
+- The 2026-09-19 runtime follow-up below is historical. The runtime `jsCode` failure was reproduced and repaired on 2026-09-24; see the current closeout at the top of this file and [`docs/sessions/2026-09-24-linkedin-inbound-and-ghl-oauth-eos-closeout.md`](docs/sessions/2026-09-24-linkedin-inbound-and-ghl-oauth-eos-closeout.md).
 
 - `LT - GHL OAuth Token Refresh` (`Mf4wdFNurt5vyQu4`) is active at schedule `0 */6 * * *`; current active/published version is `3ee6b021-c45b-47cc-a428-d1b7f8fb9e15`, with `versionId == activeVersionId`.
 - The former Slack failure alert node was removed. Failure handling now resolves `edmundocadorniga@gmail.com` as a GHL contact, prepares a sanitized failure email, sends it through the authenticated GHL Conversations Email boundary, and then fails the n8n execution. The email includes status/failure details, an uninstall/reinstall recommendation, and the GHL app renewal link.

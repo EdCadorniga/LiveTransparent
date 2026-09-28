@@ -36,6 +36,19 @@ Guard conditions before the webhook:
 - The send request has a message body.
 - Optional fallback: a template key if the operator chooses a canned reply.
 
+## Jason Follow-up Owner Personalization
+
+The published `Jason Followup Emails and SMS` GHL workflow posts standard opportunity data to the active n8n SMS webhook, including `owner` and `user`. The live n8n sender (`Q3Ivnwe4z2Y3cD7A`) resolves the sender in this order:
+
+1. Opportunity `owner` name.
+2. Named assignee, if present.
+3. GHL workflow `user` name.
+4. `Jason` fallback.
+
+Only Marc/Jason are selected by the current follow-up templates. The opportunity owner wins if it differs from the GHL workflow user. The resolver dynamically renders legacy keys `john_sms1` through `john_sms5`; each now includes the selected name. Keep `templateKey` unchanged in GHL. These templates contain no media, so the send is text-only `AUTO` SMS.
+
+The sender enforces weekdays 10:00–17:00 `America/Los_Angeles`. A rejected `outside_business_hours` response is not a provider send and is not automatically replayed; verify the GHL workflow's retry/re-entry behavior before assuming a blocked invocation will run later.
+
 Webhook action:
 - Method: `POST`
 - URL: `https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms`
@@ -97,18 +110,41 @@ The workflow should surface these as blocking outcomes:
 - `idempotent_webhook_error`
 - `duplicate_send`
 
+## SMS/MMS Attachment Contract
+
+The GHL Conversations custom-provider outbound payload is the source of truth for media. Pass a hosted HTTPS URL in `attachments` when the operator sends a video or other media attachment:
+
+```json
+{
+  "contactId": "{{contact.id}}",
+  "phone": "{{contact.phone}}",
+  "message": "Here is the video.",
+  "attachments": ["https://your-host.example/video.mp4"],
+  "conversationProviderId": "6a5b91913953360948dd59f1"
+}
+```
+
+The live boundary applies these rules:
+
+- No attachment: SimpleTexting `AUTO` text message.
+- One HTTPS attachment: SimpleTexting `MMS_PREFERRED` with the attachment URL.
+- MMS provider rejection: one `AUTO` SMS fallback containing the message and hosted URL; the result is labeled `SMS_LINK_FALLBACK`.
+- More than one attachment, an invalid attachment URL, or an invalid mode: fail closed without a provider call.
+
+The media URL is part of the idempotency key, so changing the video does not collide with a prior text-only send. The GHL conversation mirror also carries the URL in `attachments`.
+
 ## Practical GHL Setup
 Use the `SimpleTexting SMS` custom field for the typed message body and map that field into the webhook payload as `message`. That is the cleanest way to let GHL users send their own reply text instead of picking from predefined snippets.
 Add a success-only field update step after the webhook to blank `SimpleTexting SMS`. Do not clear it on failed sends so the user can correct and resend without retyping.
-Do not add any auth header on this webhook path; the live n8n endpoint is intentionally accepting the GHL call without header auth to avoid webhook-step timeouts from header mismatch.
+The live endpoint validates a webhook key. Preserve the authentication header already configured on the GHL caller; the existing follow-up workflow's legacy header is supported. Do not remove or change that header independently of the n8n receiver configuration, and do not copy its secret value into documentation.
 
 ## Testing Order
-1. Dry run one test contact from GHL.
-2. Confirm n8n receives the webhook and resolves the contact.
-3. Confirm the response returns a successful dry-run result.
-4. Send one live SMS to an internal phone number.
-5. Confirm SimpleTexting receives the send.
-6. Confirm GHL gets the note and any requested tags.
+1. Dry-run a text-only payload and confirm `mode: AUTO`.
+2. Dry-run one attachment and confirm `mode: MMS_PREFERRED`, the media URL, and the fallback text are present.
+3. Dry-run two attachments and confirm `multiple_attachments_unsupported` with no provider call.
+4. After explicit approval, send one live MMS to an internal phone number.
+5. Confirm SimpleTexting receives either an MMS or the single URL-bearing SMS fallback.
+6. Confirm GHL gets the note, delivery mode, and any requested tags.
 7. Repeat the same payload and verify duplicate suppression.
 
 ## GHL Operator Notes

@@ -7,10 +7,13 @@ import json
 import os
 import re
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 
 BASE_URL = "https://automations.livetransparent.com/api/v1/workflows/"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+BACKUP_DIR = REPO_ROOT / "local-archive" / "n8n" / "workflows"
 SEND_WORKFLOW_ID = "Q3Ivnwe4z2Y3cD7A"
 PROVIDER_WORKFLOW_ID = "f4VoO1lBWkYRcQai"
 IDEMPOTENT_WORKFLOW_ID = "gwaEpWDpTIwsafi8"
@@ -83,6 +86,21 @@ const parseList = (value) => {
   try { const parsed = JSON.parse(value); if (Array.isArray(parsed)) return parsed.map(clean).filter(Boolean); } catch {}
   return value.split(',').map(clean).filter(Boolean);
 };
+const mediaCandidates = (value) => {
+  if (Array.isArray(value)) return value;
+  if (value === undefined || value === null || value === '') return [];
+  if (typeof value === 'string') {
+    try { const parsed = JSON.parse(value); if (Array.isArray(parsed)) return parsed; } catch {}
+    return [value];
+  }
+  return [value];
+};
+const mediaUrl = (value) => {
+  if (typeof value === 'string') return clean(value);
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
+  return clean(value.url || value.downloadUrl || value.mediaUrl || value.href || value.src);
+};
+const validMediaUrl = (value) => value.length <= 2048 && /^https?:\/\/[^\s/@]+(?:[/?#][^\s]*)?$/i.test(value);
 const normalizePhone = (value) => {
   const digits = clean(value).replace(/\D/g, '');
   if (digits.length === 10) return { digits, e164: `+1${digits}` };
@@ -114,6 +132,17 @@ const dryRun = parseBoolean(body.dryRun ?? body.dry_run, parseBoolean(cfg.defaul
 const firstName = clean(body.first_name || body.firstName || nestedContact.first_name || nestedContact.firstName);
 const triggerLinks = cleanObject(body.trigger_link || body.triggerLink);
 const tagsToAdd = parseList(body.addTags || body.add_tags);
+const mediaRaw = body.mediaItems ?? body.media_items ?? body.attachments ?? body.mediaUrls ?? body.mediaUrl;
+const mediaValues = mediaCandidates(mediaRaw);
+const normalizedMediaValues = mediaValues.map(mediaUrl);
+if (normalizedMediaValues.some((url) => !validMediaUrl(url))) return [{ json: { ok: false, error: 'invalid_attachment_url', contactId } }];
+if (normalizedMediaValues.length > 1) return [{ json: { ok: false, error: 'multiple_attachments_unsupported', contactId, attachmentCount: normalizedMediaValues.length } }];
+const mediaItems = normalizedMediaValues;
+const requestedMode = clean(body.mode || body.sendMode || body.send_mode).toUpperCase();
+const validModes = new Set(['AUTO', 'SINGLE_SMS_STRICTLY', 'MMS_PREFERRED']);
+if (requestedMode && !validModes.has(requestedMode)) return [{ json: { ok: false, error: 'invalid_send_mode', mode: requestedMode } }];
+const mode = mediaItems.length ? 'MMS_PREFERRED' : (requestedMode || clean(cfg.defaultSendMode || 'AUTO').toUpperCase());
+const requestedFallbackText = clean(body.fallbackText || body.fallback_text || body.mmsFallbackText);
 if (!contactId) return [{ json: { ok: false, error: 'missing_contact_id' } }];
 if (!phone.e164) return [{ json: { ok: false, error: 'invalid_phone', contactId } }];
 
@@ -122,11 +151,12 @@ try { registry = JSON.parse(clean(cfg.templateRegistryJson || '{}') || '{}'); }
 catch { return [{ json: { ok: false, error: 'invalid_template_registry' } }]; }
 const entry = registry[templateKey];
 let text = clean(body.text || body.message || body.message_body || body.smsBody || (entry && entry.message));
-if (!text) return [{ json: { ok: false, error: templateKey ? 'unknown_template_key' : 'missing_text', templateKey } }];
+if (!text && !mediaItems.length) return [{ json: { ok: false, error: templateKey ? 'unknown_template_key' : 'missing_text', templateKey } }];
 text = text
   .replace(/\{\{\s*(?:contact\.)?first_name\s*\}\}/gi, firstName)
   .replace(/\{\{\s*trigger_link\.nqLFBlEsdm7qccr8Yyog\s*\}\}/gi, clean(triggerLinks.nqLFBlEsdm7qccr8Yyog || body.bookingUrl));
 if (/\{\{[^}]+\}\}/.test(text)) return [{ json: { ok: false, error: 'unresolved_merge_field', templateKey } }];
+const fallbackText = requestedFallbackText || (mediaItems.length ? [text, ...mediaItems].filter(Boolean).join('\n') : '');
 
 if (!dryRun && parseBoolean(cfg.enforceBusinessHours, true)) {
   const timeZone = clean(cfg.businessTimezone || 'America/New_York');
@@ -152,14 +182,16 @@ if (!dryRun) {
   if (source !== 'ghl_workflow' && tags.includes(clean(cfg.tagReplied).toLowerCase())) return [{ json: { ok: false, error: 'contact_replied', contactId, contactPhone: phone.digits } }];
 }
 
-if (dryRun) return [{ json: { ok: true, dryRun: true, action: 'would_send_message', contactId, contactPhone: phone.digits, normalizedPhone: phone.e164, templateKey, message: text } }];
-const send = await http({ method: 'POST', url: 'https://automations.livetransparent.com/webhook/lt-sms-send', headers: { 'Content-Type': 'application/json', 'x-lt-simpletexting-key': clean(cfg.internalSendHeaderValue) }, body: { contact_id: contactId, phone: phone.e164, workflow_id: 'Q3Ivnwe4z2Y3cD7A', template_id: templateKey, message_body: text, simulate: false } });
+if (dryRun) return [{ json: { ok: true, dryRun: true, action: 'would_send_message', contactId, contactPhone: phone.digits, normalizedPhone: phone.e164, templateKey, message: text, mediaItems, mode, fallbackText } }];
+const send = await http({ method: 'POST', url: 'https://automations.livetransparent.com/webhook/lt-sms-send', headers: { 'Content-Type': 'application/json', 'x-lt-simpletexting-key': clean(cfg.internalSendHeaderValue) }, body: { contact_id: contactId, phone: phone.e164, workflow_id: 'Q3Ivnwe4z2Y3cD7A', template_id: templateKey, message_body: text, media_items: mediaItems, mode, fallback_text: fallbackText, simulate: false } });
 if (!send.ok) return [{ json: { ok: false, error: 'idempotent_webhook_error', details: send.data } }];
 const result = send.data || {};
 if (clean(result.status).toLowerCase() === 'duplicate') return [{ json: { ok: false, error: 'duplicate_send', sent_at: result.sent_at || null } }];
 const providerResponse = result.provider_response || result;
 const providerError = result.error || providerResponse?.error || '';
-const providerMessageId = clean(providerResponse?.id || providerResponse?.messageId || result.providerMessageId);
+const deliveryMode = clean(result.delivery_mode || providerResponse?.deliveryMode || (mediaItems.length ? 'MMS' : 'SMS'));
+const fallbackUsed = result.fallback_used === true || providerResponse?.fallbackUsed === true;
+const providerMessageId = clean(providerResponse?.id || providerResponse?.messageId || providerResponse?.fallbackProviderResponse?.id || providerResponse?.fallbackProviderResponse?.messageId || result.providerMessageId);
 if (providerError || clean(result.status).toLowerCase() === 'error' || !providerMessageId) return [{ json: { ok: false, error: 'simpletext_provider_failed', message: providerError || 'No provider message ID returned', providerResponse, providerMessageId: '' } }];
 
 let tagSync = { attempted: false, ok: true };
@@ -168,10 +200,10 @@ if (tagsToAdd.length) {
   const tagResult = await http({ method: 'POST', url: `${ghlBase}/contacts/${encodeURIComponent(contactId)}/tags`, headers: ghlHeaders, body: { tags: tagsToAdd } });
   tagSync = { attempted: true, ok: tagResult.ok, details: tagResult.ok ? undefined : tagResult.data };
 }
-const note = ['SMS sent via SimpleTexting', `To: ${phone.e164}`, `Provider Message ID: ${providerMessageId}`, templateKey ? `Template: ${templateKey}` : '', 'Message:', text].filter(Boolean).join('\n');
+const note = [`${deliveryMode || 'SMS'} sent via SimpleTexting${fallbackUsed ? ' (MMS rejected; link fallback used)' : ''}`, `To: ${phone.e164}`, `Provider Message ID: ${providerMessageId}`, templateKey ? `Template: ${templateKey}` : '', mediaItems.length ? `Media URL: ${mediaItems[0]}` : '', 'Message:', text].filter(Boolean).join('\n');
 const noteResult = await http({ method: 'POST', url: `${ghlBase}/contacts/${encodeURIComponent(contactId)}/notes`, headers: ghlHeaders, body: { body: note } });
 noteSync = { attempted: true, ok: noteResult.ok, details: noteResult.ok ? undefined : noteResult.data };
-return [{ json: { ok: true, action: 'message_sent', provider: 'SimpleTexting', contactId, contactPhone: phone.digits, normalizedPhone: phone.e164, templateKey, message: text, providerResponse, providerMessageId, ghlTagSync: tagSync, ghlNoteSync: noteSync } }];"""
+return [{ json: { ok: true, action: 'message_sent', provider: 'SimpleTexting', contactId, contactPhone: phone.digits, normalizedPhone: phone.e164, templateKey, message: text, source, mediaItems, mode, deliveryMode, fallbackUsed, providerResponse, providerMessageId, ghlTagSync: tagSync, ghlNoteSync: noteSync } }];"""
 
 
 PROVIDER_PROCESS_CODE = r"""const cfg = $('Config').item.json || {};
@@ -182,9 +214,32 @@ const message = clean(body.message || body.text || body.body);
 const providerId = clean(body.conversationProviderId || body.providerId || body.provider_id);
 const digits = clean(body.phone || body.to || body.contactPhone).replace(/\D/g, '');
 const normalizedPhone = digits.length === 10 ? `+1${digits}` : (digits.length === 11 && digits.startsWith('1') ? `+${digits}` : '');
-const result = { routed: false, accepted: false, duplicate: false, contact_id: contactId, normalized_phone: normalizedPhone, error: '', step: '' };
+const mediaCandidates = (value) => {
+  if (Array.isArray(value)) return value;
+  if (value === undefined || value === null || value === '') return [];
+  if (typeof value === 'string') {
+    try { const parsed = JSON.parse(value); if (Array.isArray(parsed)) return parsed; } catch {}
+    return [value];
+  }
+  return [value];
+};
+const mediaUrl = (value) => {
+  if (typeof value === 'string') return clean(value);
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
+  return clean(value.url || value.downloadUrl || value.mediaUrl || value.href || value.src);
+};
+const validMediaUrl = (value) => value.length <= 2048 && /^https?:\/\/[^\s/@]+(?:[/?#][^\s]*)?$/i.test(value);
+const mediaValues = mediaCandidates(body.attachments || body.mediaItems || body.media_items || body.mediaUrls || body.mediaUrl);
+const normalizedMediaValues = mediaValues.map(mediaUrl);
+const mediaItems = normalizedMediaValues.filter(Boolean);
+const invalidAttachment = normalizedMediaValues.some((url) => !validMediaUrl(url));
+const requestedMode = clean(body.mode || body.sendMode || body.send_mode).toUpperCase();
+const validModes = new Set(['AUTO', 'SINGLE_SMS_STRICTLY', 'MMS_PREFERRED']);
+const mode = mediaItems.length ? 'MMS_PREFERRED' : (requestedMode || 'AUTO');
+const fallbackText = clean(body.fallbackText || body.fallback_text || body.mmsFallbackText) || (mediaItems.length ? [message, ...mediaItems].filter(Boolean).join('\n') : '');
+const result = { routed: false, accepted: false, duplicate: false, contact_id: contactId, normalized_phone: normalizedPhone, media_items: mediaItems, mode, error: '', step: '' };
 if (!clean(cfg.providerId) || providerId !== clean(cfg.providerId)) { result.step = 'validate_provider'; result.error = 'invalid_provider'; return [{ json: { routing: result } }]; }
-if (!contactId || !message || !normalizedPhone) { result.step = 'validate_input'; result.error = 'missing_required_fields'; return [{ json: { routing: result } }]; }
+if (!contactId || (!message && !mediaItems.length) || !normalizedPhone || invalidAttachment || mediaItems.length > 1 || (requestedMode && !validModes.has(requestedMode))) { result.step = 'validate_input'; result.error = invalidAttachment ? 'invalid_attachment_url' : (mediaItems.length > 1 ? 'multiple_attachments_unsupported' : (requestedMode && !validModes.has(requestedMode) ? 'invalid_send_mode' : 'missing_required_fields')); return [{ json: { routing: result } }]; }
 try {
   const response = await this.helpers.httpRequest({
     method: 'GET',
@@ -205,7 +260,7 @@ try {
     method: 'POST',
     url: 'https://automations.livetransparent.com/webhook/lt-sms-send',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'x-lt-simpletexting-key': clean(cfg.internalSendHeaderValue) },
-    body: { contact_id: contactId, phone: normalizedPhone, workflow_id: 'provider_outbound', message_body: message, simulate: false },
+    body: { contact_id: contactId, phone: normalizedPhone, workflow_id: 'Q3Ivnwe4z2Y3cD7A', message_body: message, media_items: mediaItems, mode, fallback_text: fallbackText, simulate: false },
     json: true,
     timeout: 15000,
   });
@@ -215,7 +270,9 @@ try {
   result.accepted = result.routed;
   result.step = status === 'sent' ? 'sent' : (result.duplicate ? 'duplicate_accepted' : 'idempotent_blocked');
   result.error = result.routed ? '' : clean(sendResponse?.error || 'provider_send_failed');
-  result.provider_message_id = clean(sendResponse?.provider_response?.id || sendResponse?.provider_response?.messageId);
+  result.provider_message_id = clean(sendResponse?.provider_response?.id || sendResponse?.provider_response?.messageId || sendResponse?.provider_response?.fallbackProviderResponse?.id || sendResponse?.provider_response?.fallbackProviderResponse?.messageId);
+  result.delivery_mode = clean(sendResponse?.delivery_mode || sendResponse?.provider_response?.deliveryMode || (mediaItems.length ? 'MMS' : 'SMS'));
+  result.fallback_used = sendResponse?.fallback_used === true || sendResponse?.provider_response?.fallbackUsed === true;
   result.idempotent_response = sendResponse;
 } catch (error) {
   result.step = 'idempotent_failed';
@@ -236,26 +293,108 @@ const phone = digits.length === 10 ? `+1${digits}` : (digits.length === 11 && di
 const workflow_id = String(body.workflow_id || '').trim();
 const template_id = String(body.template_id || '').trim();
 const message_body = String(body.message_body || '').trim();
+const mediaCandidates = (value) => {
+  if (Array.isArray(value)) return value;
+  if (value === undefined || value === null || value === '') return [];
+  if (typeof value === 'string') {
+    try { const parsed = JSON.parse(value); if (Array.isArray(parsed)) return parsed; } catch {}
+    return [value];
+  }
+  return [value];
+};
+const mediaUrl = (value) => {
+  if (typeof value === 'string') return String(value).trim();
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
+  return String(value.url || value.downloadUrl || value.mediaUrl || value.href || value.src || '').trim();
+};
+const validMediaUrl = (value) => value.length <= 2048 && /^https?:\/\/[^\s/@]+(?:[/?#][^\s]*)?$/i.test(value);
+const mediaValues = mediaCandidates(body.media_items || body.mediaItems || body.attachments || body.mediaUrl);
+const normalizedMediaValues = mediaValues.map(mediaUrl);
+const mediaItems = normalizedMediaValues.filter(Boolean);
+const invalidAttachment = normalizedMediaValues.some((url) => !validMediaUrl(url));
+const requestedMode = String(body.mode || body.sendMode || body.send_mode || '').trim().toUpperCase();
+const validModes = new Set(['AUTO', 'SINGLE_SMS_STRICTLY', 'MMS_PREFERRED']);
+const mode = mediaItems.length ? 'MMS_PREFERRED' : (requestedMode || 'AUTO');
+const fallback_text = String(body.fallback_text || body.fallbackText || body.mmsFallbackText || '').trim() || (mediaItems.length ? [message_body, ...mediaItems].filter(Boolean).join('\n') : '');
 const parseBoolean = (value, fallback) => {
   if (value === undefined || value === null || value === '') return fallback;
   if (typeof value === 'boolean') return value;
   return ['true', '1', 'yes', 'on'].includes(String(value).trim().toLowerCase());
 };
 const simulate = parseBoolean(body.simulate, true);
-const validationError = !contact_id ? 'missing_contact_id' : (!phone ? 'invalid_phone' : (!workflow_id ? 'missing_workflow_id' : (!message_body ? 'missing_message_body' : '')));
+const validationError = !contact_id ? 'missing_contact_id' : (!phone ? 'invalid_phone' : (!workflow_id ? 'missing_workflow_id' : ((!message_body && !mediaItems.length) ? 'missing_message_body' : (invalidAttachment ? 'invalid_attachment_url' : (mediaItems.length > 1 ? 'multiple_attachments_unsupported' : (requestedMode && !validModes.has(requestedMode) ? 'invalid_send_mode' : ''))))));
 const yyyymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-const dedupeKey = template_id ? `template:${template_id}` : `body:${message_body}`;
+const dedupeKey = `body:${message_body}|media:${mediaItems.join('|')}|mode:${mode}|fallback:${fallback_text}`;
 function hashHex(input) {
   let h = 2166136261;
   for (let i = 0; i < input.length; i++) { h ^= input.charCodeAt(i); h = Math.imul(h, 16777619); }
   return (h >>> 0).toString(16).padStart(8, '0');
 }
 const message_hash = hashHex(`${contact_id}|${workflow_id}|${dedupeKey}|${yyyymmdd}`);
-return [{ json: { contact_id, phone, workflow_id, template_id, message_body, simulate, message_hash, validationError } }];"""
+return [{ json: { contact_id, phone, workflow_id, template_id, message_body, media_items: mediaItems, mode, fallback_text, simulate, message_hash, validationError } }];"""
+
+
+IDEMPOTENT_FINALIZE_CODE = r"""const row = $json || {};
+const ctx = $('Prepare Request').first().json;
+if (ctx.validationError) return [{ json: { status: 'error', error: ctx.validationError, provider_response: null } }];
+if (row.authorized === false) return [{ json: { status: 'error', error: 'unauthorized', provider_response: null } }];
+if (!row.inserted) return [{ json: { status: 'duplicate', sent_at: row.sent_at || null, id: row.id || null, provider_response: null, error: null } }];
+
+const token = String('__SIMPLETEXT_TOKEN__').trim();
+if (!token) return [{ json: { status: 'error', error: 'missing_simpletexting_api_key', id: row.id || null, sent_at: row.sent_at || null, provider_response: null } }];
+
+const digits = String(ctx.phone || '').replace(/\D/g, '');
+const contactPhone = digits.length === 10 ? `+1${digits}` : `+${digits}`;
+const mediaItems = Array.isArray(ctx.media_items) ? ctx.media_items : [];
+const mode = mediaItems.length ? 'MMS_PREFERRED' : String(ctx.mode || 'AUTO').toUpperCase();
+const fallbackText = String(ctx.fallback_text || [ctx.message_body, ...mediaItems].filter(Boolean).join('\n')).trim();
+const providerRequest = { contactPhone, mode, text: ctx.message_body, ...(mediaItems.length ? { mediaItems, fallbackText } : {}) };
+const sendProvider = async (requestBody) => {
+  try {
+    const response = await this.helpers.httpRequest({
+      method: 'POST',
+      url: 'https://api-app2.simpletexting.com/v2/api/messages',
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: requestBody,
+      json: true,
+    });
+    const providerId = String(response?.id || response?.messageId || '').trim();
+    if (!providerId) return { ok: false, error: 'simpletexting_missing_message_id', response: response || null };
+    return { ok: true, response };
+  } catch (err) {
+    const response = err?.response;
+    const responseBody = response?.body ?? response?.data ?? response;
+    return { ok: false, error: err?.message || String(err), response: { error: err?.message || String(err), name: err?.name || null, code: err?.code || null, statusCode: err?.statusCode || err?.httpCode || err?.status || response?.status || null, responseBody: typeof responseBody === 'string' ? responseBody.slice(0, 2000) : responseBody, cause: err?.cause?.message || (typeof err?.cause === 'string' ? err.cause : null) } };
+  }
+};
+
+let deliveryMode = mediaItems.length ? 'MMS' : 'SMS';
+let fallbackUsed = false;
+let providerResponse;
+if (ctx.simulate) {
+  providerResponse = { id: 'stubsim', status: 'queued', simulate: true, deliveryMode, fallbackUsed, mediaItems };
+} else {
+  const primary = await sendProvider(providerRequest);
+  if (primary.ok) {
+    providerResponse = { ...primary.response, deliveryMode, fallbackUsed, mediaItems };
+  } else if (mediaItems.length) {
+    const primaryStatus = Number(primary.response?.statusCode || 0);
+    const mmsRejected = [400, 409, 413, 415, 422].includes(primaryStatus);
+    if (!mmsRejected) return [{ json: { status: 'error', id: row.id, sent_at: row.sent_at || null, provider_response: primary.response, error: 'simpletexting_provider_error' } }];
+    const fallback = await sendProvider({ contactPhone, mode: 'AUTO', text: fallbackText });
+    if (!fallback.ok) return [{ json: { status: 'error', id: row.id, sent_at: row.sent_at || null, provider_response: { primary: primary.response, fallback: fallback.response }, error: 'simpletexting_provider_error' } }];
+    deliveryMode = 'SMS_LINK_FALLBACK';
+    fallbackUsed = true;
+    providerResponse = { ...fallback.response, deliveryMode, fallbackUsed, mediaItems, primaryError: primary.response, fallbackProviderResponse: fallback.response };
+  } else {
+    return [{ json: { status: 'error', id: row.id, sent_at: row.sent_at || null, provider_response: primary.response, error: 'simpletexting_provider_error' } }];
+  }
+}
+return [{ json: { status: 'sent', id: row.id, sent_at: row.sent_at || null, provider_response: providerResponse, delivery_mode: deliveryMode, fallback_used: fallbackUsed, error: null } }];"""
 
 
 def load_env() -> dict[str, str]:
-    env_path = Path(__file__).resolve().parents[1] / ".env"
+    env_path = REPO_ROOT / ".env"
     values: dict[str, str] = {}
     for raw_line in env_path.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
@@ -307,6 +446,15 @@ def payload(workflow: dict) -> dict:
     return {"name": workflow["name"], "nodes": workflow["nodes"], "connections": workflow.get("connections") or {}, "settings": settings}
 
 
+def backup_workflows(workflows: dict[str, dict]) -> str:
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    for workflow_id, workflow in workflows.items():
+        backup_path = BACKUP_DIR / f"{workflow_id}-before-simpletexting-mms-{timestamp}.json"
+        backup_path.write_text(json.dumps(workflow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return timestamp
+
+
 def patch_send_boundary(workflow: dict) -> None:
     nodes = nodes_by_name(workflow)
     required = {"Config", "Validate + Send SMS", "Route Successful SMS Only", "Mirror to GHL Conversations", "Respond with SMS Result"}
@@ -324,7 +472,14 @@ def patch_send_boundary(workflow: dict) -> None:
     set_assignment(config, "defaultDryRun", True)
     set_assignment(config, "templateRegistryJson", json.dumps({key: {"message": value} for key, value in TEMPLATES.items()}, ensure_ascii=True), "string")
     nodes["Validate + Send SMS"]["parameters"]["jsCode"] = SEND_CODE
-    nodes["Mirror to GHL Conversations"]["parameters"]["jsonBody"] = '={{ { type: "Custom", contactId: $json.contactId, message: $json.message, conversationProviderId: $("Config").item.json.conversationProviderId, altId: "simpletexting:" + ($json.normalizedPhone || ("+1" + $json.contactPhone)) } }}'
+    route_conditions = nodes["Route Successful SMS Only"]["parameters"]["rules"]["values"][0]["conditions"]["conditions"]
+    if not any(condition.get("operator", {}).get("id") == "sms-no-ghl-mirror" for condition in route_conditions):
+        route_conditions.append({
+            "leftValue": "={{ $json.source }}",
+            "rightValue": "ghl_workflow",
+            "operator": {"type": "string", "operation": "notEquals", "id": "sms-no-ghl-mirror"},
+        })
+    nodes["Mirror to GHL Conversations"]["parameters"]["jsonBody"] = '={{ { type: "Custom", contactId: $json.contactId, message: $json.message, attachments: $json.mediaItems || [], conversationProviderId: $("Config").item.json.conversationProviderId, altId: "simpletexting:" + ($json.normalizedPhone || ("+1" + $json.contactPhone)) } }}'
     workflow["nodes"] = [node for node in workflow["nodes"] if node["name"] not in {"Loop Over Items", "Wait 1 Minute"}]
     workflow["connections"] = {
         "Webhook Intake": {"main": [[{"node": "Config", "type": "main", "index": 0}]]},
@@ -365,18 +520,17 @@ def patch_idempotent_boundary(workflow: dict) -> None:
     prepare_code = str(nodes["Prepare Request"]["parameters"].get("jsCode") or "")
     match = re.search(r"const expectedWebhookKey = '([^']+)';", prepare_code)
     if not match:
+        match = re.search(r"const expectedWebhookKey = \"([^\"]+)\";", prepare_code)
+    if not match:
         raise RuntimeError("idempotent boundary webhook key was not found")
     nodes["Prepare Request"]["parameters"]["jsCode"] = IDEMPOTENT_PREPARE_CODE.replace("__EXPECTED_WEBHOOK_KEY__", json.dumps(match.group(1)))
     claim_options = nodes["Claim Send"]["parameters"].setdefault("options", {})
     claim_options["queryReplacement"] = "={{ [ $json.contact_id || null, $json.phone || null, $json.workflow_id || null, $json.template_id || null, $json.message_hash || null, $json.authRejected !== true && !$json.validationError ] }}"
     finalize_code = str(nodes["Finalize Send"]["parameters"].get("jsCode") or "")
-    validation_guard = "if (ctx.validationError) return [{ json: { status: 'error', error: ctx.validationError, provider_response: null } }];"
-    if validation_guard not in finalize_code:
-        marker = "if (row.authorized === false) return [{ json: { status: 'error', error: 'unauthorized', provider_response: null } }];"
-        if marker not in finalize_code:
-            raise RuntimeError("idempotent finalize auth guard changed")
-        finalize_code = finalize_code.replace(marker, validation_guard + "\n\n" + marker, 1)
-    nodes["Finalize Send"]["parameters"]["jsCode"] = finalize_code
+    token_match = re.search(r"const token = String\('([^']*)'\)", finalize_code)
+    if not token_match:
+        raise RuntimeError("idempotent SimpleTexting token was not found")
+    nodes["Finalize Send"]["parameters"]["jsCode"] = IDEMPOTENT_FINALIZE_CODE.replace("__SIMPLETEXT_TOKEN__", token_match.group(1))
 
 
 def patch_safe_schedule(workflow: dict, assignment_name: str) -> None:
@@ -442,18 +596,16 @@ def apply() -> None:
     send = request(SEND_WORKFLOW_ID)
     provider = request(PROVIDER_WORKFLOW_ID)
     idempotent = request(IDEMPOTENT_WORKFLOW_ID)
-    schedules = {workflow_id: request(workflow_id) for workflow_id in SAFE_SCHEDULES}
-    callbacks = {workflow_id: request(workflow_id) for workflow_id in CALLBACK_WORKFLOWS}
+    backup_timestamp = backup_workflows({
+        SEND_WORKFLOW_ID: send,
+        PROVIDER_WORKFLOW_ID: provider,
+        IDEMPOTENT_WORKFLOW_ID: idempotent,
+    })
+    print(json.dumps({"backupTimestamp": backup_timestamp, "backupDirectory": str(BACKUP_DIR)}))
     patch_send_boundary(send)
     patch_provider_boundary(provider)
     patch_idempotent_boundary(idempotent)
-    for workflow_id, assignment_name in SAFE_SCHEDULES.items():
-        patch_safe_schedule(schedules[workflow_id], assignment_name)
-    for workflow_id, node_name in CALLBACK_WORKFLOWS.items():
-        patch_callback_auth(callbacks[workflow_id], node_name)
     results = [request(SEND_WORKFLOW_ID, "PUT", payload(send)), request(PROVIDER_WORKFLOW_ID, "PUT", payload(provider)), request(IDEMPOTENT_WORKFLOW_ID, "PUT", payload(idempotent))]
-    results.extend(request(workflow_id, "PUT", payload(workflow)) for workflow_id, workflow in schedules.items())
-    results.extend(request(workflow_id, "PUT", payload(workflow)) for workflow_id, workflow in callbacks.items())
     for result in results:
         print(json.dumps({"id": result.get("id"), "name": result.get("name"), "active": result.get("active"), "versionId": result.get("versionId")}))
 
