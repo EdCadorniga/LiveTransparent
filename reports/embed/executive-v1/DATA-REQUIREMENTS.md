@@ -45,7 +45,7 @@ The supplied mockup defines the presentation flow. Its numbers are illustrative;
 | LinkedIn campaign table | Invites, accepted, messages delivered, opened if available, replied | `linkedin_activity_events` and campaign attribution |
 | SMS table | Sent, delivered, replies, failed | SimpleTexting event ledger / campaign summary |
 | Voicemail table | Latest custom disposition per unique contact; voicemail drops/left and callback-requested counts | `voice_call_attempt.disposition`, materialized into `lt_exec_v1_call_facts` |
-| SDR performance strip/table | Calls attempted, connected, no answer, busy/failed, wrong number; per SDR effort and outputs | GHL call records, Vapi call ledger, appointments, SDR performance payload |
+| SDR performance strip/table | Calls attempted, connected, no answer, busy/failed, wrong number; per SDR effort and outputs | GHL native call-report snapshot when captured; otherwise `report_raw_ghl_calls` / V1 call facts |
 | Social media strip/table | Posts, impressions, reach, engagement, followers by channel | GHL Social Planner post ledger and account statistics |
 | Action queue | MQL response SLA, stale contracts/proposals, overdue follow-ups | GHL opportunity/task/activity timestamps plus agreed SLA rules |
 
@@ -56,7 +56,7 @@ The supplied mockup defines the presentation flow. Its numbers are illustrative;
 3. Selecting the voicemail custom disposition is the business rule for “voicemail left”; drops sent and delivered therefore use the same latest-disposition unique-contact count. Callback-requested counts use explicit callback dispositions.
 4. Response speed is now collected from durable same-channel event timestamps. A response-time target is still not configured, so the report shows unmatched inbound events rather than inventing an overdue threshold.
 5. Email engagement must show coverage and use unique-recipient rates where possible; missing provider events must not be presented as zero engagement.
-6. SDR call-input metrics need one agreed call source and deduplication rule before they are combined with booked/SQL/MQL outputs.
+6. GHL's native per-SDR call widgets use `dateAdded`, `direction=outbound`, and `userId`, with the checked native report in `Asia/Manila`. The captured 2026-09-20..2026-09-26 snapshot is exact for that period only. HighLevel publicly documents `GET /conversations/messages/export` with `channel=Call`, date bounds, and cursor pagination; the current PIT can read it, but its exact-week outbound rows/statuses did not reconcile to native widget totals. The authenticated Call Reporting UI's private calls endpoint did match the exact-week widget counts, but that endpoint returned HTTP 401 with the GHL PIT and is undocumented. Do not build an automated dependency on the private UI endpoint; request supported access or use a supported export. Keep documented-export values incomplete until reconciled.
 
 ## Acceptance checks before V1 review
 

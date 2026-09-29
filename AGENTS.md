@@ -1,5 +1,15 @@
 # LiveTransparent Agent Notes
 
+## ⚠️ CURRENT 2026-09-29 Executive Report V1 GHL Call Source Handoff
+
+- The V1 SDR call section now displays an exact GHL native-report snapshot for `2026-09-20`–`2026-09-26` only: Marc 1,006 (802 answered, 105 busy, 59 no-answer, 40 failed); Jason 350 (285 answered, 19 busy, 35 no-answer, 11 failed). The native widgets use `dateAdded`, `direction=outbound`, `userId`, and report timezone `Asia/Manila`; the API snapshot is clearly labeled and must not be treated as a refreshed or historical series.
+- The V1-only frontend change is deployed at `/embed/executive-v1/`; the legacy `/embed/executive/` report was not changed. V1 Facts API `oxYDg6XnRBKhl1Xd` serves the dated snapshot for that exact window (version `9a17c3c2-45d2-477e-9c01-3bea0a537ae3`).
+- **2026-09-29 source investigation update:** the official `/conversations/messages/export` API is documented and PIT-readable for historical date windows, but its exact-week rows/statuses do not match native widget totals. The authenticated GHL Call Reporting UI's private `POST backend.leadconnectorhq.com/reporting/calls/get-all-phone-calls-new` did match all outbound per-user/status counts for that week (1,377 total rows including 21 inbound; 1,356 outbound). Calling the same private route with the PIT returned HTTP 401. Do not automate this private route; seek documented GHL API access or supported exports. Keep the V1 exact-week snapshot and do not publish unverified export metrics.
+- Published active workflow `LT - GHL Outbound Call Event Ledger (Webhook)` (`SA5SF1cZQcVf3IyB`, version `15b2944f-5b71-40fe-b97a-d87718cd6cdb`, 5 nodes) verifies the official GHL `OutboundMessage` signature and idempotently stores outbound CALL events at `/webhook/lt-ghl-outbound-message-call`. Negative-signature tests returned HTTP 401 `invalid_signature`; executions `1062819` and `1062820` did not run the database write node. This proves rejection-path behavior only, not valid-signature acceptance or event delivery.
+- **Not wired yet:** GHL Marketplace app `Transparent eCom Social Inbox` must subscribe to `OutboundMessage` and point to `https://automations.livetransparent.com/webhook/lt-ghl-outbound-message-call`. Subscription settings are in Marketplace app configuration, not available through the API; Marketplace developer login was unavailable in the session. App already has `conversations/message.readonly` scope. No live call was placed and no subscription or CRM/report data was mutated for testing.
+- GHL PIT can read supported Conversations APIs but receives HTTP 401 from the private report-widget route. The paginated Conversations backfill is still incomplete and must be reconciled before use for arbitrary ranges. Audit source precedence so polling cannot downgrade webhook event facts.
+- **Next session:** follow the latest export investigation addendum in `docs/sessions/2026-09-29-executive-report-v1-ghl-call-source-closeout.md`: ask GHL for supported API access to Call Reporting or obtain report exports spanning selected/prior windows, then validate parity and status semantics. Marketplace subscription is optional and forward-only; do not enable it as a historical-data solution. No outbound call test or production data correction without explicit approval.
+
 ## ✅ CURRENT 2026-09-29 LinkedIn Identity and Sales Navigator Handoff
 
 - Alexis Mora's authoritative GHL contact is `RGjMxzMqOR2L14ao8qmg` (`firstName=Alexis`, A.MORA Marketing, LinkedIn `alexistaylormora`). No authoritative source for the historical `Angel` greeting was found.
@@ -1888,7 +1898,4 @@ These CLI tools are installed and available via PATH. Prefer them over slower al
 
 After any significant work session (workflow fixes, new automations, config changes), regenerate repomix-output.md so next-session context is up to date:
 
-1. . $PROFILE
-2. packlive
-
-This stages key files into C:\TempRepomixStaging, runs npx repomix --style markdown --compress --remove-comments --remove-empty-lines, and copies the result back to the project root.
+The current PowerShell profile's `packlive` function hardcodes `C:\Users\edmon\OneDrive\Documents\Projects\LiveTransparent`. **Check that this matches the active workspace before invoking it.** For another checkout (including `C:\1_Ed's Active Work\Projects\LiveTransparent`), run Repomix from that repository root with an explicit `--include` set and `--output repomix-output.md`; verify the output contains the latest handoff before closing the session. Do not assume sourcing the profile makes `packlive` target the current directory.

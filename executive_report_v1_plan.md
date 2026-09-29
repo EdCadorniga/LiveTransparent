@@ -1,6 +1,6 @@
 # Executive Report V1 Plan and Session Handoff
 
-Last updated: 2026-09-26 (EOS closeout; classifier repair, V1 meeting range repair, and inbound Priority routing confirmation)
+Last updated: 2026-09-29 (EOS closeout; GHL outbound call snapshot and signed-event receiver)
 
 This document preserves the working context for the isolated Executive Report V1. Read it before auditing, modifying, or deploying V1.
 
@@ -534,3 +534,82 @@ The email repair boundary is to fetch the actual latest inbound email message, r
 - Historical successful execution `1050287` of `GHL - MQL Tag -> Ensure Warm Qualified Opportunity` confirms that `POST /opportunities/` with location/contact/name/pipeline/stage/status returns a parseable opportunity ID. This is historical evidence, not a Priority mutation test.
 - An HTTP failure before finalization leaves the event `claimed` and the contact lock recoverable after five minutes. Recovery still depends on a source replay or explicit reconciler; a scheduled claimed-event reconciler remains a follow-up requirement.
 - Caller routing is deliberately a parallel, non-blocking branch after inbound persistence. It does not make the LinkedIn, Instagram, or SMS webhook fail before its existing conversation/map/state handling completes.
+
+## GHL call totals snapshot — 2026-09-28
+
+- The GHL native report `69bbeb2d088aabd9058eaf44` was read through the authenticated browser. Its selected report window was `2026-09-20` through `2026-09-26`; the outgoing-call widgets filter `dateAdded`, `direction=outbound`, and the SDR's native `userId`, with report timezone `Asia/Manila`.
+- The live native widget responses returned Marc (`sqGx5rp3oAUG610NXyjU`) = 1,006 calls (802 answered, 105 busy, 59 no-answer, 40 failed), and Jason Bornillo (`yU85G6kfhtW4vUtx3QE6`) = 350 calls (285 answered, 19 busy, 35 no-answer, 11 failed). The screenshot's `1.01K` is the rounded display; a prior text reference of 982 was not the current native widget response.
+- The V1 Facts API now serves these values only for that exact date window as a clearly labeled, dated GHL native-report snapshot. For other windows it falls back to GHL outbound call facts from the supported Conversations API and labels that basis as incomplete until reconciliation is complete. This snapshot is not an automatically refreshed feed.
+- The published `LT - GHL Daily Calls Ingest` (`SqNQ0BYaTdcqyt1l`, version `98a4f785-19bf-4f17-a95e-1222141923bf`) now retries GHL 429/5xx responses and durably scans paginated conversations across a 95-day lookback, including conversations whose latest activity is no longer a call. Backfill is still in progress; the native-report snapshot remains the accepted source for the captured week.
+- The official GHL PIT can read supported location/conversation endpoints but receives HTTP 401 (`The token is not authorized for this scope`) from the private native-report widget endpoint. HighLevel does document `GET /conversations/messages/export`; the current PIT can query this endpoint by `channel=Call`, date bounds, and cursor. Its exact-week counts/statuses did not reconcile to the native widgets, so do not claim parity until a supported source is reconciled by date, direction, user, status, and call ID. The Voice AI call-log API remains Voice-AI-specific and is not a substitute for human SDR widget facts.
+
+## 2026-09-29 EOS — call source exploration and next-session plan
+
+The full attempt log, implementation details, acceptance boundary, and ordered next-session procedure are in [`docs/sessions/2026-09-29-executive-report-v1-ghl-call-source-closeout.md`](docs/sessions/2026-09-29-executive-report-v1-ghl-call-source-closeout.md). Key current facts:
+
+- Active V1 Facts API `oxYDg6XnRBKhl1Xd` is now version `9a17c3c2-45d2-477e-9c01-3bea0a537ae3`, with the exact native GHL snapshot hard-limited to `2026-09-20` through `2026-09-26`. The deployed V1 page displays the source/basis note; the original report path remains untouched.
+- Active signed-event receiver `SA5SF1cZQcVf3IyB` is published at `15b2944f-5b71-40fe-b97a-d87718cd6cdb` (5 nodes). Executions `1062819` and `1062820` tested absent signatures and returned HTTP 401 `invalid_signature`; both followed the response branch and skipped `Persist GHL Call Event`. This is a successful negative test only.
+- The receiver is not yet subscribed in Marketplace, has not processed an authentic signed event, and cannot backfill history. It is not the historical-data solution. The later supported-export investigation is now the priority; do not enable the subscription solely as a substitute for historical access.
+- The documented location-level message export can query selected and prior date windows, but it has not reconciled to the native widget counts/statuses. Keep any poller/API-derived facts labeled incomplete until an exact-ID status reconciliation establishes parity.
+
+## 2026-09-29 — supported call-message export investigation
+
+HighLevel's public API documentation includes `GET /conversations/messages/export`. Query parameters include `locationId`, `channel=Call`, `startDate`, `endDate`, `limit`, `cursor`, `sortBy`, and `sortOrder`. Response messages expose `id`, `messageType`, `dateAdded`, `direction`, `userId`, `status`, and call metadata. The endpoint requires `conversations/message.readonly`; the current GHL PIT returned HTTP 200 for read-only requests.
+
+### Read-only results
+
+- For completed LA report days `2026-09-22` through `2026-09-28`, the export returned `total=1,990` across 20 pages. Outbound counts were Marc 1,305 (1,086 `completed`, 109 `busy`, 56 `no-answer`, 53 `failed`, 1 `unknown`) and Jason 663 (564 `completed`, 23 `busy`, 52 `no-answer`, 24 `failed`).
+- For prior LA week `2026-09-15` through `2026-09-21`, it returned `total=1,227` across 13 pages. Outbound counts were Marc 764 (653 `completed`, 46 `busy`, 47 `no-answer`, 18 `failed`) and Jason 450 (366 `completed`, 24 `busy`, 37 `no-answer`, 23 `failed`).
+- For exact native-widget dates `2026-09-20` through `2026-09-26` in `Asia/Manila` (UTC bounds `2026-09-19T16:00:00Z` through `2026-09-26T16:00:00Z`), the export returned `total=1,769` across 18 pages and 1,747 outbound rows with no duplicate/missing IDs in the scan. Marc: 1,288 (1,075 `completed`, 105 `busy`, 59 `no-answer`, 48 `failed`, 1 `unknown`). Jason: 460 (393 `completed`, 19 `busy`, 34 `no-answer`, 14 `failed`).
+- Native counts for that week remain Marc 1,006 (802 answered, 105 busy, 59 no-answer, 40 failed) and Jason 350 (285 answered, 19 busy, 35 no-answer, 11 failed). The export is not currently an accepted V1 metric source: `completed` is not established as equivalent to native `answered`, and outbound totals differ materially.
+- The authenticated Call Reporting UI's private `POST backend.leadconnectorhq.com/reporting/calls/get-all-phone-calls-new` returned 1,377 rows for the exact captured week; paginating all 28 pages and filtering outbound by `userId` and `callStatus` exactly matched the native widget totals/statuses (Marc 1,006; Jason 350). The response included 21 inbound rows in addition to 1,356 outbound. The same POST using the GHL PIT outside the browser returned HTTP 401 `The token is not authorized for this scope`. Exact parity in the authenticated UI does not make this private/undocumented route an approved n8n integration.
+- The authenticated browser also exposes the native widget route `POST /reporting/dashboards/revex/calls`; its status response directly returned Jason `350` (`285 answered, 35 no-answer, 19 busy, 11 failed`) and Marc `1,006` (`802 answered, 59 no-answer, 105 busy, 40 failed`). It uses `dateAdded`, outbound direction, SDR `userId`, and `Asia/Manila` timezone. This is useful for read-only browser verification, but it remains private/unsupported and must not be automated unattended without GHL approval.
+
+### Decision and next validation
+
+- Two date-bounded queries (selected 7d and prior 7d) are technically possible using the documented export. Cursor pagination is required, and cursors are valid for two minutes; collect each window promptly within that cursor lifetime. The private Call Reporting UI route also paginated the exact snapshot week in 28 pages, but it rejected the PIT and remains unsupported for automation.
+- Reconcile the supported export against a supported GHL CSV/report detail export for the exact snapshot week by call ID, `dateAdded`, direction, user, status/disposition, and timezone. If no supported detail export can establish parity, retain the exact-week snapshot and label other periods unavailable/incomplete rather than showing unvalidated numbers. Ask GHL whether the privately tested Call Reporting data can be exposed through a documented API/scope.
+- The Marketplace webhook remains optional as a forward-looking event ledger; it cannot provide history. No subscription was configured, and no call/report records were changed. Next, ask GHL for documented API access to the proven Call Reporting data or obtain supported report exports; do not automate the private browser route.
+
+## 2026-09-29 read-only runtime audit continuation
+
+- Public V1 checks passed for `range=7d`, `range=30d`, and `range=90d`: each returned HTTP 200 with non-empty JSON, and the four V1 health rows were `ready`. The checked window values were 7d `2026-09-22`–`2026-09-28` (MQL 1, new contacts 71, SQL 49, opportunities 107), 30d `2026-08-30`–`2026-09-28` (MQL 6, new contacts 676, SQL 786, opportunities 1,662), and 90d `2026-07-01`–`2026-09-28` (MQL 136, new contacts 12,940, SQL 2,684, opportunities 8,533). These remain smoke observations, not direct GHL sign-off.
+- The exact snapshot request `from=2026-09-20&to=2026-09-26` still returned the accepted native-report basis: 1,356 outbound attempts, Marc 1,006, Jason 350, with `callInputs=ready`. A 30-day request returned 793 supported-export call facts and explicitly labeled `callInputs=incomplete`; this source boundary remains correct.
+- The live raw-ingest audit found Sales (`aYT5oHcgmBALzHy5`), Appointments (`yWZVSqEcjTbMT3kG`), Calls (`SqNQ0BYaTdcqyt1l`), Attribution Bridge (`Y0TU7Il71JswxOBp`), and Report QA (`M5mXcDTFSko6EdHb`) succeeding on their latest checked runs. Leads ingest (`osIJOgBmWITF5Yuv`) is currently failing on five consecutive scheduled runs in `Fetch + Normalize Leads` with an n8n task-runner disconnect after about 114 seconds; no GHL HTTP status or data-contract error was surfaced. Do not mark contact-source freshness green or publish headline reconciliation until this is repaired and a successful run is verified.
+- No production workflow definition, CRM record, outbound send, Marketplace subscription, or report deployment was changed during this audit. The Leads runner issue requires an explicitly approved production repair before modification.
+
+## 2026-09-29 call-summary parity repair deployed
+
+- The isolated V1 frontend now exposes native-report status columns in the Team call summary and per-SDR table: Attempted, Answered, Busy, No answer, and Failed.
+- For the referenced native report window `2026-09-20`–`2026-09-26`, the deployed page now renders the verified per-SDR values exactly: Marc `1,006 / 802 / 105 / 59 / 40`; Jason `350 / 285 / 19 / 35 / 11` in that column order. The team totals are `1,356 / 1,087 / 175 / 94` with no unknown rows.
+- The frontend uses the verified dated snapshot only for that exact window. For other windows, it does not reinterpret supported-export `completed` rows as native `answered` rows; unavailable status detail remains visible instead.
+- Deployment verification passed: V1 page HTTP 200, live page contains the new status headers and snapshot mapping, browser-rendered values match the native report, and the original `/embed/executive/` page still contains build `2026-08-17-v27-social-mql`.
+
+## 2026-09-29 Monday-week correction
+
+- The operator clarified that the accepted reporting week is Monday–Sunday `2026-09-21`–`2026-09-27`, despite the supplied screenshots visibly displaying `Sep 20, 2026 -> Sep 26, 2026`. The V1 snapshot override now follows the operator's Monday-week definition and uses the supplied verified native totals: Marc `1,006` and Jason `350`, with Marc `802/105/59/40` and Jason `285/19/35/11` for answered/busy/no-answer/failed.
+- The supported API still returns the incomplete `185` Marc / `26` Jason rows for that same date query. V1 no longer treats those rows as authoritative for the accepted weekly snapshot; it applies the verified native-report snapshot and labels the date-label discrepancy in the source note.
+- The SDR table now falls back to the native call rows when the broader Executive Summary `sdrPerformance` array is empty, preventing the call rows from disappearing.
+- The isolated V1 deployment was rebuilt and live HTML verification confirmed the Monday-week override, fallback renderer, and status columns. The legacy report remains unchanged.
+
+## 2026-09-29 Sunday-week correction — supersedes Monday-week note
+
+- The operator confirmed that GHL's native report week is Sunday–Saturday and will reset GHL's calendar preference accordingly. V1 now follows the native selected window `2026-09-20`–`2026-09-26` for the verified snapshot.
+- The V1 call summary and per-SDR rows use the native totals: Marc `1,006 / 802 / 105 / 59 / 40`; Jason `350 / 285 / 19 / 35 / 11`; team `1,356 / 1,087 / 175 / 94 / 51` in attempted / answered / busy / no-answer / failed order.
+- The earlier Monday-week override is superseded. The private browser endpoint remains read-only diagnostic evidence; no unattended private-route integration was added.
+- The V1 base URL now defaults to the verified Sunday–Saturday window `2026-09-20`–`2026-09-26`; previously, opening the base URL without query parameters used a 30-day range and exposed the unrelated `206/125` SDR rows.
+- Team call KPIs now show week-over-week percentage movement against the prior native GHL comparison week: attempted `+46.9%`, answered `+56.9%`, no-answer `0.0%`, busy `+173.4%`, and failed `-29.2%`.
+- Each native per-SDR call cell now also shows its week-over-week percentage: Marc attempted `+73.1%`, answered `+82.7%`, busy `+162.5%`, no-answer `+11.3%`, failed `-18.4%`; Jason attempted `+2.3%`, answered `+12.2%`, busy `-20.8%`, no-answer `-14.6%`, failed `-52.2%`.
+
+## EOS closeout — 2026-09-29
+
+- Objective completed: V1 now defaults to the native Sunday–Saturday window `2026-09-20`–`2026-09-26`, displays the verified Marc/Jason call totals and status breakdowns, and shows current-versus-prior-week percentages for both Team KPIs and each SDR call cell.
+- Live browser verification passed on the base V1 URL: period `2026-09-20 → 2026-09-26`; Marc `1,006 / 802 / 105 / 59 / 40`; Jason `350 / 285 / 19 / 35 / 11`; Team KPIs show `+46.9%`, `+56.9%`, `0.0%`, `+173.4%`, and `-29.2%` for attempted, answered, no-answer, busy, and failed respectively.
+- The same live verification shows the previously blank output columns: Marc `0` booked, `3` SQLs, `0` MQL→SQL; Jason `0` booked, `1` SQL, `1` MQL→SQL. The Hermes runbook explicitly requires gathering these values on every weekly run.
+- The isolated V1 frontend was redeployed through `scripts/deploy/deploy_report_vps_local.py`; the container verification reported build `2026-08-17-v27-social-mql`. The legacy `/embed/executive/` path was not changed.
+- The browser-native report route remains private/unsupported. The documented Conversations export does not reconcile to native widget totals, so future weekly refreshes remain an approved-source blocker; do not automate private browser bearer material or publish unverified export counts.
+- Worktree remains intentionally dirty. Relevant changed artifacts are `reports/embed/executive-v1/index.html`, `executive_report_v1_plan.md`, `Project Status and Next Steps.md`, and the dated session handoff; existing unrelated/user changes and supplied report images remain unstaged. No commit or push was made.
+
+Next session: verify the operator's GHL Sunday calendar preference, obtain documented Call Reporting access or supported weekly exports, then replace the one-period native snapshot only after exact status/call-ID parity is proven. Keep outbound sends, CRM mutations, Marketplace subscription, and private-route automation approval-gated.
+
+Hermes automation handoff: [`docs/runbooks/executive-report-v1-weekly-hermes-refresh.md`](docs/runbooks/executive-report-v1-weekly-hermes-refresh.md). The intended schedule is Monday 03:00 `America/Los_Angeles`, reading the prior Sunday–Saturday native GHL window with fail-closed validation.
