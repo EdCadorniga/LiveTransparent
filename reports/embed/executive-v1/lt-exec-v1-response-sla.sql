@@ -18,6 +18,21 @@ CREATE TABLE IF NOT EXISTS lt_exec_v1_response_sla (
 CREATE INDEX IF NOT EXISTS lt_exec_v1_response_sla_window_idx ON lt_exec_v1_response_sla (channel, inbound_at);
 CREATE INDEX IF NOT EXISTS lt_exec_v1_response_sla_status_idx ON lt_exec_v1_response_sla (response_status, channel);
 
+-- Read-only review state. The approved reconciler may write this table after
+-- detecting an existing GHL InternalComment; CRM note creation remains
+-- intentionally outside this workflow.
+CREATE TABLE IF NOT EXISTS lt_exec_v1_response_sla_reviews (
+  inbound_event_key TEXT PRIMARY KEY REFERENCES lt_exec_v1_response_sla(inbound_event_key) ON DELETE CASCADE,
+  review_status TEXT NOT NULL CHECK (review_status IN ('internal_note_done')),
+  reviewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  reviewer TEXT,
+  note_reference TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS lt_exec_v1_response_sla_reviews_status_idx
+  ON lt_exec_v1_response_sla_reviews (review_status, reviewed_at);
+
 WITH marketing_email_sends AS (
   SELECT contact_id, release_ts AS sent_at
   FROM "DAN_Release_Log"
@@ -105,9 +120,11 @@ SELECT 'exec_v1_response_sla', CASE WHEN COUNT(*)=0 THEN 'no_data' ELSE 'ready' 
   jsonb_build_object('workflow_name','LT - Executive Report V1 Response SLA Materializer',
     'responded',COUNT(*) FILTER (WHERE response_status='responded'),
     'unmatched',COUNT(*) FILTER (WHERE response_status='unmatched'),
+    'ambiguous',COUNT(*) FILTER (WHERE response_status='ambiguous'),
+    'internal_note_done',COUNT(*) FILTER (WHERE response_status='internal_note_done'),
     'channels',jsonb_object_agg(channel,channel_count)), NOW()
 FROM lt_exec_v1_response_sla s
 JOIN (SELECT channel,COUNT(*) channel_count FROM lt_exec_v1_response_sla GROUP BY channel) c USING(channel)
 ON CONFLICT (source_system) DO UPDATE SET status=EXCLUDED.status,last_success_at=NOW(),last_attempt_at=NOW(),last_row_count=EXCLUDED.last_row_count,last_error=NULL,metadata=EXCLUDED.metadata,updated_at=NOW();
 
-SELECT json_build_object('status','completed','facts',(SELECT COUNT(*) FROM lt_exec_v1_response_sla),'responded',(SELECT COUNT(*) FROM lt_exec_v1_response_sla WHERE response_status='responded'),'unmatched',(SELECT COUNT(*) FROM lt_exec_v1_response_sla WHERE response_status='unmatched')) AS result;
+SELECT json_build_object('status','completed','facts',(SELECT COUNT(*) FROM lt_exec_v1_response_sla),'responded',(SELECT COUNT(*) FROM lt_exec_v1_response_sla WHERE response_status='responded'),'unmatched',(SELECT COUNT(*) FROM lt_exec_v1_response_sla WHERE response_status='unmatched'),'ambiguous',(SELECT COUNT(*) FROM lt_exec_v1_response_sla WHERE response_status='ambiguous'),'internal_note_done',(SELECT COUNT(*) FROM lt_exec_v1_response_sla WHERE response_status='internal_note_done')) AS result;

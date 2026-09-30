@@ -38,6 +38,17 @@ The supplied mockup defines the presentation flow. Its numbers are illustrative;
 - Inbound response speed retains the same-channel SLA contract. It is not MQL-to-first-call.
 - Priority is `Sales Outreach` stage `be636da7-3c15-48ab-b589-c75bcd6f9955`; closed opportunities are protected and retries are keyed by contact plus source event.
 
+## Feedback-retention checklist
+
+- The requested funnel sequence is Opportunities → MQL → SQL → Closed, with New contacts outside the funnel denominator. The Band 1 detail must show both the raw MQL→SQL count and its percentage, plus SQL→Closed percentage; closed SQLs and revenue may be empty when there are no closed records.
+- Meetings and meeting outcomes are intended to become one rep-level card containing count, showed, no-show, and rescheduled. Until GHL appointment statuses are reliable, showed/no-show must remain unavailable rather than inferred.
+- Closed by source must include referral and other valid source values, and its totals must reconcile to closed SQLs/revenue. Unknown/Unattributed is a residual, not silently dropped coverage.
+- Weekly movement must show unique/new leads fed in and how they moved through MQL, SQL, and later stages. Intake counts and current-stage distributions must remain separate measures.
+- Retargeting must surface newsletter-audience contacts and clickers as a deduplicated, suppression-aware read-only queue. It does not authorize a send.
+- Lead-source coverage means attributed MQL/SQL rows divided by the matching MQL/SQL denominator; it is not limited to paid marketing SQLs. Referral counts when present, and incomplete source snapshots must remain visible.
+- Speed-to-lead remains same-channel inbound response time, not MQL→first phone call. Internal-note review is read-only; SLA targets, automatic tasks, CRM note creation, and outbound follow-up remain outside the approved scope.
+- New contacts must keep LinkedIn backfill separately identifiable so backfill does not inflate the ordinary new-contact count.
+
 | Mockup area | Required values | Likely source |
 |---|---|---|
 | Outbound total strip | Emails, LinkedIn messages, SMS, voicemails, newsletters | Campaign Channel Summary plus channel ledgers |

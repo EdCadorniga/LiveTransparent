@@ -15,7 +15,8 @@ For each inbound prospect interaction in the selected period, measure the elapse
 - `inbound_event_id`, `contact_id`, `channel`, `inbound_at`
 - `response_event_id`, `response_at`, `response_seconds`
 - `response_status`: `responded`, `unmatched`, `ambiguous`, or `source_gap`
-- `campaign_key`, `sender/owner`, and source workflow
+- `review_status`: `internal_note_done` after the approved read-only reconciliation finds a qualifying GHL `InternalComment`; CRM note creation is separate
+- contact name/ID, channel, inbound timestamp, owner name/ID, stable source event ID, campaign key, and source workflow
 - `target_minutes` only when a business SLA is explicitly configured
 
 ## Accuracy rules
@@ -24,11 +25,12 @@ For each inbound prospect interaction in the selected period, measure the elapse
 - Never match an outbound event that occurred before the inbound event.
 - Do not match across channels.
 - Do not count automated bounce, out-of-office, unsubscribe, or system messages as human replies.
-- Preserve unmatched inbound events; they are required for the follow-up queue.
+- Preserve unmatched inbound events; they are required for the review queue.
+- An internal note may close an unmatched event only when it is tied to the same contact/conversation, created after the inbound event, identified as a GHL `InternalComment`, matched one-to-one to the nearest eligible unmatched event, and recorded idempotently against the inbound event key.
 - Preserve ambiguous events when multiple same-timestamp candidates exist.
 - Report median, average, and percentile response time only with the event count and matched/unmatched coverage.
 - “Overdue follow-up” means an unmatched inbound event older than the configured channel target; it must not be shown until targets are configured.
 
 ## Initial implementation boundary
 
-LinkedIn, phone, and email are derived from the durable activity/call/release ledgers. Email reply events and every marketing send ledger must expose a common contact ID and timestamp. If a channel has inbound events but no later qualifying response, the facts remain `unmatched`; they are not converted to zero response time.
+LinkedIn, phone, and email are derived from the durable activity/call/release ledgers. Email reply events and every marketing send ledger must expose a common contact ID and timestamp. If a channel has inbound events but no later qualifying response, the facts remain `unmatched`; they are not converted to zero response time. The V1 detail implementation and approved internal-note reconciliation are read-only; CRM note creation is not performed.

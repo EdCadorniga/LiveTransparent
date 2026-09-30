@@ -1,5 +1,26 @@
 # LiveTransparent Project Status and Next Steps
 
+### Executive Report V1 Unmatched Response Review UI — 2026-09-29
+
+- The isolated V1 frontend now labels the detail card **Unmatched Inbound Response Review**, because the table only renders rows whose response-SLA status is `unmatched`.
+- The table now shows Contact, Channel, Inbound, and Owner; the redundant Status column was removed.
+- The card remains full width beneath Speed-to-lead & follow-up through `.response-review{grid-column:1 / -1}`.
+- Deployment used `scripts/deploy/deploy_report_vps_local.py`; the live V1 page returned HTTP 200 and served the new title, no Status header/cell, and the full-width rule. The legacy `/embed/executive/` path was not changed.
+- No CRM records, outbound messages, workflows, or APIs were changed. No commit or push was made.
+
+Next session: continue using the existing response-SLA approval boundary; do not add SLA targets, automatic tasks, CRM note creation, or outbound follow-up without separate approval.
+
+Updated: 2026-09-29 (unmatched response review UI)
+
+### Executive Report V1 Response-SLA Detail Closeout — 2026-09-29
+
+- Read-only unmatched-event reporting is implemented at the isolated V1 path. The Facts API returns the exact reporting window and event-level details: contact name/ID, channel, inbound timestamp, owner name/ID, source event ID, response metadata, and status.
+- The response card and review table use the same detail rows for counts and names. Statuses are Responded, Internal note done, Unmatched, and Ambiguous; unmatched rows remain open until a valid response or approved review record closes them.
+- The `lt_exec_v1_response_sla_reviews` ledger supports `internal_note_done`. The approved read-only GHL `InternalComment` reconciler is now wired into the materializer; verification execution `1064337` processed 100 candidates and found 0 qualifying notes, so the ledger remains empty. No CRM note was created, no follow-up was sent, and no CRM mutation was performed.
+- Final live versions: Response SLA Materializer `5957bf7b-a52f-4131-97a6-cc07303cb4b7`; V1 Facts API `4039aea2-787a-420b-81ef-829b076d5cef`. Final verification, including post-approval reconciler execution `1064337`, succeeded after repairing temporary query errors; details are in `docs/sessions/2026-09-29-executive-report-v1-response-sla-closeout.md`.
+- **Not approved:** further Speed-to-lead & follow-up implementation, including SLA targets, automatic task creation, CRM note creation, or outbound follow-up. The approved internal-note reconciliation is read-only and limited to the reporting ledger.
+- The complete original V1 feedback checklist is preserved in `executive_report_v1_plan.md` under **Executive Report V1 feedback-retention ledger** and in `reports/embed/executive-v1/DATA-REQUIREMENTS.md`. Open items include merging Meetings + outcomes, making Band 1 MQL→SQL raw/% parity explicit, populating weekly lead movement, separately surfacing newsletter clickers/audience contacts, and reconciling LinkedIn backfill within New contacts.
+
 ### Executive Report V1 GHL Call Export Investigation — 2026-09-29
 
 - **New supported source found:** HighLevel publicly documents `GET /conversations/messages/export` with `channel=Call`, `startDate`, `endDate`, and cursor pagination. A read-only request using the current GHL PIT returned HTTP 200; records include stable message IDs, `dateAdded`, `direction`, `userId`, and `status`. This corrects the prior statement that no documented messages-export endpoint exists.

@@ -1,7 +1,7 @@
 # Executive Report V1 — Weekly Hermes Browser Refresh
 
-**Status:** Design documented; Hermes scheduling not configured from this session.  
-**Schedule:** Every Monday at 3:00 AM, timezone `America/Los_Angeles`.  
+**Status:** Hermes recurring job configured and active; job ID `b231ec42ee37`.
+**Schedule:** Every Monday at 9:00 AM, timezone `Asia/Manila` (Telegram delivery).
 **Reporting window:** The immediately preceding Sunday through Saturday.
 
 ## Objective

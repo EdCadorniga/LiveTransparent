@@ -2,6 +2,31 @@
 
 Last updated: 2026-09-29 (EOS closeout; GHL outbound call snapshot and signed-event receiver)
 
+## 2026-09-29 EOS — Response-SLA unmatched-event detail
+
+- Read-only response-SLA detail is implemented and deployed in the isolated V1 report. The Facts API returns the exact `from`/`to` window plus `responseSlaDetails` rows with contact name/ID, channel, inbound timestamp, owner name/ID, source event ID, response metadata, status, and review metadata.
+- `responseSla` aggregates are calculated from the same event-detail CTE as the UI table. The UI shows Responded, Internal note done, Unmatched, and Ambiguous tallies and lists unmatched/reviewed contacts with owner.
+- `lt_exec_v1_response_sla_reviews` supports `internal_note_done`. The approved read-only GHL `InternalComment` reconciler is now part of the materializer workflow; execution `1064337` processed 100 candidates and found 0 qualifying notes, so no review rows were written. CRM note creation remains separately approval-gated.
+- Final active versions: Response SLA Materializer `KlBw3ThLbNlMfE2J` → `5957bf7b-a52f-4131-97a6-cc07303cb4b7`; V1 Facts API `oxYDg6XnRBKhl1Xd` → `4039aea2-787a-420b-81ef-829b076d5cef`. Materializer executions `1064144`, `1064303`, and post-approval `1064337` succeeded; final Facts API checks `1064291`–`1064293` succeeded.
+- Verification window `2026-09-23`–`2026-09-28` returned 8 detail rows: 2 LinkedIn unmatched, 2 phone responded, 4 phone unmatched, 0 ambiguous, and 0 internal-note-done. The legacy `/embed/executive/` path remained unchanged.
+- Further Speed-to-lead & follow-up implementation—including SLA targets, automatic tasks, CRM note creation, or outbound follow-up—is **not approved for implementation**. The approved read-only internal-note reconciliation is implemented; see `docs/sessions/2026-09-29-executive-report-v1-response-sla-closeout.md` for the exact handoff and verification history.
+
+## 2026-09-29 EOS — Executive Report V1 feedback-retention ledger
+
+This checklist preserves the original structural feedback and is authoritative for the next V1 planning session. “Wired” means the report has a data/UI placeholder or read-only contract; it does not mean the requested behavior is fully accepted.
+
+| Feedback item | Current state | Next-session requirement |
+|---|---|---|
+| Keep sections in funnel order: Opportunities → MQL → SQL → Closed; keep New contacts outside it | The Band 1 funnel strip follows the requested order and New contacts is separate. The full page still needs a structural review to ensure every related detail section follows the same jump order. | Preserve one consistent funnel sequence across headline, detail, and movement sections; do not pull New contacts into the funnel denominator. |
+| Band 1: SQL→Closed % plus MQL→SQL % and raw number; closed SQLs/revenue may be empty | SQL→Closed % is wired in the funnel facts and MQL→SQL is present in the headline row. The funnel-outcomes detail strip still needs explicit MQL→SQL percentage plus raw conversion parity. | Add/verify both raw MQL→SQL and MQL→SQL % in the same Band 1 story, with empty closed values shown as unavailable/zero only when the source explicitly says none closed. |
+| Band 2: combine Meetings and Meeting outcomes into one rep · count · showed · no-show · rescheduled card | Not completed; the current V1 has separate meeting and meeting-outcome cards. | Combine them only after appointment-status and owner attribution are reliable; never infer showed/no-show. |
+| Band 2: Closed by source | Card and API contract are wired; it may be empty when no closed outcomes exist. Referral and other valid sources must remain in the denominator, with residual Unknown/Unattributed. | Validate source coverage and reconciliation against closed SQL totals. |
+| Band 3: weekly lead flow/movement | Weekly lead-flow table and API shape exist, but the current data may be unavailable/empty. | Populate unique/new leads fed in weekly and distinct movement through MQL, SQL, and later stages; distinguish intake counts from current-stage snapshots. |
+| Band 3: retargeting | Read-only retargeting card/contract exists for eligible contacts, latest touch, suppression/reply state, and next action; it must not authorize sending. | Surface newsletter-audience contacts and clickers explicitly, with deduplication and suppression rules. |
+| Lead-source coverage definition | It is coverage of attributed MQL/SQL rows over the matching MQL/SQL denominator, not only paid marketing SQLs. Referral and other source values count; unresolved rows remain Unknown/Unattributed. | Confirm the denominator and display separate MQL/SQL coverage if needed; do not imply ~100% while source snapshots are incomplete. |
+| Speed-to-lead meaning | Confirmed as same-channel inbound reply/call response time, not MQL→first phone call. Unmatched, ambiguous, and internal-note-done are auditable. | Keep the definition visible; SLA targets, automatic tasks, CRM note creation, and outbound follow-up remain unapproved. |
+| New contacts / LinkedIn backfill | Acquisition-mechanism support exists, but LinkedIn backfill must remain separately identifiable rather than inflating ordinary new-contact volume. | Reconcile the backfill classifier against the selected window and show the backfill portion separately. |
+
 This document preserves the working context for the isolated Executive Report V1. Read it before auditing, modifying, or deploying V1.
 
 ## 2026-09-26 Campaign Classifier Repair
@@ -613,3 +638,44 @@ HighLevel's public API documentation includes `GET /conversations/messages/expor
 Next session: verify the operator's GHL Sunday calendar preference, obtain documented Call Reporting access or supported weekly exports, then replace the one-period native snapshot only after exact status/call-ID parity is proven. Keep outbound sends, CRM mutations, Marketplace subscription, and private-route automation approval-gated.
 
 Hermes automation handoff: [`docs/runbooks/executive-report-v1-weekly-hermes-refresh.md`](docs/runbooks/executive-report-v1-weekly-hermes-refresh.md). The intended schedule is Monday 03:00 `America/Los_Angeles`, reading the prior Sunday–Saturday native GHL window with fail-closed validation.
+
+## 2026-09-29 EOS — unmatched response review UI refinement
+
+- The isolated V1 frontend card is now titled **Unmatched Inbound Response Review** and only renders `unmatched` detail rows.
+- The detail table contains Contact, Channel, Inbound, and Owner. The Status column was removed because every displayed row is unmatched.
+- The card remains full width beneath Speed-to-lead & follow-up using `.response-review{grid-column:1 / -1}`.
+- Deployment used `scripts/deploy/deploy_report_vps_local.py`. Live verification returned HTTP 200 and confirmed the new title, absent Status header/cell, and full-width CSS rule. The legacy `/embed/executive/` report was not changed.
+- No CRM, workflow, API, outbound-send, or other production data mutation was performed. No commit or push was made.
+
+Next session: preserve the existing response-SLA approval boundary. SLA targets, automatic tasks, CRM note creation, and outbound follow-up remain unapproved.
+
+## 2026-09-30 EOS — V1 renderer and call-snapshot bug repair
+
+- Audited the isolated V1 frontend and confirmed the active load path was calling a renderer that omitted `feedback()`. A later duplicate global renderer included `feedback()` but was never invoked. The active renderer now calls the feedback renderer, so funnel, closed-source, weekly-movement, vertical, and retargeting sections follow one render path.
+- Repaired the call-summary logic in `reports/embed/executive-v1/index.html`: the accepted native snapshot is now recognized only for Sunday–Saturday `2026-09-20`–`2026-09-26`; the stale Monday-window override and recurring DOM patch scripts are disabled; the call-source note remains visible and states that other windows are unavailable until supported parity is proven.
+- Health rendering now selects the freshest row by `last_attempt_at`/`last_success_at`/`updated_at` per source and marks rows with `last_error` as unhealthy, preventing an older `ready` row from masking a newer failure.
+- Local inline JavaScript syntax validation passed for all script blocks, `git diff --check` passed, and the report was deployed with `scripts/deploy/deploy_report_vps_local.py`. Container verification succeeded with image `v3ud1lum1svamymuor21upog:social-mql-20260817`; the legacy `/embed/executive/` path was not changed.
+- Live read-only verification passed: V1 page HTTP 200; active feedback renderer present; two legacy call-override blocks disabled; freshness-aware health logic present; Sunday snapshot condition and source note present. Facts API exact-window check returned `2026-09-20`–`2026-09-26`, four health rows, and ten response-SLA detail rows.
+- The V1 Facts API still does not return `funnel`, `closedBySource`, `weeklyLeadFlow`, `verticalPerformance`, or `retargeting` fields. No fabricated values were added. The documented workflow ID `oxYDg6XnRBKhl1Xd` was not available through the connected n8n MCP, and the fallback REST lookup returned 404; no n8n workflow was changed.
+- Worktree remains intentionally dirty with pre-existing/user changes and the current V1 frontend changes. No commit or push was made.
+
+Next session: obtain the current V1 Facts workflow ID or enable the correct n8n MCP access, read the workflow before editing, then add and verify the missing feedback fields through the approved materializer/API contract. Keep the current read-only report boundary: no outbound sends, CRM mutations, Marketplace subscription, private call-report automation, SLA targets, automatic tasks, or CRM note creation without separate approval.
+
+## 2026-09-30 EOS — LiveTransparent n8n audit after instance correction
+
+- The LiveTransparent n8n instance is `https://automations.livetransparent.com`; use only the repository key `N8N_API_KEY_LT` for this project. The earlier Katwill-host/key test was against the wrong company and is superseded; do not use it for LiveTransparent work.
+- Read-only REST access using `N8N_API_KEY_LT` succeeded. Workflow `LT - Executive Report V1 Facts API` (`oxYDg6XnRBKhl1Xd`) is active at version `4039aea2-787a-420b-81ef-829b076d5cef` with five nodes: webhook, query builder, Postgres query, response shaper, and webhook response.
+- Recent execution audit returned the latest ten executions as successful. Latest checked execution `1066451` completed all five nodes successfully. Its shaped response contains `window`, `v1Health`, `callTotals`, `callsBySdr`, `responseSla`, `completeness`, `meetingSummary`, `socialStatistics`, `voicemailSummary`, `contactMechanisms`, `appointmentDetails`, `responseSlaDetails`, and `authoritativeGhlCounts`.
+- Live V1 page verification passed: HTTP 200; active feedback renderer, Sunday–Saturday call snapshot condition, disabled legacy override blocks, freshness-aware health logic, and call-source note are present. The legacy `/embed/executive/` path retains its expected legacy build marker.
+- The remaining accepted blocker is the Facts API contract: the active workflow still does not return `funnel`, `closedBySource`, `weeklyLeadFlow`, `verticalPerformance`, or `retargeting`. No workflow or production data was changed during this audit. The connected n8n MCP still returned Unauthorized, so REST was used read-only.
+
+Next session: extend the active Facts workflow/API contract with the missing feedback fields only after reading the full workflow and confirming the approved SQL/source definitions. Re-run the exact-window and range checks, then verify the deployed V1 sections. Keep all outbound, CRM-mutation, Marketplace, private-route, SLA-target, automatic-task, and CRM-note approval gates in force.
+
+## 2026-09-30 reporting-only feedback extension
+
+- The active V1 Facts API was extended without changing GHL CRM workflows or CRM records. Published version: `64881005-f213-47c4-acfb-07e1b1df8b13` during the verified safe extension; the later weekly/contact-source refinement is active at `ae414181-adc4-4bbf-8f81-2facef5c3c39`.
+- The response now includes `funnel`, `closedBySource`, `weeklyLeadFlow`, `verticalPerformance`, `retargeting`, and `contactAcquisition`. The query reads reporting/raw snapshot tables only and keeps `send_authorized=false` for retargeting.
+- Successful execution `1067446` returned non-empty JSON with funnel facts, two weekly movement rows, an explicit Unknown/Unattributed closed-source row, and separate `linkedin_backfill` acquisition data. The exact live HTTP response for the selected window also returned the same fields.
+- The V1 frontend now prefers `contactAcquisition`, so LinkedIn backfill is shown separately from ordinary contact mechanisms. The existing combined Meetings & outcomes card and MQL→SQL display parity remain isolated to V1; the legacy report path was not changed.
+- Deployment verification: V1 HTTP 200/non-empty, legacy `/embed/executive/` HTTP 200 with the expected `2026-08-17-v27-social-mql` marker, inline JavaScript syntax checks passed, and `git diff --check` passed.
+- Data caveats: the selected window currently has no closed won/lost records, no vertical rows, and newsletter sends are unavailable even though click events exist; these remain visibly unavailable rather than being converted into trustworthy zeroes. Browser MCP was unavailable in this environment, so responsive verification used static/HTTP checks rather than a live browser screenshot.

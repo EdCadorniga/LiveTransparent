@@ -1,5 +1,15 @@
 # LiveTransparent Agent Notes
 
+## ✅ CURRENT 2026-09-29 Executive Report V1 Response-SLA Detail Closeout
+
+- Read-only V1 response-SLA detail is deployed. The Facts API returns the exact selected window and event rows with contact name/ID, channel, inbound timestamp, owner name/ID, source event ID, response metadata, and status; aggregate counts and the UI review table use the same rows.
+- The UI shows Responded, Internal note done, Unmatched, and Ambiguous. Unmatched rows remain open until a valid same-channel response or separately approved internal review record closes them.
+- `lt_exec_v1_response_sla_reviews` supports `internal_note_done`; the approved read-only GHL `InternalComment` reconciler is now wired into the materializer. Verification execution `1064337` processed 100 candidates and found 0 qualifying notes, so no rows were written. CRM note creation remains separate and was not performed.
+- Final active versions: Response SLA Materializer `5957bf7b-a52f-4131-97a6-cc07303cb4b7`; V1 Facts API `4039aea2-787a-420b-81ef-829b076d5cef`. Final verification executions: materializer `1064144`/`1064303`, post-approval reconciler `1064337`, Facts API `1064291`–`1064293`, all successful. Earlier failed verification attempts were repaired and are documented in the closeout handoff.
+- **Approval boundary:** further Speed-to-lead & follow-up implementation remains unapproved for SLA targets, automatic tasks, CRM note creation, and outbound follow-up. The approved internal-note reconciliation is read-only and may update only the reporting review ledger; do not create CRM notes or alter CRM records.
+- The complete original Executive Report V1 feedback-retention ledger is in `executive_report_v1_plan.md` and `reports/embed/executive-v1/DATA-REQUIREMENTS.md`. Do not treat the current wired cards as completion of the still-open Meetings/outcomes merge, weekly movement data, newsletter clicker/audience detail, or LinkedIn-backfill split.
+- Detailed handoff: `docs/sessions/2026-09-29-executive-report-v1-response-sla-closeout.md`.
+
 ## ⚠️ CURRENT 2026-09-29 Executive Report V1 GHL Call Source Handoff
 
 - The V1 SDR call section now displays an exact GHL native-report snapshot for `2026-09-20`–`2026-09-26` only: Marc 1,006 (802 answered, 105 busy, 59 no-answer, 40 failed); Jason 350 (285 answered, 19 busy, 35 no-answer, 11 failed). The native widgets use `dateAdded`, `direction=outbound`, `userId`, and report timezone `Asia/Manila`; the API snapshot is clearly labeled and must not be treated as a refreshed or historical series.
