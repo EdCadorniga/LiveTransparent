@@ -1,5 +1,22 @@
 # LiveTransparent Agent Notes
 
+## ⚠️ CURRENT 2026-09-30 EOS — LinkedIn inbound duplicate-contact race
+
+- `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) is active and published at `b9dbffa7-79fc-408d-9d40-7a999a0f2ccc` (`versionId == activeVersionId`). Its lookup now claims a unique LinkedIn provider/profile identity in Postgres before GHL contact resolution; competing events wait/reuse, wait failures stop without creating, failed claims are released, and abandoned pending claims can be reclaimed after five minutes.
+- Root cause confirmed from executions `1068352` and `1068355`: two events for Ian Lange's same LinkedIn identity/chat arrived 585 ms apart; both saw no mapped GHL ID and both created a contact. The affected records are `qYSqY56e0UHPTjqUUTiG` and `DcBoUBEiNrC1Zh0sWg0M`, created 418 ms apart. Each has a separate open opportunity (`VrFHG3ljyiLYL3eh0emV` and `ASSrfoX1boNTMnggZySZ`). No CRM record was changed during the fix.
+- The patch was published by direct n8n REST update and re-read with matching active/draft version IDs. Node text was checked for the claim, wait-fail-closed branch, and claim resolution SQL. No live event was triggered; no execution has yet demonstrated the new behavior end-to-end. The previous assistant attempted a local syntax check but it was rejected by command policy, so runtime acceptance is unverified.
+- **Security follow-up:** during the earlier execution inspection, credential values were present in node execution output, and the live contact node also contains a hardcoded GHL credential. Do not copy these values to notes or logs. Rotate affected GHL credentials and remove hardcoded credentials from the workflow; inspect retention/cleanup options for saved execution data. The previous transcript contained the sensitive output, so treat exposed credentials as compromised.
+- **Next session, in order:** (1) rotate/revoke exposed GHL credentials and replace workflow literals using the approved credential mechanism; (2) validate the new SQL and JavaScript offline, then use an isolated, controlled verification that cannot send LinkedIn messages or create extra contacts; (3) inspect identity-claim row behavior for owner, waiter, reuse, failed create, and five-minute recovery; (4) reconcile Ian's two contacts and duplicate opportunities only after reviewing conversation history and choosing a canonical contact. Current evidence shows `DcBo...` holds the full message while `qYSq...` holds the attachment-only event; confirm before cleanup.
+- Do not execute a live LinkedIn/CRM test, merge/delete either Ian record, or close/remove either opportunity without explicit approval. Do not claim the race fix is runtime-verified until an isolated verification succeeds.
+
+## ✅ CURRENT 2026-09-30 EOS — reporting-only V1 closeout
+
+- Active V1 Facts API `oxYDg6XnRBKhl1Xd` is published at version `ae414181-adc4-4bbf-8f81-2facef5c3c39`; latest read-only checked execution `1069228` succeeded.
+- V1 now returns funnel, closed-source, weekly movement, vertical, retargeting, and contact-acquisition/backfill fields. The deployed V1 page and legacy report both returned HTTP 200; the legacy build marker remains intact.
+- No CRM workflow, CRM record, outbound send, Marketplace subscription, or private call-report automation was changed in this closeout.
+- Remaining: exact-ID reconciliation of new facts, supported call-reporting parity, manual Sunday-calendar verification, browser/accessibility QA, reporting-only retry/reconciliation, and the read-only LinkedIn candidate report.
+- Keep all SLA targets, automatic tasks, CRM notes, outbound follow-up, CRM mutations, sends, Marketplace subscription, and private-route automation approval-gated.
+
 ## ✅ CURRENT 2026-09-29 Executive Report V1 Response-SLA Detail Closeout
 
 - Read-only V1 response-SLA detail is deployed. The Facts API returns the exact selected window and event rows with contact name/ID, channel, inbound timestamp, owner name/ID, source event ID, response metadata, and status; aggregate counts and the UI review table use the same rows.
