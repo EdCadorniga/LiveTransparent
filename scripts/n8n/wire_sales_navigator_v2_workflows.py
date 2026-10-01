@@ -117,12 +117,32 @@ let ok=false;try{ok=require('crypto').verify(null,rawBuffer,pem,Buffer.from(sign
 if(!ok)return fail(401,'invalid_signature');
 let body;try{body=JSON.parse(rawBuffer.toString('utf8'))}catch{return fail(400,'malformed_json')}
 const contactId=String(body.contactId||'').trim(),messageId=String(body.messageId||'').trim(),locationId=String(body.locationId||'').trim(),text=String(body.message||'').trim(),replyToAltId=String(body.replyToAltId||'').trim();
-const attachments=Array.isArray(body.attachments)?body.attachments:[];
+const rawAttachments=Array.isArray(body.attachments)?body.attachments:[];
 if(!cfg.ghlLocationId||locationId!==cfg.ghlLocationId)return fail(403,'location_mismatch');
 if(String(body.type||'').toUpperCase()!=='SMS')return fail(400,'unsupported_message_type');
-if(!contactId||!messageId||(!text&&!attachments.length))return fail(400,'missing_required_fields');
-if(attachments.length>10||attachments.some(x=>typeof x!=='string'||x.length>2048||!/^https:\/\//i.test(x)))return fail(422,'invalid_attachment_url');
+if(!contactId||!messageId||(!text&&!rawAttachments.length))return fail(400,'missing_required_fields');
+if(rawAttachments.length>1)return fail(422,'too_many_attachments');
+let attachments=[];
+if(rawAttachments.length===1){
+ const url=rawAttachments[0];
+ if(typeof url!=='string'||url.length>2048||!/^https:\/\//i.test(url))return fail(422,'invalid_attachment_url');
+ let host='';try{host=new URL(url).hostname.toLowerCase()}catch{return fail(422,'invalid_attachment_url')}
+ const hosts=['.leadconnectorhq.com','.msgsndr.com','.gohighlevel.com','.googleapis.com','.googleusercontent.com','.amazonaws.com','.cloudfront.net'];
+ if(!hosts.some(s=>host.endsWith(s)))return fail(422,'attachment_host_not_allowed');
+ const filename=decodeURIComponent((url.split('?')[0].split('/').pop()||'').trim()).slice(0,180)||'attachment';
+ attachments=[{url,filename}];
+}
 return [{json:{ok:true,status:200,contactId,messageId,text,attachments,replyToAltId,payloadSha256:require('crypto').createHash('sha256').update(rawBuffer).digest('hex'),accountId:cfg.unipileV2AccountId}}];'''
+
+BUILD_V2_ATTACHMENT = r'''const v=$('Validate Callback or Provider').first().json,bin=$input.first()?.binary?.data;
+const fail=reason=>[{json:{ready:false,reason}}];
+if(!v.attachments||!v.attachments.length)return [{json:{ready:true,attachments:[]}}];
+if(!bin||!bin.data)return fail('ghl_attachment_empty');
+const size=Buffer.from(bin.data,'base64').length;
+if(size<=0||size>4*1024*1024)return fail('ghl_attachment_too_large');
+const content_type=String(bin.mimeType||'application/octet-stream').split(';')[0];
+const filename=String(bin.fileName||v.attachments[0].filename||'attachment').slice(0,180)||'attachment';
+return [{json:{ready:true,attachments:[{content:bin.data,content_type,filename}]}}];'''
 
 RESOLVE_OUTBOUND = r'''const e=$('Validate Callback or Provider').first().json,rows=$input.all().map(x=>x.json).filter(x=>x&&x.unipile_chat_id);
 if(!e.ok)return [{json:e}];
@@ -161,31 +181,19 @@ SET status=CASE WHEN $4<>'' THEN 'posted' ELSE 'processing' END,
 WHERE unipile_account_id=$1 AND event_id='ghl:'||$2 AND claim_token=$3
 RETURNING status;'''
 
-PREPARE_GHL_ATTACHMENTS = r'''const urls=$('Validate Callback or Provider').first().json.attachments||[];
-return urls.length?urls.map(url=>({json:{hasAttachment:true,url}})):[{json:{hasAttachment:false}}];'''
+PREPARE_GHL_ATTACHMENTS = r'''const a=$('Validate Callback or Provider').first().json.attachments||[];
+return a.length?[{json:{hasAttachment:true}}]:[{json:{hasAttachment:false}}];'''
 
-COLLECT_GHL_ATTACHMENTS = r'''const expected=$('Validate Callback or Provider').first().json.attachments.length;
-const rows=$input.all().map(i=>i.json||{}),files=[];
-if(rows.length!==expected)return [{json:{ready:false,reason:'attachment_prepare_count_mismatch'}}];
-for(const r of rows){const b=r.body||r;
- if(Number(r.statusCode||0)!==200||!b.content||!b.filename||!b.content_type)
-   return [{json:{ready:false,reason:'attachment_prepare_failed'}}];
- files.push({filename:String(b.filename),content_type:String(b.content_type),content:String(b.content)});
-}
-return [{json:{ready:true,attachments:files}}];'''
 
 PREPARE_V2_ATTACHMENTS = r'''const e=$('Verify HMAC + Allowlist').first().json,items=e.attachments||[];
-return items.length?items.map(a=>({json:{hasAttachment:true,account_id:e.accountId,chat_id:e.chatId,message_id:e.messageId,attachment_id:a.id,filename:a.filename,file_size:a.file_size}})):[{json:{hasAttachment:false}}];'''
+const a=items[0]||{};
+return [{json:{hasAttachment:items.length>0,account_id:e.accountId,chat_id:e.chatId,message_id:e.messageId,attachment_id:a.id,filename:a.filename,file_size:a.file_size}}];'''
 
-COLLECT_V2_ATTACHMENTS = r'''const expected=$('Verify HMAC + Allowlist').first().json.attachments.length;
-const rows=$input.all().map(i=>i.json||{}),urls=[];
-if(rows.length!==expected)return [{json:{ready:false,reason:'attachment_import_count_mismatch'}}];
-for(const r of rows){const b=r.body||r,url=String(b.url||'');
- if(Number(r.statusCode||0)!==200||!/^https:\/\/reports\.livetransparent\.com\/sales-navigator-attachments\/[a-f0-9]{64}$/.test(url))
-  return [{json:{ready:false,reason:'attachment_import_failed'}}];
- urls.push(url);
-}
-return [{json:{ready:true,urls}}];'''
+COLLECT_V2_ATTACHMENTS = r'''const r=$input.first()?.json||{},b=r.body||r,url=String(b.url||'');
+if(Number(r.statusCode||0)!==200||!/^https:\/\/reports\.livetransparent\.com\/sales-navigator-attachments\/[a-f0-9]{64}$/.test(url))
+ return [{json:{ready:false,reason:'attachment_import_failed'}}];
+return [{json:{ready:true,attachments:[url]}}];'''
+
 
 MARK_V2_POST = r'''const e=$('Verify HMAC + Allowlist').first().json,claim=e.direction==='inbound'?$('Decide Inbound Claim').first().json:$('Decide Outbound Mirror Claim').first().json;
 const r=$json||{},b=r.body||r,status=Number(r.statusCode||0),ok=status>=200&&status<300&&b.success!==false;
@@ -214,7 +222,10 @@ if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return fail(401,'invalid_si
 let ev;try{ev=JSON.parse(rawBuffer.toString('utf8'))}catch{return fail(400,'malformed_json')};const p=ev.payload||{};
 const text=typeof p.text==='string'?p.text:'',attachments=Array.isArray(p.attachments)?p.attachments:[];
 if(ev.type!=='message.new'||ev.account_id!==cfg.unipileV2AccountId||typeof p.is_sender!=='boolean'||!ev.id||!p.id||!p.chat_id||!p.sender_id||(!text.trim()&&!attachments.length))return fail(400,'event_rejected');
-if(attachments.length>10||attachments.some(a=>!a||!a.id||!Number.isFinite(Number(a.file_size))||Number(a.file_size)>52428800||a.is_unavailable===true)||attachments.reduce((n,a)=>n+Number(a.file_size||0),0)>209715200)return fail(422,'attachment_manifest_rejected');
+const ALLOWED=['.jpg','.jpeg','.png','.gif','.heic','.webp','.bmp','.pdf','.doc','.docx','.xls','.xlsx','.ppt','.pptx','.txt','.csv','.rtf'];
+const extOf=n=>{const s=String(n||''),i=s.lastIndexOf('.');return i>=0?s.slice(i).toLowerCase():''};
+const mimeOk=m=>{m=String(m||'').toLowerCase();return m.startsWith('image/')||m.startsWith('application/pdf')||m.includes('word')||m.includes('excel')||m.includes('spreadsheet')||m.includes('presentation')||m.includes('powerpoint')||m.startsWith('text/')};
+if(attachments.length>1||attachments.some(a=>!a||!a.id||!Number.isFinite(Number(a.file_size))||Number(a.file_size)<=0||Number(a.file_size)>4194304||a.is_unavailable===true||!(mimeOk(a.mimetype)||ALLOWED.includes(extOf(a.filename)))))return fail(422,'attachment_manifest_rejected');
 const manifest=attachments.map(a=>({id:String(a.id),filename:String(a.filename||a.id),file_size:Number(a.file_size||0),mimetype:String(a.mimetype||''),type:String(a.type||'')}));
 return [{json:{valid:true,status:200,direction:p.is_sender?'outbound':'inbound',eventId:String(ev.id),messageId:String(p.id),chatId:String(p.chat_id),profileId:String(p.sender_id),text,timestamp:p.timestamp||ev.created_at||new Date().toISOString(),payloadSha256:crypto.createHash('sha256').update(rawBuffer).digest('hex'),attachments:manifest,accountId:cfg.unipileV2AccountId,providerId:cfg.ghlProviderId}}];'''
 
@@ -316,13 +327,24 @@ MARK_OUTBOUND_MIRROR = r'''const claim=$('Decide Outbound Mirror Claim').first()
 const status=Number($json.statusCode||$json.status||0),ok=status>=200&&status<300&&resp.success!==false;
 return [{json:{accountId:claim.accountId,eventId:claim.eventId,messageId:claim.messageId,claimToken:claim.claim_token,posted:ok,ghlConversationId:resp.conversationId||null,ghlMessageId:resp.messageId||null,failureCode:ok?null:`ghl_http_${status||'error'}`}}];'''
 
+MARK_ATTACHMENT_FAILURE = """UPDATE sales_navigator_v2_message_events
+SET status='held',held_reason=$4,failure_code=$4,updated_at=NOW()
+WHERE unipile_account_id=$1 AND event_id=$2 AND claim_token=$3::uuid AND status='processing'
+RETURNING status;"""
+
+BUILD_ATTACHMENT_UPLOAD = r'''const e=$('Verify HMAC + Allowlist').first().json,bin=$input.first()?.binary?.data;
+if(!e.attachments||!e.attachments.length)return [{json:{attachmentFetchFailed:true,reason:'attachment_missing'}}];
+if(!bin||!bin.data)return [{json:{attachmentFetchFailed:true,reason:'attachment_fetch_failed'}}];
+return [{json:{filename:String(bin.fileName||e.attachments[0].filename||'attachment'),content_type:String(bin.mimeType||'application/octet-stream').split(';')[0],data:bin.data,attachmentFetchFailed:false}}];'''
+
 
 def build_gateway() -> dict:
     w = api("/workflows/ZiYEBuP7xdddhnUB")
     generated = {"Validate Callback or Provider", "Valid Signed Outbound?", "Find V2 Contact Chat", "Resolve V2 Chat", "Unique V2 Chat?", "Claim GHL Outbound", "Decide Outbound Claim", "New Outbound Claim?", "Send Existing V2 Chat Message", "Mark GHL Outbound Posted", "Outbound Success Response", "Respond Safely"}
     generated.update({"Capture Sent V2 Message", "Prepare GHL Attachments", "GHL Attachment Present?",
                       "Prepare GHL Attachment File", "Collect GHL Attachments", "No GHL Attachments",
-                      "Ready to Send V2?", "Mark GHL Attachment Failure", "Outbound Attachment Failure Response"})
+                      "Ready to Send V2?", "Mark GHL Attachment Failure", "Outbound Attachment Failure Response",
+                      "Fetch GHL Attachment", "Build V2 Attachment"})
     nodes = [n for n in w["nodes"] if n["name"] not in generated]
     for node in nodes:
         if node["name"] == "Config":
@@ -346,9 +368,9 @@ WHERE m.unipile_account_id=$1 AND m.ghl_contact_id=$2
         if_node("New Outbound Claim?", "={{ $json.shouldSend }}", True, "true", "boolean", [2400, -40]),
         code("Prepare GHL Attachments", PREPARE_GHL_ATTACHMENTS, [2650, -40]),
         if_node("GHL Attachment Present?", "={{ $json.hasAttachment }}", True, "true", "boolean", [2900, -40]),
-        media_post("Prepare GHL Attachment File", "prepare-ghl",
-                   "={{ { url: $json.url } }}", [3150, -120]),
-        code("Collect GHL Attachments", COLLECT_GHL_ATTACHMENTS, [3400, -120]),
+        {"id": str(uuid.uuid4()), "name": "Fetch GHL Attachment", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [3150, -120],
+         "parameters": {"method": "GET", "url": "={{ $('Validate Callback or Provider').first().json.attachments[0].url }}", "options": {"timeout": 30000, "response": {"response": {"responseFormat": "file", "neverError": True}}}}},
+        code("Build V2 Attachment", BUILD_V2_ATTACHMENT, [3400, -120]),
         code("No GHL Attachments", "return [{json:{ready:true,attachments:[]}}];", [3150, 80]),
         if_node("Ready to Send V2?", "={{ $json.ready }}", True, "true", "boolean", [3650, -40]),
         postgres("Mark GHL Attachment Failure", """UPDATE sales_navigator_v2_message_events
@@ -380,9 +402,9 @@ WHERE unipile_account_id=$1 AND event_id='ghl:'||$2 AND claim_token=$3::uuid
         "Decide Outbound Claim": {"main": conn("New Outbound Claim?")},
         "New Outbound Claim?": {"main": [[conn("Prepare GHL Attachments")[0][0]], [conn("Respond Safely")[0][0]]]},
         "Prepare GHL Attachments": {"main": conn("GHL Attachment Present?")},
-        "GHL Attachment Present?": {"main": [[conn("Prepare GHL Attachment File")[0][0]], [conn("No GHL Attachments")[0][0]]]},
-        "Prepare GHL Attachment File": {"main": conn("Collect GHL Attachments")},
-        "Collect GHL Attachments": {"main": conn("Ready to Send V2?")},
+        "GHL Attachment Present?": {"main": [[conn("Fetch GHL Attachment")[0][0]], [conn("No GHL Attachments")[0][0]]]},
+        "Fetch GHL Attachment": {"main": conn("Build V2 Attachment")},
+        "Build V2 Attachment": {"main": conn("Ready to Send V2?")},
         "No GHL Attachments": {"main": conn("Ready to Send V2?")},
         "Ready to Send V2?": {"main": [[conn("Send Existing V2 Chat Message")[0][0]], [conn("Mark GHL Attachment Failure")[0][0]]]},
         "Mark GHL Attachment Failure": {"main": conn("Outbound Attachment Failure Response")},
@@ -399,6 +421,12 @@ def build_inbound() -> dict:
     w = api("/workflows/CfpedDQWxoJLEMdL")
     generated = {"Verify HMAC + Allowlist", "Valid Inbound Event?", "Inbound Direction?", "Fetch V2 Sender Profile", "Normalize V2 Sender Profile", "Resolve Existing LinkedIn Contact", "Resolve Inbound Contact", "Unique Existing Contact?", "Needs Contact Creation?", "Create Sales Navigator GHL Contact", "Extract Created Contact", "GHL Contact Created?", "Resolve Created Profile Claim", "Confirm Profile Index Write", "Profile Index Write Successful?", "Record Existing Contact in Shared Index", "Upsert Sales Navigator Conversation Map", "Confirm Sales Navigator Map", "Sales Navigator Map Ready?", "Claim V2 Inbound Event", "Decide Inbound Claim", "New Inbound Claim?", "Respond Safely", "Acknowledge Claimed Inbound", "Post Inbound to GHL", "Prepare Inbound Result", "Finalize Inbound Event", "Find Outbound Chat Map", "Resolve Outbound Chat", "Outbound Chat Mapped?", "Fetch Outbound Chat Messages", "Resolve Outbound Peer", "Outbound Peer Found?", "Fetch Outbound Peer Profile", "Normalize Outbound Peer Profile", "Outbound Peer Profile Valid?", "Lookup Outbound Contact Index", "Resolve Outbound Index", "Outbound Peer Matched?", "Upsert Outbound Chat Map", "Confirm Outbound Chat Map", "Outbound Chat Map Ready?", "Prepare Outbound Mirror Context", "Claim V2 Outbound Mirror Event", "Decide Outbound Mirror Claim", "New Outbound Mirror Claim?", "Acknowledge Claimed Outbound", "Post Outbound Mirror to GHL", "Prepare Outbound Mirror Result", "Finalize V2 Outbound Mirror"}
     generated.update({"Find Inbound Chat Map", "Resolve Inbound Map", "Mapped Inbound Chat?", "Find GHL Origin Message", "Decide GHL Origin", "Mirror External Message?"})
+    generated.update({"Inbound Attachment Present?", "Prepare Inbound Attachment", "Collect Inbound Attachment",
+                      "Inbound Attachment Ready?", "Mark Inbound Attachment Failure", "Inbound Attachment Failure Response",
+                      "Outbound Attachment Present?", "Prepare Outbound Attachment", "Collect Outbound Attachment",
+                      "Outbound Attachment Ready?", "Mark Outbound Attachment Failure", "Outbound Attachment Failure Response",
+                      "Fetch Inbound Attachment", "Build Inbound Upload", "Store Inbound Attachment",
+                      "Fetch Outbound Attachment", "Build Outbound Upload", "Store Outbound Attachment"})
     nodes = [n for n in w["nodes"] if n["name"] not in generated]
     for node in nodes:
         if node["name"] == "Config":
@@ -448,7 +476,7 @@ SELECT id FROM inserted;""", "={{ [ $('Resolve Inbound Contact').first().json.ac
         {"id": str(uuid.uuid4()), "name": "Acknowledge Claimed Inbound", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.5, "position": [2650, -320],
          "parameters": {"respondWith": "json", "responseBody": "={\"ok\":true,\"accepted\":true}", "options": {"responseHeaders": {"entries": [{"name": "Content-Type", "value": "application/json"}]}, "responseCode": 202}}},
         {"id": str(uuid.uuid4()), "name": "Post Inbound to GHL", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [2650, -180],
-         "parameters": {"method": "POST", "url": "https://services.leadconnectorhq.com/conversations/messages/inbound", "authentication": "predefinedCredentialType", "nodeCredentialType": "oAuth2Api", "sendHeaders": True, "specifyHeaders": "keypair", "headerParameters": {"parameters": [{"name": "Version", "value": "2021-07-28"}, {"name": "Accept", "value": "application/json"}]}, "sendBody": True, "contentType": "json", "specifyBody": "json", "jsonBody": "={{ { type: 'Custom', contactId: $('Resolve Inbound Contact').first().json.contactId, conversationProviderId: $('Config').first().json.ghlProviderId, altId: $('Verify HMAC + Allowlist').first().json.messageId, message: $('Verify HMAC + Allowlist').first().json.text, direction: 'inbound', date: $('Verify HMAC + Allowlist').first().json.timestamp } }}", "options": {"response": {"response": {"neverError": True, "responseFormat": "json", "fullResponse": True}}}},
+         "parameters": {"method": "POST", "url": "https://services.leadconnectorhq.com/conversations/messages/inbound", "authentication": "predefinedCredentialType", "nodeCredentialType": "oAuth2Api", "sendHeaders": True, "specifyHeaders": "keypair", "headerParameters": {"parameters": [{"name": "Version", "value": "2021-07-28"}, {"name": "Accept", "value": "application/json"}]}, "sendBody": True, "contentType": "json", "specifyBody": "json", "jsonBody": "={{ { type: 'Custom', contactId: $('Resolve Inbound Contact').first().json.contactId, conversationProviderId: $('Config').first().json.ghlProviderId, altId: $('Verify HMAC + Allowlist').first().json.messageId, message: $('Verify HMAC + Allowlist').first().json.text, direction: 'inbound', date: $('Verify HMAC + Allowlist').first().json.timestamp, attachments: $json.attachments || [] } }}", "options": {"response": {"response": {"neverError": True, "responseFormat": "json", "fullResponse": True}}}},
          "credentials": {"oAuth2Api": {"id": "zuOARvZFtLm6iIWu", "name": "LT Sales Navigator GHL OAuth2"}}},
         code("Prepare Inbound Result", MARK_INBOUND, [2900, -180]),
         postgres("Finalize Inbound Event", """UPDATE sales_navigator_v2_message_events SET status=CASE WHEN $4::boolean THEN 'posted' ELSE 'failed' END,
@@ -499,12 +527,32 @@ SELECT id FROM inserted;""", "={{ [ $json.accountId, $('Resolve Outbound Peer').
         {"id": str(uuid.uuid4()), "name": "Acknowledge Claimed Outbound", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.5, "position": [2650, 340],
          "parameters": {"respondWith": "json", "responseBody": "={\"ok\":true,\"accepted\":true}", "options": {"responseHeaders": {"entries": [{"name": "Content-Type", "value": "application/json"}]}, "responseCode": 202}}},
         {"id": str(uuid.uuid4()), "name": "Post Outbound Mirror to GHL", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [5150, 760],
-         "parameters": {"method": "POST", "url": "https://services.leadconnectorhq.com/conversations/messages/inbound", "authentication": "predefinedCredentialType", "nodeCredentialType": "oAuth2Api", "sendHeaders": True, "specifyHeaders": "keypair", "headerParameters": {"parameters": [{"name": "Version", "value": "2021-07-28"}, {"name": "Accept", "value": "application/json"}]}, "sendBody": True, "contentType": "json", "specifyBody": "json", "jsonBody": "={{ { type: 'Custom', contactId: $('Prepare Outbound Mirror Context').first().json.contactId, conversationProviderId: $('Config').first().json.ghlProviderId, altId: $('Verify HMAC + Allowlist').first().json.messageId, message: $('Verify HMAC + Allowlist').first().json.text, direction: 'outbound', date: $('Verify HMAC + Allowlist').first().json.timestamp } }}", "options": {"response": {"response": {"neverError": True, "responseFormat": "json", "fullResponse": True}}}},
+         "parameters": {"method": "POST", "url": "https://services.leadconnectorhq.com/conversations/messages/inbound", "authentication": "predefinedCredentialType", "nodeCredentialType": "oAuth2Api", "sendHeaders": True, "specifyHeaders": "keypair", "headerParameters": {"parameters": [{"name": "Version", "value": "2021-07-28"}, {"name": "Accept", "value": "application/json"}]}, "sendBody": True, "contentType": "json", "specifyBody": "json", "jsonBody": "={{ { type: 'Custom', contactId: $('Prepare Outbound Mirror Context').first().json.contactId, conversationProviderId: $('Config').first().json.ghlProviderId, altId: $('Verify HMAC + Allowlist').first().json.messageId, message: $('Verify HMAC + Allowlist').first().json.text, direction: 'outbound', date: $('Verify HMAC + Allowlist').first().json.timestamp, attachments: $json.attachments || [] } }}", "options": {"response": {"response": {"neverError": True, "responseFormat": "json", "fullResponse": True}}}},
          "credentials": {"oAuth2Api": {"id": "zuOARvZFtLm6iIWu", "name": "LT Sales Navigator GHL OAuth2"}}},
         code("Prepare Outbound Mirror Result", MARK_OUTBOUND_MIRROR, [3150, 500]),
         postgres("Finalize V2 Outbound Mirror", """UPDATE sales_navigator_v2_message_events SET status=CASE WHEN $4::boolean THEN 'posted' ELSE 'failed' END,
  ghl_conversation_id=$5,ghl_message_id=$6,failure_code=$7,updated_at=NOW()
 WHERE unipile_account_id=$1 AND event_id=$2 AND claim_token=$3 RETURNING status;""", "={{ [ $json.accountId, $json.eventId, $json.claimToken, $json.posted, $json.ghlConversationId, $json.ghlMessageId, $json.failureCode ] }}", [3400, 500]),
+        if_node("Inbound Attachment Present?", "={{ $('Verify HMAC + Allowlist').first().json.attachments.length > 0 }}", True, "true", "boolean", [2900, -320]),
+        {"id": str(uuid.uuid4()), "name": "Fetch Inbound Attachment", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [3150, -400],
+         "parameters": {"method": "GET", "url": "={{ 'https://api.unipile.com/v2/' + $('Verify HMAC + Allowlist').first().json.accountId + '/chats/' + encodeURIComponent($('Verify HMAC + Allowlist').first().json.chatId) + '/messages/' + encodeURIComponent($('Verify HMAC + Allowlist').first().json.messageId) + '/attachments/' + encodeURIComponent($('Verify HMAC + Allowlist').first().json.attachments[0].id) }}", "authentication": "predefinedCredentialType", "nodeCredentialType": "httpHeaderAuth", "options": {"timeout": 60000, "response": {"response": {"responseFormat": "file", "neverError": True}}}},
+         "credentials": {"httpHeaderAuth": {"id": "calCid5lrBNnl78y", "name": "LT Sales Navigator Unipile V2 API (verified)"}}},
+        code("Build Inbound Upload", BUILD_ATTACHMENT_UPLOAD, [3400, -400]),
+        media_post("Store Inbound Attachment", "store", "={{ $json }}", [3650, -400]),
+        code("Collect Inbound Attachment", COLLECT_V2_ATTACHMENTS, [3900, -400]),
+        if_node("Inbound Attachment Ready?", "={{ $json.ready }}", True, "true", "boolean", [4150, -400]),
+        postgres("Mark Inbound Attachment Failure", MARK_ATTACHMENT_FAILURE, "={{ [ $('Verify HMAC + Allowlist').first().json.accountId, $('Verify HMAC + Allowlist').first().json.eventId, $('Decide Inbound Claim').first().json.claim_token, $json.reason || 'attachment_import_failed' ] }}", [3400, -500]),
+        code("Inbound Attachment Failure Response", "return [{json:{status:503,response:{ok:false,error:'attachment_import_failed'}}}];", [3650, -500]),
+        if_node("Outbound Attachment Present?", "={{ $('Verify HMAC + Allowlist').first().json.attachments.length > 0 }}", True, "true", "boolean", [2900, 340]),
+        {"id": str(uuid.uuid4()), "name": "Fetch Outbound Attachment", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [3150, 260],
+         "parameters": {"method": "GET", "url": "={{ 'https://api.unipile.com/v2/' + $('Verify HMAC + Allowlist').first().json.accountId + '/chats/' + encodeURIComponent($('Verify HMAC + Allowlist').first().json.chatId) + '/messages/' + encodeURIComponent($('Verify HMAC + Allowlist').first().json.messageId) + '/attachments/' + encodeURIComponent($('Verify HMAC + Allowlist').first().json.attachments[0].id) }}", "authentication": "predefinedCredentialType", "nodeCredentialType": "httpHeaderAuth", "options": {"timeout": 60000, "response": {"response": {"responseFormat": "file", "neverError": True}}}},
+         "credentials": {"httpHeaderAuth": {"id": "calCid5lrBNnl78y", "name": "LT Sales Navigator Unipile V2 API (verified)"}}},
+        code("Build Outbound Upload", BUILD_ATTACHMENT_UPLOAD, [3400, 260]),
+        media_post("Store Outbound Attachment", "store", "={{ $json }}", [3650, 260]),
+        code("Collect Outbound Attachment", COLLECT_V2_ATTACHMENTS, [3900, 260]),
+        if_node("Outbound Attachment Ready?", "={{ $json.ready }}", True, "true", "boolean", [4150, 260]),
+        postgres("Mark Outbound Attachment Failure", MARK_ATTACHMENT_FAILURE, "={{ [ $('Verify HMAC + Allowlist').first().json.accountId, $('Verify HMAC + Allowlist').first().json.eventId, $('Decide Outbound Mirror Claim').first().json.claim_token, $json.reason || 'attachment_import_failed' ] }}", [3400, 160]),
+        code("Outbound Attachment Failure Response", "return [{json:{status:503,response:{ok:false,error:'attachment_import_failed'}}}];", [3650, 160]),
     ])
     # Preserve event data across the contact-index and idempotency database nodes.
     claim_decision = next(n for n in nodes if n["name"] == "Decide Inbound Claim")
@@ -537,7 +585,15 @@ WHERE unipile_account_id=$1 AND event_id=$2 AND claim_token=$3 RETURNING status;
         "Claim V2 Inbound Event": {"main": conn("Decide Inbound Claim")},
         "Decide Inbound Claim": {"main": conn("New Inbound Claim?")},
         "New Inbound Claim?": {"main": [[conn("Acknowledge Claimed Inbound")[0][0]], [conn("Respond Safely")[0][0]]]},
-        "Acknowledge Claimed Inbound": {"main": conn("Post Inbound to GHL")},
+        "Acknowledge Claimed Inbound": {"main": conn("Inbound Attachment Present?")},
+        "Inbound Attachment Present?": {"main": [[conn("Fetch Inbound Attachment")[0][0]], [conn("Post Inbound to GHL")[0][0]]]},
+        "Fetch Inbound Attachment": {"main": conn("Build Inbound Upload")},
+        "Build Inbound Upload": {"main": conn("Store Inbound Attachment")},
+        "Store Inbound Attachment": {"main": conn("Collect Inbound Attachment")},
+        "Collect Inbound Attachment": {"main": conn("Inbound Attachment Ready?")},
+        "Inbound Attachment Ready?": {"main": [[conn("Post Inbound to GHL")[0][0]], [conn("Mark Inbound Attachment Failure")[0][0]]]},
+        "Mark Inbound Attachment Failure": {"main": conn("Inbound Attachment Failure Response")},
+        "Inbound Attachment Failure Response": {"main": conn("Respond Safely")},
         "Post Inbound to GHL": {"main": conn("Prepare Inbound Result")},
         "Prepare Inbound Result": {"main": conn("Finalize Inbound Event")},
         "Find Outbound Chat Map": {"main": conn("Resolve Outbound Chat")},
@@ -562,7 +618,15 @@ WHERE unipile_account_id=$1 AND event_id=$2 AND claim_token=$3 RETURNING status;
         "Claim V2 Outbound Mirror Event": {"main": conn("Decide Outbound Mirror Claim")},
         "Decide Outbound Mirror Claim": {"main": conn("New Outbound Mirror Claim?")},
         "New Outbound Mirror Claim?": {"main": [[conn("Acknowledge Claimed Outbound")[0][0]], [conn("Respond Safely")[0][0]]]},
-        "Acknowledge Claimed Outbound": {"main": conn("Post Outbound Mirror to GHL")},
+        "Acknowledge Claimed Outbound": {"main": conn("Outbound Attachment Present?")},
+        "Outbound Attachment Present?": {"main": [[conn("Fetch Outbound Attachment")[0][0]], [conn("Post Outbound Mirror to GHL")[0][0]]]},
+        "Fetch Outbound Attachment": {"main": conn("Build Outbound Upload")},
+        "Build Outbound Upload": {"main": conn("Store Outbound Attachment")},
+        "Store Outbound Attachment": {"main": conn("Collect Outbound Attachment")},
+        "Collect Outbound Attachment": {"main": conn("Outbound Attachment Ready?")},
+        "Outbound Attachment Ready?": {"main": [[conn("Post Outbound Mirror to GHL")[0][0]], [conn("Mark Outbound Attachment Failure")[0][0]]]},
+        "Mark Outbound Attachment Failure": {"main": conn("Outbound Attachment Failure Response")},
+        "Outbound Attachment Failure Response": {"main": conn("Respond Safely")},
         "Post Outbound Mirror to GHL": {"main": conn("Prepare Outbound Mirror Result")},
         "Prepare Outbound Mirror Result": {"main": conn("Finalize V2 Outbound Mirror")},
     }

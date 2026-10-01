@@ -2,6 +2,8 @@
 
 **Historical build checkpoint:** This document's version numbers, credential ID, and statements that no live messages were validated predate the 2026-10-01 live verification. Use [`../../docs/sessions/2026-10-01-sales-navigator-final-audit.md`](../../docs/sessions/2026-10-01-sales-navigator-final-audit.md) for current deployed state and the next-session repair plan. Retain the design detail below as implementation history.
 
+**Attachment transport (session 4, 2026-10-01):** one attachment per message, 4 MB cap. Outbound is inline in the gateway (`Fetch GHL Attachment` + `Build V2 Attachment`, GHL host allowlist). Inbound is proxied by `services/sales_navigator_media` (bridge fetches with its Unipile credential, posts bytes to `POST /sales-navigator-attachments/v1/store`, GHL fetches the returned URL). Current node counts: gateway `ZiYEBuP7xdddhnUB` 24 nodes, bridge `CfpedDQWxoJLEMdL` 74 nodes.
+
 Current state: both dedicated workflows are wired and active on `n8n-lt`; the shared index and workflow schemas are applied. The user connected the GHL OAuth2 credential in n8n. Unipile V2 endpoint `we_01m3taxyc3e4e8ayvk7aqazvnv` is enabled for `message.new`, scoped only to Sales Navigator account `acc_01m3sefk22e8jvnmvvfx333pye`, and targets the inbound workflow. Its signing secret is configured directly in the inbound Config node. The one-time schema/index migration ran, but no inbound message workflow execution, message send, GHL record write, or controlled validation has occurred.
 
 ## Fixed identifiers and credentials

@@ -6,11 +6,10 @@ services:
     restart: unless-stopped
     environment:
       MEDIA_SERVICE_KEY: ${MEDIA_SERVICE_KEY:?required}
-      UNIPILE_API_KEY: ${UNIPILE_API_KEY:?required}
       PUBLIC_BASE_URL: https://reports.livetransparent.com/sales-navigator-attachments
       MEDIA_DATA_DIR: /data
     volumes:
-      - /srv/livetransparent/sales-navigator-media:/data
+      - ./data:/data
     labels:
       - 'traefik.enable=true'
       - 'traefik.docker.network=coolify-shared'

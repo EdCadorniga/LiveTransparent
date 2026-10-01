@@ -1,5 +1,34 @@
 # Sales Navigator V2 bridge audit — 2026-10-01
 
+## Deploy session 4 — 2026-10-01 (attachment transport simplified + LIVE)
+
+Ed selected "slim inbound proxy only", one attachment per message, 4 MB cap. All work on `n8n-lt`; media service on the LiveTransparent VPS. Worktree left dirty; no commit/push.
+
+### Attachment design (now operational)
+
+- **Outbound (GHL → Unipile)** is fully inline in n8n; the gateway no longer touches the media service. `Validate Callback or Provider` accepts zero or one attachment URL, requires HTTPS, and enforces a GHL host allowlist (`.leadconnectorhq.com`, `.msgsndr.com`, `.gohighlevel.com`, `.googleapis.com`, `.googleusercontent.com`, `.amazonaws.com`, `.cloudfront.net`); `>1` → `too_many_attachments`. A new `Fetch GHL Attachment` node downloads the file as binary and `Build V2 Attachment` base64-encodes it, rejecting empty or `>4 MB` payloads before `POST /v2/{account}/chats/{chat}/messages/send` with `attachments:[{content,content_type,filename}]`.
+- **Inbound (Unipile → GHL)** uses the slim hosted proxy, because GHL records an inbound attachment by fetching a public URL and the Unipile attachment endpoint needs our API key. The bridge fetches the attachment with its existing Unipile credential (`Fetch Inbound Attachment` / `Fetch Outbound Attachment`, binary), `Build … Upload` base64-encodes it, `Store … Attachment` POSTs the bytes to the media service, and the returned unguessable URL is passed to GHL as `attachments:[url]`. The media service never fetches remote URLs, so it has no SSRF surface and holds no Unipile key.
+- The inbound attachment path was previously **dead code** (the `PREPARE/COLLECT_V2_ATTACHMENTS` constants were never added to the graph). It is now wired for both inbound and outbound-mirror, with a `Mark … Attachment Failure` step that sets the event to terminal `held` (with `held_reason=attachment_import_failed`) if ingest fails before any GHL write.
+- `Validate HMAC + Allowlist` now rejects `>1` attachment, `>4 MB` each, and non-image/non-document types (extension or MIME).
+
+### Media service — deployed
+
+- `services/sales_navigator_media/server.py` was reduced to a byte host: `POST /sales-navigator-attachments/v1/store` (auth `X-Bridge-Media-Key`, JSON `{filename,content_type,data(base64)}`) and `GET /sales-navigator-attachments/<64-hex token>`, plus `/healthz`. 4 MB cap, images/documents only. No `prepare-ghl`/SSRF/host-allowlist code (moved into n8n), no Unipile key, SQLite metadata only.
+- Deployed via `services/sales_navigator_media/deploy_vps.py` (idempotent; reuses the remote `MEDIA_SERVICE_KEY` on redeploy). Container `sales-navigator-media-sales-navigator-media-1` is `Up` on `coolify-shared`; Traefik routes `reports.livetransparent.com/sales-navigator-attachments`. Data bind-mounted at `./data` owned by uid/gid `100:101`.
+- Verified: public `GET …/v1/healthz` → 200 `{"ok":true}`; unauthenticated `POST …/v1/store` → 401; authenticated store→public-fetch roundtrip returns exact bytes.
+- n8n httpHeaderAuth credential `LT Sales Navigator Media Service` created id `Sz8fSsdp5mGNIUhB`; repo `.env` now carries `SN_MEDIA_CREDENTIAL_ID`.
+
+### Published
+
+- Gateway `ZiYEBuP7xdddhnUB` active/published `66019014-f467-4bea-ac1c-d47f6dbfbd07` (24 nodes; no media-service nodes; `Fetch GHL Attachment` is the only binary fetch).
+- Bridge `CfpedDQWxoJLEMdL` active/published `dd6b78e3-5bd5-4ce4-90f1-ecb82f2b66ed` (74 nodes; `Store Inbound/Outbound Attachment` use the media credential; `includeBinary` on Config).
+- Ledger unchanged: 4 `posted`, 0 unresolved/held, 1 map, 0 duplicate maps, 0 pending claims. `running=0`, `new=0`.
+
+### Still open
+
+- **No live attachment end-to-end test was performed:** no real inbound attachment arrived, and no GHL message with an attachment was sent, so GHL's handling of the hosted URL and Unipile's acceptance of the inline attachment are unverified against the live providers. Reconcile the first real attachment event and confirm it posts with the file.
+- Classic cutover (`7o5EBdvwAuIaWW7k`, social router `kqIi8i1RjFAZKrK3`) not started. The reconciler still routes attachment-bearing uncertain sends to manual `held`, not automatic proof.
+
 ## Deploy session 3 — 2026-10-01 (stall fix + durability deploy LIVE)
 
 This session first cleared the pre-existing `n8n-lt` queue stall, then deployed the Step-2 durability work under Ed's explicit authorization ("Full durability deploy, then validate"). All actions were on `n8n-lt` only. No commit/push; worktree left dirty.
@@ -27,7 +56,7 @@ This session first cleared the pre-existing `n8n-lt` queue stall, then deployed 
 
 ### D. Still open
 
-- **Attachment transport is not operational:** the gateway's media node references `__UNCONFIGURED__` (no `SN_MEDIA_CREDENTIAL_ID`) and the media service is **not deployed** (no container; `https://reports.livetransparent.com/sales-navigator-attachments/v1/healthz` → 404). An attachment-bearing GHL→Unipile send will fail closed and be held by the reconciler. The inbound V2 attachment path is still not wired. Deploy/review the media service (Step 3) before attachments are claimed.
+- **Attachment transport is not operational:** the gateway's media node references `__UNCONFIGURED__` (no `SN_MEDIA_CREDENTIAL_ID`) and the media service is **not deployed** (no container; `https://reports.livetransparent.com/sales-navigator-attachments/v1/healthz` → 404). An attachment-bearing GHL→Unipile send will fail closed and be held by the reconciler. The inbound V2 attachment path is still not wired. Deploy/review the media service (Step 3) before attachments are claimed. **Superseded by session 4 above (attachments live).**
 - **Live end-to-end validation not performed:** no real LinkedIn message, GHL contact creation, or signed live webhook was sent. The gateway Ed25519 signature uses HighLevel's private key (cannot be produced locally); offline signed-payload tests with the real HMAC secret were not run.
 - **Classic cutover not started:** Classic `7o5EBdvwAuIaWW7k` and the social router `kqIi8i1RjFAZKrK3` remain active/unchanged. Preserve Instagram and historical messages.
 
@@ -70,7 +99,7 @@ The repair work was paused at Ed's request so he can work on other items. This i
 - `scripts/n8n/wire_sales_navigator_v2_workflows.py` now builds without writing by default; `--publish` is required to write both workflows. Its current dry run reports 24 gateway nodes and 58 bridge nodes. This source is still incomplete: the gateway attachment branch is scaffolded, but the inbound V2 attachment path is not wired, and the changed workflow has not been published or runtime-validated.
 - `scripts/n8n/build_sales_navigator_reconciler.py` is an 11-node draft that only reads GHL/Unipile and updates the event ledger. It is not deployed or activated, and needs code review and controlled workflow validation before use.
 - `n8n/sales-navigator/sales_navigator_v2_schema.sql` has local migration additions for persisted direction, text, attachment manifest, hash, timestamp, and reconciliation metadata. The production schema was **not** migrated during this repair session.
-- `services/sales_navigator_media/` is a local-only media service scaffold for authenticated Unipile attachment retrieval and stable, unguessable download links. Ed selected protected LiveTransparent server links for attachments larger than HighLevel's 5 MB upload limit. The service is not deployed, has no production credential, and its links have not been tested through a GHL conversation. Its current bounds are 50 MB per Unipile attachment, 200 MB aggregate per message; GHL-to-Unipile import is restricted to 5 MB and a hostname allowlist. Review storage retention, revocation, allowed types, and whether GHL accepts/retains these URLs before deployment.
+- `services/sales_navigator_media/` is a local-only media service scaffold for authenticated Unipile attachment retrieval and stable, unguessable download links. Ed selected protected LiveTransparent server links for attachments larger than HighLevel's 5 MB upload limit. The service is not deployed, has no production credential, and its links have not been tested through a GHL conversation. Its current bounds are 50 MB per Unipile attachment, 200 MB aggregate per message; GHL-to-Unipile import is restricted to 5 MB and a hostname allowlist. Review storage retention, revocation, allowed types, and whether GHL accepts/retains these URLs before deployment. **Superseded by session 4 above: deployed and slimmed to a 4 MB byte host with no Unipile fetch.**
 - The build utility and draft reconciler passed Python compilation. The media-service unit tests passed (3 tests: authorization/idempotency, URL rejection, and size rejection). The build utility dry run passed (24/58 nodes); the reconciler dry run reports 11 nodes. These are local/static checks only and do not establish live workflow behavior.
 
 ### Ordered next steps
