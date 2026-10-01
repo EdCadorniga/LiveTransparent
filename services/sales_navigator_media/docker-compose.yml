@@ -1,0 +1,26 @@
+services:
+  sales-navigator-media:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MEDIA_SERVICE_KEY: ${MEDIA_SERVICE_KEY:?required}
+      UNIPILE_API_KEY: ${UNIPILE_API_KEY:?required}
+      PUBLIC_BASE_URL: https://reports.livetransparent.com/sales-navigator-attachments
+      MEDIA_DATA_DIR: /data
+    volumes:
+      - /srv/livetransparent/sales-navigator-media:/data
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=coolify-shared'
+      - 'traefik.http.routers.sales-navigator-media.rule=Host(`reports.livetransparent.com`) && PathPrefix(`/sales-navigator-attachments`)'
+      - 'traefik.http.routers.sales-navigator-media.priority=100'
+      - 'traefik.http.routers.sales-navigator-media.entrypoints=https'
+      - 'traefik.http.routers.sales-navigator-media.tls=true'
+      - 'traefik.http.services.sales-navigator-media.loadbalancer.server.port=8080'
+    networks:
+      - coolify-shared
+networks:
+  coolify-shared:
+    external: true

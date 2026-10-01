@@ -1,6 +1,10 @@
 # LinkedIn and Instagram via Unipile -> GHL Bidirectional Integration
 
-Updated: 2026-08-14 (company Instagram-page delivery planning added; existing inbound/outbound bridge remains authoritative)
+## Sales Navigator V2 custom app checkpoint — 2026-10-01
+
+Current Sales Navigator V2 status is maintained in `n8n/sales-navigator/WORKFLOW_BUILD_SPEC.md`, `AGENTS.md`, and `Project Status and Next Steps.md`. The user reports the GHL OAuth2 credential is connected. Unipile endpoint `we_01m3taxyc3e4e8ayvk7aqazvnv` is active for `message.new`, scoped to the Sales Navigator V2 account, and its secret is configured in the dedicated bridge workflow. The V2 map/event schema is applied; both dedicated workflows are active. On 2026-10-01 the V2 handler was extended to mirror messages sent from Sales Navigator into GHL as outbound Custom messages, with shared event/message idempotency and fail-closed contact matching. The custom app/provider portal state remains user-reported, not independently inspected. The new branch is deployed but has not been runtime-validated; the message that prompted the change was not replayed or backfilled. Keep the new provider out of the Classic router.
+
+Updated: 2026-10-01 (Sales Navigator V2 outbound message mirroring added)
 
 Next-session handoff for the bidirectional GHL Custom Conversation Provider integration using Unipile for LinkedIn and Instagram.
 
@@ -210,7 +214,7 @@ curl -X POST https://automations.livetransparent.com/webhook/lt-social-provider-
 |-------|-------|
 | App ID | `6a57dec68099a1e7cf68a266` |
 | Client ID | `6a57dec68099a1e7cf68a266-mrmh8fl9` |
-| Client Secret | `56f564ab-9eed-4797-9d4e-0df367e1acd4` |
+| Client Secret | `[REDACTED — previously exposed; user confirmed revocation on 2026-10-01]` |
 | App Name | Transparent eCom Social Inbox |
 | Developer | Transparent eCom |
 | Target User | Sub-account |

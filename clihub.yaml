@@ -42,6 +42,5 @@ mcp:
   - id: ghl_katwill_agency
   - id: ghl_katwill_rct
   - id: n8n_lt
-  - id: n8n_whitefriar
   - id: n8n_katwill_remote
 plugins: []
