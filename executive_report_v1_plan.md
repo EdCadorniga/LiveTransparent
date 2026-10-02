@@ -1,6 +1,15 @@
 # Executive Report V1 Plan and Session Handoff
 
-Last updated: 2026-09-29 (EOS closeout; GHL outbound call snapshot and signed-event receiver)
+Last updated: 2026-10-02 (Band 1 funnel bloat + Pipeline-to-work fix; V1 Facts API 9fff955b; V1 redeployed)
+
+## 2026-10-02 — Band 1 funnel bloat + Pipeline-to-work fix
+
+- **Root cause 1 (band 1 bloat):** the V1 Facts API `feedback_funnel.opportunities_created` counted every opportunity *observed* in any snapshot inside the window (`COUNT(DISTINCT opportunity_id) ... WHERE observed_date BETWEEN`), so 30d showed **11,461** instead of opportunities *created* in the window. `feedback_opps` now derives a per-row `created_date` (same COALESCE as `authoritative_ghl_counts`: `source_created_at` → `createdAt` → `dateAdded` → `report_date`, `America/Los_Angeles`) and the funnel counts by it → **1,387**, matching `authoritativeGhlCounts`.
+- **Root cause 2 (blank "Pipeline to work"):** the frontend derived its number from `summary.pipelineDropoff` filtered by stage name `/qualif|mql/i`, which never matches pipeline-level rows (`Sales Outreach`/`Warm`/…), so it rendered "—". Added `pipelineToWork` to the V1 Facts API: distinct contacts on open `Sales Outreach` (`dhdlf3O4tymxFtHk4aqq`) opportunities currently in `New` (`3529dd3d-cab0-4279-967c-1aea203de4fb`) or `Qualified` (`91517911-3eee-45a0-b432-e36209495c16`), from the latest raw opportunity snapshot. Frontend `story()` now reads `f.pipelineToWork.total_contacts`. Live 30d: New 211, Qualified 847, total distinct **1,057**.
+- Published `LT - Executive Report V1 Facts API` (`oxYDg6XnRBKhl1Xd`) version `9fff955b-96bf-4951-9c75-0054f9792c8d` (`versionId == activeVersionId`, active). Patch: `scripts/social-reporting/patch_v1_funnel_and_pipeline_to_work.py` (`--dump-sql` / `--apply`).
+- Redeployed `reports/embed/executive-v1/index.html` via `scripts/deploy/deploy_report_vps_local.py`. Current report `/embed/executive/` unchanged (sha256 `E675C97C…`).
+- Browser-verified live 30d (`2026-09-02`–`2026-10-01`): headline & funnel `Opportunities = 1,387`, `Pipeline to work = 1,057`.
+- Not addressed (not requested): `funnel.sql_to_closed_rate` is absent from the API, so the funnel strip still shows `SQL→Closed = —`.
 
 ## 2026-09-29 EOS — Response-SLA unmatched-event detail
 
