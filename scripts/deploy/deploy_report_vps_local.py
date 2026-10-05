@@ -8,8 +8,8 @@ import paramiko
 HOST = "89.117.21.29"
 APP_DIR = "/data/coolify/applications/v3ud1lum1svamymuor21upog"
 SOURCE_DIR = "/tmp/livetransparent-report-local"
-IMAGE = "v3ud1lum1svamymuor21upog:social-mql-20260817"
-BUILD_STAMP = "2026-08-17-v27-social-mql"
+IMAGE = "v3ud1lum1svamymuor21upog:executive-v1-20261005"
+BUILD_STAMP = "2026-10-05-v1-band4"
 LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "reports"))
 
 
@@ -60,6 +60,7 @@ try:
     run(client, "restart-after-network", "docker restart reports-livetransparent")
     time.sleep(5)
     run(client, "verify-container", "docker ps --filter name=reports-livetransparent --format '{{.ID}}\t{{.Image}}\t{{.Status}}'")
-    run(client, "verify-build", f"curl -fsS https://reports.livetransparent.com/embed/executive/index.html | grep -o '{BUILD_STAMP}'")
+    run(client, "verify-v1-build", f"curl -fsS https://reports.livetransparent.com/embed/executive-v1/index.html | grep -o '{BUILD_STAMP}'")
+    run(client, "verify-legacy-report", "curl -fsS https://reports.livetransparent.com/embed/executive/index.html | grep -o '2026-08-17-v27-social-mql'")
 finally:
     client.close()
