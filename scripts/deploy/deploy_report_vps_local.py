@@ -8,8 +8,8 @@ import paramiko
 HOST = "89.117.21.29"
 APP_DIR = "/data/coolify/applications/v3ud1lum1svamymuor21upog"
 SOURCE_DIR = "/tmp/livetransparent-report-local"
-IMAGE = "v3ud1lum1svamymuor21upog:executive-v1-20261005"
-BUILD_STAMP = "2026-10-05-v1-band4"
+IMAGE = "v3ud1lum1svamymuor21upog:executive-v1-20261006"
+BUILD_STAMP = "2026-10-06-v1-rolling-week"
 LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "reports"))
 
 

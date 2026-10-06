@@ -1,56 +1,44 @@
-# Executive Report V1 — Weekly Hermes Browser Refresh
+# Executive Report V1 — weekly Band 4 refresh
 
-**Status:** Hermes recurring job configured and active; job ID `b231ec42ee37`.
-**Schedule:** Every Monday at 9:00 AM, timezone `Asia/Manila` (Telegram delivery).
-**Reporting window:** The immediately preceding Sunday through Saturday, using `America/Los_Angeles` dates regardless of the operator's browser or local timezone.
+**Purpose:** Refresh the weekly calls section (Band 4) in Executive Report V1 from GHL's authenticated native report, then deploy and verify V1.
+**Reporting timezone:** `America/Los_Angeles` for every range and label. The browser may display `Asia/Manila`; that does not change the reporting timezone.
+**Schedule:** Monday, 7:30 AM machine local time (Singapore Standard Time, UTC+08:00, same offset as `Asia/Manila`). The report period is the immediately preceding Sunday–Saturday in Los Angeles.
+**Current scheduler state (2026-10-06):** The previously documented job `b231ec42ee37` was absent. Recreated as Hermes job `cd6d1b15f148` (`Executive Report V1 Weekly Band 4`); `hermes cron status` confirms one active job, a live gateway, and next run `2026-10-12T07:30:00+08:00`. Machine timezone is Singapore Standard Time (UTC+08:00, matching Manila offset). Windows Scheduled Task installation required admin approval and was not approved; Hermes used a Startup-folder login item and started the gateway now. The gateway must run after login for jobs to fire. Delivery is local because Telegram is not configured. The first scheduled browser run still needs end-to-end validation; unattended Chrome/GHL session access is not yet proven.
 
-## Objective
+## Exact operator procedure
 
-Use Hermes browser automation to gather fresh values from the authenticated GHL report and refresh the isolated Executive Report V1 call snapshot. All report dates must use `America/Los_Angeles`, even if the operator's browser or GHL UI displays `Asia/Manila`. Hermes must perform the data gathering on every run; it is not enough to tell Hermes that values exist or to reuse the documented baseline. The refresh must include Marc, Jason Bornillo, Team totals, native call statuses, Booked/SQL/MQL→SQL outputs, and week-over-week percentages versus the prior Sunday–Saturday week.
+1. Run `opencli doctor`; continue only when Chrome and its extension are connected. Use the authenticated Chrome tab and the correct GHL location `Zwz4relUXVPxx8uohnjV`.
+2. Use the persistent OpenCLI session name `band4`: `opencli browser band4 open https://app.gohighlevel.com/v2/location/Zwz4relUXVPxx8uohnjV/reporting/reports/view/69bbeb2d088aabd9058eaf44`, then `opencli browser band4 state` to inspect the page.
+3. Set the report date range to **Last week** (Sunday–Saturday), then confirm the visible start and end dates equal the expected `America/Los_Angeles` dates. Do not proceed on a mismatch. Use `opencli browser <session> state` to inspect current controls and fresh refs; do not reuse stale refs.
+4. Open the report page list and choose **GHL Call Report** using a fresh index from `state` (page name is visible in the report page drawer). The page drawer can remain open after selection; verify the chart content changed instead of assuming the click failed. `opencli browser band4 get text '#gridContainerPages'` reads the visible page text.
+5. For both **Marc Coetzee** and **Jason Bornillo**, read the native **Outgoing Calls by Status** chart and exact outbound total. Use fresh refs/selectors from `state`/`find`; `opencli browser band4 hover <fresh-ref-or-selector>` exposes each status tooltip, then read the tooltip from a fresh `state`/`get text` result. Hover each status segment/bar to obtain exact values for Answered, Busy, Failed, Missed/No answer, and Ringing. Do not transcribe rounded labels in place of exact tooltip values. Record inbound separately; “No data found” for incoming is not an outbound zero.
+6. Read the preceding Sunday–Saturday period using the native date control as well. Read matching **Booked**, **SQLs**, and **MQL→SQL** from the Executive Summary SDR output for the report week and prior week. GHL native values are authoritative. Do not use private reporting endpoints, guessed calculations, or the Conversations export as a substitute.
+7. Check each SDR's statuses sum exactly to attempted calls, and Team equals Marc + Jason for every call status and output. Calculate each week-over-week percentage as `(current - previous) / previous * 100`; show `— WoW` when the previous value is zero. Confirm date labels and comparison weeks are Sunday–Saturday in Los Angeles.
+8. Update `reports/embed/executive-v1/index.html`: move the accepted current call snapshot to `prior`, set its Booked/SQL/MQL output values as the next comparison baseline, and enter the new dates and current call snapshot. Keep Team values derived from the two SDR rows or reconciled to their sums. Remove any date-specific guard that would hide valid data for the newly selected week. Do not change unrelated report logic.
+9. Run `node --check` on the inline report JavaScript and `git diff --check`. Deploy only the Executive Report V1 using `python scripts/deploy/deploy_report_vps_local.py` after checking its help/options and following its established V1-only path. Do not deploy the legacy report.
+10. Open `/embed/executive-v1/` with the selected dates and verify the new window, timezone, Marc/Jason/Team values, all comparison percentages, source health label, and zero console errors. Verify the live build marker. Record source, values, validation time, build marker, and outcome in the dated session note.
 
-## Hermes task instruction
+## Fail-closed conditions
 
-> Every Monday at 3:00 AM America/Los_Angeles, open the authenticated GHL report at `https://app.gohighlevel.com/v2/location/Zwz4relUXVPxx8uohnjV/reporting/reports/view/69bbeb2d088aabd9058eaf44` for location `Zwz4relUXVPxx8uohnjV`. Use Sunday–Saturday date fields and show `America/Los_Angeles` as the V1 reporting timezone regardless of browser locale. Ed has directed that GHL native report values are authoritative; do not reject or reinterpret native counts solely because the browser UI displays `Asia/Manila`. Read exact outbound call totals and Answered, Busy, Missed/No answer, Failed, and Ringing statuses for Marc Coetzee and Jason Bornillo, and the prior Sunday–Saturday comparison values. Also gather matching Booked, SQLs, and MQL→SQL values from the authenticated Executive Summary SDR output. Validate that each SDR's statuses sum to their total and Team equals Marc plus Jason. Calculate percentage change as `(current - previous) / previous * 100`; use an em dash when the previous value is zero. Update the V1 dated call snapshot and week-over-week values only after validation. Do not use the documented Conversations export as a substitute unless it has passed native parity validation. If login, MFA, CAPTCHA, report loading, date range, user filter, status totals, or output values fail validation, preserve the prior accepted snapshot and report the failure.
+If Chrome/login/MFA/CAPTCHA, the GHL report, exact chart tooltips, prior-period values, date range, output rows, or any reconciliation check is unavailable or ambiguous, do not edit or deploy. Preserve the last accepted snapshot and report the precise blocker through the scheduler's run result. Never invent a number, infer one from a rounded total, or label an unverified run as complete. Do not mutate CRM data, call or message contacts, change report routing, or deploy paths outside Executive Report V1.
 
-## Browser source details
+## Current accepted snapshot
 
-The authenticated report page currently uses the private browser request:
+Window `2026-09-27`–`2026-10-03` (`America/Los_Angeles`), compared with `2026-09-20`–`2026-09-26`:
 
-`POST https://backend.leadconnectorhq.com/reporting/dashboards/revex/calls?locationId=Zwz4relUXVPxx8uohnjV`
+| Owner | Week | Attempted | Answered | Busy | No answer | Failed | Ringing |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Marc | Sep 20–26 | 1,006 | 802 | 105 | 59 | 40 | 0 |
+| Jason Bornillo | Sep 20–26 | 350 | 285 | 19 | 35 | 11 | 0 |
+| Team | Sep 20–26 | 1,356 | 1,087 | 124 | 94 | 51 | 0 |
+| Marc | Sep 27–Oct 3 | 807 | 568 | 115 | 61 | 62 | 1 |
+| Jason Bornillo | Sep 27–Oct 3 | 566 | 435 | 32 | 76 | 21 | 2 |
+| Team | Sep 27–Oct 3 | 1,373 | 1,003 | 147 | 137 | 83 | 3 |
 
-The native widget request filters by `dateAdded`, `direction=outbound`, SDR `userId`, and a timezone. Ed has directed that the GHL native report values are authoritative for the requested date fields, even when the browser UI displays its local timezone as `Asia/Manila`; the V1 period label remains `America/Los_Angeles`. Do not copy or store bearer tokens, cookies, or browser-session secrets. Do not treat this private route as a supported GHL API contract; the GHL PIT returned HTTP 401 for it.
+Selected-week Executive Summary outputs: Cameron Karkut `2` booked / `1` SQL / `0` MQL→SQL; Marc `0` / `1` / `0`; Jason `0` / `0` / `0`. Values and implementation details are recorded in `docs/sessions/2026-10-05-executive-report-v1-band4-refresh-handoff.md`.
 
-## Required output
+## Browser/report notes
 
-Store a dated V1 snapshot containing:
+The GHL native report page is the source of truth. Its browser UI may show local timezone text; Ed directed all report dates and displayed timezone to be `America/Los_Angeles`. The native chart request observed during investigation was a private backend route, not a supported API contract; do not copy/store browser credentials or call that route directly. V1's selected-period call snapshot is embedded in `reports/embed/executive-v1/index.html`; it is not automatically populated by the broad historical facts feed, which is marked incomplete.
 
-- Reporting window start/end and timezone.
-- Marc and Jason attempted, answered, busy, no-answer, and failed counts.
-- Team totals calculated from the two SDR rows.
-- Previous-week values and percentage changes for Team and each SDR.
-- Source state: `GHL native browser report`, validation timestamp, and whether the refresh passed.
-
-## Validation and safety gates
-
-- The report week must be Sunday–Saturday; do not silently convert it to Monday–Sunday.
-- Exact status totals must sum to each SDR's attempted total.
-- Team totals must equal the sum of the Marc and Jason rows.
-- A zero previous-week value produces `—`, not an invented percentage.
-- Rounded card text such as `1.01K` is not accepted when an exact widget total is available.
-- A browser login/MFA interruption, private-route error, mismatched export, or incomplete widget response is a failed run. Preserve the prior accepted snapshot and notify the owner.
-- No CRM mutation, outbound call, message send, Marketplace subscription, or report-path change is part of this task.
-
-## Current accepted baseline
-
-Prior-week GHL comparison snapshot for `2026-09-20`–`2026-09-26`:
-
-- Marc: `1,006` attempted — `802` answered, `105` busy, `59` no-answer, `40` failed.
-- Jason Bornillo: `350` attempted — `285` answered, `19` busy, `35` no-answer, `11` failed.
-- Team: `1,356` attempted — `1,087` answered, `124` busy, `94` no-answer, `51` failed.
-- Executive Summary outputs: Marc `0` booked, `3` SQLs, `0` MQL→SQL; Jason `0` booked, `1` SQL, `1` MQL→SQL.
-
-The current V1 implementation displays this baseline and status-specific prior-week percentages. Current completed snapshot and verification: `docs/sessions/2026-10-05-executive-report-v1-band4-refresh-handoff.md`.
-
-## Known limitation
-
-Scheduled browser tasks may pause if GHL requires login, MFA, CAPTCHA, or browser takeover. This is not a reason to substitute incomplete API-export numbers. Re-authenticate the browser session, rerun the failed window, and verify the output before publishing.
+V1's no-date URL now computes the last completed Sunday–Saturday period in `America/Los_Angeles`; explicit date query parameters remain pinned. The date roll-forward is automatic; the Band 4 call counts and comparison baseline still require this weekly native-GHL refresh.

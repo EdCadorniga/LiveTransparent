@@ -1,6 +1,14 @@
 # Executive Report V1 Plan and Session Handoff
 
-Last updated: 2026-10-02 (Band 1 funnel bloat + Pipeline-to-work fix; V1 Facts API 9fff955b; V1 redeployed)
+Last updated: 2026-10-06 (rolling last-completed-week default; isolated V1 deployment)
+
+## 2026-10-06 — Rolling date default
+
+- When the V1 URL has no explicit `from`/`to` values, the frontend calculates the last completed Sunday–Saturday period using the `America/Los_Angeles` calendar date. This is independent of browser/host timezone.
+- Verified for Oct 6 Manila / Oct 5 Los Angeles: `2026-09-27`–`2026-10-03`. Verified next-week calculation: `2026-10-04`–`2026-10-10` for Oct 12 Los Angeles.
+- Explicit `from` and `to` query parameters remain pinned. The URL without date parameters is the rolling default: `https://reports.livetransparent.com/embed/executive-v1/`.
+- Deployed image `v3ud1lum1svamymuor21upog:executive-v1-20261006`, marker `2026-10-06-v1-rolling-week`. Live default input values and explicit-date preservation were checked. Legacy `/embed/executive/` remains unchanged.
+- Next action: observe the no-date V1 URL after the next completed LA week and confirm it advances to Oct 4–10; no blocker remains for the default-date change.
 
 ## 2026-10-02 — Band 1 funnel bloat + Pipeline-to-work fix
 
