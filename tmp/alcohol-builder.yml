@@ -1,0 +1,795 @@
+- iframe [active] [ref=f5e11]:
+  - generic [ref=f7e1]:
+    - generic [ref=f7e3]:
+      - list:
+        - listitem:
+          - link "Skip to main content" [ref=f7e4] [cursor=pointer]:
+            - /url: "#main"
+      - generic [ref=f7e7]:
+        - generic [ref=f7e8]:
+          - generic [ref=f7e9]:
+            - generic [ref=f7e10]:
+              - button "Workflows list" [ref=f7e11] [cursor=pointer]
+              - button "Toggle sidebar" [ref=f7e16] [cursor=pointer]
+            - paragraph [ref=f7e21]:
+              - button [ref=f7e22] [cursor=pointer]:
+                - heading "Workflow name" [level=1] [ref=f7e24]: Copy - Cannabis Brands Multi-Channel Outbound - Oct 2026
+            - generic [ref=f7e28]:
+              - group [ref=f7e30]:
+                - generic [ref=f7e31]: EC
+              - generic [ref=f7e34]:
+                - button "Recent changes" [ref=f7e36] [cursor=pointer]:
+                  - img "Recent changes" [ref=f7e38]
+                - button "Undo" [disabled] [ref=f7e40]
+                - button "Redo" [disabled] [ref=f7e44]
+              - button "Save workflow button" [disabled] [ref=f7e50]:
+                - generic [ref=f7e51]: Saved
+          - generic [ref=f7e56]:
+            - generic [ref=f7e2185] [cursor=pointer]:
+              - generic [ref=f7e2187]: Advanced builder
+              - img "loading" [ref=f7e2188]
+            - tablist [ref=f7e77]:
+              - tab "Builder" [active] [selected] [ref=f7e79] [cursor=pointer]:
+                - paragraph [ref=f7e81]: Builder
+              - tab "Settings" [ref=f7e84] [cursor=pointer]:
+                - paragraph [ref=f7e86]: Settings
+              - tab "Enrollment history" [ref=f7e89] [cursor=pointer]:
+                - paragraph [ref=f7e91]: Enrollment history
+              - tab "Execution logs" [ref=f7e94] [cursor=pointer]:
+                - paragraph [ref=f7e96]: Execution logs
+            - generic [ref=f7e98]:
+              - button "Test workflow" [ref=f7e2195] [cursor=pointer]
+              - generic [ref=f7e2197]:
+                - paragraph [ref=f7e2198]: Draft
+                - switch "Toggle draft publish workflow" [ref=f7e2199]:
+                  - generic [aria-hidden] [ref=f7e2200] [cursor=pointer]
+                - paragraph [ref=f7e2202]: Publish
+        - generic [ref=f7e2205]:
+          - generic [ref=f7e2208]:
+            - button [ref=f7e2209] [cursor=pointer]
+            - button [ref=f7e2213] [cursor=pointer]
+            - button [ref=f7e2217] [cursor=pointer]
+            - button [ref=f7e2221] [cursor=pointer]
+            - button [ref=f7e2225] [cursor=pointer]
+            - button [ref=f7e2229] [cursor=pointer]
+            - button [ref=f7e2233] [cursor=pointer]
+            - button [ref=f7e2237] [cursor=pointer]
+          - main [ref=f7e2247]:
+            - generic [ref=f7e2251]:
+              - generic [ref=f7e2253]:
+                - generic:
+                  - img:
+                    - button "Edge from 39bef59a-6729-4207-abe0-2927db252e74 to 785cb3f7-3d35-4ac6-98bc-ba80bdbfec84" [ref=f7e2254]
+                  - img:
+                    - button "Edge from 785cb3f7-3d35-4ac6-98bc-ba80bdbfec84 to 46085b94-a647-4abb-a31d-e1f90328ae0f" [ref=f7e2261]
+                  - img:
+                    - button "Edge from 46085b94-a647-4abb-a31d-e1f90328ae0f to 7fc83bb4-90aa-40b6-842b-35de04d0e95b" [ref=f7e2266]
+                  - img:
+                    - button "Edge from 7fc83bb4-90aa-40b6-842b-35de04d0e95b to 27548aa6-27e8-4ee1-aa3c-04e1a0e24285" [ref=f7e2273]
+                  - img:
+                    - button "Edge from 7c7b4acb-b24c-42c5-b493-f8a113f0b6b5 to 04d18629-4db3-48ab-99eb-1b543dd303f0" [ref=f7e2278]
+                  - img:
+                    - button "Edge from d3e15ec9-7814-4e60-a63d-c876dc189266 to de7daf50-f1ef-46a8-aaec-8f25d696dfa0" [ref=f7e2283]
+                  - img:
+                    - button "Edge from e8100164-b19a-463c-a196-ba0cc169ba96 to c81a9034-43bc-462a-84eb-fe8665712769" [ref=f7e2288]
+                  - img:
+                    - button "Edge from d3e55b93-c0e0-4a7b-8dda-ff6bef6fec5e to dcb211fc-a931-4e50-8198-7b7746dce1fc" [ref=f7e2293]
+                  - img:
+                    - button "Edge from 46085b94-a647-4abb-a31d-e1f90328ae0f to 8c43103e-10da-47cc-9efe-390ab27b4c75" [ref=f7e2298]
+                  - img:
+                    - button "Edge from 8c43103e-10da-47cc-9efe-390ab27b4c75 to aadc93d4-eade-4c9f-a908-3c046314b759" [ref=f7e2305]
+                  - img:
+                    - button "Edge from 56a13d28-0c8d-4529-9c37-fb76deed6199 to 282822dd-2554-48b7-ab61-4a0266054a7e" [ref=f7e2310]
+                  - img:
+                    - button "Edge from 9ed2b07f-b2a4-4288-a5b2-fede12faf846 to 1fbd1595-c9a2-47aa-a10f-4de5ef9241db" [ref=f7e2315]
+                  - img:
+                    - button "Edge from f191431a-2e43-48e0-9e08-998ed27665dc to 33c56432-637e-454d-acbc-eccb228e1098" [ref=f7e2320]
+                  - img:
+                    - button "Edge from 728d0453-3f90-4e6d-8ba7-13dffa472b37 to a3bcf96a-efbb-4889-9af8-3e15114cde77" [ref=f7e2325]
+                  - img:
+                    - button "Edge from 46085b94-a647-4abb-a31d-e1f90328ae0f to 3550013d-0de7-43dc-9f4e-f7be8141a398" [ref=f7e2330]
+                  - img:
+                    - button "Edge from 3550013d-0de7-43dc-9f4e-f7be8141a398 to 867da80c-be1b-4d05-b79b-87dc69634279" [ref=f7e2337]
+                  - img:
+                    - button "Edge from 0d3c1ec3-f2f5-4999-8afd-e3133f44d261 to 85e59503-d273-4b9c-ac0c-fc400e6360d7" [ref=f7e2342]
+                  - img:
+                    - button "Edge from 4a370c43-f5c0-4653-b8a0-0662e6519a72 to 3dae1657-d2b4-4e61-95ea-84c7692306e4" [ref=f7e2347]
+                  - img:
+                    - button "Edge from c9ab83ce-0824-4151-9e78-1a5107e0857a to 188066ea-2938-45e6-b5ba-6d7f09ceb165" [ref=f7e2352]
+                  - img:
+                    - button "Edge from 3880c2b9-2db0-4cd3-b1a0-e8d2564fcbc6 to 7fbfd4f8-25b6-48d3-8c6b-ca6131131a84" [ref=f7e2357]
+                  - img:
+                    - button "Edge from 46085b94-a647-4abb-a31d-e1f90328ae0f to 03128305-a94e-46cf-b28a-1b5d27442c0f" [ref=f7e2362]
+                  - img:
+                    - button "Edge from 03128305-a94e-46cf-b28a-1b5d27442c0f to be3b930b-69f2-4533-bfdc-fb1147e00c16" [ref=f7e2369]
+                  - img:
+                    - button "Edge from d17433ba-4148-4e86-989f-954d0be6b725 to abb2888c-cc8d-4ca1-baa2-0303a1943bd5" [ref=f7e2374]
+                  - img:
+                    - button "Edge from 5b12be65-2445-45f5-9c6d-661bc9d9c3d7 to 99f0b382-3e42-4545-b64c-928380ba73c2" [ref=f7e2379]
+                  - img:
+                    - button "Edge from 060f18d8-c397-4b3e-8984-d0223a29fbc3 to 6a502ad0-d286-4743-82ed-cc21e02d541c" [ref=f7e2384]
+                  - img:
+                    - button "Edge from 331d5bf2-0123-4c4b-acd0-80cd9c51e68c to 8696a7eb-c215-44f3-9bc2-403d6bf7a35a" [ref=f7e2389]
+                  - img:
+                    - button "Edge from 46085b94-a647-4abb-a31d-e1f90328ae0f to d695e5de-7db8-44db-96ab-608926f6835c" [ref=f7e2394]
+                  - img:
+                    - button "Edge from 39bef59a-6729-4207-abe0-2927db252e74 to f3941331-6167-4d99-89d0-94ed9b609a74" [ref=f7e2401]
+                  - img:
+                    - button "Edge from 76432b5b-4407-4556-89ef-deb76a85bbd3 to 7c7b4acb-b24c-42c5-b493-f8a113f0b6b5" [ref=f7e2408]
+                  - img:
+                    - button "Edge from 04d18629-4db3-48ab-99eb-1b543dd303f0 to 9d1f8969-87bf-4740-a237-2ffe7144ebf6" [ref=f7e2413]
+                  - img:
+                    - button "Edge from de7daf50-f1ef-46a8-aaec-8f25d696dfa0 to e8100164-b19a-463c-a196-ba0cc169ba96" [ref=f7e2418]
+                  - img:
+                    - button "Edge from c81a9034-43bc-462a-84eb-fe8665712769 to 0d2dc25e-4a65-4aa2-b76f-d535c41dc276" [ref=f7e2423]
+                  - img:
+                    - button "Edge from d0cae1a2-ab99-4cd3-bdb6-fc36f71ee32c to 56a13d28-0c8d-4529-9c37-fb76deed6199" [ref=f7e2428]
+                  - img:
+                    - button "Edge from 282822dd-2554-48b7-ab61-4a0266054a7e to 45367926-4779-428a-877c-96831637999c" [ref=f7e2433]
+                  - img:
+                    - button "Edge from 1fbd1595-c9a2-47aa-a10f-4de5ef9241db to f191431a-2e43-48e0-9e08-998ed27665dc" [ref=f7e2438]
+                  - img:
+                    - button "Edge from 33c56432-637e-454d-acbc-eccb228e1098 to 6bc14dfb-ef6d-4638-b640-51c2a54c90da" [ref=f7e2443]
+                  - img:
+                    - button "Edge from e945bf37-3deb-4234-82f7-2c0b514393e7 to 0d3c1ec3-f2f5-4999-8afd-e3133f44d261" [ref=f7e2448]
+                  - img:
+                    - button "Edge from 85e59503-d273-4b9c-ac0c-fc400e6360d7 to 8867deed-d5b0-4a9f-815c-4fb546d8940e" [ref=f7e2453]
+                  - img:
+                    - button "Edge from 3dae1657-d2b4-4e61-95ea-84c7692306e4 to c9ab83ce-0824-4151-9e78-1a5107e0857a" [ref=f7e2458]
+                  - img:
+                    - button "Edge from 188066ea-2938-45e6-b5ba-6d7f09ceb165 to b68b088e-25ab-4fd9-a086-d0a2f3767072" [ref=f7e2463]
+                  - img:
+                    - button "Edge from 78c64aef-5ba7-4419-93c1-c24841c54d2a to d17433ba-4148-4e86-989f-954d0be6b725" [ref=f7e2468]
+                  - img:
+                    - button "Edge from abb2888c-cc8d-4ca1-baa2-0303a1943bd5 to 971cf05d-f8a5-40b0-ae93-c2e3b361b3f0" [ref=f7e2473]
+                  - img:
+                    - button "Edge from 99f0b382-3e42-4545-b64c-928380ba73c2 to 060f18d8-c397-4b3e-8984-d0223a29fbc3" [ref=f7e2478]
+                  - img:
+                    - button "Edge from 6a502ad0-d286-4743-82ed-cc21e02d541c to 7642199c-26e3-435c-915a-ec08c66eabde" [ref=f7e2483]
+                  - img:
+                    - button "Edge from 27548aa6-27e8-4ee1-aa3c-04e1a0e24285 to 7d10f4bf-a278-49b9-b485-f2c19a7882b5" [ref=f7e2488]
+                  - img:
+                    - button "Edge from aadc93d4-eade-4c9f-a908-3c046314b759 to 1cc7609d-5055-4393-8115-d3b79987e203" [ref=f7e2493]
+                  - img:
+                    - button "Edge from 867da80c-be1b-4d05-b79b-87dc69634279 to 0dedcccb-d7a8-4f98-9920-5ed801572d9e" [ref=f7e2498]
+                  - img:
+                    - button "Edge from be3b930b-69f2-4533-bfdc-fb1147e00c16 to be57667a-b64e-4655-a5aa-6f8d856a18a4" [ref=f7e2503]
+                  - img:
+                    - button "Edge from 7d10f4bf-a278-49b9-b485-f2c19a7882b5 to 76432b5b-4407-4556-89ef-deb76a85bbd3" [ref=f7e2508]
+                  - img:
+                    - button "Edge from 1cc7609d-5055-4393-8115-d3b79987e203 to d0cae1a2-ab99-4cd3-bdb6-fc36f71ee32c" [ref=f7e2513]
+                  - img:
+                    - button "Edge from 0dedcccb-d7a8-4f98-9920-5ed801572d9e to e945bf37-3deb-4234-82f7-2c0b514393e7" [ref=f7e2518]
+                  - img:
+                    - button "Edge from be57667a-b64e-4655-a5aa-6f8d856a18a4 to 78c64aef-5ba7-4419-93c1-c24841c54d2a" [ref=f7e2523]
+                  - img:
+                    - button "Edge from 9eb29782-d9c8-41c3-ab0d-a8d9ad40828d to d3e15ec9-7814-4e60-a63d-c876dc189266" [ref=f7e2528]
+                  - img:
+                    - button "Edge from 7b2b227f-df63-4d6e-8285-b8b737f31c30 to 9ed2b07f-b2a4-4288-a5b2-fede12faf846" [ref=f7e2533]
+                  - img:
+                    - button "Edge from d8e04479-6765-4a37-8016-52c96613ca3e to 4a370c43-f5c0-4653-b8a0-0662e6519a72" [ref=f7e2538]
+                  - img:
+                    - button "Edge from 8ad5199d-1b89-481e-9165-5435f76b3d04 to 5b12be65-2445-45f5-9c6d-661bc9d9c3d7" [ref=f7e2543]
+                  - img:
+                    - button "Edge from a6176ed7-b985-434b-9045-c493927a6455 to 9eb29782-d9c8-41c3-ab0d-a8d9ad40828d" [ref=f7e2548]
+                  - img:
+                    - button "Edge from 34cf9169-34db-40c3-8430-f2abcf797df3 to 7b2b227f-df63-4d6e-8285-b8b737f31c30" [ref=f7e2553]
+                  - img:
+                    - button "Edge from 37b780ff-e349-43da-a6b6-30d95a361308 to d8e04479-6765-4a37-8016-52c96613ca3e" [ref=f7e2558]
+                  - img:
+                    - button "Edge from fc2edf80-29f0-4fd6-b7bf-1b4bc4367a8c to 8ad5199d-1b89-481e-9165-5435f76b3d04" [ref=f7e2563]
+                  - img:
+                    - button "Edge from 4951693f-96d6-4b24-a7da-9584100f3271 to a6176ed7-b985-434b-9045-c493927a6455" [ref=f7e2568]
+                  - img:
+                    - button "Edge from b6a20f4b-feb2-47de-a445-a89bb7284340 to 34cf9169-34db-40c3-8430-f2abcf797df3" [ref=f7e2573]
+                  - img:
+                    - button "Edge from 570eadf9-7af6-4192-a051-36bdba308d96 to 37b780ff-e349-43da-a6b6-30d95a361308" [ref=f7e2578]
+                  - img:
+                    - button "Edge from 06ff0efa-9123-4f8f-8256-6d6300a2bffd to fc2edf80-29f0-4fd6-b7bf-1b4bc4367a8c" [ref=f7e2583]
+                  - img:
+                    - button "Edge from 9d1f8969-87bf-4740-a237-2ffe7144ebf6 to 4951693f-96d6-4b24-a7da-9584100f3271" [ref=f7e2588]
+                  - img:
+                    - button "Edge from 45367926-4779-428a-877c-96831637999c to b6a20f4b-feb2-47de-a445-a89bb7284340" [ref=f7e2593]
+                  - img:
+                    - button "Edge from 8867deed-d5b0-4a9f-815c-4fb546d8940e to 570eadf9-7af6-4192-a051-36bdba308d96" [ref=f7e2598]
+                  - img:
+                    - button "Edge from 971cf05d-f8a5-40b0-ae93-c2e3b361b3f0 to 06ff0efa-9123-4f8f-8256-6d6300a2bffd" [ref=f7e2603]
+                  - img:
+                    - button "Edge from 0d2dc25e-4a65-4aa2-b76f-d535c41dc276 to 1e1962ff-6c7e-446c-905a-7413d78f74fd" [ref=f7e2608]
+                  - img:
+                    - button "Edge from 6bc14dfb-ef6d-4638-b640-51c2a54c90da to e1a2f339-79bf-41a7-947b-282bffe9af32" [ref=f7e2613]
+                  - img:
+                    - button "Edge from b68b088e-25ab-4fd9-a086-d0a2f3767072 to 49f432df-1f43-4d2e-a0ad-f8f62d9eba83" [ref=f7e2618]
+                  - img:
+                    - button "Edge from 7642199c-26e3-435c-915a-ec08c66eabde to c9ae4251-9578-479a-b30f-c10bf7d4b6a6" [ref=f7e2623]
+                  - img:
+                    - button "Edge from 1e1962ff-6c7e-446c-905a-7413d78f74fd to d3e55b93-c0e0-4a7b-8dda-ff6bef6fec5e" [ref=f7e2628]
+                  - img:
+                    - button "Edge from e1a2f339-79bf-41a7-947b-282bffe9af32 to 728d0453-3f90-4e6d-8ba7-13dffa472b37" [ref=f7e2633]
+                  - img:
+                    - button "Edge from 49f432df-1f43-4d2e-a0ad-f8f62d9eba83 to 3880c2b9-2db0-4cd3-b1a0-e8d2564fcbc6" [ref=f7e2638]
+                  - img:
+                    - button "Edge from c9ae4251-9578-479a-b30f-c10bf7d4b6a6 to 331d5bf2-0123-4c4b-acd0-80cd9c51e68c" [ref=f7e2643]
+                  - img:
+                    - button "Edge from Jq9ZASDeC3R0o7rqUqMq to 39bef59a-6729-4207-abe0-2927db252e74" [ref=f7e2648]
+                  - generic:
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                    - generic:
+                      - button
+                  - generic:
+                    - button "Trigger Node Entry - Cannabis Brands Multichannel Oct 2026" [ref=f7e2653]:
+                      - generic "Trigger Node Entry - Cannabis Brands Multichannel Oct 2026" [ref=f7e2655]:
+                        - generic "Node name" [ref=f7e2664]: Entry - Cannabis Brands Multichannel Oct 2026
+                    - button "Action Node Eligibility gate - Cannabis; exclude dispensary cohorts" [ref=f7e2667]:
+                      - generic "Action Node Eligibility gate - Cannabis; exclude dispensary cohorts" [ref=f7e2669]:
+                        - generic [ref=f7e2676]:
+                          - generic "Node name" [ref=f7e2677]: Eligibility gate - Cannabis; exclude dispensary cohorts
+                          - paragraph [ref=f7e2679]: (Default Path)
+                        - button [ref=f7e2680]
+                        - button [ref=f7e2681]
+                    - button "Action Node Eligible - Cannabis, no dispensary exclusion tags" [ref=f7e2682]:
+                      - generic "Action Node Eligible - Cannabis, no dispensary exclusion tags" [ref=f7e2684]:
+                        - generic [ref=f7e2685]:
+                          - generic [ref=f7e2689]:
+                            - generic [ref=f7e2690]
+                            - list [ref=f7e2700]
+                          - generic "Node name" [ref=f7e2703]: Eligible - Cannabis, no dispensary exclusion tags
+                        - button [ref=f7e2705]
+                        - button [ref=f7e2706]
+                    - button "Action Node Sticky sender route - campaign field" [ref=f7e2707]:
+                      - generic "Action Node Sticky sender route - campaign field" [ref=f7e2709]:
+                        - generic "Node name" [ref=f7e2717]: Sticky sender route - campaign field
+                        - button [ref=f7e2719]
+                        - button [ref=f7e2720]
+                    - button "Action Node Cameron - .com" [ref=f7e2721]:
+                      - generic "Action Node Cameron - .com" [ref=f7e2723]:
+                        - generic [ref=f7e2724]:
+                          - generic [ref=f7e2728]:
+                            - paragraph [ref=f7e2731]
+                            - list [ref=f7e2736]
+                          - generic "Node name" [ref=f7e2739]: Cameron - .com
+                        - button [ref=f7e2741]
+                        - button [ref=f7e2742]
+                    - button "Action Node Day 1 Email 1 - Opener - Cameron .com" [ref=f7e2743]:
+                      - generic "Action Node Day 1 Email 1 - Opener - Cameron .com" [ref=f7e2745]:
+                        - generic "Node name" [ref=f7e2754]: Day 1 Email 1 - Opener - Cameron .com
+                        - button [ref=f7e2756]
+                        - button [ref=f7e2757]
+                    - button "Action Node Day 5 Email 2 - How It Works - Cameron .com" [ref=f7e2758]:
+                      - generic "Action Node Day 5 Email 2 - How It Works - Cameron .com" [ref=f7e2760]:
+                        - generic "Node name" [ref=f7e2769]: Day 5 Email 2 - How It Works - Cameron .com
+                        - button [ref=f7e2771]
+                        - button [ref=f7e2772]
+                    - button "Action Node Day 11 Email 3 - Proof - Cameron .com" [ref=f7e2773]:
+                      - generic "Action Node Day 11 Email 3 - Proof - Cameron .com" [ref=f7e2775]:
+                        - generic "Node name" [ref=f7e2784]: Day 11 Email 3 - Proof - Cameron .com
+                        - button [ref=f7e2786]
+                        - button [ref=f7e2787]
+                    - button "Action Node Day 15 Email 4 - Direct Ask - Cameron .com" [ref=f7e2788]:
+                      - generic "Action Node Day 15 Email 4 - Direct Ask - Cameron .com" [ref=f7e2790]:
+                        - generic "Node name" [ref=f7e2799]: Day 15 Email 4 - Direct Ask - Cameron .com
+                        - button [ref=f7e2801]
+                        - button [ref=f7e2802]
+                    - button "Action Node Day 23 Email 5 - Breakup - Cameron .com" [ref=f7e2803]:
+                      - generic "Action Node Day 23 Email 5 - Breakup - Cameron .com" [ref=f7e2805]:
+                        - generic "Node name" [ref=f7e2814]: Day 23 Email 5 - Breakup - Cameron .com
+                        - button "Add action" [ref=f7e2816]:
+                          - button "Add action" [ref=f7e2818] [cursor=pointer]:
+                            - button "Add action" [ref=f7e2819]
+                        - button [ref=f7e2821]
+                    - button "Action Node Cameron - .co" [ref=f7e2822]:
+                      - generic "Action Node Cameron - .co" [ref=f7e2824]:
+                        - generic [ref=f7e2825]:
+                          - generic [ref=f7e2829]:
+                            - paragraph [ref=f7e2832]
+                            - list [ref=f7e2837]
+                          - generic "Node name" [ref=f7e2840]: Cameron - .co
+                        - button [ref=f7e2842]
+                        - button [ref=f7e2843]
+                    - button "Action Node Day 1 Email 1 - Opener - Cameron .co" [ref=f7e2844]:
+                      - generic "Action Node Day 1 Email 1 - Opener - Cameron .co" [ref=f7e2846]:
+                        - generic "Node name" [ref=f7e2855]: Day 1 Email 1 - Opener - Cameron .co
+                        - button [ref=f7e2857]
+                        - button [ref=f7e2858]
+                    - button "Action Node Day 5 Email 2 - How It Works - Cameron .co" [ref=f7e2859]:
+                      - generic "Action Node Day 5 Email 2 - How It Works - Cameron .co" [ref=f7e2861]:
+                        - generic "Node name" [ref=f7e2870]: Day 5 Email 2 - How It Works - Cameron .co
+                        - button [ref=f7e2872]
+                        - button [ref=f7e2873]
+                    - button "Action Node Day 11 Email 3 - Proof - Cameron .co" [ref=f7e2874]:
+                      - generic "Action Node Day 11 Email 3 - Proof - Cameron .co" [ref=f7e2876]:
+                        - generic "Node name" [ref=f7e2885]: Day 11 Email 3 - Proof - Cameron .co
+                        - button [ref=f7e2887]
+                        - button [ref=f7e2888]
+                    - button "Action Node Day 15 Email 4 - Direct Ask - Cameron .co" [ref=f7e2889]:
+                      - generic "Action Node Day 15 Email 4 - Direct Ask - Cameron .co" [ref=f7e2891]:
+                        - generic "Node name" [ref=f7e2900]: Day 15 Email 4 - Direct Ask - Cameron .co
+                        - button [ref=f7e2902]
+                        - button [ref=f7e2903]
+                    - button "Action Node Day 23 Email 5 - Breakup - Cameron .co" [ref=f7e2904]:
+                      - generic "Action Node Day 23 Email 5 - Breakup - Cameron .co" [ref=f7e2906]:
+                        - generic "Node name" [ref=f7e2915]: Day 23 Email 5 - Breakup - Cameron .co
+                        - button "Add action" [ref=f7e2917]:
+                          - button "Add action" [ref=f7e2919] [cursor=pointer]:
+                            - button "Add action" [ref=f7e2920]
+                        - button [ref=f7e2922]
+                    - button "Action Node Cameron - .agency" [ref=f7e2923]:
+                      - generic "Action Node Cameron - .agency" [ref=f7e2925]:
+                        - generic [ref=f7e2926]:
+                          - generic [ref=f7e2930]:
+                            - paragraph [ref=f7e2933]
+                            - list [ref=f7e2938]
+                          - generic "Node name" [ref=f7e2941]: Cameron - .agency
+                        - button [ref=f7e2943]
+                        - button [ref=f7e2944]
+                    - button "Action Node Day 1 Email 1 - Opener - Cameron .agency" [ref=f7e2945]:
+                      - generic "Action Node Day 1 Email 1 - Opener - Cameron .agency" [ref=f7e2947]:
+                        - generic "Node name" [ref=f7e2956]: Day 1 Email 1 - Opener - Cameron .agency
+                        - button [ref=f7e2958]
+                        - button [ref=f7e2959]
+                    - button "Action Node Day 5 Email 2 - How It Works - Cameron .agency" [ref=f7e2960]:
+                      - generic "Action Node Day 5 Email 2 - How It Works - Cameron .agency" [ref=f7e2962]:
+                        - generic "Node name" [ref=f7e2971]: Day 5 Email 2 - How It Works - Cameron .agency
+                        - button [ref=f7e2973]
+                        - button [ref=f7e2974]
+                    - button "Action Node Day 11 Email 3 - Proof - Cameron .agency" [ref=f7e2975]:
+                      - generic "Action Node Day 11 Email 3 - Proof - Cameron .agency" [ref=f7e2977]:
+                        - generic "Node name" [ref=f7e2986]: Day 11 Email 3 - Proof - Cameron .agency
+                        - button [ref=f7e2988]
+                        - button [ref=f7e2989]
+                    - button "Action Node Day 15 Email 4 - Direct Ask - Cameron .agency" [ref=f7e2990]:
+                      - generic "Action Node Day 15 Email 4 - Direct Ask - Cameron .agency" [ref=f7e2992]:
+                        - generic "Node name" [ref=f7e3001]: Day 15 Email 4 - Direct Ask - Cameron .agency
+                        - button [ref=f7e3003]
+                        - button [ref=f7e3004]
+                    - button "Action Node Day 23 Email 5 - Breakup - Cameron .agency" [ref=f7e3005]:
+                      - generic "Action Node Day 23 Email 5 - Breakup - Cameron .agency" [ref=f7e3007]:
+                        - generic "Node name" [ref=f7e3016]: Day 23 Email 5 - Breakup - Cameron .agency
+                        - button "Add action" [ref=f7e3018]:
+                          - button "Add action" [ref=f7e3020] [cursor=pointer]:
+                            - button "Add action" [ref=f7e3021]
+                        - button [ref=f7e3023]
+                    - button "Action Node Cameron - .org" [ref=f7e3024]:
+                      - generic "Action Node Cameron - .org" [ref=f7e3026]:
+                        - generic [ref=f7e3027]:
+                          - generic [ref=f7e3031]:
+                            - paragraph [ref=f7e3034]
+                            - list [ref=f7e3039]
+                          - generic "Node name" [ref=f7e3042]: Cameron - .org
+                        - button [ref=f7e3044]
+                        - button [ref=f7e3045]
+                    - button "Action Node Day 1 Email 1 - Opener - Cameron .org" [ref=f7e3046]:
+                      - generic "Action Node Day 1 Email 1 - Opener - Cameron .org" [ref=f7e3048]:
+                        - generic "Node name" [ref=f7e3057]: Day 1 Email 1 - Opener - Cameron .org
+                        - button [ref=f7e3059]
+                        - button [ref=f7e3060]
+                    - button "Action Node Day 5 Email 2 - How It Works - Cameron .org" [ref=f7e3061]:
+                      - generic "Action Node Day 5 Email 2 - How It Works - Cameron .org" [ref=f7e3063]:
+                        - generic "Node name" [ref=f7e3072]: Day 5 Email 2 - How It Works - Cameron .org
+                        - button [ref=f7e3074]
+                        - button [ref=f7e3075]
+                    - button "Action Node Day 11 Email 3 - Proof - Cameron .org" [ref=f7e3076]:
+                      - generic "Action Node Day 11 Email 3 - Proof - Cameron .org" [ref=f7e3078]:
+                        - generic "Node name" [ref=f7e3087]: Day 11 Email 3 - Proof - Cameron .org
+                        - button [ref=f7e3089]
+                        - button [ref=f7e3090]
+                    - button "Action Node Day 15 Email 4 - Direct Ask - Cameron .org" [ref=f7e3091]:
+                      - generic "Action Node Day 15 Email 4 - Direct Ask - Cameron .org" [ref=f7e3093]:
+                        - generic "Node name" [ref=f7e3102]: Day 15 Email 4 - Direct Ask - Cameron .org
+                        - button [ref=f7e3104]
+                        - button [ref=f7e3105]
+                    - button "Action Node Day 23 Email 5 - Breakup - Cameron .org" [ref=f7e3106]:
+                      - generic "Action Node Day 23 Email 5 - Breakup - Cameron .org" [ref=f7e3108]:
+                        - generic "Node name" [ref=f7e3117]: Day 23 Email 5 - Breakup - Cameron .org
+                        - button "Add action" [ref=f7e3119]:
+                          - button "Add action" [ref=f7e3121] [cursor=pointer]:
+                            - button "Add action" [ref=f7e3122]
+                        - button [ref=f7e3124]
+                    - button "Action Node None" [ref=f7e3125]:
+                      - generic "Action Node None" [ref=f7e3127]:
+                        - generic [ref=f7e3128]:
+                          - generic [ref=f7e3131]:
+                            - paragraph [ref=f7e3133]
+                            - paragraph [ref=f7e3138]: When none of the conditions are met
+                          - generic "Node name" [ref=f7e3140]: None
+                        - button "Add action" [ref=f7e3142]:
+                          - button "Add action" [ref=f7e3144] [cursor=pointer]:
+                            - button "Add action" [ref=f7e3145]
+                        - button [ref=f7e3147]
+                    - button "Action Node None" [ref=f7e3148]:
+                      - generic "Action Node None" [ref=f7e3150]:
+                        - generic [ref=f7e3151]:
+                          - generic [ref=f7e3154]:
+                            - paragraph [ref=f7e3156]
+                            - paragraph [ref=f7e3161]: When none of the conditions are met
+                          - generic "Node name" [ref=f7e3163]: None
+                        - button "Add action" [ref=f7e3165]:
+                          - button "Add action" [ref=f7e3167] [cursor=pointer]:
+                            - button "Add action" [ref=f7e3168]
+                        - button [ref=f7e3170]
+                    - button "Action Node Wait" [ref=f7e3171]:
+                      - generic "Action Node Wait" [ref=f7e3173]:
+                        - generic "Node name" [ref=f7e3181]: Wait
+                        - button [ref=f7e3183]
+                        - button [ref=f7e3184]
+                    - button "Action Node Wait" [ref=f7e3185]:
+                      - generic "Action Node Wait" [ref=f7e3187]:
+                        - generic "Node name" [ref=f7e3195]: Wait
+                        - button [ref=f7e3197]
+                        - button [ref=f7e3198]
+                    - button "Action Node Wait" [ref=f7e3199]:
+                      - generic "Action Node Wait" [ref=f7e3201]:
+                        - generic "Node name" [ref=f7e3209]: Wait
+                        - button [ref=f7e3211]
+                        - button [ref=f7e3212]
+                    - button "Action Node Wait" [ref=f7e3213]:
+                      - generic "Action Node Wait" [ref=f7e3215]:
+                        - generic "Node name" [ref=f7e3223]: Wait
+                        - button [ref=f7e3225]
+                        - button [ref=f7e3226]
+                    - button "Action Node Wait" [ref=f7e3227]:
+                      - generic "Action Node Wait" [ref=f7e3229]:
+                        - generic "Node name" [ref=f7e3237]: Wait
+                        - button [ref=f7e3239]
+                        - button [ref=f7e3240]
+                    - button "Action Node Wait" [ref=f7e3241]:
+                      - generic "Action Node Wait" [ref=f7e3243]:
+                        - generic "Node name" [ref=f7e3251]: Wait
+                        - button [ref=f7e3253]
+                        - button [ref=f7e3254]
+                    - button "Action Node Wait" [ref=f7e3255]:
+                      - generic "Action Node Wait" [ref=f7e3257]:
+                        - generic "Node name" [ref=f7e3265]: Wait
+                        - button [ref=f7e3267]
+                        - button [ref=f7e3268]
+                    - button "Action Node Wait" [ref=f7e3269]:
+                      - generic "Action Node Wait" [ref=f7e3271]:
+                        - generic "Node name" [ref=f7e3279]: Wait
+                        - button [ref=f7e3281]
+                        - button [ref=f7e3282]
+                    - button "Action Node Wait" [ref=f7e3283]:
+                      - generic "Action Node Wait" [ref=f7e3285]:
+                        - generic "Node name" [ref=f7e3293]: Wait
+                        - button [ref=f7e3295]
+                        - button [ref=f7e3296]
+                    - button "Action Node Wait" [ref=f7e3297]:
+                      - generic "Action Node Wait" [ref=f7e3299]:
+                        - generic "Node name" [ref=f7e3307]: Wait
+                        - button [ref=f7e3309]
+                        - button [ref=f7e3310]
+                    - button "Action Node Wait" [ref=f7e3311]:
+                      - generic "Action Node Wait" [ref=f7e3313]:
+                        - generic "Node name" [ref=f7e3321]: Wait
+                        - button [ref=f7e3323]
+                        - button [ref=f7e3324]
+                    - button "Action Node Wait" [ref=f7e3325]:
+                      - generic "Action Node Wait" [ref=f7e3327]:
+                        - generic "Node name" [ref=f7e3335]: Wait
+                        - button [ref=f7e3337]
+                        - button [ref=f7e3338]
+                    - button "Action Node Wait" [ref=f7e3339]:
+                      - generic "Action Node Wait" [ref=f7e3341]:
+                        - generic "Node name" [ref=f7e3349]: Wait
+                        - button [ref=f7e3351]
+                        - button [ref=f7e3352]
+                    - button "Action Node Wait" [ref=f7e3353]:
+                      - generic "Action Node Wait" [ref=f7e3355]:
+                        - generic "Node name" [ref=f7e3363]: Wait
+                        - button [ref=f7e3365]
+                        - button [ref=f7e3366]
+                    - button "Action Node Wait" [ref=f7e3367]:
+                      - generic "Action Node Wait" [ref=f7e3369]:
+                        - generic "Node name" [ref=f7e3377]: Wait
+                        - button [ref=f7e3379]
+                        - button [ref=f7e3380]
+                    - button "Action Node Wait" [ref=f7e3381]:
+                      - generic "Action Node Wait" [ref=f7e3383]:
+                        - generic "Node name" [ref=f7e3391]: Wait
+                        - button [ref=f7e3393]
+                        - button [ref=f7e3394]
+                    - button "Action Node Wait" [ref=f7e3395]:
+                      - generic "Action Node Wait" [ref=f7e3397]:
+                        - generic "Node name" [ref=f7e3405]: Wait
+                        - button [ref=f7e3407]
+                        - button [ref=f7e3408]
+                    - button "Action Node Wait" [ref=f7e3409]:
+                      - generic "Action Node Wait" [ref=f7e3411]:
+                        - generic "Node name" [ref=f7e3419]: Wait
+                        - button [ref=f7e3421]
+                        - button [ref=f7e3422]
+                    - button "Action Node Wait" [ref=f7e3423]:
+                      - generic "Action Node Wait" [ref=f7e3425]:
+                        - generic "Node name" [ref=f7e3433]: Wait
+                        - button [ref=f7e3435]
+                        - button [ref=f7e3436]
+                    - button "Action Node Wait" [ref=f7e3437]:
+                      - generic "Action Node Wait" [ref=f7e3439]:
+                        - generic "Node name" [ref=f7e3447]: Wait
+                        - button [ref=f7e3449]
+                        - button [ref=f7e3450]
+                    - button "Action Node Webhook" [ref=f7e3451]:
+                      - generic "Action Node Webhook" [ref=f7e3453]:
+                        - generic "Node name" [ref=f7e3464]: Webhook
+                        - button [ref=f7e3466]
+                        - button [ref=f7e3467]
+                    - button "Action Node Webhook" [ref=f7e3468]:
+                      - generic "Action Node Webhook" [ref=f7e3470]:
+                        - generic "Node name" [ref=f7e3481]: Webhook
+                        - button [ref=f7e3483]
+                        - button [ref=f7e3484]
+                    - button "Action Node Webhook" [ref=f7e3485]:
+                      - generic "Action Node Webhook" [ref=f7e3487]:
+                        - generic "Node name" [ref=f7e3498]: Webhook
+                        - button [ref=f7e3500]
+                        - button [ref=f7e3501]
+                    - button "Action Node Webhook" [ref=f7e3502]:
+                      - generic "Action Node Webhook" [ref=f7e3504]:
+                        - generic "Node name" [ref=f7e3515]: Webhook
+                        - button [ref=f7e3517]
+                        - button [ref=f7e3518]
+                    - button "Action Node Wait" [ref=f7e3519]:
+                      - generic "Action Node Wait" [ref=f7e3521]:
+                        - generic "Node name" [ref=f7e3529]: Wait
+                        - button [ref=f7e3531]
+                        - button [ref=f7e3532]
+                    - button "Action Node Wait" [ref=f7e3533]:
+                      - generic "Action Node Wait" [ref=f7e3535]:
+                        - generic "Node name" [ref=f7e3543]: Wait
+                        - button [ref=f7e3545]
+                        - button [ref=f7e3546]
+                    - button "Action Node Wait" [ref=f7e3547]:
+                      - generic "Action Node Wait" [ref=f7e3549]:
+                        - generic "Node name" [ref=f7e3557]: Wait
+                        - button [ref=f7e3559]
+                        - button [ref=f7e3560]
+                    - button "Action Node Wait" [ref=f7e3561]:
+                      - generic "Action Node Wait" [ref=f7e3563]:
+                        - generic "Node name" [ref=f7e3571]: Wait
+                        - button [ref=f7e3573]
+                        - button [ref=f7e3574]
+                    - button "Action Node Webhook" [ref=f7e3575]:
+                      - generic "Action Node Webhook" [ref=f7e3577]:
+                        - generic "Node name" [ref=f7e3588]: Webhook
+                        - button [ref=f7e3590]
+                        - button [ref=f7e3591]
+                    - button "Action Node Webhook" [ref=f7e3592]:
+                      - generic "Action Node Webhook" [ref=f7e3594]:
+                        - generic "Node name" [ref=f7e3605]: Webhook
+                        - button [ref=f7e3607]
+                        - button [ref=f7e3608]
+                    - button "Action Node Webhook" [ref=f7e3609]:
+                      - generic "Action Node Webhook" [ref=f7e3611]:
+                        - generic "Node name" [ref=f7e3622]: Webhook
+                        - button [ref=f7e3624]
+                        - button [ref=f7e3625]
+                    - button "Action Node Webhook" [ref=f7e3626]:
+                      - generic "Action Node Webhook" [ref=f7e3628]:
+                        - generic "Node name" [ref=f7e3639]: Webhook
+                        - button [ref=f7e3641]
+                        - button [ref=f7e3642]
+                    - button "Action Node Wait" [ref=f7e3643]:
+                      - generic "Action Node Wait" [ref=f7e3645]:
+                        - generic "Node name" [ref=f7e3653]: Wait
+                        - button [ref=f7e3655]
+                        - button [ref=f7e3656]
+                    - button "Action Node Wait" [ref=f7e3657]:
+                      - generic "Action Node Wait" [ref=f7e3659]:
+                        - generic "Node name" [ref=f7e3667]: Wait
+                        - button [ref=f7e3669]
+                        - button [ref=f7e3670]
+                    - button "Action Node Wait" [ref=f7e3671]:
+                      - generic "Action Node Wait" [ref=f7e3673]:
+                        - generic "Node name" [ref=f7e3681]: Wait
+                        - button [ref=f7e3683]
+                        - button [ref=f7e3684]
+                    - button "Action Node Wait" [ref=f7e3685]:
+                      - generic "Action Node Wait" [ref=f7e3687]:
+                        - generic "Node name" [ref=f7e3695]: Wait
+                        - button [ref=f7e3697]
+                        - button [ref=f7e3698]
+                    - button "Action Node Perform Ringless Voicemail Drop" [ref=f7e3699]:
+                      - generic "Action Node Perform Ringless Voicemail Drop" [ref=f7e3701]:
+                        - generic "Node name" [ref=f7e3709]: Perform Ringless Voicemail Drop
+                        - button [ref=f7e3711]
+                        - button [ref=f7e3712]
+                    - button "Action Node Perform Ringless Voicemail Drop" [ref=f7e3713]:
+                      - generic "Action Node Perform Ringless Voicemail Drop" [ref=f7e3715]:
+                        - generic "Node name" [ref=f7e3723]: Perform Ringless Voicemail Drop
+                        - button [ref=f7e3725]
+                        - button [ref=f7e3726]
+                    - button "Action Node Perform Ringless Voicemail Drop" [ref=f7e3727]:
+                      - generic "Action Node Perform Ringless Voicemail Drop" [ref=f7e3729]:
+                        - generic "Node name" [ref=f7e3737]: Perform Ringless Voicemail Drop
+                        - button [ref=f7e3739]
+                        - button [ref=f7e3740]
+                    - button "Action Node Perform Ringless Voicemail Drop" [ref=f7e3741]:
+                      - generic "Action Node Perform Ringless Voicemail Drop" [ref=f7e3743]:
+                        - generic "Node name" [ref=f7e3751]: Perform Ringless Voicemail Drop
+                        - button [ref=f7e3753]
+                        - button [ref=f7e3754]
+                    - button "Action Node Perform Ringless Voicemail Drop" [ref=f7e3755]:
+                      - generic "Action Node Perform Ringless Voicemail Drop" [ref=f7e3757]:
+                        - generic "Node name" [ref=f7e3765]: Perform Ringless Voicemail Drop
+                        - button [ref=f7e3767]
+                        - button [ref=f7e3768]
+                    - button "Action Node Perform Ringless Voicemail Drop" [ref=f7e3769]:
+                      - generic "Action Node Perform Ringless Voicemail Drop" [ref=f7e3771]:
+                        - generic "Node name" [ref=f7e3779]: Perform Ringless Voicemail Drop
+                        - button [ref=f7e3781]
+                        - button [ref=f7e3782]
+                    - button "Action Node Perform Ringless Voicemail Drop" [ref=f7e3783]:
+                      - generic "Action Node Perform Ringless Voicemail Drop" [ref=f7e3785]:
+                        - generic "Node name" [ref=f7e3793]: Perform Ringless Voicemail Drop
+                        - button [ref=f7e3795]
+                        - button [ref=f7e3796]
+                    - button "Action Node Perform Ringless Voicemail Drop" [ref=f7e3797]:
+                      - generic "Action Node Perform Ringless Voicemail Drop" [ref=f7e3799]:
+                        - generic "Node name" [ref=f7e3807]: Perform Ringless Voicemail Drop
+                        - button [ref=f7e3809]
+                        - button [ref=f7e3810]
+                    - button "Action Node Wait" [ref=f7e3811]:
+                      - generic "Action Node Wait" [ref=f7e3813]:
+                        - generic "Node name" [ref=f7e3821]: Wait
+                        - button [ref=f7e3823]
+                        - button [ref=f7e3824]
+                    - button "Action Node Wait" [ref=f7e3825]:
+                      - generic "Action Node Wait" [ref=f7e3827]:
+                        - generic "Node name" [ref=f7e3835]: Wait
+                        - button [ref=f7e3837]
+                        - button [ref=f7e3838]
+                    - button "Action Node Wait" [ref=f7e3839]:
+                      - generic "Action Node Wait" [ref=f7e3841]:
+                        - generic "Node name" [ref=f7e3849]: Wait
+                        - button [ref=f7e3851]
+                        - button [ref=f7e3852]
+                    - button "Action Node Wait" [ref=f7e3853]:
+                      - generic "Action Node Wait" [ref=f7e3855]:
+                        - generic "Node name" [ref=f7e3863]: Wait
+                        - button [ref=f7e3865]
+                        - button [ref=f7e3866]
+              - button "Add" [ref=f7e3872] [cursor=pointer]
+              - generic [ref=f7e3877]:
+                - button [ref=f7e3878] [cursor=pointer]
+                - button [ref=f7e3882] [cursor=pointer]
+                - button [ref=f7e3886] [cursor=pointer]
+                - button [ref=f7e3890] [cursor=pointer]
+                - button [ref=f7e3894] [cursor=pointer]
+              - button [ref=f7e3900] [cursor=pointer]
+    - log [ref=f7e1808]
