@@ -71,7 +71,7 @@ Fresh read-back of both graphs (with `includeTriggers=true`) passed:
 - 20/20 emails: correct `template_id`, `subject`, `from_name`, `syncEnabled`.
 - 12/12 webhooks: correct SMS 1/2/3 copy, `dryRun=false`, `source=sms`, canonical URL.
 - Gate `Vertical` value, router field, trigger name + tag correct.
-- `status: draft` for both; no "Alcohol" remnants.
+- `status: draft` for both at conversion time (later published by Ed); no "Alcohol" remnants.
 - No sends/enrollments/publication.
 
 ## Post-publish audit + fix (2026-10-10)
