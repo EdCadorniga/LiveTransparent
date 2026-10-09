@@ -1,6 +1,27 @@
 # Executive Report V1 Plan and Session Handoff
 
-Last updated: 2026-10-06 (rolling last-completed-week default; isolated V1 deployment)
+## 2026-10-09 — SQL booking attribution deployed (EOS)
+
+- Deployed build `2026-10-09-v1-sql-booking-attribution`; the public page returned HTTP 200 with the expected build stamp and SQL-card labels. The live proxied facts endpoint returned HTTP 200 for 2026-09-09 through 2026-10-09, with 582 SQLs entered and 582 classified by the two accepted booking paths (`sdr`, `calendar_link`). The card displays **Booked via / Who / UTM / SQLs**, shows missing UTMs as a repair signal, and reconciles coverage to the SQL denominator.
+- Data-quality gap remains: 1 SQL is attributed to Jason Bornillo; 3 calendar-link SQLs have the named Regulated Ads On Social/Search calendar but no UTM; 578 are classified as calendar-link bookings without a captured calendar/link name or UTM. Classification coverage is 100%; source detail coverage is not. Do not treat the fallback category as proof of an individual calendar link.
+- GHL has 14 active calendars (including Regulated Ads On Social/Search and Book a demo `WS6lacfQK2XOhqN7mRaF`) and 18 Trigger Links. Published source-attribution workflows exist for Alcohol (`a707d0b6-0717-4903-8b38-3510504a4136`), Cannabis (`c9bbb696-fe29-44b0-81c7-6feffeaac98f`), and Nicotine (`963bf85a-cdff-4eb1-90ea-6a473fb0f32f`). Their legacy source writes and full email-link coverage are not yet verified in the current workflow editor.
+- No GHL workflow/contact changes were made. The production workflow-definition v4 API returned 404; the browser was unavailable. Next session: regain supported workflow-editor access; inventory all booking URLs/Trigger Links/calendar destinations in active vertical email templates and workflows; verify appointment creator/booker separately from assigned owner and test reschedule behavior; inspect current source-field consumers; define first-touch-preserving and latest-campaign-touch fields and an idempotent click ledger; implement exact-link click attribution and booking UTMs; verify with a controlled test contact end to end; monitor missing UTMs/link names and refresh report facts. Preserve original acquisition source; a click is not a booked SQL. Detailed runbook: [`docs/sessions/2026-10-09-sql-booking-and-triggerlink-attribution-plan.md`](docs/sessions/2026-10-09-sql-booking-and-triggerlink-attribution-plan.md).
+
+## 2026-10-09 — Report data loading recovery and EOS
+
+- Live report page served HTTP 200, while Summary, Campaign Channels, and V1 Facts requests each took 95–165 seconds in their n8n Postgres query node. A V1 Facts request ran for 99 seconds and shaped a 55 KB response; recent report-host logs also show HTTP 200 responses with 0 bytes. n8n logs report intermittent Postgres connection timeouts. Thus the page's old all-or-nothing `Promise.all` left the entire report at placeholders until every endpoint completed, and empty 200 responses were accepted by nginx's 30-minute cache.
+- V1 now renders each source as soon as it responds, reports pending/failed sources, uses `fetch(..., cache: "no-store")` to avoid reusing browser-cached empty responses, and retains the existing empty-body validation/retries.
+- The three cached report APIs now skip caching zero-byte upstream responses, bypass proxy cache for retry requests, and use a versioned cache key so existing possibly-empty entries are not reused. The successful-response cache and stale-on-upstream-error directives remain configured. Cache HIT behavior is not yet reverified: initial live checks showed `MISS`, and the later 20-second client recheck timed out while the n8n executions continued to succeed. Confirm normal repeated requests return `HIT` before treating cache recovery as verified. Browser-rendered visual QA was not completed because the available Playwright browser session was already in use.
+- Deployment helper build: `v3ud1lum1svamymuor21upog:executive-v1-20261009-streaming-data`; it validates nginx config before replacing the running report container. This fixes the all-or-nothing/empty-cache failure path. Post-deploy read-only checks returned non-empty JSON from all three APIs for the default week (Summary 32,519 B / 75.7 s; Campaign Channels 8,281 B / 4.8 s; V1 Facts 18,228 B / 72.0 s). The slow Postgres queries remain an upstream performance issue; watch the load status and database health if an endpoint stays unavailable. Live read-only workflow checks confirm all three V1 workflows are active and their current version matches active version. Current Facts API version is `9fff955b-96bf-4951-9c75-0054f9792c8d`; Data Materializer is `47c5aaf8-047c-4cfe-996f-bdcbb97bb04d`; Response SLA Materializer is `5957bf7b-a52f-4131-97a6-cc07303cb4b7`. Post-deploy successful API executions: Summary `1113415`, Campaign Channels `1113417`, Facts `1113416`.
+
+### Next weekly report — performance by vertical (user request, 2026-10-09)
+
+- Ed wants the next week's report to count performance separately for each vertical, grouped by the GHL contact `Vertical` field. The next scheduled weekly report is expected Monday 2026-10-12 and covers `2026-10-04`–`2026-10-10` in `America/Los_Angeles`.
+- Before updating the report, inspect the existing `verticalPerformance` API/UI contract and identify the actual source rows and distinctness/date rules. Group by the contact's `Vertical` value; preserve all real values and an explicit `Unclassified` row for missing/unmatched verticals.
+- Show only metrics supported by reconciled sources. Proposed performance fields already represented in the V1 table are leads, sends, responses, meetings, SQLs, won, lost, and revenue; verify each field's source and period basis before presenting it. Reconcile vertical totals to corresponding report-wide totals and mark unsupported or stale values unavailable. Do not infer that every event's vertical is known from a campaign label.
+- This is a reporting requirement only: no contact/workflow writes, campaign changes, or outbound activity.
+
+Last updated: 2026-10-09 (report loading recovery; vertical-performance request; isolated V1 deployment)
 
 ## 2026-10-06 — Rolling date default
 
@@ -137,8 +158,8 @@ All three are active and published:
 | Workflow | ID | Current published version | Purpose |
 |---|---|---|---|
 | LT - Executive Report V1 Data Materializer | `knc2wxe4pyYIJ5tw` | `47c5aaf8-047c-4cfe-996f-bdcbb97bb04d` | Refreshes V1 contact, appointment, and call facts every 30 minutes; appointment contact join supports direct, `contact:<id>`, and raw-dimension IDs |
-| LT - Executive Report V1 Facts API | `oxYDg6XnRBKhl1Xd` | `677e728d-8f33-4e78-a406-3a0dca56b19e` | Read-only selected-window facts endpoint; meetings restricted to the canonical Regulated Ads calendar; `range=7d|30d|90d` maps to LA date windows |
-| LT - Executive Report V1 Response SLA Materializer | `KlBw3ThLbNlMfE2J` | `5d395545-918d-44a5-8a61-e2be77f3d38e` | Refreshes inbound-to-response facts every 15 minutes |
+| LT - Executive Report V1 Facts API | `oxYDg6XnRBKhl1Xd` | `9fff955b-96bf-4951-9c75-0054f9792c8d` | Read-only selected-window facts endpoint; meetings restricted to the canonical Regulated Ads calendar; `range=7d|30d|90d` maps to LA date windows |
+| LT - Executive Report V1 Response SLA Materializer | `KlBw3ThLbNlMfE2J` | `5957bf7b-a52f-4131-97a6-cc07303cb4b7` | Refreshes inbound-to-response facts every 15 minutes |
 
 Webhook paths:
 

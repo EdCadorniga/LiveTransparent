@@ -125,6 +125,10 @@ Independent pipeline for content partnership outreach.
 
 ## Apollo Phone Enrichment Quick Rules (Live)
 - Trigger from GHL field: `Enrich Phone via Apollo` (`contact.enrich_phone_via_apollo`).
+- For all future vertical lead imports, preserve supplied source phones in `Corporate Phone` before batch-setting the trigger field to `Yes`; Apollo callbacks write the enriched direct phone to primary `Phone`. Do not clear primary Phone as part of the queue import.
+- Import/update order: import and reconcile contacts → preserve source phone in Corporate Phone → batch-set the trigger field by Contact ID → verify asynchronous status and callback outcomes. Skip already enriched contacts unless intentionally retrying.
+- If a bulk update is followed by a burst of webhook executions or GHL HTTP 429 errors, stop additional imports/retries and reconcile executions/contact statuses before proceeding; the GHL field-trigger automation currently calls the active poller webhook.
+- Current worker state: webhook only acknowledges. Target pace is 5 minutes with `maxPerRun=10` (temporary diagnostic cap 1), but the Schedule Trigger is disabled in active version `9c135647-525c-41ed-b809-84cd4a88eea7` after Apollo returned HTTP 422 `insufficient credits`. Error contacts still carry flag Yes; do not reset/re-import. Add credits/adjust plan before re-enabling.
 - Runtime status field: `Apollo Phone Enrichment Status` (`contact.apollo_phone_enrichment_status`).
 - Timestamp field: `Apollo Phone Enriched At` (`contact.apollo_phone_enriched_at`) written as `YYYY-MM-DD`.
 - Runtime paths:

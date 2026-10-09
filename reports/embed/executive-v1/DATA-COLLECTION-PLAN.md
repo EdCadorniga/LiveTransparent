@@ -19,11 +19,18 @@ Rules: classify once per contact, use deterministic precedence, and reconcile th
 
 Expose one row per appointment with:
 
-- appointment/contact IDs, contact name, calendar/link, start time, status
-- assigned SDR, originating SDR, attribution path, attribution confidence
+- appointment/contact IDs, contact name, calendar ID/name, booking link ID/name, start time, status
+- appointment creator/booker user ID and name, assigned SDR user ID and name, originating SDR, attribution path, attribution confidence
+- captured `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` and source trigger-link ID/name when available
 - created time, updated time, rescheduled-from ID, cancellation reason
 
-Rules: booked is based on `start_at` in the selected window; showed/no-show/cancelled/rescheduled are recorded statuses only; never infer an outcome from elapsed time.
+Rules: booked is based on `start_at` in the selected window; showed/no-show/cancelled/rescheduled are recorded statuses only; never infer an outcome from elapsed time. SQL-source reporting classifies each SQL opportunity into exactly one booking path: `SDR` (show the actual appointment creator/booker, not merely the assigned owner) or `Calendar link` (show calendar/link name plus UTM). Calendar link with absent UTM stays in the Calendar link class and is flagged for repair; SQL booking-path coverage is 100% by definition and has no Unknown bucket. Verify GHL appointment payload fields before choosing the authoritative creator/booker field; if it does not record this, add explicit workflow capture rather than substituting assigned owner.
+
+### 2a. Trigger-link attribution writes
+
+For email trigger-link clicks, capture the click as a source event and persist link/campaign attribution on the contact without replacing the original acquisition source. Store the trigger-link ID/name, vertical/campaign, medium, content/link key, UTM values, clicked-at timestamp, and source workflow/event ID. Preserve first-touch fields; use separate last-touch or campaign-touch fields for mutable current attribution. Where the same contact clicks multiple links, retain each event in an attribution ledger and use the latest valid event only for the relevant downstream booking join; do not let retries or duplicate workflow enrollment create duplicate events.
+
+Create or update a Trigger Link Clicked workflow per link (or a shared workflow with exact link-ID branches, if GHL supports and readback confirms that trigger/filter behavior). Each branch writes the stable attribution fields and event timestamp, keyed by contact + trigger-link ID + click event ID where available. Ensure the booking CTA's destination retains UTMs through redirects and that the booking/appointment record can be joined to the click. Trigger-link click alone is not proof of a booked appointment. Keep the existing Contact `source` field as the legacy source unless an explicit migration approves changing its meaning.
 
 For the Cameron headline KPI, count `COUNT(DISTINCT contact_id)` over Cameron-assigned appointment rows in the selected window, excluding blank contact IDs. Multiple appointment rows for the same contact—including cancellation followed by reschedule—count once. Preserve the raw appointment rows separately for audit and outcome detail.
 

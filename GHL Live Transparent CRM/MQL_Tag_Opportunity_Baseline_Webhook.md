@@ -2,6 +2,19 @@
 
 Purpose: when a contact receives the live `mql` tag, ensure there is a corresponding opportunity in `Warm -> Qualified (MQL)` unless the contact already has an opportunity in the `Sales` pipeline. This MQL baseline does not by itself authorize SDR assignment or promotion to `Sales Outreach`; the Janvi AI cannabis-business qualification gate is required for normal SDR promotion.
 
+## Requested inbound-response behavior (2026-10-09; planning, not implemented)
+
+Ed requested that any inbound response apply the `mql` tag and ensure the contact has an opportunity in `Sales Outreach → New`, without creating a new opportunity when one already exists. This implementation is deferred while the remaining vertical campaigns are set up sequentially.
+
+Read-only GHL Builder review found the existing `WL - Micro - Stage MQL Opportunity Baseline` (`172e98e7-7dde-49fd-b32e-e1d98395484a`) Published, 750 total / 0 active at the workflow-list readback. Its trigger is `Contact Tag` with filter `Tag added: mql`. It has two POST Webhook actions:
+
+- `Webhook to process MQL` → `/webhook/ghl-mql-opportunity-baseline-v2`, with `contactId`, `contactName`, `firstName`, `lastName`, and literal `tag=mql`.
+- `Webhook to send Lead details to Slack` → `/webhook/wl-slack-channel-update-v2`, with `alertTitle="New MQL"` and contact/source/UTM fields.
+
+This GHL workflow reacts to an MQL tag that has already been applied; it does not detect a reply or add the tag. The runbook's existing downstream contract remains Warm → Qualified (MQL), except where an opportunity already exists in Sales. The downstream n8n workflow was not freshly read back through `n8n-lt` in this review, so the live implementation has not been confirmed. The published `Customer replied` stop-out workflow only removes contacts from the vertical campaigns in its inspected configuration; it does not establish the requested MQL/opportunity behavior.
+
+After the vertical setup priority is complete, reconcile the requested Sales Outreach behavior with the Janvi AI qualification gate / Warm-to-Sales Outreach promotion contract. Treat any existing opportunity in any pipeline as suppressing creation of a new opportunity. Confirm what counts as “any response” and whether an existing non-Sales Outreach opportunity should be left alone or moved to Sales Outreach → New. Keep the no-duplicate requirement idempotent. No workflows, contacts, or opportunities were changed or executed during this review.
+
 ## Approved MQL Sources
 
 The `mql` tag should only be applied for high-intent warm triggers:

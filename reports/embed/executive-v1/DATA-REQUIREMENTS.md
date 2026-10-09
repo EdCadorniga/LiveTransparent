@@ -19,7 +19,7 @@ The supplied mockup defines the presentation flow. Its numbers are illustrative;
 | Headline row | New MQLs, new SQLs, MQL→SQL, unique Cameron booking contacts, new contacts, opportunities created | Executive Summary API plus V1 appointment facts | Count distinct non-empty contact IDs for Cameron-assigned bookings in the selected window; cancellation/reschedule appointment rows for the same contact count once |
 | Opportunities by source | Opportunities grouped by source/campaign | Executive Summary attribution and campaign/source payloads | Distinct opportunity IDs; exclude classified historical backfill contacts where required |
 | MQL sources | MQLs by originating source | `leadSourceBreakdown` / `leadSourceCoverage` | Display coverage and Unknown / Unattributed rather than implying full attribution |
-| SQL sources | SQLs by originating source | `leadSourceBreakdown` / `leadSourceCoverage` | Reconcile sum of rows to SQL denominator |
+| SQL sources | SQLs classified by booking path: SDR or calendar link; show SDR name or calendar link name + UTM | `sqlBookingBreakdown` from the V1 facts API | Classify every SQL into exactly one of the two paths; coverage is always 100%. A calendar-link booking without UTM remains classified as Calendar link and is flagged `Missing UTM` for tracking repair. Never show an Unknown source bucket. |
 | New contacts — how added | Contacts by acquisition/addition mechanism | GHL contacts, source fields, backfill classifier, campaign/import markers | Define LinkedIn backfill, Apollo upload, form, manual/other buckets without double counting |
 | Meetings — who & where | Contact, SDR/owner, booking link/calendar | Appointments snapshot plus contact/opportunity owner mapping | Verify appointment-to-contact and originating-SDR attribution; expose Unassigned; keep the headline KPI distinct-contact based for Cameron |
 | Meeting outcomes | Showed, no-show, cancelled, rescheduled | GHL appointment statuses | Do not infer Showed; current status-update gap may require Unavailable or clearly labelled 0 |
@@ -27,13 +27,15 @@ The supplied mockup defines the presentation flow. Its numbers are illustrative;
 | Lead-source coverage | Attributed / total and percentage | `leadSourceCoverage` | Coverage denominator must match MQL/SQL cards |
 | Speed-to-lead / follow-up | Response time from inbound LinkedIn DM, inbound call, or marketing-email reply to the next outbound event on the same channel; unmatched inbound count | `lt_exec_v1_response_sla`, materialized from LinkedIn activity, `Email_Events` + marketing send ledgers, and GHL call outcomes | Match by contact/channel and later timestamp; publish average/median only with response denominator; do not call unmatched records “overdue” until a business target is configured |
 
+SQL booking-path and email Trigger Link attribution implementation plan: [`docs/sessions/2026-10-09-sql-booking-and-triggerlink-attribution-plan.md`](../../../docs/sessions/2026-10-09-sql-booking-and-triggerlink-attribution-plan.md). This requires a fresh readback of appointment creator/booker fields, calendars, campaign Trigger Links, and existing attribution workflows before implementation.
+
 ## P1 — layout and channel story
 
 ## Feedback extension — funnel, movement, retargeting, and Priority
 
 - Funnel order is opportunities, MQLs, SQLs, meetings, closed won/lost, and revenue. Closed-by-source keeps referral and other valid sources in the denominator; residuals are `Unknown / Unattributed`.
 - Weekly flow uses distinct contact IDs for new leads and distinct opportunity IDs for stage movement. Current stage distribution is a snapshot, not a period-entry count.
-- Vertical reporting uses the canonical vertical/source field and retains `Unclassified`; unsupported metrics are unavailable.
+- Vertical reporting groups by the GHL contact `Vertical` field (not campaign name/source). For the next weekly report, show reconciled performance by vertical and retain `Unclassified` for missing/unmatched field values. Validate each metric's source, distinctness rule, and selected-window date basis; unsupported or stale metrics remain unavailable.
 - Retargeting is queue visibility only: eligible contacts, latest click/audience touch, suppression/reply state, and next action. It does not authorize a send.
 - Inbound response speed retains the same-channel SLA contract. It is not MQL-to-first-call.
 - Priority is `Sales Outreach` stage `be636da7-3c15-48ab-b589-c75bcd6f9955`; closed opportunities are protected and retries are keyed by contact plus source event.

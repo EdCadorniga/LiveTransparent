@@ -1,5 +1,20 @@
 # Plan Pointer
 
+## ⏳ 2026-10-09: Remaining vertical campaigns — Crypto continuation checkpoint
+
+- Repomix refresh is paused at Ed's request. Do not run Repomix/`packlive` until explicit reauthorization; existing output was restored to its pre-session version.
+- Re-read the Crypto PDF/CSV and freshly checked its GHL workflow row: Draft, 0 total / 0 active enrollment; Builder Saved/Draft. Entry trigger, eligibility and sender routing are now Crypto-specific; downstream actions remain Alcohol-derived. No imports, enrollments, sends, provider calls or publication occurred.
+- Crypto PDF cadence is Day 0 LinkedIn (external), Day 1 Email 1 after 1 day, then Day 3 SMS 1 / Day 5 Email 2 / Day 7 voicemail 1 / Day 11 Email 3 / Day 13 SMS 2 / Day 15 Email 4 / Day 19 voicemail 2 / Day 21 SMS 3 / Day 23 Email 5 and a 3-month newsletter handoff. LinkedIn stays separate.
+- The source CSV has 291 data rows; exact-email reconciliation, phone collision handling, cohort eligibility and sender assignment remain unfinished.
+- Added the `Crypto` option to GHL's `Vertical` dropdown and created the dedicated contact sender field `LT Campaign Crypto Brands Oct 2026 Sender Email` (`UKLWo0PbkyZh34XExfHc`, key `contact.lt_campaign_crypto_brands_oct_2026_sender_email`). Official custom-field readback confirmed both. No contact values were assigned.
+- Fetched the five saved GHL Crypto HTML previews. Canvas inventory is 20 email actions, 36 waits, 12 Webhooks and 8 voicemails; the PDF's Day 0 LinkedIn is external and requires a 1-day wait before Email 1, which is not evident in the current copied graph. The initial readback made no graph edits; the saved entry/gate/router changes are recorded immediately below.
+- Saved the Crypto Draft's tag entry (`lt_campaign_crypto_brands_oct_2026_enroll`), eligibility (`Vertical=Crypto`), campaign sender field and exact four sender branches. Fresh workflow list remains Draft with 0 total/active enrollments. Email/channel actions, per-branch waits/exits and cohort work are still open; no publication or execution.
+- Saved `dryRun=true` on all 12 copied SimpleTexting Webhooks; canonical endpoint/auth/payload keys remain intact, but their text bodies are still Alcohol copy. No provider calls/sends; workflow remains Draft with zero enrollments.
+- Email action `Edit design` opens the shared Alcohol library template; it was not changed. Find the workflow UI's supported Crypto-template reselection path without editing shared Alcohol assets. Email 3's approval-rate claim and the initial one-day wait remain unresolved.
+- Crypto Email 2 saved preview was verified. Email 3's “40% higher approval rate” could not be verified from first-party public sources; a different 40%-cheaper comparison was found. Hold that claim from send-ready copy until substantiated or replaced/approved.
+- Next: complete CSV/email/phone reconciliation and exclusions; map all 20 email actions to Crypto templates, subjects, senders and sync settings; replace/verify all 12 SMS bodies; inspect voicemail configuration and consent gates; resolve the Email 3 claim and one-day initial wait; fully audit branch edges, remaining waits and exits; then complete non-sending acceptance. Do not import/assign/tag/enroll/publish/send without the required explicit authorization. Continue sequentially Crypto → Cannabis Dispensaries → Gambling → Peptides.
+- Handoff: `docs/sessions/2026-10-09-remaining-vertical-campaigns-crypto-eos.md`.
+
 > **ARCHIVE / HISTORICAL.** This file is a chronological log of completed work and older baselines. It is NOT the operational source of truth. For current status, open issues, and next steps use **`Project Status and Next Steps.md`** (canonical) and the latest dated handoff under `docs/sessions/`. Per AGENTS.md document precedence, this file ranks last.
 >
 > **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.

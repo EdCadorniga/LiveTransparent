@@ -1,0 +1,93 @@
+[
+  {
+    "folder": "Gambling",
+    "name": "Gambling Brands - Email 1 - The Opener",
+    "id": "6ac8e8dcf9707340c6901cb1",
+    "previewUrl": "https://firebasestorage.googleapis.com/v0/b/highlevel-backend.appspot.com/o/location%2FZwz4relUXVPxx8uohnjV%2Femails%2F6ac8e8dcf9707340c6901cb1%2Findex.html?alt=media&token=c9b9fa2d-fd35-4f32-9b6a-224ef991dfdb",
+    "patched": true
+  },
+  {
+    "folder": "Gambling",
+    "name": "Gambling Brands - Email 2 - How It Works",
+    "id": null,
+    "error": "{'redirect': '6ac8e9079660fa02e854b290', 'id': '6ac8e9079660fa02e854b290', 'status': 'ok', 'traceId': '77cece42-501d-4de9-9197-5c4dd44b3f85'}"
+  },
+  {
+    "folder": "Gambling",
+    "name": "Gambling Brands - Email 3 - The Proof",
+    "id": null,
+    "error": "{'redirect': '6ac8e90708741365d8940fb7', 'id': '6ac8e90708741365d8940fb7', 'status': 'ok', 'traceId': '9785ce9e-07b5-48f8-86e0-94ee3e590f3d'}"
+  },
+  {
+    "folder": "Gambling",
+    "name": "Gambling Brands - Email 4 - The Direct Ask",
+    "id": null,
+    "error": "{'redirect': '6ac8e90887cdcc5d6eb6b756', 'id': '6ac8e90887cdcc5d6eb6b756', 'status': 'ok', 'traceId': '8112271d-f948-4451-8323-0c15586a6ed1'}"
+  },
+  {
+    "folder": "Gambling",
+    "name": "Gambling Brands - Email 5 - The Breakup",
+    "id": null,
+    "error": "{'redirect': '6ac8e909976a2a32d9f82346', 'id': '6ac8e909976a2a32d9f82346', 'status': 'ok', 'traceId': 'c27d27f0-87e8-4523-8124-ece37aaf090f'}"
+  },
+  {
+    "folder": "Peptides",
+    "name": "Peptides Brands - Email 1 - The Opener",
+    "id": null,
+    "error": "{'redirect': '6ac8e90a87cdcc5d6eb6b776', 'id': '6ac8e90a87cdcc5d6eb6b776', 'status': 'ok', 'traceId': '46d29e7f-5e80-4c0f-ab39-efbd96febca5'}"
+  },
+  {
+    "folder": "Peptides",
+    "name": "Peptides Brands - Email 2 - How It Works",
+    "id": null,
+    "error": "{'redirect': '6ac8e90ae6a28b9ad5ef77e7', 'id': '6ac8e90ae6a28b9ad5ef77e7', 'status': 'ok', 'traceId': '7f2ca8c4-65af-4599-bbf3-5b59dc10d0e8'}"
+  },
+  {
+    "folder": "Peptides",
+    "name": "Peptides Brands - Email 3 - The Proof",
+    "id": null,
+    "error": "{'redirect': '6ac8e90be6a28b9ad5ef77fb', 'id': '6ac8e90be6a28b9ad5ef77fb', 'status': 'ok', 'traceId': 'edc6f252-abfb-46ae-939b-32b56c458b37'}"
+  },
+  {
+    "folder": "Peptides",
+    "name": "Peptides Brands - Email 4 - The Direct Ask",
+    "id": null,
+    "error": "{'redirect': '6ac8e90c39edc5e18c160657', 'id': '6ac8e90c39edc5e18c160657', 'status': 'ok', 'traceId': 'fe834fdb-d482-467c-a754-2773ae464c3b'}"
+  },
+  {
+    "folder": "Peptides",
+    "name": "Peptides Brands - Email 5 - The Breakup",
+    "id": null,
+    "error": "{'redirect': '6ac8e90d9660fa02e854b389', 'id': '6ac8e90d9660fa02e854b389', 'status': 'ok', 'traceId': '81da70bb-a97c-4019-a209-5d303af03c79'}"
+  },
+  {
+    "folder": "Cannabis Dispensaries",
+    "name": "Cannabis Dispensaries - Email 1 - The Opener",
+    "id": null,
+    "error": "{'redirect': '6ac8e90e4c92b27bd3d9fd53', 'id': '6ac8e90e4c92b27bd3d9fd53', 'status': 'ok', 'traceId': 'fd3c0093-059a-4ced-9668-dc7a6d0099ba'}"
+  },
+  {
+    "folder": "Cannabis Dispensaries",
+    "name": "Cannabis Dispensaries - Email 2 - How It Works",
+    "id": null,
+    "error": "{'redirect': '6ac8e90f9660fa02e854b3ed', 'id': '6ac8e90f9660fa02e854b3ed', 'status': 'ok', 'traceId': 'a1b83d05-93d5-43b7-b0cd-8058be48667a'}"
+  },
+  {
+    "folder": "Cannabis Dispensaries",
+    "name": "Cannabis Dispensaries - Email 3 - The Proof",
+    "id": null,
+    "error": "{'redirect': '6ac8e90f87cdcc5d6eb6b835', 'id': '6ac8e90f87cdcc5d6eb6b835', 'status': 'ok', 'traceId': 'bf5f9b4c-8674-4a65-8328-5d5ee6aa973a'}"
+  },
+  {
+    "folder": "Cannabis Dispensaries",
+    "name": "Cannabis Dispensaries - Email 4 - The Direct Ask",
+    "id": null,
+    "error": "{'redirect': '6ac8e91039edc5e18c1606dd', 'id': '6ac8e91039edc5e18c1606dd', 'status': 'ok', 'traceId': 'ef7a9acd-248a-43f5-b507-5e4b09e42447'}"
+  },
+  {
+    "folder": "Cannabis Dispensaries",
+    "name": "Cannabis Dispensaries - Email 5 - The Breakup",
+    "id": null,
+    "error": "{'redirect': '6ac8e911976a2a32d9f82424', 'id': '6ac8e911976a2a32d9f82424', 'status': 'ok', 'traceId': 'ece5fb77-f630-479d-8157-80b963822e35'}"
+  }
+]

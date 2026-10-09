@@ -409,6 +409,14 @@ Use this list during onboarding to avoid assuming all channel triggers are alrea
 ## 14) Apollo Phone Enrichment Operations (Current)
 This section is for training users who trigger Apollo phone/profile enrichment from GHL.
 
+### Future lead-import rule — all verticals
+- For each new lead cohort uploaded to GHL, queue Apollo phone enrichment after import and identity reconciliation, regardless of vertical.
+- Before setting `Enrich Phone via Apollo = Yes`, copy any supplied source phone into `Corporate Phone` so it is retained as the company-line value. Successful Apollo processing writes the enriched direct phone to primary `Phone`.
+- Use ordered batch updates keyed by Contact ID: preserve source phone values first, then set `Enrich Phone via Apollo = Yes`. Do not clear primary Phone during the queue import; verify results and handle any clearing/replacement as a separate reviewed action.
+- Skip contacts already enriched; inspect terminal/error statuses before retrying. The canonical poller and callback are asynchronous, so verify completion from GHL status and callback/provider results rather than assuming the import itself completed enrichment.
+- The GHL automation caller reaches the active poller webhook path `ghl-apollo-phone-enrichment-intake-v3`; do not assume that caller is unused. If a bulk flag update causes a burst, pause further imports/retries, review recent poller/callback executions and contact statuses, and resolve any HTTP 429/rate-limit backlog first. Current incident handoff: `docs/sessions/2026-10-08-all-vertical-apollo-phone-enrichment.md`.
+- Current worker state (2026-10-08): webhook acknowledges flag changes only. The configured target is 5 minutes/10 contacts, with a temporary diagnostic cap of one. A controlled Apollo request returned HTTP 422 `insufficient credits`; Schedule Trigger is disabled in active version `9c135647-525c-41ed-b809-84cd4a88eea7`. Error-status contacts still have the flag Yes and are selected by the worker; do not reset/re-import. Add Apollo credits/adjust plan before restoring the schedule.
+
 ### A) Trigger and Control Fields
 - Trigger/control field: `Enrich Phone via Apollo` (`contact.enrich_phone_via_apollo`)
 - Status field: `Apollo Phone Enrichment Status` (`contact.apollo_phone_enrichment_status`)

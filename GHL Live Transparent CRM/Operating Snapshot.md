@@ -101,12 +101,14 @@ Keep these aligned with routing and report logic:
 - `WF - Warm Channel Micro Entry` — active (GHL-side)
 
 ### Apollo Enrichment
-- `LT - Apollo Phone Enrichment Polling` (`JH8ShfpglWmLMZ3l`) — active, every 30 minutes; canonical intake
+- `LT - Apollo Phone Enrichment Polling` (`JH8ShfpglWmLMZ3l`) — active/published `9c135647-525c-41ed-b809-84cd4a88eea7`; four nodes. Schedule Trigger disabled (maxPerRun=1 diagnostic cap) after Apollo returned HTTP 422 `insufficient credits`. GHL webhook `ghl-apollo-phone-enrichment-intake-v3` remains acknowledgement-only; flags stay queued.
 - `GHL Apollo Enrichment - Webhook Intake (Sheet First)` (`WmKAhG7mIaXonNsh`) — unpublished 2026-07-25; superseded and had zero executions
 - `GHL Apollo Enrichment - Phone Webhook Intake (Staged)` (`WuxgTa0EEL1mb2SA`) — unpublished legacy path
 - `GHL Apollo Phone Enrichment - Callback Handler` (`YaWizRnw7XmkcvZH`) — unpublished legacy V3 path
 - `GHL Apollo Phone Enrichment - Callback Handler V4` (`U7c6byTLXAMgcS75`) — active canonical callback
 - `LT - Apollo Queued Timeout Reaper` (`RL5ZyUoshSPbmVA1`) — active, hourly backstop for stuck `queued`/`queued_phone` contacts; summary posts to `#reaper`
+- **All-vertical import rule (2026-10-08):** after importing and reconciling any new lead cohort, preserve source phone values in `Corporate Phone` (`036gD9ds9P5V8VUHnFBP`) and then batch-set `Enrich Phone via Apollo` (`gdJDuZelIxEBE6n9i5Q6`) to `Yes` by Contact ID. Apollo callbacks write the enriched phone to primary `Phone`; do not clear primary Phone in the queue import. Skip contacts already processed unless retry is deliberately approved. See the current EOS in `docs/sessions/2026-10-08-all-vertical-apollo-phone-enrichment.md`.
+- **Rate-limit/credit blocker (2026-10-08):** prior webhook fan-out caused GHL 429 before Apollo. Consolidated one-call runs returned Apollo errors; a controlled one-contact request with corrected `/api/v1/people/match` returned HTTP 422 `insufficient credits`. Schedule is disabled in `9c135647-525c-41ed-b809-84cd4a88eea7`; error contacts remain flag Yes and need no reset. Add Apollo credits/adjust the plan before resuming. Do not use the legacy/unpublished `WuxgTa0EEL1mb2SA` path.
 
 ### Voice System (Current Live State)
 - `LT - Voice Agent V1 Vapi Callback + Tools` (`fx4UvKUWbqJEY3LK`) — active; silent human answers classify as `interest_unknown`

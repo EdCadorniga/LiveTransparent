@@ -32,6 +32,17 @@ This document defines the canonical mapping from Apollo CSV export headers to GH
 ## Canonical Header Standard
 Use the renamed `Apollo ...` headers in CSV/Sheet for stable matching.
 
+### Mushroom GHL Import Auto-Mapping (verified 2026-10-08)
+For the prepared Mushroom new-contact CSV, use GHL-recognizable standard headers and exact current custom-field names:
+
+| Prepared CSV Header | GHL target |
+|---|---|
+| `First Name`, `Last Name`, `Email`, `Company Name`, `Website`, `State`, `Country`, `Source` | Standard contact fields |
+| `Title`, `Corporate Phone`, `Vertical`, `Enrich Phone via Apollo` | Exact custom-field names |
+| `Apollo Person LinkedIn URL`, `Apollo Company LinkedIn URL`, `Apollo Facebook URL`, `Apollo Twitter URL` | Exact Apollo custom-field names |
+
+`Business Name` is normalized to standard `Company Name`; source LinkedIn/social headers are renamed to the exact Apollo field labels. Blank unnamed, `Source Detail (...)`, and `Shared with Ed?` columns are dropped only after confirming they are blank. The source phone stays in `Corporate Phone`; the import CSV has no `Phone` column. For the 2026-10-08 Mushroom artifact, all 111 new-contact rows retain `Vertical=Mushroom` and `Enrich Phone via Apollo=Yes`; the GHL import wizard still needs operator preview/verification before import.
+
 ## Core Contact Field Mapping
 | CSV Header | GHL Target | Target Type | Notes |
 |---|---|---|---|

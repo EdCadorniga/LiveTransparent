@@ -5,9 +5,9 @@ This folder is an isolated working copy for the Executive Report V1 mockup.
 ## Operating boundary
 
 - The current report remains at `reports/embed/executive/index.html` and must not be overwritten or removed.
-- V1 will use the same report hostname through a separate URL path when it is ready for deployment.
+- V1 is deployed at a separate path on the existing report hostname; the legacy report path remains unchanged.
 - The mockup values are examples only. Every displayed value must come from a verified source or be labelled unavailable/not captured.
-- This workspace is for preparation and review until a deployment is explicitly requested.
+- Changes in this workspace are not live until deployed through the isolated V1 deployment path; the legacy report is never part of that deployment.
 
 ## Files
 
@@ -37,7 +37,7 @@ V1 headline counts for new contacts, opportunities, MQLs, and SQLs now use disti
 
 Appointments and calls use the V1 raw-fact materialization, which is refreshed every 30 minutes. Channel tables and derived campaign metrics still use their channel ledgers/Campaign Channel Summary and are not represented as direct GHL headline counts.
 
-The V1 page has passed an inline JavaScript syntax check and is deployed as a separate path on the report host. The current report path remains separate and unchanged.
+The V1 page is deployed at `/embed/executive-v1/` (build `2026-10-09-v1-streaming-data`). It renders each API source as it returns and reports source load status. Zero-byte API responses are not cached by nginx. Database queries can still take over a minute. The legacy `/embed/executive/` path remains separate and unchanged. The next weekly report should group verified performance by the GHL contact `Vertical` field; see `executive_report_v1_plan.md`.
 
 ## Deployed review URL
 
@@ -46,3 +46,7 @@ Use a separate path on the existing host, such as:
 `https://reports.livetransparent.com/embed/executive-v1/`
 
 The deployed review URL is `https://reports.livetransparent.com/embed/executive-v1/`. The current report remains at `https://reports.livetransparent.com/embed/executive/`.
+
+## SQL booking attribution (2026-10-09)
+
+The V1 Facts API now returns `sqlBookingBreakdown`, classifying each in-window SQL as `sdr` or `calendar_link`. The deployed page displays SDR name or calendar/link label plus UTM, reconciles the group total to the SQL funnel denominator, and flags calendar-link groups missing UTM. Current 30-day readback reconciled 582/582 SQLs. Of those, 578 calendar-path SQLs have no captured calendar/link name or UTM; the page labels them as a calendar link with missing UTM rather than presenting an invented link name. Current code/API details and the pending Trigger Link workflow capture work are recorded in [`docs/sessions/2026-10-09-sql-booking-and-triggerlink-attribution-plan.md`](../../../docs/sessions/2026-10-09-sql-booking-and-triggerlink-attribution-plan.md).

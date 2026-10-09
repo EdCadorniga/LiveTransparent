@@ -8,8 +8,8 @@ import paramiko
 HOST = "89.117.21.29"
 APP_DIR = "/data/coolify/applications/v3ud1lum1svamymuor21upog"
 SOURCE_DIR = "/tmp/livetransparent-report-local"
-IMAGE = "v3ud1lum1svamymuor21upog:executive-v1-20261006"
-BUILD_STAMP = "2026-10-06-v1-rolling-week"
+IMAGE = "v3ud1lum1svamymuor21upog:executive-v1-20261009-sql-booking-attribution"
+BUILD_STAMP = "2026-10-09-v1-sql-booking-attribution"
 LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "reports"))
 
 
@@ -53,6 +53,7 @@ try:
     upload_tree(sftp, LOCAL_DIR, SOURCE_DIR)
     sftp.close()
     run(client, "build", f"docker build -t {IMAGE} {SOURCE_DIR}")
+    run(client, "verify-nginx-config", f"docker run --rm --network coolify-shared {IMAGE} nginx -t")
     run(client, "backup-compose", f"cp {APP_DIR}/docker-compose.yaml {APP_DIR}/docker-compose.yaml.pre-campaign-accuracy")
     run(client, "select-image", f"sed -E -i \"s#^        image: .*#        image: '{IMAGE}'#\" {APP_DIR}/docker-compose.yaml")
     run(client, "recreate", f"docker compose -f {APP_DIR}/docker-compose.yaml up -d --force-recreate")
