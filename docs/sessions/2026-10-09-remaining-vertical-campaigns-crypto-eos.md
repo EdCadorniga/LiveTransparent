@@ -1,5 +1,7 @@
 # Remaining vertical campaigns — Crypto-first EOS (2026-10-09)
 
+> **Superseded 2026-10-09 (SMS mode):** every `dryRun=true` reference below is historical. All 12 Crypto SMS webhooks (and all eight verticals, 96/96) are now `dryRun=false` after Ed's authorization; Crypto is now **Published v48**. See the top of `AGENTS.md`. The `GET → fileUrl` read path is superseded by `GET → workflowData.templates`; the Builder Save issues a scriptable `PUT backend.leadconnectorhq.com/workflow/{loc}/{id}`.
+
 ## Objective and confirmed order
 
 Ed wants to complete the remaining vertical multichannel campaigns sequentially, finishing one before starting the next. The confirmed order is:

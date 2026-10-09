@@ -1,5 +1,7 @@
 # Cannabis SMS 3 correction — EOS 2026-10-09
 
+> **Superseded 2026-10-09 (SMS mode):** every `dryRun=true` reference below is historical. All eight vertical campaign SMS Webhooks are now `dryRun=false` (96/96); Cannabis is Published v73. See the top of `AGENTS.md`.
+
 ## New vertical setup priority (2026-10-09)
 
 > **Superseded for campaign setup by the Crypto-first EOS:** [`docs/sessions/2026-10-09-remaining-vertical-campaigns-crypto-eos.md`](docs/sessions/2026-10-09-remaining-vertical-campaigns-crypto-eos.md). That handoff records the verified Crypto assets/workflow, confirmed order Crypto → Cannabis Dispensaries → Gambling → Peptides, exact template-spacing checks, and a copy-ready prompt for the next LLM. This file remains the authoritative history for the Cannabis SMS3 correction, active-contact check, and deferred inbound→MQL review.

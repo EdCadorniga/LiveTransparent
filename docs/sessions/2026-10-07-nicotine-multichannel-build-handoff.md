@@ -1,5 +1,7 @@
 # Nicotine Brands multichannel — build plan and stopping point
 
+> **Superseded 2026-10-09 (SMS mode):** every `dryRun=true` reference below is historical. Nicotine (and all eight verticals, 96/96) are now `dryRun=false`; Nicotine is Published v40. See the top of `AGENTS.md`.
+
 **Created:** 2026-10-07. **GHL location:** `Zwz4relUXVPxx8uohnjV`. **Current status (fresh Builder readback 2026-10-08):** five email templates are saved; trigger/gate/router, all 20 email actions, and eight SimpleTexting webhook actions were converted. Ed published the Nicotine campaign workflow and applied the entry tag; 701 contacts were imported and sender values assigned. This supersedes earlier Draft/unpublished and “do not enroll or publish” notes; do not reapply tags or republish blindly. Remaining TODOs are in the EOS section below.
 
 ## Authority and scope

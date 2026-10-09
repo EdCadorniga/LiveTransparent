@@ -1,5 +1,7 @@
 # Mushroom Brands workflow handoff — 2026-10-08
 
+> **Superseded 2026-10-09 (SMS mode):** every `dryRun=true` reference below is historical. Mushroom (and all eight verticals, 96/96) are now `dryRun=false`; Mushroom is **Published v21** with 12/12 SMS webhooks live. See the top of `AGENTS.md`.
+
 ## Objective
 
 Convert the copied Nicotine GHL campaign into a safe Mushroom draft from `New Campaigns October 2026/Mushroom - Multi Channel Outbound Sequence.pdf`. Keep it unpublished and unenrolled until content, channels, consent/suppression, and provider gates are ready.
