@@ -7,6 +7,7 @@ printed. The workflow defaults to dry-run; writes require apply=true.
 from __future__ import annotations
 
 import json
+import hashlib
 import pathlib
 import ssl
 import urllib.error
@@ -42,6 +43,11 @@ CODE = r'''try {
 const cfg = $('Config').first().json;
 const webhook = $('Backfill Webhook');
 const body = webhook.isExecuted ? (webhook.first().json.body || {}) : {};
+if (webhook.isExecuted) {
+  const requestHeaders = webhook.first().json.headers || {};
+  const supplied = String(requestHeaders['x-lt-backfill-auth'] || requestHeaders['X-LT-Backfill-Auth'] || '');
+  if (!supplied || supplied !== String(cfg.webhookAuthKey || '')) throw new Error('Unauthorized backfill request');
+}
 const locationId = String(cfg.locationId || 'Zwz4relUXVPxx8uohnjV');
 const base = 'https://services.leadconnectorhq.com';
 const headers = { Authorization: `Bearer ${cfg.ghlApiKey}`, Version: '2021-07-28', Accept: 'application/json', 'Content-Type': 'application/json' };
@@ -217,7 +223,7 @@ workflow_path = "lt-last-touch-owner-backfill-" + uuid.uuid4().hex
 nodes = [
     {"id": str(uuid.uuid4()), "webhookId": str(uuid.uuid4()), "name": "Backfill Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2.1, "position": [240, 300], "parameters": {"httpMethod": "POST", "path": workflow_path, "responseMode": "lastNode", "options": {}}},
     {"id": str(uuid.uuid4()), "name": "Daily Last-Touch Owner Sweep", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2, "position": [240, 520], "parameters": {"rule": {"interval": [{"field": "cronExpression", "expression": "0 2 * * *"}]}}},
-    {"id": str(uuid.uuid4()), "name": "Config", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [460, 300], "parameters": {"mode": "manual", "includeOtherFields": True, "assignments": {"assignments": [{"id": str(uuid.uuid4()), "name": "ghlApiKey", "value": ghl_key, "type": "string"}, {"id": str(uuid.uuid4()), "name": "locationId", "value": "Zwz4relUXVPxx8uohnjV", "type": "string"}]}}},
+    {"id": str(uuid.uuid4()), "name": "Config", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [460, 300], "parameters": {"mode": "manual", "includeOtherFields": True, "assignments": {"assignments": [{"id": str(uuid.uuid4()), "name": "ghlApiKey", "value": ghl_key, "type": "string"}, {"id": str(uuid.uuid4()), "name": "webhookAuthKey", "value": hashlib.sha256((ghl_key + "|lt-last-touch-owner-backfill-v1").encode()).hexdigest(), "type": "string"}, {"id": str(uuid.uuid4()), "name": "locationId", "value": "Zwz4relUXVPxx8uohnjV", "type": "string"}]}}},
     {"id": str(uuid.uuid4()), "name": "Resolve and Apply Last-Touch Owners", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [700, 300], "parameters": {"mode": "runOnceForAllItems", "jsCode": CODE}},
 ]
 connections = {"Backfill Webhook": {"main": [[{"node": "Config", "type": "main", "index": 0}]]}, "Daily Last-Touch Owner Sweep": {"main": [[{"node": "Config", "type": "main", "index": 0}]]}, "Config": {"main": [[{"node": "Resolve and Apply Last-Touch Owners", "type": "main", "index": 0}]]}}
@@ -250,4 +256,4 @@ if any(node.get("type") == "n8n-nodes-base.code" and "lastMessageDate" not in no
 
 api(f"/api/v1/workflows/{workflow_id}/activate", "POST")
 _, readback = api(f"/api/v1/workflows/{workflow_id}")
-print(json.dumps({"workflowId": workflow_id, "name": WORKFLOW_NAME, "active": bool(readback.get("active")), "webhookPath": workflow_path, "defaultMode": "dry-run unless apply=true"}, indent=2))
+print(json.dumps({"workflowId": workflow_id, "name": WORKFLOW_NAME, "active": bool(readback.get("active")), "defaultMode": "dry-run unless apply=true; webhook requires authenticated header"}, indent=2))

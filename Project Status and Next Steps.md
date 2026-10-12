@@ -1,5 +1,11 @@
 # LiveTransparent Project Status and Next Steps
 
+### CURRENT 2026-10-12 — all-vertical email template typography updated; paragraph spacing follow-up open
+
+- Updated 35 templates through GHL PIT; the five Cannabis Brands templates already matched the reference. Fresh saved-preview readback covered 40 campaign templates across eight verticals.
+- The templates use Arial 14px / 1.25 line-height / zero paragraph margins. Copy and links were preserved. **Body paragraph spacing remains inconsistent** because most templates have zero paragraph margins and only explicit spacer blocks after the greeting and before the sign-off. See `docs/sessions/2026-10-12-email-template-spacing-eos.md`.
+- Next: set one rule for a blank visual gap between ordinary body paragraphs, apply it to all 40 templates while avoiding duplicate oversized gaps, then verify saved rendered previews and workflow template sync as needed. No email was sent and no workflow was changed.
+
 ### CURRENT 2026-10-10 (EOS 4) — Gambling + Cannabis Dispensaries cohorts prepared, imported, and enrolled (246 / 121)
 
 - **Prep delivered:** `New Campaigns October 2026/GHL Import Prep/` has `Gambling Brands - GHL Import + Sender.csv` (246 rows; `Vertical=Gambling`; per-vertical sender; balanced 62/62/61/61; no enroll tag; 0 existing GHL matches) and the Dispensaries split `Cannabis Dispensaries Brands - GHL Import + Sender (Net-New).csv` (51 rows) + `Cannabis Dispensaries Brands - GHL Overlaps (Hold).csv` (78 existing contacts). Scripts (read-only): `prepare_gambling_dispensaries_import.py`, `split_dispensaries_net_new.py`.

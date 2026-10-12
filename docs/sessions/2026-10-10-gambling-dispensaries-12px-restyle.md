@@ -68,8 +68,27 @@ The first `previewUrl` PUT used the **GET-response wrapper** as the body → **4
 
 Node mix (both): `if_else 9, email 20, wait 36, webhook 12, voicemail 8`. Email nodes: `template_id` + `syncEnabled:true`, **no inline body** → send renders from the template. `previewUrl` now matches each template's current preview (allMatch true).
 
+## Contact import prep (same session)
+Prepared in `New Campaigns October 2026/GHL Import Prep/` (mirrors the Crypto/Peptides pattern; source phones preserved as `Corporate Phone`; no enroll tag):
+- **`Gambling Brands - GHL Import + Sender.csv`** — **246 rows**, `Vertical=Gambling`, balanced sender (62/62/61/61). Read-only exact email+phone reconciliation = **0 existing GHL matches** → all net-new.
+- **`Cannabis Dispensaries Brands - GHL Import + Sender.csv`** — **51 rows** (net-new only), `Vertical=Cannabis Dispensaries`, balanced sender.
+- **`Cannabis Dispensaries Existing Contacts - Review.csv`** — 76 source rows that already exist in GHL (all currently `Vertical=Cannabis`, carrying Emerald/Cannabis sequence tags; big MSOs: TerrAscend, Verano, Cresco, GTI, Glass House).
+- **`Cannabis Dispensaries Existing Contacts - Update (Business Name + Vertical).csv`** — **74 rows** (deduped by Contact ID). Per Ed (2026-10-10): the new lead file wins for **Business Name** and **Vertical** — overwrite the existing contacts to `Vertical=Cannabis Dispensaries` + the source `Business Name` + the campaign sender. Note: the Cannabis campaign gate is evaluated at *entry*, so overwriting `Vertical` does not eject already-enrolled contacts; it only blocks future Cannabis entries for those contacts.
+- Reconciliation detail: 127 Dispensaries source rows → **76 match existing**, **51 net-new**.
+- Scripts: `prepare_gambling_dispensaries_import.py`, `finalize_dispensaries_split.py`, `build_dispensaries_existing_update.py`.
+- **⚠️ Concurrency observed:** the `Gambling Contacts - Exact Email GHL Reconciliation.csv` on disk was written by a different process using the Peptides-style schema (`Key,Kind,…`) — another session was running the same prep in parallel. Ensure only one session edits the prep folder.
+
+### Resolution — cohorts were already imported+enrolled; only residual data updates applied
+- **Live readback (read-only):** enroll tags already `lt_campaign_gambling_brands_oct_2026_enroll` = **246** and `lt_campaign_cannabis_dispensaries_brands_oct_2026_enroll` = **121** — i.e., the cohorts were **already imported and enrolled** by the concurrent session (see the `CURRENT 2026-10-10 (EOS 4)` section in `AGENTS.md`). **No import was run** (would have duplicated ~297 contacts and double-enrolled).
+- **Ed directive (2026-10-10):** do **not** re-add the enroll tag; only update the existing overlap contacts' **Business Name** and **Vertical** from the new lead file, where necessary.
+- **Applied (live GHL writes via `.env` PIT):** of the 74 overlap contacts, 70 were already correct (the concurrent run had reclassified them). Only **4 needed changes** — set `Vertical=Cannabis Dispensaries`; 1 also set `companyName`:
+  - `Wb47RwJQhAugrEBvMbVI` → Vertical `Cannabis`→`Cannabis Dispensaries`; companyName `Green Thumb Industries`→`Green Thumb Industries (GTI)`
+  - `Va9AKaMy7tPJUEaTufLy` (Glass House Brands Inc.), `R8MDo421YBA0ypjc8oKB` (Gold Flora), `K75KVuCfSwOo8R2t5LQp` (Verano) → Vertical `Cannabis`→`Cannabis Dispensaries`
+  - 0 errors; re-readback verified. **No tags changed.**
+- Gambling had 0 existing overlaps → nothing to update.
+
 ## Remaining / follow-up
 - Email 3 "40% higher approval rate / 16 months" claims remain unsubstantiated (Ed instructed to accept as truth for now — not changed).
-- **No cohort imported** for either vertical yet. Enrollment order = assign per-vertical sender field, then apply enroll tag.
+- **Import not yet performed.** Next: GHL CSV import of the Gambling file (246) and the Dispensaries net-new file (51); apply the Dispensaries existing-contact update (74). Enrollment order = assign per-vertical sender field, then apply enroll tag.
 - Nicotine templates remain 12px without the `<main>` wrapper (pre-existing); optionally reconcile later.
 - Nothing committed. Temp scripts/backups were created under `.playwright-mcp/` (gitignored) and deleted after use.
