@@ -1,14 +1,41 @@
 -- Authoritative V1 count definitions.
 -- These counts read raw GHL snapshots, not report_daily_summary or daily rollups.
--- The raw snapshot ingest must be healthy; the API exposes freshness separately.
+-- Contact creation is deduplicated by source_key and uses a stable source
+-- timestamp (createdAt/dateAdded/source_created_at). A daily snapshot date is
+-- only a last-resort first-observed date; it must not make the same contact
+-- look newly created on every later snapshot. LinkedIn historical backfills
+-- are reported separately and excluded from ordinary new-contact volume.
 
-authoritative_ghl_counts AS (
+contact_creation_facts AS (
+  SELECT source_key,
+    MIN(COALESCE(
+      (NULLIF(payload_json->>'createdAt','')::timestamptz AT TIME ZONE 'America/Los_Angeles')::date,
+      (NULLIF(payload_json->>'dateAdded','')::timestamptz AT TIME ZONE 'America/Los_Angeles')::date
+    )) AS created_date,
+    MIN(report_date)::date AS first_observed_date,
+    BOOL_OR(LOWER(payload_json::text || ' ' || dimensions_json::text) LIKE '%historical backfill%'
+         OR LOWER(payload_json::text || ' ' || dimensions_json::text) LIKE '%unipile-backfill%'
+         OR LOWER(payload_json::text || ' ' || dimensions_json::text) LIKE '%linkedin via unipile%') AS is_linkedin_backfill
+  FROM report_raw_ghl_contacts
+  WHERE source_system='ghl' AND NULLIF(source_key,'') IS NOT NULL
+  GROUP BY source_key
+), authoritative_ghl_counts AS (
   SELECT jsonb_build_object(
     'new_contacts', (
-      SELECT COUNT(DISTINCT NULLIF(source_key,''))::int
-      FROM report_raw_ghl_contacts
-      WHERE (COALESCE(NULLIF(payload_json->>'createdAt','')::timestamptz, report_date::timestamptz)
-             AT TIME ZONE 'America/Los_Angeles')::date BETWEEN $1::date AND $2::date
+      SELECT COUNT(*)::int
+      FROM contact_creation_facts
+      WHERE COALESCE(created_date, first_observed_date) BETWEEN $1::date AND $2::date
+        AND NOT COALESCE(is_linkedin_backfill,FALSE)
+    ),
+    'linkedin_backfill_contacts', (
+      SELECT COUNT(*)::int FROM contact_creation_facts
+      WHERE COALESCE(created_date, first_observed_date) BETWEEN $1::date AND $2::date
+        AND COALESCE(is_linkedin_backfill,FALSE)
+    ),
+    'new_contacts_date_unavailable', (
+      SELECT COUNT(*)::int FROM contact_creation_facts
+      WHERE first_observed_date BETWEEN $1::date AND $2::date AND created_date IS NULL
+        AND NOT COALESCE(is_linkedin_backfill,FALSE)
     ),
     'opportunities_created', (
       SELECT COUNT(DISTINCT NULLIF(source_key,''))::int

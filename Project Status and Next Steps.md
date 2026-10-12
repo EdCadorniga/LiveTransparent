@@ -1,5 +1,35 @@
 # LiveTransparent Project Status and Next Steps
 
+### CURRENT 2026-10-13 — existing vertical cohorts scheduled; SMS delivery/reporting first next action
+
+- Enrollment audit reconciled **2,263 historical records to 1,819 distinct contacts and 1,816 active**. All active contacts have queued execution times and connected remaining email/SMS paths. All 1,819 campaign-specific sender assignments are valid. Historical finished duplicates do not need re-enrollment; three inactive Cannabis contacts meet the explicit DAN Dispensary exclusion. Ed confirmed no duplicate re-enrollment. No tag/field changes were required.
+- **SMS is not delivery-ready despite active schedules/dryRun=false:** Oct4–10 Pacific native logs show477 unauthorized responses and434 Nicotine timeouts (911webhooks total). Diagnose canonical auth contract, reconcile timeout/provider/idempotency outcomes, and review the future Crypto09:03–09:08Pacific SMS queue against the effective10–17Pacific guard. No repair or replay yet; approval before live correction.
+- Native vertical email activity supports Ed's reporting concern:1,501 successfully queued actions,21 errors,2skips. Supported export has1,552 outbound sent messages across all sources; exact vertical join and provider/native delivery metrics pending. V1 has not yet ingested these captures; no deployment in this continuation.
+- Ordered TODOs, exact workflow versions, native queue dates, evidence paths and copy-ready next-session prompt: [`docs/sessions/2026-10-13-vertical-enrollment-send-reconciliation.md`](docs/sessions/2026-10-13-vertical-enrollment-send-reconciliation.md). Continue SMS/send-reporting first, then the recorded booking-click parser repair and GHL clicker query/filter work. No commit.
+
+### CURRENT 2026-10-13 — LinkedIn withdrawal pacing and new-request caps
+
+- Captured John + mojibake set: 206. Latest ledger readback (Oct 12 17:10 UTC): **120 withdrawn / 86 pending**, no unresolved withdrawal states; previous batch provider readback passed. Both durable queue holds runtime-verified, 22-day cooldowns retained.
+- Ed requested **30 seconds between withdrawals**, with up to 30 per batch and the existing 10-minute post-batch pause. Worker was restarted safely while waiting; PID 14076, preserved next batch Oct 12 17:19:43 UTC. Local status/log under `local-scripts/linkedin-invite-withdrawals/`; computer must remain awake. Cleanup remains running, not complete. See [session record](docs/sessions/2026-10-12-linkedin-john-invite-withdrawal-plan.md).
+- **New invitations: 20/day (America/Los_Angeles), maximum 5/hour**, account-wide including future re-invites. Supersedes old sending caps. Senders remain paused; reconcile/implement shared live enforcement before separately authorized activation. No new requests/re-invites sent.
+
+### CURRENT 2026-10-13 — Executive Report V1 restored + vertical performance
+
+- Facts API repaired and published at `e8c3dd1a-1000-4162-b784-93ad161d0e06`; the defect was missing `END` in SQL→Closed CASE. Both weekly endpoints return populated JSON. New contacts are **1,744/22**, with LinkedIn backfills **0/5** separate. Other funnel/meeting counts reconcile to the prior documented raw facts.
+- One-contact discrepancy resolved: `hWikhd4bEQNJLcQWmXkh` created Oct 11 00:42 UTC = Oct 10 Pacific; legacy Summary timezone-unqualified DATE excludes it. Materializer success `1131823`, cohort 1,744.
+- Nine vertical rows now reconcile to report-wide supported metrics; Unclassified retained. Sends/revenue unavailable; responses are captured inbound events, not campaign-attributed replies. Band 3 October vertical Email/SMS tracking remains incomplete and explicitly labeled.
+- V1 build `2026-10-13-v1-vertical-facts` deployed; local/live desktop and 390px checks passed; legacy report SHA unchanged. Fixed a streaming-render race that overwrote SQL evidence after a late source response. Final live card retains 0 verified / 27 without booking evidence after all sources load. Queries remain slow; an earlier Summary 504 recovered. Current details/status table: [`executive_report_v1_plan.md`](executive_report_v1_plan.md), opening section.
+- Remaining: approved internal booking-click test and complete provider-level vertical Email/SMS source reconciliation. No CRM write, send, or commit made in this continuation.
+- **EOS updated next action:** click intake Process Click redeclares `const cfgValues`; failures 1132673/1132676 confirm the active path is broken before downstream contact updates. Repair/parse-check and scoped publication approval precede the controlled test. No EOS repair or replay occurred.
+- **New Ed TODO:** add a report link to a supported GHL query/filter showing booking-link clicker contacts; deduplicate by verified ledger contact ID, match selected Pacific dates, verify destination IDs/counts, and keep clicks distinct from bookings. No implicit contact/tag writes. Full ordered TODOs and copy-ready prompt: [`docs/sessions/2026-10-13-executive-v1-facts-vertical-eos.md`](docs/sessions/2026-10-13-executive-v1-facts-vertical-eos.md).
+
+### HISTORICAL 2026-10-12 — Executive Report V1 Band 1 / UTM / vertical audit handoff
+
+- **Band 1 comparison UI deployed** in build `2026-10-12-v1-band1-wow`, but Facts API `oxYDg6XnRBKhl1Xd` now returns HTTP 200 with an empty body due a Postgres SQL syntax error (`1131774`, near `FROM`). Do not sign off the headline values or display comparisons as validated until repaired.
+- The detailed EOS section and **step-by-step status plan** are in [`executive_report_v1_plan.md`](executive_report_v1_plan.md), “EOS — 2026-10-12 — Band 1, UTM source evidence, and vertical-performance continuation.” First next action: fix/query-test the Facts SQL, then re-read both weeks.
+- UTM audit found no booking click-ledger rows or linked appointment facts for the 27 SQL-stage opportunities. Do not write fabricated booking UTMs. Two contact last-touch UTM fields were filled from exact legacy website-click metadata; this does not prove booking attribution. The click intake now maps legacy booking-link IDs and will write last-touch fields on future mapped link clicks, but has not had a live click test.
+- `verticalPerformance` remains hardcoded empty. Its source mapping and acceptance steps are in the same V1 EOS plan. No commit was made; preserve unrelated workspace changes.
+
 ### CURRENT 2026-10-12 — all-vertical email template typography updated; paragraph spacing follow-up open
 
 - Updated 35 templates through GHL PIT; the five Cannabis Brands templates already matched the reference. Fresh saved-preview readback covered 40 campaign templates across eight verticals.

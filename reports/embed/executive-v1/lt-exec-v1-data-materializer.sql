@@ -19,11 +19,21 @@ CREATE INDEX IF NOT EXISTS lt_exec_v1_contact_provenance_first_seen_idx ON lt_ex
 WITH latest AS (
   SELECT DISTINCT ON (source_key) NULLIF(source_key, '') AS contact_id, payload_json, dimensions_json, report_date, loaded_at
   FROM report_raw_ghl_contacts
-  WHERE NULLIF(source_key, '') IS NOT NULL
+  WHERE source_system = 'ghl' AND NULLIF(source_key, '') IS NOT NULL
   ORDER BY source_key, report_date DESC, loaded_at DESC
 ), normalized AS (
   SELECT contact_id,
-    COALESCE(NULLIF(payload_json->>'createdAt','')::timestamptz, report_date::timestamptz) AS first_seen_at,
+    COALESCE(
+      (SELECT MIN(COALESCE(NULLIF(r2.payload_json->>'createdAt','')::timestamptz,
+                           NULLIF(r2.payload_json->>'dateAdded','')::timestamptz))
+       FROM report_raw_ghl_contacts r2
+       WHERE r2.source_system='ghl' AND r2.source_key=latest.contact_id
+         AND COALESCE(NULLIF(r2.payload_json->>'createdAt','')::timestamptz,
+                      NULLIF(r2.payload_json->>'dateAdded','')::timestamptz) IS NOT NULL),
+      (SELECT MIN(r2.report_date)::timestamptz
+       FROM report_raw_ghl_contacts r2
+       WHERE r2.source_system='ghl' AND r2.source_key=latest.contact_id)
+    ) AS first_seen_at,
     COALESCE(NULLIF(payload_json->>'source',''), NULLIF(dimensions_json->>'source',''), NULLIF(payload_json->>'leadSource','')) AS source,
     COALESCE(NULLIF(payload_json->>'medium',''), NULLIF(dimensions_json->>'medium','')) AS medium,
     COALESCE(NULLIF(payload_json->>'campaign',''), NULLIF(dimensions_json->>'campaign','')) AS campaign,

@@ -14,12 +14,23 @@ The supplied mockup defines the presentation flow. Its numbers are illustrative;
 
 ## P0 — trustworthy numbers
 
+### Implemented 2026-10-13: stable contacts and vertical facts
+
+**Later Oct13 source audit:** Native vertical workflow histories/logs and a supported GHL Email export were captured read-only, but are not yet wired into V1. The accepted evidence is 1,501 email actions **queued successfully**, plus21 errors/2skips; supported export has1,552 outbound `sent` messages across all sources with exact vertical identity reconciliation pending. The911 SMS webhook actions were477 unauthorized application responses/434timeouts, not send events. Preserve queue/attempt/sent/delivered distinctions and reconcile stable IDs/campaign overlap before replacing unavailable fields. See `docs/sessions/2026-10-13-vertical-enrollment-send-reconciliation.md`.
+
+- Stable contact creation is the minimum source `createdAt`/`dateAdded` across snapshots, with first-observed fallback once per contact. America/Los_Angeles dates are authoritative. Contact keys normalize the `contact:` prefix for joins. Ordinary new contacts exclude classified LinkedIn backfills, reported separately. The comparison now uses 1,744/22 ordinary contacts and 0/5 backfills for Oct 4–10 / Sep 27–Oct 3.
+- Vertical is the **latest raw contact** custom field `ODs8fBt5te5HEfSJ91pY`; blank/unmatched values are **Unclassified**. This is current classification, not event-time history. Source SQL: `lt-exec-v1-vertical-performance.sql`.
+- Leads/backfills use the stable contact cohort. MQL/SQL entries use the existing first-observed opportunity cohort. Meetings are distinct Regulated Ads calendar contact IDs by scheduled `start_at`, Pacific time. Won/lost retain the existing funnel's latest-snapshot observed-date rule; no verified closing timestamp is implied.
+- Vertical responses count captured inbound SLA event IDs in the selected window, not distinct people, answered events, or campaign-attributed replies. These sum to `responseSlaDetails` rows (27/24 in the accepted weeks). Per-campaign response rates are unavailable.
+- Vertical sends/revenue are NULL/unavailable. The October campaign Email/SMS feed is not fully reconciled: legacy event/send rows must not be relabeled as eight-vertical campaign performance. Missing event coverage is distinct from measured zero activity.
+- SQL evidence and vertical labels are reapplied on every streaming render, so a late Summary/Channels response cannot overwrite verified/unverified booking counts with classification coverage.
+
 | Mockup area | Required real values | Current source / status | Validation needed |
 |---|---|---|---|
 | Headline row | New MQLs, new SQLs, MQL→SQL, unique Cameron booking contacts, new contacts, opportunities created | Executive Summary API plus V1 appointment facts | Count distinct non-empty contact IDs for Cameron-assigned bookings in the selected window; cancellation/reschedule appointment rows for the same contact count once |
 | Opportunities by source | Opportunities grouped by source/campaign | Executive Summary attribution and campaign/source payloads | Distinct opportunity IDs; exclude classified historical backfill contacts where required |
 | MQL sources | MQLs by originating source | `leadSourceBreakdown` / `leadSourceCoverage` | Display coverage and Unknown / Unattributed rather than implying full attribution |
-| SQL sources | SQLs classified by booking path: SDR or calendar link; show SDR name or calendar link name + UTM | `sqlBookingBreakdown` from the V1 facts API | Classify every SQL into exactly one of the two paths; coverage is always 100%. A calendar-link booking without UTM remains classified as Calendar link and is flagged `Missing UTM` for tracking repair. Never show an Unknown source bucket. |
+| SQL sources | SQL opportunities with verified booking evidence classified as SDR or calendar link; SQLs without a linked appointment/booking record remain `Unattributed / unverified` | `sqlBookingBreakdown` from the V1 facts API | Never infer Calendar link solely because SDR attribution is absent. A verified calendar-link booking without UTM remains Calendar link and is flagged `Missing UTM`. Show the number of SQLs with verified booking evidence separately from the number lacking a booking record; do not create UTM values without a source event. |
 | New contacts — how added | Contacts by acquisition/addition mechanism | GHL contacts, source fields, backfill classifier, campaign/import markers | Define LinkedIn backfill, Apollo upload, form, manual/other buckets without double counting |
 | Meetings — who & where | Contact, SDR/owner, booking link/calendar | Appointments snapshot plus contact/opportunity owner mapping | Verify appointment-to-contact and originating-SDR attribution; expose Unassigned; keep the headline KPI distinct-contact based for Cameron |
 | Meeting outcomes | Showed, no-show, cancelled, rescheduled | GHL appointment statuses | Do not infer Showed; current status-update gap may require Unavailable or clearly labelled 0 |
@@ -47,7 +58,7 @@ SQL booking-path and email Trigger Link attribution implementation plan: [`docs/
 - Closed by source must include referral and other valid source values, and its totals must reconcile to closed SQLs/revenue. Unknown/Unattributed is a residual, not silently dropped coverage.
 - Weekly movement must show unique/new leads fed in and how they moved through MQL, SQL, and later stages. Intake counts and current-stage distributions must remain separate measures.
 - Retargeting must surface newsletter-audience contacts and clickers as a deduplicated, suppression-aware read-only queue. It does not authorize a send.
-- Lead-source coverage means attributed MQL/SQL rows divided by the matching MQL/SQL denominator; it is not limited to paid marketing SQLs. Referral counts when present, and incomplete source snapshots must remain visible.
+- Lead-source coverage means attributed MQL/SQL rows divided by the matching MQL/SQL denominator; it is not limited to paid marketing SQLs. Referral counts when present, and incomplete source snapshots must remain visible. Booking-path coverage is separate: a SQL stage entry without an appointment or verified booking click is not a booked calendar-link SQL.
 - Speed-to-lead remains same-channel inbound response time, not MQL→first phone call. Internal-note review is read-only; SLA targets, automatic tasks, CRM note creation, and outbound follow-up remain outside the approved scope.
 - New contacts must keep LinkedIn backfill separately identifiable so backfill does not inflate the ordinary new-contact count.
 
