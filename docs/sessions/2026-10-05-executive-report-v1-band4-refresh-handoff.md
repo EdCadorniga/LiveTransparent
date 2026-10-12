@@ -64,3 +64,11 @@ When no explicit `from`/`to` dates are in the URL, V1 now computes the last comp
 - Live V1 marker remains `2026-10-06-v1-rolling-week` (image `v3ud1lum1svamymuor21upog:executive-v1-20261006`) from the earlier verified deployment. No report redeploy or CRM action occurred during this closeout.
 - Next steps: (1) on/after Oct 12, inspect `hermes cron runs` and the task output; confirm it opened the authenticated GHL native report, used the exact LA Sunday–Saturday window, reconciled both SDR rows and their prior week, then verified the live V1 build and percentages; (2) if browser access or data checks fail, reauthenticate/retry and keep the last accepted snapshot live until a complete validated refresh succeeds; (3) confirm V1's no-date URL advances to `2026-10-04`–`2026-10-10`. Do not assume rolling dates also refresh call counts.
 - Documentation diff check: `git diff --check` passed before this closeout section; rerun after edits. No implementation tests were added or run in this EOS.
+
+## EOS closeout — 2026-10-12 partial Band 4 refresh
+
+- See `2026-10-12-executive-report-v1-band4-eos.md` for authoritative handoff and ordered TODOs.
+- Updated local Band 4 with Ed-supplied Oct 4–10 status counts and comparisons against the accepted Sep 27–Oct 3 call snapshot. Counts remain user-provided, not freshly verified against GHL; Booked/SQL/MQL→SQL remain pending the separate review and authoritative reconciliation.
+- Deterministic renderer assertions and `node --check` passed; `git diff --check` passed at review time. Runbook now explicitly says this is a partial, unaccepted snapshot and lists acceptance gates.
+- Worktree state at EOS review: report HTML plus the weekly runbook and this closeout/handoff are touched. No deploy, commit, or CRM action; live V1 build remains unknown/not verified after these local edits.
+- Next: verify native GHL source and exact LA date window; collect and reconcile output metrics; update accepted baseline only after evidence; perform full report acceptance; request approval before any deployment, then verify live marker if approved.
