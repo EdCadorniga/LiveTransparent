@@ -1,0 +1,36 @@
+{
+  "captured_at": "2026-10-13T15:32:40.012Z",
+  "basis": "Native GHL email reporting, source=workflow, date-filtered by message createdAt in America/Los_Angeles. Engagement state as of capture, not engagement-event timestamps.",
+  "periods": [
+    {"window":{"from":"2026-10-04","to":"2026-10-10"},"rows":[
+      {"vertical":"Alcohol","sent":169,"delivered":169,"opened":26,"clicked":9,"replied":0,"bounced":0},
+      {"vertical":"Cannabis Brands","sent":39,"delivered":38,"opened":10,"clicked":1,"replied":0,"bounced":1},
+      {"vertical":"Mushroom","sent":117,"delivered":116,"opened":41,"clicked":0,"replied":0,"bounced":1},
+      {"vertical":"Cannabis Dispensaries","sent":116,"delivered":114,"opened":51,"clicked":6,"replied":0,"bounced":3},
+      {"vertical":"Crypto","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Gambling","sent":244,"delivered":239,"opened":136,"clicked":1,"replied":0,"bounced":5},
+      {"vertical":"Peptides","sent":128,"delivered":127,"opened":43,"clicked":0,"replied":0,"bounced":1},
+      {"vertical":"Nicotine","sent":688,"delivered":669,"opened":404,"clicked":17,"replied":0,"bounced":19}
+    ]},
+    {"window":{"from":"2026-10-11","to":"2026-10-13"},"captured_at":"2026-10-13T17:13:07.860Z","complete":false,"rows":[
+      {"vertical":"Alcohol","sent":167,"delivered":167,"opened":36,"clicked":6,"replied":0,"bounced":0},
+      {"vertical":"Cannabis Brands","sent":39,"delivered":38,"opened":8,"clicked":1,"replied":0,"bounced":1},
+      {"vertical":"Mushroom","sent":115,"delivered":115,"opened":44,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Cannabis Dispensaries","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Crypto","sent":255,"delivered":202,"opened":59,"clicked":0,"replied":0,"bounced":53},
+      {"vertical":"Gambling","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Peptides","sent":127,"delivered":127,"opened":60,"clicked":19,"replied":0,"bounced":0},
+      {"vertical":"Nicotine","sent":677,"delivered":660,"opened":471,"clicked":132,"replied":0,"bounced":16}
+    ]},
+    {"window":{"from":"2026-09-27","to":"2026-10-03"},"rows":[
+      {"vertical":"Alcohol","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Cannabis Brands","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Mushroom","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Cannabis Dispensaries","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Crypto","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Gambling","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Peptides","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0},
+      {"vertical":"Nicotine","sent":0,"delivered":0,"opened":0,"clicked":0,"replied":0,"bounced":0}
+    ]}
+  ]
+}

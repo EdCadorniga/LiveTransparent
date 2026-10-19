@@ -1,0 +1,54 @@
+{
+  "revision": "vertical-20261015-ascii-no-apostrophes",
+  "order": ["Alcohol", "Cannabis", "Cannabis Dispensaries", "Crypto", "Gambling", "Mushroom", "Nicotine", "Peptides"],
+  "messages": {
+    "Alcohol": {
+      "slug": "alcohol",
+      "invite": "Hi {first_name} - I help alcohol and spirits brands run compliant Meta/Google ads without the disapprovals and account limits. Would love to connect.",
+      "dm1": "Hi {first_name} - reached out by email but figured LinkedIn might be easier. We keep ad accounts for alcohol and spirits brands approved and live on Meta/Google. Happy to send a short case study - worth a quick chat?",
+      "dm2": "Hi {first_name} - circling back. If disapprovals or delivery caps are limiting growth at {company}, I would love 30 minutes to show you how we keep restricted-vertical brands approved and live."
+    },
+    "Cannabis": {
+      "slug": "cannabis",
+      "invite": "Hi {first_name} - I work with cannabis brands on compliant Meta/Google ads and in-store attribution. Would love to connect.",
+      "dm1": "Hi {first_name} - reached out by email but figured LinkedIn might be easier. We help cannabis brands prove which dispensaries their ad spend actually drives sales in. Put together a short case study on it - happy to send if useful. Worth a quick chat?",
+      "dm2": "Hi {first_name} - circling back. If proving retail ROI is a priority for {company} this quarter, I would love 30 minutes to show you how we track ad spend to in-store sales. Book here: {booking_url} - or reply and I will work around you."
+    },
+    "Cannabis Dispensaries": {
+      "slug": "cannabis_dispensaries",
+      "invite": "Hi {first_name} - I work with dispensaries on bringing in brand-funded ad budgets and verified foot-traffic attribution. Would love to connect.",
+      "dm1": "Hi {first_name} - reached out by email too. We help dispensaries pull in brand-funded ad budgets and prove foot traffic with real POS data.\n\nFounding partner spots per market are limited - worth a quick chat to see if {company} qualifies?",
+      "dm2": "Hi {first_name} - circling back. We are onboarding a limited number of founding dispensary partners per market before it closes for 12 months. Worth a quick chat to see if {company} qualifies?"
+    },
+    "Crypto": {
+      "slug": "crypto",
+      "invite": "Hi {first_name} - I help crypto and fintech apps run compliant Meta/Google campaigns that do not get banned mid-scale. Would love to connect.",
+      "dm1": "Hi {first_name} - reached out by email but figured LinkedIn might be easier.\n\nWe keep crypto/fintech ad accounts alive on Meta/Google so acquisition campaigns actually scale. Happy to send a short case study - worth a quick chat?",
+      "dm2": "Hi {first_name} - circling back. If ad account risk is limiting growth at {company}, I would love 30 minutes to show you how our compliance-built accounts keep campaigns live."
+    },
+    "Gambling": {
+      "slug": "gambling",
+      "invite": "Hi {first_name} - I help gambling and gaming brands run compliant Meta/Google campaigns that do not get banned mid-scale. Would love to connect.",
+      "dm1": "Hi {first_name} - reached out by email but figured LinkedIn might be easier.\n\nWe keep gambling and gaming ad accounts alive on Meta/Google so acquisition campaigns actually scale. Happy to send a short case study - worth a quick chat?",
+      "dm2": "Hi {first_name} - circling back. If ad account risk is limiting growth at {company}, I would love 30 minutes to show you how our compliance-built accounts keep campaigns live. Book here: {booking_url}"
+    },
+    "Mushroom": {
+      "slug": "mushroom",
+      "invite": "Hi {first_name} - I help mushroom and functional-wellness brands run compliant Meta/Google ads without the disapprovals. Would love to connect.",
+      "dm1": "Hi {first_name} - reached out by email but figured LinkedIn might be easier.\n\nWe keep ad accounts for mushroom and functional-wellness brands approved and live on Meta/Google. Happy to send a short case study - worth a quick chat?",
+      "dm2": "Hi {first_name} - circling back. If disapprovals are limiting growth at {company}, I would love 30 minutes to show you how we keep grey-zone brands approved and live."
+    },
+    "Nicotine": {
+      "slug": "nicotine",
+      "invite": "Hi {first_name} - I help nicotine brands run compliant Meta/Google ads through the right account setup. Would love to connect.",
+      "dm1": "Hi {first_name} - reached out by email but figured LinkedIn might be easier.\n\nWe get nicotine brands live and scaling on Meta/Google through the right compliance account setup. Happy to send a short case study - worth a quick chat?",
+      "dm2": "Hi {first_name} - circling back. If being able to advertise at all is the blocker for {company}, I would love 30 minutes to show you how the right account setup changes that."
+    },
+    "Peptides": {
+      "slug": "peptides",
+      "invite": "Hi {first_name} - I help peptide brands run compliant ads on Meta/Google without the constant account shutdowns. Would love to connect.",
+      "dm1": "Hi {first_name} - reached out by email but figured LinkedIn might be easier.\n\nWe keep ad accounts for peptide brands alive on Meta/Google by fixing the account infrastructure, not just the creative. Happy to send a short case study - worth a quick chat?",
+      "dm2": "Hi {first_name} - circling back. If {company} is tired of rebuilding ad accounts after every ban, I would love 30 minutes to show you how our compliance-built accounts stay live."
+    }
+  }
+}

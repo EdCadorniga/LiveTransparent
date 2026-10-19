@@ -1,5 +1,36 @@
 # LiveTransparent Project Status and Next Steps
 
+### CURRENT 2026-10-19 — Executive V1 planned report improvements deployed
+
+- Build `2026-10-19-v1-improvements` is live at `/embed/executive-v1/`; legacy report bytes unchanged. Implemented the report-side planned improvements: native SDR call snapshots for Sep 27–Oct 3, Oct 4–10, and Oct 11–17 (Oct 11–17 matches the user-provided GHL totals; uncaptured windows stay Unavailable), meetings detail table with owner/calendar/status, vertical sends for date-matched native email cohorts (Oct 4–10 reconciles to 1,501), partial retargeting visibility, expanded action queue, consistent labels/notes, and a fix for the late comparison render overwriting vertical sends.
+- Desktop/390px, inline JS, nginx and legacy-byte checks passed. Facts payload remains `accuracy-20261015-v1`.
+- Still blocked: booking-link clicker GHL drill-down (supported filter/deep link unverified; click intake parser repair + publication approval outstanding), SMS auth/timeout reconciliation, closed SQL outcomes/revenue, complete per-vertical delivery feeds, and cold-query latency. No CRM writes, sends, workflow changes or commit. Detail: [`docs/sessions/2026-10-19-executive-v1-planned-improvements.md`](docs/sessions/2026-10-19-executive-v1-planned-improvements.md).
+- Follow-up: Facts revision `accuracy-20261019-v1` (`1bbf3033`) and UI `2026-10-19-v1-opportunity-actions` (facts revision `accuracy-20261019-v2`). New-bookings table shows Lakeisha Williams in Oct 4–10 (booked Oct 8, meeting Oct 19); Oct 11–17 has Aviv and 1 verified SQL. MQLs now break down by booking link/campaign/UTM (Nicotine 71, Alcohol 1, Cannabis 1, 14 automation with UTM not captured); opportunity source now uses contact-action tags (Email/LinkedIn/Calendar) and the specific current campaign, not import medium; 586/588 named campaigns. SQL UTM remains not captured for both bookings. Audit passes all four windows.
+
+
+- EOS handoff: [`docs/sessions/2026-10-19-executive-v1-eos-handoff.md`](docs/sessions/2026-10-19-executive-v1-eos-handoff.md). Next: implement Monday 00:10/01:10 Pacific prewarm for the completed + prior weeks, then clicker drill-down, click-intake repair, SMS reconciliation, closure/revenue and delivery feeds.
+
+### CURRENT 2026-10-15 — Executive V1 accuracy corrections deployed
+
+- Facts/refresh published and matching active versions; four Pacific windows reconcile across headline, owner, source and vertical totals. Oct 4–10 / Sep 27–Oct 3: opportunities **98/16**, MQL ledger contacts **36/24**, verified SQLs **1/1**, valid chronological conversions **0/0**, scheduled meeting contacts **3/2**. Missing owner/UTM no longer excludes actual non-canceled approved-calendar bookings.
+- Fixed monthly source overcount and failed cold Facts path, false 0 email headline (now 1,501 vertical sends), stale booking/SQL labels, and partial-social-statistics totals. UI deployed `2026-10-15-v1-accuracy`; desktop/mobile and legacy preservation passed. Natural reporting refresh `1145256` succeeded. Cold queries remain slow; unsupported closure/revenue/delivery fields remain unavailable.
+- Full scope, versions, validation and source limits: [`docs/sessions/2026-10-15-executive-v1-accuracy-audit.md`](docs/sessions/2026-10-15-executive-v1-accuracy-audit.md). Earlier October 13 cache/count statements below are superseded. No CRM writes, sends or commit.
+
+### CURRENT 2026-10-13 — SQL writer fixed; reporting reconciliation remains
+
+- Confirmed n8n SQL-tag writer is **WL - Webhook to Slack Channel Update** `lQTW0QPwBcf3o7j8`, node **Build Slack Payload**. Published `15ef9b89-fbad-4467-a858-2bb2b83c7d7f`: CRM writes require an independently verified matching appointment on Book a demo or Regulated Ads. Eight mocked checks, JavaScript parse, and exact active/published readback passed; no live execution.
+- Click intake `1diZyFmTqWQUEny3` published `97f9d873-cdf5-41ce-a0dc-fe386f909f5e`: MQL only; false `meeting booked` write removed; single serialized response. Do not run the proposed reply-only SQL opportunity-deletion script.
+- Still open: V1 27 measures Sales Outreach pipeline entries rather than verified SQL bookings; MQL 36 is a tag-ledger count, not 36 proven form fills. Lifetime email stats cannot be weekly campaign metrics. Cache parses but its lookup key does not match the sole seeded key and no refresh schedule is installed.
+- Authoritative correction and next tasks: `docs/sessions/2026-10-13-verified-sql-writer-correction.md`.
+
+### CURRENT 2026-10-13 — vertical LinkedIn connection + Sales Navigator DM design
+
+- Ed approved an **inactive-draft-only** design for all eight October verticals: rotate the vertical queues (Alcohol → Cannabis → Cannabis Dispensaries → Crypto → Gambling → Mushroom → Nicotine → Peptides), with one existing LinkedIn account and the account-wide **20/day, 5/hour Pacific** cap; then send PDF-specific Day 9 and Day 17 DMs through Sales Navigator only after verified connection.
+- Read all eight source sequence PDFs. Each contains vertical-specific connection-note and two DM copy. No workflow was created or changed in this session.
+- Build is gated on reconnecting the Sales Navigator V2 product (last status reported `disconnected`), verifying the Sales Navigator first-degree start-chat request path, reconciling eligible contact/profile identities, and implementing atomic shared pacing. Existing Classic dispatcher `fXxw5lanZcDmUrst` and DM sequence `d0tEtijajisIsYcs` remain inactive; leave them unchanged.
+- GHL Marketplace OAuth redirect diagnosis: the supplied install URL targets `/webhook/lt-sales-navigator-provider`, whose active GET path does not exchange OAuth codes or persist tokens; its POST path is the signed provider delivery handler. A dedicated state-validated Marketplace callback and isolated token storage are required before reinstall verification. Do not use the shared `ghl_oauth_tokens` active row without tracing its consumers.
+- Detailed architecture, readback state, open decisions, and ordered next steps: [`docs/sessions/2026-10-13-vertical-linkedin-workflow-design.md`](docs/sessions/2026-10-13-vertical-linkedin-workflow-design.md). No invitations, messages, contact/state/tag writes, executions, workflow changes, or publications occurred.
+
 ### CURRENT 2026-10-13 — existing vertical cohorts scheduled; SMS delivery/reporting first next action
 
 - Enrollment audit reconciled **2,263 historical records to 1,819 distinct contacts and 1,816 active**. All active contacts have queued execution times and connected remaining email/SMS paths. All 1,819 campaign-specific sender assignments are valid. Historical finished duplicates do not need re-enrollment; three inactive Cannabis contacts meet the explicit DAN Dispensary exclusion. Ed confirmed no duplicate re-enrollment. No tag/field changes were required.
@@ -240,7 +271,7 @@
 - **Dispatcher mirror 401 fixed (known defect):** stored token is a **Company** token → GHL 401; proven live and patched to exchange via `/oauth/locationToken`. `fXxw5lanZcDmUrst` `65a7398b-328c-4f99-b709-ee2da1bc6683` (10 nodes). Not yet exercised by a live send.
 - **Relations Backfill silent no-op fixed (found this session):** `VPiHfBwzOHaJnHBY` called `GET /users/connections` (returns the account's own profile object) → every daily run `backfilled:0`; fixed to `GET /users/relations` + `member_id` + 240s deadline. Published `0754c540-80a5-4f6f-8b74-7d7ef8f35f9f`.
 - **Verification:** all touched workflows `active=true`, `versionId == activeVersionId`; no executions left `new`/`running`/`waiting`.
-- **STILL OPEN — security:** GHL PIT (`pit-d25ac994-…`) + `stateUpsertSecret` remain plaintext in many `Config` nodes; **not rotated this session** (plan in the session doc §7).
+- **STILL OPEN — security:** GHL PIT (`<redacted-pit>…`) + `stateUpsertSecret` remain plaintext in many `Config` nodes; **not rotated this session** (plan in the session doc §7).
 - **Next:** confirm the next daily `rcvTMprJKga9aEJ6` (04:00 LA) and `VPiHfBwzOHaJnHBY` (03:15 LA) runs succeed; confirm a dispatcher run with `sent>0` mirrors without 401; rotate `stateUpsertSecret` (then evaluate the PIT).
 - Detail: [`docs/sessions/2026-10-02-linkedin-connected-backfill-and-fixes.md`](docs/sessions/2026-10-02-linkedin-connected-backfill-and-fixes.md).
 
@@ -250,7 +281,7 @@
 - **Event-type question resolved:** the webhook (`xFt6boNHRka9rEW4p9y32A`) is `message_received`; Unipile docs confirm this is the documented real-time method for **note-bearing** invitations. The event is a genuine acceptance trigger, but its attendee `network_distance` is stale, so the checker now confirms via `GET /users/{id}?account_id=...` (`FIRST_DEGREE` / `is_relationship:true`, fail-closed).
 - **Three fixes:** robust parse (regex fallback over the malformed form body, mirroring `7o5EBdvwAuIaWW7k`) + Unipile relation guard; `Build Find SQL` returns **all** matches (was `LIMIT 1`); payload/accept nodes iterate `$input.all()` so every duplicate contact is tagged + upserted. Companion: state-upsert `esc()` no longer double-escapes backslashes (was corrupting `'...'::jsonb` → Dasia's upsert failed `invalid input syntax for type json`).
 - **Live validation:** LeighAnn `matched_count=2` (`PhsISRIq1xJ0JOhpZrJn`, `2ECRRa2WU1XHT9uiAHC5`) and Dasia (`pMsQ62wPlwIg5ugUA3Se`) all `tag_ok:true, upsert_ok:true`; all three state rows now `connected` with correct `connected_at`; `linkedin_connected` on all three GHL contacts; 3 `connection_accepted` activity events. Negative test (pending `gwelen`, `THIRD_DEGREE`) → `not_connected`, nothing written.
-- **Security (STILL OPEN):** the `Config` Code node exposed a plaintext GHL PIT (`pit-d25ac994-…`) + `stateUpsertSecret` — rotate the secret (evaluate the PIT) and migrate the Config literals to a Set node.
+- **Security (STILL OPEN):** the `Config` Code node exposed a plaintext GHL PIT (`<redacted-pit>…`) + `stateUpsertSecret` — rotate the secret (evaluate the PIT) and migrate the Config literals to a Set node.
 - **DONE 2026-10-02 (session 3) — backfill `linkedin_connected`:** completed (678 contacts tagged; durable daily workflow `rcvTMprJKga9aEJ6`; 155 `requested`→`connected` reconciliations). The original scope (2,041 real rows) was wrong — only 112 were real; the rest were `linkedin:relation:` synthetic rows resolved via the profile index. See the session-3 section at the top.
 - **Optional backstop (not created):** Unipile USERS webhook on `new_relation` (catches accepts without notes; delayed up to 8h).
 - Detail: [`docs/sessions/2026-10-02-linkedin-acceptance-checker-parse-bug-and-fix-plan.md`](docs/sessions/2026-10-02-linkedin-acceptance-checker-parse-bug-and-fix-plan.md); blueprint `scripts/deploy/deploy_acceptance_checker.py` (+ `scripts/deploy/acceptance_checker/*.js`), `scripts/deploy/fix_state_upsert_esc.py`.

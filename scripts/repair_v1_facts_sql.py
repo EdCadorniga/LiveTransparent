@@ -9,7 +9,30 @@ import os
 import urllib.parse
 from datetime import datetime
 
-def sql_read(sql):
+def sql_read(sql, database='postgres'):
+    if database not in ('postgres','n8n'):
+        raise ValueError('Unexpected database')
+    env = dict(line.split('=', 1) for line in (ROOT / '.env').read_text().splitlines() if '=' in line and not line.startswith('#'))
+    env = {k: v.strip().strip('\"').strip("'") for k, v in env.items()}
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(env.get('VPS_HOST') or env.get('VPS_HOSTNAME'), username=env['VPS_USER'],
+        key_filename=os.path.expandvars(os.path.expanduser(env['VPS_SSH_KEY_PATH'])), timeout=20)
+    try:
+        stdin, stdout, stderr = client.exec_command('docker exec -i postgres-uokgs4c04ko0s4scccg40cgg psql -U postgres -d '+database+' -X -q -A -t -v ON_ERROR_STOP=1', timeout=300)
+        stdin.write('BEGIN READ ONLY; SET LOCAL statement_timeout=240000;\n' + sql + '\nROLLBACK;')
+        stdin.channel.shutdown_write()
+        out, err = stdout.read().decode(), stderr.read().decode()
+        if stdout.channel.recv_exit_status() != 0:
+            raise RuntimeError(err)
+        return out
+    finally:
+        client.close()
+
+
+def sql_exec(sql):
+    """Run a write SQL (DDL/DML) outside the read-only transaction. Caller is
+    responsible for safety; use only for explicitly approved, additive changes."""
     env = dict(line.split('=', 1) for line in (ROOT / '.env').read_text().splitlines() if '=' in line and not line.startswith('#'))
     env = {k: v.strip().strip('\"').strip("'") for k, v in env.items()}
     client = paramiko.SSHClient()
@@ -18,7 +41,7 @@ def sql_read(sql):
         key_filename=os.path.expandvars(os.path.expanduser(env['VPS_SSH_KEY_PATH'])), timeout=20)
     try:
         stdin, stdout, stderr = client.exec_command('docker exec -i postgres-uokgs4c04ko0s4scccg40cgg psql -U postgres -d postgres -X -q -A -t -v ON_ERROR_STOP=1', timeout=300)
-        stdin.write('BEGIN READ ONLY; SET LOCAL statement_timeout=240000;\n' + sql + '\nROLLBACK;')
+        stdin.write('SET LOCAL statement_timeout=60000;\n' + sql + ';')
         stdin.channel.shutdown_write()
         out, err = stdout.read().decode(), stderr.read().decode()
         if stdout.channel.recv_exit_status() != 0:
@@ -33,11 +56,18 @@ ID = 'oxYDg6XnRBKhl1Xd'
 
 def api(path, method='GET', body=None):
     env = dict(line.split('=', 1) for line in (ROOT / '.env').read_text().splitlines() if '=' in line and not line.startswith('#'))
-    key = env['N8N_LT_API_KEY'].strip().strip('\"').strip("'")
+    key = env['N8N_LT_API_KEY'].strip().strip('"').strip("'")
+    is_list = path.startswith('/api/v1/workflows') and path.rstrip('/').count('/') == 2
+    if is_list and '?' not in path:
+        path = f"{path}?includeArchived=true"
     req = urllib.request.Request(HOST + path, data=json.dumps(body).encode() if body else None,
         method=method, headers={'X-N8N-API-KEY': key, 'Content-Type': 'application/json'})
-    with urllib.request.urlopen(req, timeout=90) as res:
-        return json.load(res)
+    try:
+        with urllib.request.urlopen(req, timeout=90) as res:
+            return json.load(res)
+    except urllib.error.HTTPError as e:
+        body_text = e.read().decode() if e.fp else ''
+        raise RuntimeError(f'{method} {path} -> {e.code}: {body_text}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

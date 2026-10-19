@@ -24,7 +24,16 @@
       "sms_unauthorized": 169,
       "sms_timeouts": 0,
       "sms_sent": null,
-      "sms_delivered": null
+      "sms_delivered": null,
+      "delivered_lifetime": 336,
+      "opened_lifetime": 62,
+      "clicked_lifetime": 15,
+      "replied_lifetime": 0,
+      "bounced_lifetime": 0,
+      "unsubscribed_lifetime": 3,
+      "open_rate_lifetime": 18.45,
+      "click_rate_lifetime": 4.46,
+      "bounce_rate_lifetime": 0
     },
     {
       "campaign": "Cannabis Brands Multi-Channel Outbound \u2014 Oct 2026",
@@ -43,7 +52,16 @@
       "sms_unauthorized": 41,
       "sms_timeouts": 0,
       "sms_sent": null,
-      "sms_delivered": null
+      "sms_delivered": null,
+      "delivered_lifetime": 76,
+      "opened_lifetime": 18,
+      "clicked_lifetime": 2,
+      "replied_lifetime": 0,
+      "bounced_lifetime": 2,
+      "unsubscribed_lifetime": 0,
+      "open_rate_lifetime": 23.68,
+      "click_rate_lifetime": 2.63,
+      "bounce_rate_lifetime": 2.56
     },
     {
       "campaign": "Mushroom Multi-Channel Outbound \u2014 Oct 2026",
@@ -62,7 +80,16 @@
       "sms_unauthorized": 0,
       "sms_timeouts": 0,
       "sms_sent": null,
-      "sms_delivered": null
+      "sms_delivered": null,
+      "delivered_lifetime": 116,
+      "opened_lifetime": 41,
+      "clicked_lifetime": 0,
+      "replied_lifetime": 0,
+      "bounced_lifetime": 1,
+      "unsubscribed_lifetime": 1,
+      "open_rate_lifetime": 35.34,
+      "click_rate_lifetime": 0,
+      "bounce_rate_lifetime": 0.85
     },
     {
       "campaign": "Cannabis Dispensaries Multi-Channel Outbound \u2014 Oct 2026",
@@ -81,7 +108,16 @@
       "sms_unauthorized": 0,
       "sms_timeouts": 0,
       "sms_sent": null,
-      "sms_delivered": null
+      "sms_delivered": null,
+      "delivered_lifetime": 114,
+      "opened_lifetime": 51,
+      "clicked_lifetime": 6,
+      "replied_lifetime": 0,
+      "bounced_lifetime": 3,
+      "unsubscribed_lifetime": 0,
+      "open_rate_lifetime": 44.74,
+      "click_rate_lifetime": 5.26,
+      "bounce_rate_lifetime": 2.59
     },
     {
       "campaign": "Crypto Multi-Channel Outbound \u2014 Oct 2026",
@@ -100,7 +136,16 @@
       "sms_unauthorized": 0,
       "sms_timeouts": 0,
       "sms_sent": null,
-      "sms_delivered": null
+      "sms_delivered": null,
+      "delivered_lifetime": 202,
+      "opened_lifetime": 59,
+      "clicked_lifetime": 0,
+      "replied_lifetime": 0,
+      "bounced_lifetime": 53,
+      "unsubscribed_lifetime": 0,
+      "open_rate_lifetime": 29.21,
+      "click_rate_lifetime": 0,
+      "bounce_rate_lifetime": 20.78
     },
     {
       "campaign": "Gambling Multi-Channel Outbound \u2014 Oct 2026",
@@ -119,7 +164,16 @@
       "sms_unauthorized": 0,
       "sms_timeouts": 0,
       "sms_sent": null,
-      "sms_delivered": null
+      "sms_delivered": null,
+      "delivered_lifetime": 239,
+      "opened_lifetime": 136,
+      "clicked_lifetime": 1,
+      "replied_lifetime": 0,
+      "bounced_lifetime": 5,
+      "unsubscribed_lifetime": 0,
+      "open_rate_lifetime": 56.9,
+      "click_rate_lifetime": 0.42,
+      "bounce_rate_lifetime": 2.05
     },
     {
       "campaign": "Peptides Multi-Channel Outbound \u2014 Oct 2026",
@@ -138,7 +192,16 @@
       "sms_unauthorized": 0,
       "sms_timeouts": 0,
       "sms_sent": null,
-      "sms_delivered": null
+      "sms_delivered": null,
+      "delivered_lifetime": 127,
+      "opened_lifetime": 43,
+      "clicked_lifetime": 0,
+      "replied_lifetime": 0,
+      "bounced_lifetime": 1,
+      "unsubscribed_lifetime": 0,
+      "open_rate_lifetime": 33.86,
+      "click_rate_lifetime": 0,
+      "bounce_rate_lifetime": 0.78
     },
     {
       "campaign": "Nicotine Multi-Channel Outbound \u2014 Oct 2026",
@@ -157,8 +220,18 @@
       "sms_unauthorized": 267,
       "sms_timeouts": 434,
       "sms_sent": null,
-      "sms_delivered": null
+      "sms_delivered": null,
+      "delivered_lifetime": 1329,
+      "opened_lifetime": 873,
+      "clicked_lifetime": 148,
+      "replied_lifetime": 0,
+      "bounced_lifetime": 35,
+      "unsubscribed_lifetime": 4,
+      "open_rate_lifetime": 65.69,
+      "click_rate_lifetime": 11.14,
+      "bounce_rate_lifetime": 2.56
     }
   ],
-  "matched_sent": 1501
+  "matched_sent": 1501,
+  "basis_email_stats": "Lifetime email stats from GHL V2 endpoint GET /emails/locations/{locationId}/campaigns/stats/workflow-campaigns/{workflowId} (requires Version: v3, Authorization: Bearer PIT). The V2 endpoint does not expose a date-range filter; lifetime counts are the closest available. Sent counts in the Oct 4-10 window come from `email_message_export` (the supported outbound messages API, verified by exact ID join)."
 }

@@ -92,3 +92,27 @@ SQL booking-path and email Trigger Link attribution implementation plan: [`docs/
 - No unavailable source is rendered as a trustworthy zero.
 - Desktop and approximately 390px mobile layouts have no horizontal overflow.
 - The existing Executive Report remains unchanged and still renders from its original path.
+# 2026-10-13 correction — binding metric requirements
+
+- Clicks apply MQL only. `meeting booked` and SQL require a verified appointment on `SrtXcFVyea7pFl3nTiIK` or `WS6lacfQK2XOhqN7mRaF`; a tag alone cannot substitute for appointment evidence.
+- SQLs must not count generic first entries into Sales Outreach. Preserve those historical entries separately from the verified-booking SQL metric.
+- Canonical MQL headline uses distinct contacts receiving the MQL tag in the selected Pacific window. Stage entries are a separately named metric. `ghl_automation` does not prove a form fill.
+- All columns in a weekly campaign funnel must share the selected period basis. Do not combine weekly Sent with lifetime Delivered/Opened/Clicked.
+- Cache acceptance requires exact selected/prior date keys, bounded scheduled refresh, valid non-empty payloads, freshness indicators, and measured fast hits. A populated table alone is not completion.
+- Verified live writer fix and remaining tasks: `docs/sessions/2026-10-13-verified-sql-writer-correction.md`.
+
+## 2026-10-19 implementation note — planned report improvements
+
+- Band 4 uses captured native GHL "Outgoing Calls by Status" weekly snapshots for Sep 27-Oct 3, Oct 4-10, and Oct 11-17 (`native-call-evidence.json`). Oct 11-17 matches the user-provided totals; windows without a native snapshot show calls as Unavailable and do not substitute partial Conversations facts.
+- Meetings now render contact, scheduled Pacific time, owner, approved calendar, recorded status, and booking time. Confirmed/cancelled use recorded status; rescheduled is a flag that can overlap; showed/no-show remain unavailable, and empty windows are not rendered as zero.
+- Vertical Sends are populated only from date-matched captured native GHL email cohorts (Oct 4-10 = 1,501; Oct 11-13 in-progress). Email-only basis and capture timestamp are displayed; delivery/engagement stay in Band 3.
+- Retargeting shows the newsletter clicker count even when audience/suppression coverage is unavailable; unavailable values are not replaced with zero.
+- The action queue adds unmatched/ambiguous inbound events and newsletter clickers alongside MQL-stage contacts awaiting Sales.
+- Booking-link clicker GHL drill-down, click-intake parser repair/publication, SMS auth/timeouts, closed outcomes/revenue, and complete per-vertical delivery feeds remain blocked and are not fabricated.
+
+### 2026-10-19 follow-up — booking-source detail
+
+- Meetings card now separates scheduled meetings from new bookings created in the window. Lakeisha Williams booked 2026-10-08 for a 2026-10-19 meeting, so she appears in the Oct 4–10 new-bookings table; Oct 11–17 has Aviv Ben Menachem and 1 verified SQL.
+- MQL sources are matched to the click ledger and show booking link, vertical, UTM source, UTM medium, and UTM campaign when captured. GHL automation MQLs remain explicitly un-attributed rather than labeled as form fills.
+- Opportunity source now uses `opportunityActionSources`: medium inferred from contact action tags (Email / LinkedIn / Calendar / SMS) and the specific current campaign from the campaign tag. Import source and `csv_import` medium are not used. Named-campaign coverage 586/588 for Oct 11–17; two rows remain “Campaign not captured.”
+- SQL sources show UTM fields when present; the current verified bookings have no captured UTM.
