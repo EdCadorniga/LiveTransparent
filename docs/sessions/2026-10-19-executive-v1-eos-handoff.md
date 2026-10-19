@@ -61,3 +61,7 @@
 - No replay of click/SMS events without reconciliation.
 - Never print or commit PITs, API keys, webhook secrets, JWTs, or database passwords.
 - Preserve the legacy `/embed/executive/` report.
+
+## Security follow-up (pre-existing, not introduced by this commit)
+
+- Historical tracked files still contain legacy secret values (for example the 2026-10-12 integration health session doc and marketing workflow snapshots). They were already in Git history and were not added by this commit. Rotate the affected SimpleTexting/Unipile credentials and redact those historical files in a dedicated security pass; do not copy their values into new work.
