@@ -1,5 +1,12 @@
 # Executive Report V1 Plan and Session Handoff
 
+## CURRENT — 2026-10-20 — Monday Pacific schedule corrected
+
+- Weekly Band 4 Hermes job is `cd6d1b15f148` (`Executive Report V1 Weekly Band 4`), now cron `0 3 * * 1` with the Hermes `default` profile timezone set to `America/Los_Angeles`. Next run `2026-10-26T03:00:00-07:00`. This supersedes the earlier 07:30 Asia/Singapore schedule, which fired Sunday afternoon Pacific.
+- Runbook updated: `docs/runbooks/executive-report-v1-weekly-hermes-refresh.md` (explicit previous Sunday–Saturday LA dates, live job/store, Monday production components).
+- Blocker: the 2026-10-12 and 2026-10-19 runs failed with OpenRouter `HTTP 401: User not found`; re-authenticate via `hermes model` before the job can produce data. The job also logged `AGENTS.md` context truncation (441,402 chars vs 251,658 limit).
+- Still open: the Monday 00:10/01:10 `America/Los_Angeles` n8n facts prewarm is not implemented; `kBuW8Uq3EOJFQKNF` only refreshes existing `v1_facts_cache` keys.
+
 ## LATEST — 2026-10-19 — planned report improvements deployed
 
 Handoff: [`docs/sessions/2026-10-19-executive-v1-eos-handoff.md`](docs/sessions/2026-10-19-executive-v1-eos-handoff.md). Next: Monday 00:10/01:10 Pacific prewarm, clicker drill-down, click-intake repair/publication, SMS reconciliation.
@@ -781,7 +788,7 @@ HighLevel's public API documentation includes `GET /conversations/messages/expor
 
 Next session: verify the operator's GHL Sunday calendar preference, obtain documented Call Reporting access or supported weekly exports, then replace the one-period native snapshot only after exact status/call-ID parity is proven. Keep outbound sends, CRM mutations, Marketplace subscription, and private-route automation approval-gated.
 
-Hermes automation handoff: [`docs/runbooks/executive-report-v1-weekly-hermes-refresh.md`](docs/runbooks/executive-report-v1-weekly-hermes-refresh.md). The intended schedule is Monday 03:00 `America/Los_Angeles`, reading the prior Sunday–Saturday native GHL window with fail-closed validation.
+Hermes automation handoff: [`docs/runbooks/executive-report-v1-weekly-hermes-refresh.md`](docs/runbooks/executive-report-v1-weekly-hermes-refresh.md). As of 2026-10-20 the live schedule is Monday 03:00 `America/Los_Angeles` (Hermes job `cd6d1b15f148`, cron `0 3 * * 1`, profile timezone `America/Los_Angeles`), reading the prior Sunday–Saturday native GHL window with fail-closed validation.
 
 ## 2026-09-29 EOS — unmatched response review UI refinement
 
