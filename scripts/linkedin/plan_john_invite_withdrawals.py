@@ -19,6 +19,7 @@ import csv
 import hashlib
 import json
 import os
+import random
 import shlex
 import sys
 import time
@@ -62,6 +63,11 @@ def sql_text(value):
     return "convert_from(decode('%s','hex'),'UTF8')" % str(value).encode().hex()
 
 
+def sql_nullable_text(value):
+    """Absent provider text becomes SQL NULL, never the literal string 'None'."""
+    return "NULL" if value is None else sql_text(value)
+
+
 class Database:
     def __enter__(self):
         self.client = paramiko.SSHClient()
@@ -89,6 +95,35 @@ class Database:
         stderr.read()
         if stdout.channel.recv_exit_status() != 0:
             # psql errors can include whole SQL statements/raw contact data.
+            raise Stop("Postgres operation failed; no provider write may follow.")
+        return out.strip()
+
+    def execute_statements(self, statements, timeout=1800):
+        """Run many statements in ONE psql session (and therefore one transaction).
+
+        Used for large captures: the payload is written in chunks so a multi-megabyte
+        script cannot exhaust the SSH channel buffer, while BEGIN/COMMIT still wrap
+        the whole batch atomically.
+        """
+        command = (f"docker exec -i {shlex.quote(PG_CONTAINER)} "
+                   "psql -U postgres -d postgres -X -q -tA -v ON_ERROR_STOP=1")
+        stdin, stdout, stderr = self.client.exec_command(command, timeout=timeout)
+        stdin.write("SET standard_conforming_strings=on;\n")
+        buffer, size = [], 0
+        for statement in statements:
+            buffer.append(statement)
+            size += len(statement) + 1
+            if size >= 262144:
+                stdin.write("\n".join(buffer) + "\n")
+                buffer, size = [], 0
+                stdin.flush()
+        if buffer:
+            stdin.write("\n".join(buffer) + "\n")
+        stdin.flush()
+        stdin.channel.shutdown_write()
+        out = stdout.read().decode("utf-8")
+        stderr.read()
+        if stdout.channel.recv_exit_status() != 0:
             raise Stop("Postgres operation failed; no provider write may follow.")
         return out.strip()
 
@@ -154,7 +189,24 @@ def pending_invites():
     raise Stop("Invitation page budget exhausted; incomplete list rejected.")
 
 
-def issue_of(invitation):
+def send_day(invitation):
+    """Calendar day the provider reports for the invitation (date part only)."""
+    raw = str(invitation.get("parsed_datetime") or "")
+    return raw[:10] if len(raw) >= 10 else ""
+
+
+def issue_of(invitation, before_date=None):
+    """Classify one invitation.
+
+    Note-based modes (john_note / mojibake) are the default. When before_date is
+    given, the scope is purely calendar-based: every invitation sent strictly
+    before that day is in scope regardless of the note it carries.
+    """
+    if before_date:
+        day = send_day(invitation)
+        if not day:
+            return ""
+        return "pre_cutoff_date" if day < before_date else ""
     text = str(invitation.get("invitation_text") or "").lower()
     if "john here" in text:
         return "john_note"
@@ -177,12 +229,12 @@ def matching_identity(alias="s", invitation=None, cid=""):
     return "(" + " OR ".join(terms or ["false"]) + ")"
 
 
-def collect(db, invitations, include_mojibake):
+def collect(db, invitations, include_mojibake, before_date=None):
     index = db.rows("SELECT ghl_contact_id, normalized_profile_slug, linkedin_provider_ids FROM linkedin_contact_profile_index")
     states = db.rows(f"SELECT * FROM linkedin_connection_state WHERE unipile_account_id={sql_text(ACCOUNT)}")
     cache, rows = {}, []
     for invitation in invitations:
-        issue = issue_of(invitation)
+        issue = issue_of(invitation, before_date)
         if not issue or (issue == "mojibake" and not include_mojibake):
             continue
         pub = str(invitation.get("invited_user_public_id") or "").strip().lower()
@@ -198,12 +250,18 @@ def collect(db, invitations, include_mojibake):
                     "Authorization": "Bearer " + os.environ["GHL_PIT"], "Version": "2021-07-28",
                     "Accept": "application/json", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0",
                 })
-                if code != 200 or body.get("contact", {}).get("id") != cid or body["contact"].get("locationId") != LOCATION:
+                if code == 404:
+                    # Contact no longer exists in GHL; there is nothing to preserve.
+                    cache[cid] = None
+                elif code != 200 or body.get("contact", {}).get("id") != cid or body["contact"].get("locationId") != LOCATION:
                     raise Stop(f"GHL contact preservation failed (HTTP {code}); snapshot rejected.")
-                cache[cid] = body
+                else:
+                    cache[cid] = body
                 time.sleep(0.25)
-            raw_contacts[cid] = cache[cid]
-        cid = candidates[0] if len(candidates) == 1 else ""
+            if cache[cid] is not None:
+                raw_contacts[cid] = cache[cid]
+        alive = [c for c in candidates if cache.get(c) is not None]
+        cid = alive[0] if len(alive) == 1 else ""
         contact = raw_contacts.get(cid, {})
         vertical = vertical_of(contact).strip() if cid else ""
         first = str(contact.get("contact", {}).get("firstName") or "").strip()
@@ -219,6 +277,7 @@ def collect(db, invitations, include_mojibake):
             "reinvite_message": note, "raw_invitation": invitation,
             "raw_ghl_contact": contact or raw_contacts,
             "raw_connection_states": matched_states,
+            "sent_day": send_day(invitation),
         })
     return rows
 
@@ -230,6 +289,7 @@ def save_snapshot(rows, args, total):
     path = directory / f"{args.mode}-{stamp}.json"
     document = {"schema_version": 1, "account_id": ACCOUNT, "created_at": datetime.now(timezone.utc).isoformat(),
                 "cooldown_days": args.cooldown_days, "include_mojibake": args.include_mojibake,
+                "before_date": args.before_date,
                 "reinvite_owner": args.reinvite_owner, "total_pending": total, "rows": rows}
     with path.open("x", encoding="utf-8") as f:
         json.dump(document, f, ensure_ascii=False, indent=2)
@@ -290,17 +350,37 @@ CREATE TRIGGER lt_invitation_withdrawal_hold BEFORE INSERT OR UPDATE ON partners
 
 
 def paused_dispatchers():
-    for wid in DISPATCHERS:
-        code, workflow = request("GET", f"{N8N}/api/v1/workflows/{wid}", {
-            "X-N8N-API-KEY": os.environ["N8N_LT_API_KEY"], "Accept": "application/json",
-        })
-        if code != 200 or workflow.get("id") != wid or workflow.get("active") is not False or workflow.get("activeVersionId"):
-            raise Stop("Invite dispatcher pause could not be verified on n8n-lt.")
-        code, executions = request("GET", f"{N8N}/api/v1/executions?workflowId={wid}&limit=100", {
-            "X-N8N-API-KEY": os.environ["N8N_LT_API_KEY"], "Accept": "application/json",
-        })
-        if code != 200 or not isinstance(executions.get("data"), list) or any(e.get("status") in ("new", "running", "waiting", "unknown") for e in executions["data"]):
-            raise Stop("Invite dispatcher executions are not quiescent on n8n-lt.")
+    """Verify every invite dispatcher is inactive and quiescent.
+
+    n8n-lt occasionally answers the executions endpoint with a transient error, so
+    the check is retried before it is allowed to block a withdrawal.
+    """
+    reason = "unknown"
+    for attempt in range(5):
+        verified = True
+        for wid in DISPATCHERS:
+            code, workflow = request("GET", f"{N8N}/api/v1/workflows/{wid}", {
+                "X-N8N-API-KEY": os.environ["N8N_LT_API_KEY"], "Accept": "application/json",
+            })
+            if code != 200 or workflow.get("id") != wid or workflow.get("active") is not False or workflow.get("activeVersionId"):
+                reason = f"dispatcher {wid} not verifiably inactive (HTTP {code})"
+                verified = False
+                break
+            code, executions = request("GET", f"{N8N}/api/v1/executions?workflowId={wid}&limit=100", {
+                "X-N8N-API-KEY": os.environ["N8N_LT_API_KEY"], "Accept": "application/json",
+            })
+            if code != 200 or not isinstance(executions.get("data"), list):
+                reason = f"dispatcher {wid} executions unreadable (HTTP {code})"
+                verified = False
+                break
+            if any(e.get("status") in ("new", "running", "waiting", "unknown") for e in executions["data"]):
+                reason = f"dispatcher {wid} has non-terminal executions"
+                verified = False
+                break
+        if verified:
+            return
+        time.sleep(5 * (attempt + 1))
+    raise Stop(f"Invite dispatcher pause could not be verified on n8n-lt: {reason}.")
 
 
 def capture(db, rows, path, args):
@@ -320,14 +400,16 @@ def capture(db, rows, path, args):
             "cooldown_days": args.cooldown_days, "reinvite_owner": args.reinvite_owner,
             "snapshot_path": str(path), "snapshot_sha256": digest,
         }
-        expressions = [sql_text(v) + ("::integer" if k == "cooldown_days" else "") for k, v in values.items()]
+        nullable = ("invited_user", "invited_user_public_id", "invited_user_provider_id", "old_invitation_text")
+        expressions = [(sql_nullable_text(v) if k in nullable else sql_text(v)) + ("::integer" if k == "cooldown_days" else "")
+                       for k, v in values.items()]
         for key in ("raw_invitation", "raw_ghl_contact", "raw_connection_states", "candidate_contact_ids"):
             values[key] = row[key]
             expressions.append(sql_text(json.dumps(row[key], ensure_ascii=False)) + "::jsonb")
         statements.append(f"INSERT INTO linkedin_invitation_withdrawals ({','.join(values)}) VALUES ({','.join(expressions)}) "
                           "ON CONFLICT (unipile_account_id,invitation_id) DO NOTHING;")
     statements.append("COMMIT;")
-    db.execute("\n".join(statements))
+    db.execute_statements(statements)
     # Read back full original ledger records, including any pre-existing captures.
     ledger = db.rows(f"SELECT * FROM linkedin_invitation_withdrawals WHERE unipile_account_id={sql_text(ACCOUNT)}")
     backup = path.with_suffix(".ledger.json")
@@ -350,7 +432,9 @@ def journal(path, event):
 def summary(document, path, mode):
     rows = document["rows"]
     return {"mode": mode, "total_pending": document["total_pending"], "selected": len(rows),
+            "scope_before_date": document.get("before_date"),
             "issues": dict(Counter(r["issue"] for r in rows)),
+            "send_days": dict(sorted(Counter(r.get("sent_day") or "unknown" for r in rows).items())),
             "verticals": dict(Counter(r["vertical"] or "(blank/unmatched)" for r in rows)),
             "needs_review": sum(r["reinvite_status"] == "needs_review" for r in rows),
             "review_details": [{"invitation_id": r["invitation_id"],
@@ -387,6 +471,7 @@ def withdraw(db, args):
     document = json.loads(path.read_text(encoding="utf-8"))
     if document.get("schema_version") != 1 or document.get("account_id") != ACCOUNT:
         raise Stop("Snapshot schema/account mismatch.")
+    before_date = document.get("before_date") or None
     ledger = db.rows(f"SELECT * FROM linkedin_invitation_withdrawals WHERE unipile_account_id={sql_text(ACCOUNT)}")
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     ids = {r["invitation_id"] for r in document["rows"]}
@@ -395,6 +480,8 @@ def withdraw(db, args):
         raise Stop("Withdrawal requires the original immutable capture snapshot and hold.")
     if ids - {r["invitation_id"] for r in ledger}:
         raise Stop("Snapshot contains uncaptured invitations.")
+    # Oldest invitation first, then by ID, so a resumed run is deterministic.
+    selected.sort(key=lambda r: (str(r.get("old_invitation_sent_at") or ""), str(r["invitation_id"])))
     paused_dispatchers()
     # Verify the hold is installed on both queues before any DELETE.
     guards = db.rows("SELECT tgrelid::regclass::text AS table_name FROM pg_trigger WHERE tgname='lt_invitation_withdrawal_hold' AND tgenabled='O'")
@@ -419,7 +506,7 @@ def withdraw(db, args):
             keys = ("id", "invitation_text", "invited_user_public_id", "invited_user_id")
             if any(str(inv.get(k) or "") != str(row["raw_invitation"].get(k) or "") for k in keys):
                 raise Stop("Live invitation identity/note changed; stop and recapture/review.")
-        if issue_of(inv) != row["issue"]:
+        if issue_of(inv, before_date) != row["issue"]:
             raise Stop("Live invitation is outside the captured defect scope.")
         current = db.rows(f"SELECT * FROM linkedin_connection_state s WHERE s.unipile_account_id={sql_text(ACCOUNT)} AND {matching_identity('s', inv, row['ghl_contact_id'])}")
         if any(s.get("connected_at") or s.get("connection_status") in ("connected", "completed") for s in current):
@@ -447,7 +534,9 @@ def withdraw(db, args):
         finalize(db, row, status, code, row["cooldown_days"], "" if ok else "DELETE not confirmed; review provider before retry")
         if not ok:
             raise Stop(f"DELETE not confirmed (HTTP {code}); batch stopped, hold retained.")
-        time.sleep(args.delay)
+        # Fixed spacing with a little jitter: keeps the average pacing while
+        # avoiding a perfectly metronomic request pattern.
+        time.sleep(args.delay + random.uniform(0.0, max(0.5, args.delay * 0.15)))
     verified = {str(i["id"]) for i in pending_invites()}
     written = db.rows(f"SELECT invitation_id FROM linkedin_invitation_withdrawals WHERE unipile_account_id={sql_text(ACCOUNT)} AND withdraw_status='withdrawn'")
     if any(r["invitation_id"] in verified for r in written):
@@ -459,6 +548,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("mode", nargs="?", default="report", choices=("report", "capture", "withdraw"))
     parser.add_argument("--include-mojibake", action="store_true")
+    parser.add_argument("--before-date", default=None,
+                        help="Calendar scope: withdraw every pending invitation sent strictly before this YYYY-MM-DD day")
     parser.add_argument("--cooldown-days", type=int, default=22,
                         help="Days after confirmed withdrawal (default 22: LinkedIn's three weeks plus one day)")
     parser.add_argument("--reinvite-owner", choices=("undecided", "ledger-script", "vertical-dispatcher"), default="undecided")
@@ -470,6 +561,12 @@ def main():
     args = parser.parse_args()
     if args.cooldown_days < 1 or not 1 <= args.limit <= 100 or args.delay < 1:
         parser.error("Positive cooldown, limit 1..100 and delay >=1 second required")
+    if args.before_date is not None:
+        try:
+            datetime.strptime(args.before_date, "%Y-%m-%d")
+        except ValueError:
+            parser.error("--before-date must be YYYY-MM-DD")
+        args.before_date = args.before_date.strip()
     if args.yes and args.mode != "withdraw":
         parser.error("--yes is valid only with withdraw")
     if args.mode == "withdraw" and not args.snapshot:
@@ -491,11 +588,12 @@ def main():
             withdraw(db, args)
             return
         invitations = pending_invites()
-        rows = collect(db, invitations, args.include_mojibake)
+        rows = collect(db, invitations, args.include_mojibake, args.before_date)
         path = save_snapshot(rows, args, len(invitations))
         if args.mode == "capture":
             capture(db, rows, path, args)
-        result = summary({"rows": rows, "total_pending": len(invitations)}, path, args.mode)
+        result = summary({"rows": rows, "total_pending": len(invitations), "before_date": args.before_date},
+                          path, args.mode)
         result["mojibake_pending"] = sum(issue_of(i) == "mojibake" for i in invitations)
         print(json.dumps(result, indent=2))
 
