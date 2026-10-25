@@ -1,5 +1,13 @@
 # LiveTransparent Project Status and Next Steps
 
+### CURRENT 2026-10-26 — LinkedIn state sync honors withdrawal holds
+
+- Execution `1194006` failed because the state sync attempted to queue an identity covered by the durable invitation-withdrawal hold. The database correctly rejected it; the hold must remain in force.
+- Updated `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) to load active hold identities before syncing and skip matches by GHL contact ID/candidate IDs, LinkedIn public identifier, or provider ID. It reports `held_skipped`; `LT - LinkedIn Connection State Upsert` and the database trigger are unchanged.
+- Live readback: active/published version `b387672d-ef20-4ce6-a65f-220d1078cc70`, six nodes, including the read-only hold query. Query returned 1,427 active hold rows and confirmed the failed identity is among them.
+- `py_compile` and `git diff --check` passed. No manual production sync run was made, so runtime acceptance remains pending. Next: inspect the next natural scheduled run for held skips and confirm there is no failed child State Upsert execution.
+- Details: [`docs/sessions/2026-10-26-linkedin-state-sync-withdrawal-hold-fix.md`](docs/sessions/2026-10-26-linkedin-state-sync-withdrawal-hold-fix.md).
+
 ### CURRENT 2026-10-26 — n8n upgraded to stable 2.44.6
 
 - Live n8n-lt and its external JavaScript/Python task-runner sidecar are now on matching release `2.44.6`. The public readiness endpoint returned HTTP 200 after startup; n8n logs confirm the task broker is ready and both launchers registered. DB migrations completed.

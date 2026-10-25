@@ -1,5 +1,14 @@
 # LiveTransparent Agent Notes
 
+## CURRENT 2026-10-26 — LinkedIn state sync honors invitation-withdrawal holds
+
+- Execution `1194006` of `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) failed when `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) attempted to set a held invitation identity to `ready`. The database trigger `lt_invitation_withdrawal_hold` correctly rejected the upsert with `Invitation cleanup hold blocks automated queue entry`.
+- Fixed the caller, not the database guard: the sync now reads `dispatcher_hold=true` identities from `linkedin_invitation_withdrawals` before processing and skips matching contact IDs, candidate IDs, LinkedIn public identifiers, and provider IDs. The skipped count is exposed as `held_skipped`; held invitations remain held and are not re-queued.
+- Live readback: sync workflow active and published, `versionId == activeVersionId == b387672d-ef20-4ce6-a65f-220d1078cc70`, six nodes including `Read Invitation Withdrawal Holds`. The read-only hold query returned 1,427 rows and confirmed the failed identity is held.
+- Verification: helper `scripts/linkedin/fix_connection_state_sync_withdrawal_holds.py` passes `py_compile`; workflow graph/query/code readback passed; `git diff --check` passed. No manual workflow run was made because the sync writes normal connection-state updates for other contacts. The next scheduled execution is the runtime acceptance check; do not count it as verified until it finishes successfully and reports held skips without a child upsert failure.
+- Follow-up: check the next natural state-sync run (expected 2026-10-26 01:15 UTC) for `held_skipped > 0`, zero errors, and no new failed State Upsert execution. Keep the database withdrawal trigger intact. Session detail: [`docs/sessions/2026-10-26-linkedin-state-sync-withdrawal-hold-fix.md`](docs/sessions/2026-10-26-linkedin-state-sync-withdrawal-hold-fix.md).
+- Security follow-up: existing live workflow Config credentials were inadvertently returned in a local diagnostic result during inspection. No values were copied into repository artifacts. Treat affected GHL, Unipile, and state-upsert credentials as exposed; plan a coordinated rotation and caller update, and do not weaken the withdrawal hold while doing so.
+
 ## CURRENT 2026-10-26 — n8n upgraded to stable 2.44.6
 
 - Live n8n-lt is running `n8nio/n8n:2.44.6`; its external task-runner image is built from the matching `n8nio/runners:2.44.6`. Both containers were recreated through the existing Coolify Compose project and were running with zero restarts at verification.
