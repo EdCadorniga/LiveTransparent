@@ -25,6 +25,13 @@ Investigate and fix the apparent out-of-memory crash in `LT - Report Executive S
 - The next natural cache refresh is runtime acceptance: verify it succeeds through `Store Report Cache`, then verify the next matching request is a cache hit. Until then, do not claim the report endpoint's full cold-refresh path is runtime-accepted.
 - The coincident n8n container replacement that marked `1194021` and `1194020` crashed remains unexplained; do not label it a confirmed OOM event. If another cross-workflow crash occurs, correlate Coolify deployment/container events and host/kernel logs at that timestamp.
 
+## Follow-up verification — 2026-10-26
+
+- The adjacent `LT - GHL Email Template Campaign Queue (STAGED)` scheduled run `1194070` succeeded after runner recreation. It was dry-run, found no accepted campaigns, and completed its Postgres-dependent Code node without an error.
+- A live `range=7d` report request returned HTTP 200 with a populated 29,644-byte response in 1.1 seconds. Executive Summary execution `1194090` succeeded on the cache-hit branch through `Return Cached Report`.
+- This confirms current runner connectivity and the report cache-read path. It did not exercise `Store Report Cache`; no cold refresh was forced because the query is expensive and the desired acceptance is the next natural cache miss/refresh. Keep the write-path runtime check open until that execution succeeds and a subsequent same-key request is a cache hit.
+- The current Coolify-generated Compose config has no runner `extra_hosts` and attaches both n8n and the runner to `coolify-shared` plus the private n8n network. Current runner inspection resolves `postgres` to `10.0.2.5` with TCP 5432 open.
+
 ## Security and next steps
 
 - Diagnostic execution/config inspection exposed refresh authentication and database configuration values in the tool output. Values are intentionally omitted here. Plan coordinated rotation and caller updates; do not rotate the database password or n8n encryption key casually.
