@@ -1,6 +1,6 @@
 {
-  "basis": "Native GHL report widget values: Outgoing Calls by Status, weekly Pacific windows, America/Los_Angeles. User-provided for 2026-10-11 through 2026-10-17; earlier weekly snapshots retained from the same source.",
-  "captured_at": "2026-10-19",
+  "basis": "Weekly Pacific call totals. Oct 18–24, 2026 values supplied by Ed from the GHL call report; earlier weekly snapshots retained from prior report captures.",
+  "captured_at": "2026-10-26",
   "windows": [
     {
       "from": "2026-09-27",
@@ -27,6 +27,15 @@
       "sdr": {
         "Marc": {"attempted": 788, "answered": 603, "busy": 60, "no_answer": 95, "failed": 30, "ringing": 0},
         "Jason Bornillo": {"attempted": 427, "answered": 325, "busy": 26, "no_answer": 69, "failed": 7, "ringing": 0}
+      }
+    },
+    {
+      "from": "2026-10-18",
+      "to": "2026-10-24",
+      "team": {"attempted": 918, "answered": 662, "busy": 101, "no_answer": 99, "failed": 56, "ringing": 0},
+      "sdr": {
+        "Marc": {"attempted": 502, "answered": 384, "busy": 64, "no_answer": 18, "failed": 36, "ringing": 0},
+        "Jason Bornillo": {"attempted": 416, "answered": 278, "busy": 37, "no_answer": 81, "failed": 20, "ringing": 0}
       }
     }
   ]
