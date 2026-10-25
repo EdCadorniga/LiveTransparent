@@ -1,5 +1,13 @@
 # LiveTransparent Project Status and Next Steps
 
+### CURRENT 2026-10-26 — n8n upgraded to stable 2.44.6
+
+- Live n8n-lt and its external JavaScript/Python task-runner sidecar are now on matching release `2.44.6`. The public readiness endpoint returned HTTP 200 after startup; n8n logs confirm the task broker is ready and both launchers registered. DB migrations completed.
+- Custom runner build updated from the old hard-coded pnpm path to `pnpm` on PATH; `pg@8.21.0` remains present and resolvable in the runner.
+- Coolify's saved service Compose had remained stale at n8n `2.37.10` / runner base `2.36.9` after the generated Compose was directly deployed. Updated the stored service Compose through Coolify's API without triggering a redeploy; both saved image references now match `2.44.6`.
+- In-flight `LT - Partnership Reply Poller` execution `1193844` was marked `crashed` during restart; its next natural scheduled execution `1193871` succeeded at 2026-10-25 19:15 UTC. No replay was performed.
+- Pre-upgrade backups (live Compose, n8n DB, n8n data volume) are under `/root/n8n-upgrade-backups/` on the VPS. Full record: [`docs/sessions/2026-10-26-n8n-stable-upgrade.md`](docs/sessions/2026-10-26-n8n-stable-upgrade.md).
+
 ### CURRENT 2026-10-21 — LinkedIn pre-2026-10-14 withdrawal campaign EXECUTED (1,188 withdrawn)
 
 - **Ed approved the live withdrawal; it ran 2026-10-21 12:07-16:27 PT (18:45-23:27 UTC) and is COMPLETE.** Scope = every pending LinkedIn connection request sent strictly before 2026-10-14 = **1,221**. Outcome: **1,188 withdrawn** (all HTTP 200, provider-confirmed `InvitationCanceled`, journaled before and after every DELETE), **32 skipped**, **1 `already_gone`**, **0 uncertain, 0 failed**, 0 rows left `pending`.

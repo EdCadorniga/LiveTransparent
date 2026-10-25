@@ -1,5 +1,14 @@
 # LiveTransparent Agent Notes
 
+## CURRENT 2026-10-26 — n8n upgraded to stable 2.44.6
+
+- Live n8n-lt is running `n8nio/n8n:2.44.6`; its external task-runner image is built from the matching `n8nio/runners:2.44.6`. Both containers were recreated through the existing Coolify Compose project and were running with zero restarts at verification.
+- The stable release was verified from n8n's official stable release channel. The initial runner build exposed that the 2.44.6 runner image puts `pnpm` on `PATH` rather than at the older hard-coded `/usr/local/lib/node_modules/pnpm/bin/pnpm.cjs` path. Both local and live Compose definitions now use `pnpm add pg@8.21.0 ...`; the runner image built successfully and `require('pg').Client` resolved.
+- Coolify's saved service definition was separately stale (`n8n:2.37.10`, runner base `2.36.9`) even though the live/generated Compose and running containers were already upgraded. Updated the Coolify service's stored `docker_compose_raw` through the Coolify API without triggering another deployment; its saved definition now matches `2.44.6` for both images.
+- Post-upgrade verification: `n8n --version` = `2.44.6`; external readiness endpoint returned HTTP 200; n8n logs show the task broker ready and both JS/Python launchers registered; DB migrations completed. The runner container is up and its PostgreSQL dependency is present.
+- One in-flight `LT - Partnership Reply Poller` execution (`1193844`) was marked `crashed` during the service restart. Its next natural scheduled execution (`1193871`, 2026-10-25 19:15 UTC) succeeded; no replay was performed.
+- Pre-upgrade, root-only VPS backups are under `/root/n8n-upgrade-backups/` with prefix `pre-2.44.6-20261025T190221Z-f4d632a7-` (live Compose, n8n Postgres custom dump, and n8n data-volume tarball). Detailed closeout: [`docs/sessions/2026-10-26-n8n-stable-upgrade.md`](docs/sessions/2026-10-26-n8n-stable-upgrade.md).
+
 ## CURRENT 2026-10-21 - LinkedIn pre-2026-10-14 withdrawal campaign EXECUTED (1,188 withdrawn)
 
 - **Ed approved the live withdrawal; it ran 2026-10-21 12:07-16:27 PT (18:45-23:27 UTC) and is COMPLETE.** Scope = every pending LinkedIn connection request sent strictly before 2026-10-14 = **1,221**. Result: **1,188 withdrawn** (all HTTP 200, provider-confirmed `InvitationCanceled`, journaled before and after each DELETE), **32 skipped**, **1 `already_gone`**, **0 uncertain, 0 failed**. 0 rows left in withdraw-status `pending`.
