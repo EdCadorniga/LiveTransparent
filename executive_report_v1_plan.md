@@ -1,5 +1,13 @@
 # Executive Report V1 Plan and Session Handoff
 
+## CURRENT — 2026-10-26 — source-coverage audit and V1 call/report clarity
+
+- Oct 18–24 call totals supplied by Ed are deployed and reconciled: Marc 502, Jason 416, team 918. Data is in `reports/embed/executive-v1/native-call-evidence.json` (commit `3ac8754`).
+- V1 now distinguishes loaded API requests from metric coverage and shows the native weekly call snapshot separately from the still-incomplete automated `exec_v1_call_facts` feed. Vertical email/social notes explain why their selected-window values remain unavailable.
+- Read-only supported email-export checks were not stable: repeated Oct 18–24 queries returned 0 / 37 / 0 total rows, and outbound rows in the 37-result response lacked vertical workflow IDs. No email totals were accepted. No sends, replays, CRM writes, or workflow edits were made.
+- Remaining selected-week gaps: exact vertical email send/event mapping, vertical SMS provider outcomes, LinkedIn vertical attribution, Vapi dispositions, appointment showed/no-show outcomes, close-event/revenue source, selected-window social statistics, full retargeting/action-queue coverage, and cache-store runtime acceptance. Exact source findings and ordered next steps: [`docs/sessions/2026-10-26-executive-v1-source-coverage-audit.md`](docs/sessions/2026-10-26-executive-v1-source-coverage-audit.md).
+- V1-only deployment verified; legacy report bytes unchanged. The weekly report has the supplied call snapshot, but the remaining unsupported metrics are intentionally unavailable, not zero.
+
 ## CURRENT — 2026-10-20 — Monday Pacific schedule corrected
 
 - Weekly Band 4 Hermes job is `cd6d1b15f148` (`Executive Report V1 Weekly Band 4`), now cron `0 3 * * 1` with the Hermes `default` profile timezone set to `America/Los_Angeles`. Next run `2026-10-26T03:00:00-07:00`. This supersedes the earlier 07:30 Asia/Singapore schedule, which fired Sunday afternoon Pacific.

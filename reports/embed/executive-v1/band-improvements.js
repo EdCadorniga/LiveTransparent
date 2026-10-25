@@ -155,6 +155,16 @@
   function renderSdr(facts) {
     if (!Array.isArray(facts.sdrOutputs) || !facts.sdrOutputs.length) return;
     var native = nativeWindowFor(facts), prior = priorNativeWindow(native || facts.window);
+    var health = document.querySelector("#health");
+    if (health) {
+      health.querySelectorAll("[data-native-call-snapshot]").forEach(function (el) { el.remove(); });
+      if (native) {
+        var badge = document.createElement("span");
+        badge.setAttribute("data-native-call-snapshot", "true");
+        badge.textContent = "GHL call snapshot " + native.from + "–" + native.to + ": available";
+        health.appendChild(badge);
+      }
+    }
     document.querySelector("#sdr-table thead tr").innerHTML = ["SDR / Owner", "Attempted", "Answered", "Busy", "No answer", "Failed", "Ringing", "Booked", "SQLs", "MQLs"].map(function (x) { return '<th>' + esc(x) + '</th>'; }).join("");
     var rows = facts.sdrOutputs, totals = { booked: 0, sqls: 0, mqls: 0 };
     document.querySelector("#sdr-table tbody").innerHTML = rows.map(function (row) {
@@ -189,7 +199,7 @@
       strip.appendChild(div);
     });
     document.querySelector("#calls-source-note").textContent = native
-      ? "Call inputs are the native GHL 'Outgoing Calls by Status' weekly report for " + native.from + " to " + native.to + " (America/Los_Angeles; captured " + (nativeCalls.captured_at || "reported") + "); values are the report totals, with Busy and Failed kept separate. Outputs: MQLs are distinct tagged contacts by latest recorded owner; SQLs are first non-canceled approved-calendar bookings by creation date; Booked counts distinct new booked contacts. Pre-booking assignee is ownership context, not proof of who booked."
+      ? "Call snapshot for " + native.from + " to " + native.to + " (America/Los_Angeles; captured " + (nativeCalls.captured_at || "reported") + "). Source: " + (nativeCalls.basis || "GHL call report values supplied for this period") + " Outputs: MQLs are distinct tagged contacts by latest recorded owner; SQLs are first non-canceled approved-calendar bookings by creation date; Booked counts distinct new booked contacts. Pre-booking assignee is ownership context, not proof of who booked."
       : "No native GHL call-report snapshot is captured for this window; partial Conversations call facts are not shown as native totals. Outputs remain available: MQLs are distinct tagged contacts by latest recorded owner; SQLs are first non-canceled approved-calendar bookings by creation date; Booked counts distinct new booked contacts.";
   }
   function renderNewBookings(facts) {
@@ -323,7 +333,7 @@
     if(emailKpi){emailKpi.querySelector('.label').textContent='Vertical emails sent';emailKpi.querySelector('.value').textContent=num(weekly ? weekly.rows.reduce(function(n,r){return n+Number(r.sent||0);},0) : exact ? verticals.reduce(function(n,r){return n+Number(r.sent||0);},0) : null);}
     note("#email-table", weekly
       ? "Vertical campaigns use native GHL data for the selected Pacific sent-message cohort; delivery and engagement reflect their state as of "+(weekly.captured_at || weeklyEmail.captured_at)+". Not lifetime totals. Oct 4–10 sent IDs reconcile to the 1,501-message export. Native hard+soft failure counts are shown as Bounced. Unmatched event-ledger rows are separate event-date metrics."+(weekly.complete===false?" Current week is an in-progress snapshot.":"")
-      : "October vertical campaigns: reconciled sent snapshot available only for Oct 4–10, 2026 Pacific. Other windows remain unavailable until reconciled. — means unavailable.");
+      : "Unavailable for this window: no accepted date-matched vertical email cohort with exact message-to-workflow reconciliation. Delivery, opens, clicks, replies, and bounces also lack accepted date-scoped event facts. — means unavailable, not zero.");
     var linkedin = rows.filter(function (row) { return row.channel === "linkedin"; });
     verticals.forEach(function (row) { linkedin.push({ campaign: row.campaign + " · LinkedIn — no attributed feed", linkedin_invites: null, linkedin_accepted: null, linkedin_dms: null, linkedin_opened: null, linkedin_replies: null }); });
     table("#linkedin-table", linkedin, ["linkedin_invites", "linkedin_accepted", "linkedin_dms", "linkedin_opened", "linkedin_replies"]);
@@ -398,8 +408,11 @@
        var complete=values.every(function(v){return v!=null;});
        if(cards[index+1])cards[index+1].querySelector('.value').textContent=complete?num(values.reduce(function(n,v){return n+Number(v);},0)):'N/A';
      });
-     note('#social-table','Post records are platform placements including recorded failures: '+num(s.publishedCount)+' published; '+num(s.failedCount)+' failed. Account-statistics posts are a different coverage basis. Cross-platform statistics are N/A unless every displayed platform has exact-window source coverage. Reach is summed platform reach, not deduplicated people; followers is a snapshot, not followers gained.');
+      note('#social-table','Post records are platform placements including recorded failures: '+num(s.publishedCount)+' published; '+num(s.failedCount)+' failed. Account-statistics posts are a different coverage basis. Reach, impressions, and follower values are N/A because the selected-window facts contain no accepted account-statistics rows for all displayed platforms; post-ledger counts do not substitute. Reach is summed platform reach, not deduplicated people; followers is a snapshot, not followers gained.');
    }
    fetch('weekly-email-evidence.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw Error('Weekly evidence unavailable');return r.json();}).then(function(data){weeklyEmail=data;var s=latest || window.ltV1Current;if(s)window.ltRenderBandImprovements(s.summary,s.channels,s.facts);}).catch(function(){weeklyEmail=null;var s=latest || window.ltV1Current;if(s)renderCampaigns(s.summary,s.channels,s.facts);});
-   fetch('native-call-evidence.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw Error('Native call evidence unavailable');return r.json();}).then(function(data){nativeCalls=data;var s=latest || window.ltV1Current;if(s)window.ltRenderBandImprovements(s.summary,s.channels,s.facts);}).catch(function(){nativeCalls=null;var s=latest || window.ltV1Current;if(s)window.ltRenderBandImprovements(s.summary,s.channels,s.facts);});
+    fetch('native-call-evidence.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw Error('Native call evidence unavailable');return r.json();}).then(function(data){nativeCalls=data;var s=latest || window.ltV1Current;if(s)window.ltRenderBandImprovements(s.summary,s.channels,s.facts);}).catch(function(){nativeCalls=null;var s=latest || window.ltV1Current;if(s)window.ltRenderBandImprovements(s.summary,s.channels,s.facts);});
+    var loadStatus=document.querySelector('#load-status');
+    function clarifyLoadedStatus(){if(loadStatus&&loadStatus.textContent==='All report sources loaded.')loadStatus.textContent='All report API requests loaded; metric-level coverage varies by section.';}
+    if(loadStatus){clarifyLoadedStatus();new MutationObserver(clarifyLoadedStatus).observe(loadStatus,{childList:true,characterData:true,subtree:true});}
 })();

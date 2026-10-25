@@ -1,5 +1,12 @@
 # LiveTransparent Project Status and Next Steps
 
+### CURRENT 2026-10-26 — Executive Report V1 source-coverage audit
+
+- The Oct 18–24 Pacific call snapshot is deployed and verified: Marc 502, Jason 416, team 918. It is explicitly marked as user-supplied GHL call-report evidence, separate from the incomplete automated V1 call-facts feed. Snapshot data is committed in `3ac8754`.
+- Updated V1 status copy to distinguish successful API requests from complete metric coverage, and to explain unavailable vertical email/social metrics. The V1-only deploy passed JS/nginx/legacy-byte checks; legacy report SHA is unchanged.
+- Supported GHL email-export reads for Oct 18–24 were inconsistent (0/37/0) and outbound records lacked vertical workflow IDs; no per-vertical email totals were accepted. Other open data gaps: vertical SMS outcomes, LinkedIn attribution, voicemail dispositions, appointment showed/no-show, close-event/revenue, selected-window social statistics, and complete retargeting/action-queue facts.
+- No CRM/workflow changes, sends, event replays, or retries. Full audit, evidence limits, deployment, and ordered next steps: [`docs/sessions/2026-10-26-executive-v1-source-coverage-audit.md`](docs/sessions/2026-10-26-executive-v1-source-coverage-audit.md). Existing cache-store runtime acceptance remains pending per the cache runner handoff below.
+
 ### CURRENT 2026-10-26 — Executive Report cache runner network repair
 
 - Execution `1194021` stopped at `Query Summary` with n8n's generic possible-OOM message. A second workflow also crashed simultaneously as n8n began a new session; no OOM kill was confirmed. The trigger for that container replacement remains unknown.
