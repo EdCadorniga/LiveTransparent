@@ -1,5 +1,13 @@
 # LiveTransparent Agent Notes
 
+## CURRENT 2026-10-26 — Executive Report cache runner network repair
+
+- Execution `1194021` of `LT - Report Executive Summary API` (`Bukc0mgOD2r7V6ED`) showed a generic possible-OOM node crash at `Query Summary`. Another workflow crashed simultaneously, and n8n started a new session at `2026-10-25T19:25:45Z`; an actual OOM was not confirmed.
+- Retry `1194029` completed the ~62-second report query but failed at `Store Report Cache` with `ECONNREFUSED 10.0.0.1:5432`. Root cause for repeated uncached refreshes: Coolify's saved/generated runner config had stale `extra_hosts: postgres:host-gateway` and the runner was off `coolify-shared`, unlike the checked-in Compose.
+- Fixed Coolify's saved and generated runner config, recreated only the runner, and verified `postgres` resolves to `10.0.2.5` with TCP 5432 connected. No workflow graph or report data changed.
+- Runtime acceptance remains pending: check the next natural cache refresh for a successful `Store Report Cache` and verify a subsequent cache hit. The cause of the simultaneous n8n container replacement is still unexplained; see [`docs/sessions/2026-10-26-report-executive-cache-runner-network-fix.md`](docs/sessions/2026-10-26-report-executive-cache-runner-network-fix.md).
+- Diagnostic inspection exposed refresh-auth and database configuration values in tool output. Coordinate rotation/caller updates; never copy values into docs or casually rotate the DB password or n8n encryption key.
+
 ## CURRENT 2026-10-26 — LinkedIn state sync honors invitation-withdrawal holds
 
 - Execution `1194006` of `LT - LinkedIn Connection State Upsert` (`Old7ZvyVYgFaJgDr`) failed when `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) attempted to set a held invitation identity to `ready`. The database trigger `lt_invitation_withdrawal_hold` correctly rejected the upsert with `Invitation cleanup hold blocks automated queue entry`.

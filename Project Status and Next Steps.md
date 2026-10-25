@@ -1,5 +1,14 @@
 # LiveTransparent Project Status and Next Steps
 
+### CURRENT 2026-10-26 — Executive Report cache runner network repair
+
+- Execution `1194021` stopped at `Query Summary` with n8n's generic possible-OOM message. A second workflow also crashed simultaneously as n8n began a new session; no OOM kill was confirmed. The trigger for that container replacement remains unknown.
+- Retry `1194029` completed the query but failed writing `v1_facts_cache` because runner DNS resolved `postgres` to unreachable `10.0.0.1`. Coolify's runner Compose had drifted: stale `postgres:host-gateway` mapping and no `coolify-shared` attachment. The failed cache write left refreshes repeating expensive cold queries.
+- Corrected both Coolify's saved service definition and generated VPS Compose; backed up the generated file, validated Compose, recreated only the runner, and verified `postgres` resolves to `10.0.2.5` with TCP 5432 connected. Checked-in `n8n/docker-compose.yml` was already correct. No workflow graph, report data, or cache rows were manually changed; no cold refresh was forced.
+- **Acceptance pending:** inspect the next natural cache refresh for successful `Store Report Cache` and a subsequent cache hit. Do not call the query crash an OOM without evidence. If further simultaneous execution crashes occur, correlate Coolify/container/host events.
+- Diagnostic inspection exposed refresh-auth and database configuration values in tool output. Coordinate rotation/caller updates; do not include values in records or casually rotate shared DB/n8n encryption credentials.
+- Detailed closeout: [`docs/sessions/2026-10-26-report-executive-cache-runner-network-fix.md`](docs/sessions/2026-10-26-report-executive-cache-runner-network-fix.md).
+
 ### CURRENT 2026-10-26 — LinkedIn state sync honors withdrawal holds
 
 - Execution `1194006` failed because the state sync attempted to queue an identity covered by the durable invitation-withdrawal hold. The database correctly rejected it; the hold must remain in force.
