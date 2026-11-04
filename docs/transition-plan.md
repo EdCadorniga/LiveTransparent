@@ -145,8 +145,8 @@ repomix, production read-only, no-commit-unless-asked), the known unclassified s
 points (root ~50 loose files incl. the three outside-scope billing documents marked
 do-not-process; `_qa_remove_exec/`, `.pip-cache/`, `bookstack/`, `qdrant/`, `landing/`,
 `AppScript…/`, `Contacts added August 25 2026/`, full `marketing/` sub-census), and the
-exact stop-and-ask conditions. **Outcome: done.** These two doc updates are
-working-copy only (not committed — boundary: commit when Ed asks).
+exact stop-and-ask conditions. **Outcome: done.** These two doc updates were pushed at
+Ed's "go ahead" as commit `4ba2feb` (2026-11-05, late).
 
 ## 1. Purpose and boundaries
 
