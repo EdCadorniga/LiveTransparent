@@ -131,6 +131,23 @@ blocked access items remain open. No production/destructive/live actions were pe
 
 **Progress update — 2026-11-05, commit + push recorded (owner request):** at Ed's explicit request, committed `ccaae01` (~50 files: +432/−4,466) and pushed `codex/social-outreach-sync` to origin — includes batches 0–4 surface (8 secret redaction edits, 29 tracked deletions where tmp/ captures are now in the git-ignored archive, 6 new recovery manifests/EOS), plus the ledger and stale-documentation corrections. Pre-commit safety scan of staged additions found no secret literals. Fresh `git status`: clean, branch up to date with origin. The `local-archive/` archive contents remain local and git-ignored by design. **Outcome: done.**
 
+**EOS update — 2026-11-05 (cleanup session closeout + next mandate):** the
+[cleanup EOS](sessions/2026-11-05-developer-transition-cleanup-eos.md) was extended with the
+session closeout (commits `ccaae01`/`bc75160` pushed; staleness sweep; scope-not-covered
+census note) and the next-session mandate was issued as a copy-ready prompt:
+
+[repo-organization & completeness-audit handoff prompt](sessions/2026-11-05-developer-transition-repo-organization-handoff-prompt.md).
+Ed's directive for the next session: (1) audit ledger completeness — everything planned
+executed, nothing missed; (2) ensure all repo files are organized; (3) clean the repo of
+unnecessary files. The prompt encodes the continuing YOLO mode with the per-batch
+manifest protocol, hard boundaries (withdrawal family, invoice/invoicing paths, VPS,
+repomix, production read-only, no-commit-unless-asked), the known unclassified starting
+points (root ~50 loose files incl. the three outside-scope billing documents marked
+do-not-process; `_qa_remove_exec/`, `.pip-cache/`, `bookstack/`, `qdrant/`, `landing/`,
+`AppScript…/`, `Contacts added August 25 2026/`, full `marketing/` sub-census), and the
+exact stop-and-ask conditions. **Outcome: done.** These two doc updates are
+working-copy only (not committed — boundary: commit when Ed asks).
+
 ## 1. Purpose and boundaries
 
 Prepare this repository and its operating documentation for handoff to a new developer by:

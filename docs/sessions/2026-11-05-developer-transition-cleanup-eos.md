@@ -101,10 +101,49 @@ manifest covers them, this session restores baseline content. See the ledger pro
 - `git diff --stat`: 17 files / +118/−23 (redactions + doc updates).
 - `repomix-output.md` still absent; withdrawals family + `__pycache__` still present.
 
+## Session closeout — commit/push, staleness sweep, and next-session mandate (later 2026-11-05)
+
+1. **Commit + push (Ed request):** `ccaae01` (batches 0–4 surface, ~50 files, +432/−4,466)
+   and `bc75160` (ledger note) pushed to `origin/codex/social-outreach-sync`; fresh
+   `git status` clean. Pre-commit scan of staged additions found no secret literals.
+2. **Stale-documentation sweep:** verified zero regenerable junk anywhere (only the held
+   withdrawal-family `__pycache__` remains, by boundary); re-scanned the primary control
+   docs — only accurate VPS-runner `/opt/pg-node_modules`, a VPS `/tmp` backup path, and
+   dated execution-history notes remain. Two genuinely stale passages in
+   [docs/transition-plan.md](../transition-plan.md) were corrected in place (§2
+   initial-observation bullet → dated supersession note; §6.4 `node_modules` question →
+   resolved-by-execution). One relative-link "miss" reported by the quick checker is a
+   checker false positive (it does not URL-decode the established `Project%20Status…`
+   encoded link; the target exists).
+3. **Scope honestly not covered yet (fed to the next session):** the executed batches
+   covered the plan's Phase 3–5 families only. A fresh first-level census for the next
+   handoff shows the repo still holds ~7.1 MB of loose root artifacts (3.5 MB GHL export
+   CSVs, report-era JSON/PNG/CSV/TXT captures, historical `.docx` working notes,
+   `repomix.config.json`/`.repomixignore` authoring leftovers, mockup/report PNGs, working
+   CSV/TXT data files) and unclassified directories (`_qa_remove_exec/`, `.pip-cache/`,
+   `bookstack/`, `qdrant/`, `landing/`, `AppScript for IG and FB enhancement/`,
+   14.6 MB `Contacts added August 25 2026/`, 333 MB `marketing/`, 41.7 MB `data/`). Their
+   disposition is the next session's repo-organization mandate:
+   [handoff prompt](2026-11-05-developer-transition-repo-organization-handoff-prompt.md).
+   **Personal-only billing documents at the repository root are outside project scope and
+   must not be opened, moved, described, or dispositioned by anyone.**
+
 ## Next session
 
-1. Start at the [ledger](../transition-plan.md). Ed decisions 1–5 in the previous section
-   unblock their respective items; the [owner review package](../transition/owner-review-package-2026-11-05.md)
-   §3 remains the consolidated decision sheet.
-2. When Ed answers, execute only the newly authorized scope with the same per-batch
-   manifest protocol. Keep production read-only otherwise.
+1. Start at the [ledger](../transition-plan.md) and execute the
+   [repo-organization handoff prompt](2026-11-05-developer-transition-repo-organization-handoff-prompt.md):
+   (a) audit ledger completeness (everything planned executed, nothing missed), (b) run the
+   full-repo census + organization classification, (c) execute manifest-gated cleanup
+   batches for the remaining unnecessary files, (d) finalize docs and produce a closure EOS.
+2. Owner-gated items (Coolify backups/restore/drift, LinkedIn 310-invitation residue,
+   training-guide owners, onboarding facts) remain open pending Ed.
+
+## Verification (final for this session)
+
+- `git status --short --branch`: clean, `codex/social-outreach-sync` up to date with origin
+  (`ccaae01`, `bc75160`).
+- `git diff --check`: PASS (pre-existing LF→CRLF notices only).
+- Key backstops: `repomix-output.md` absent; `local-scripts/linkedin-invite-withdrawals/`
+  intact; `local-archive/n8n/` = 66 files / 66 unique hashes; `npm ci` regenerable.
+- These two new handoff/append doc files were written after the commits and remain
+  uncommitted (boundary: commits only when Ed asks).
