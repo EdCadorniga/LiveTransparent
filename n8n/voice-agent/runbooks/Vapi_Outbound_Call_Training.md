@@ -1,5 +1,7 @@
 # Vapi Outbound Call Training
 
+> **Transition review (2026-11-06):** Ed owns and distributes this guide; the incoming developer will own it after handoff. The dated 2026-07 operations below are historical until verified against n8n-lt. The 2026-11-04 inventory reports n8n `2.44.6` with an external task runner; **do not use old single-container assumptions**. Training smoke tests that place a call, write CRM data, or execute a sender require separate scoped owner approval. Voice disclosure/consent policy requires Ed's review. See [training register](../../../docs/transition/training-doc-register.md) and [current transition inventory](../../../docs/transition/n8n-workflow-inventory-2026-11-04.md).
+
 This document explains how the two production voice workflows work together with Vapi to place outbound calls in LiveTransparent.
 
 ## Production Workflows
@@ -148,7 +150,7 @@ If the prospect is qualified and wants to meet:
 
 ## 2026-07-23 Production Hardening
 
-- n8n is upgraded to `2.33.3`; recurring schedules use native Schedule Trigger nodes, not OS or Coolify cron.
+- **Historical July 2026 version note:** n8n was upgraded to `2.33.3` at the time; the later 2026-11-04 inventory recorded `2.44.6`. Recheck live version before edits. Recurring schedules use native Schedule Trigger nodes, not OS or Coolify cron.
 - The callback no longer calls `LT - Voice Dequeue Next`; that workflow is unpublished and remains an explicit helper only.
 - Callback timer state uses a 60-second duplicate guard and is pruned after 30 minutes.
 - Queue insertion requires `X-LT-Voice-Queue-Secret` from `VOICE_QUEUE_ENQUEUE_SECRET`.
@@ -158,7 +160,7 @@ If the prospect is qualified and wants to meet:
 
 - Stale n8n execution records were removed after queued runs remained in “Starting soon” for multiple days. Legitimate `waiting` executions were preserved.
 - The dialer was unpublished and republished, then manually verified against four different queue contacts.
-- The native two-minute Schedule Trigger is healthy; no Redis, worker pool, OS cron, or Coolify cron is required for the current single-container deployment.
+- **Historical July 2026 observation:** the dialer used a native two-minute Schedule Trigger; the “single-container deployment” characterization is superseded by the later external-runner architecture. Confirm the current schedule and runner health in n8n-lt before relying on this behavior; do not add an OS/Coolify cron.
 - The old `End - No Phone` and `End - Outside Contact Hours` nodes are now disconnected because their branches feed the same-run loop. They are legacy display nodes and may be removed during a future cleanup.
 
 ## Dialer Workflow Walkthrough

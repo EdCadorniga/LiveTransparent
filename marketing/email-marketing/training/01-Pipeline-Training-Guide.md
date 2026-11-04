@@ -1,5 +1,7 @@
 # Pipeline Training Guide
 
+> **Transition review (2026-11-06):** Ed owns and distributes this guide; the incoming developer will own it after handoff. The March 2026 booking/SQL automation descriptions below are **historical, not verified current GHL workflow behavior**. A click or reply alone is not a verified appointment/SQL; only an actual booking on an approved calendar satisfies the October 13 verified SQL rule. Verify the current workflow and calendar before applying tags or moving opportunities. See the [training register](../../../docs/transition/training-doc-register.md) and [verified SQL writer correction](../../../docs/sessions/2026-10-13-verified-sql-writer-correction.md). This guide does not authorize contact or opportunity writes.
+
 This guide explains how the sales team should use the pipelines in GHL.
 
 ## The 3 Main Pipelines
@@ -96,7 +98,7 @@ Use this when:
 Important:
 
 - `Booked` is the handoff point into Sales
-- The current automated booked handoff is only for the regulated ads booking path
+- The March 2026 automated booked handoff was documented for the regulated ads booking path; verify the current route before using it.
 
 ### `Unresponsive`
 
@@ -115,8 +117,8 @@ Use this when:
 
 Important:
 
-- The current automated booking handoff is for `Regulated Ads On Social/Search`, `Book a demo`, and `Book 1:1 with Cameron`
-- That path adds `SQL` and ensures the opportunity is in `Sales -> Discovery Scheduled`
+- The March 2026 guide listed `Regulated Ads On Social/Search`, `Book a demo`, and `Book 1:1 with Cameron` as possible booking paths; the October 13 verified SQL rule accepts only a matching appointment on an approved calendar. Do not infer current eligibility from this old list.
+- The historical automation added `SQL` and ensured `Sales -> Discovery Scheduled`; verify the saved current workflow and appointment before claiming or reproducing that behavior.
 
 ### `Discovery Completed`
 

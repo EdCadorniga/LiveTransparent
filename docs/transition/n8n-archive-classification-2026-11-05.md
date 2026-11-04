@@ -135,3 +135,9 @@ with manifests [batch 2](retention-manifest-2026-11-05-batch-2-tmp-captures.md) 
   duplicate deletions above.
 - The table above is historical for the two deleted rows; all other rows remain accurate.
 
+
+## Disposition addendum - late continuation 2026-11-05
+
+Executed under manifests `retention-manifest-2026-11-06-batch-5..11` (see `repository-organization-2026-11-06.md`): regenerable caches deleted (`.pip-cache/`, `.playwright-mcp/`); one byte-identical duplicate deduped inside `marketing/`; root residue (report-era captures, contact-division working files, `Export_Contacts_*` CSVs, `Contacts added August 25 2026/`, root `_check_config.py`/`_kill_and_fix.py`/`_mark_enrolled.py`, campaign/design `.docx` set, `_qa_remove_exec/`, `repomix.config.json`/`.repomixignore`) archived to dated `local-archive/` folders (PII kept locally, staged out of the Git index, not deleted). Nothing referenced by a maintained doc moved without a pointer update. This artifact's per-path tables remain historical evidence of the pre-batch state.
+
+No file inside local-archive/n8n/ was changed this continuation (still 66 files / 66 unique SHA-256 hashes, re-verified). The PIT-in-archives note above stands as recorded (owner-accepted residual risk).

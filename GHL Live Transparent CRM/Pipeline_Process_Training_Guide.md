@@ -1,5 +1,7 @@
 # Live Transparent CRM Pipeline Process and Training Guide
 
+> **Transition review (2026-11-06):** Ed owns and distributes this guide; the incoming developer will own it after handoff. Some campaign/automation descriptions below are historical and must be verified in the LiveTransparent GHL account before operator action. In particular, do not re-enable LinkedIn senders or apply old invitation limits. See the [training register](../docs/transition/training-doc-register.md), [current status](../Project%20Status%20and%20Next%20Steps.md), and [dated n8n inventory](../docs/transition/n8n-workflow-inventory-2026-11-04.md). No production change is authorized by this guide.
+
 ## 1) Purpose
 This document defines how to use the Live Transparent CRM pipelines consistently so leads are routed, worked, and reported correctly.
 
@@ -15,7 +17,7 @@ This process applies to:
 - `Sales`: deal progression from discovery to close
 
 ## 3A) Current Platform Note
-- n8n target version is `2.33.3`.
+- The last dated n8n-lt host inventory (2026-11-04) recorded `2.44.6`, **not** the historical `2.33.3`; recheck before operational decisions.
 - Recurring workflows use native n8n `Schedule Trigger` nodes; do not add OS, Coolify, or external cron jobs.
 - If a workflow looks different after the upgrade, verify live behavior before editing node fields.
 
@@ -37,7 +39,7 @@ Use this pipeline for content partnership outreach — independent of the main s
 
 #### Outbound Sequences
 - **Email**: 4-step sequence from `cameron@livetransparent.com`, 60/day max, 11am ET Mon-Fri, 2-weekday intervals. Managed by `LT - Partnership Email Dispatcher` (`Xshck23cKo1yXL9D`). Production sending has been live with `defaultDryRun=false` since explicit approval on 2026-07-31.
-- **LinkedIn**: 30 connection requests/day, 3pm CT Mon-Fri, handled by `LT - Partnership LinkedIn Dispatcher` (`crKIsaL5k3YBfqDZ`). The dispatcher seeds partnership state before queue fetch. Connected contacts receive the 4-step DM cadence via `LT - Partnership LinkedIn DM Sequence` (`nspggypNF245xzeL`). Both LinkedIn workflows have been live with `defaultDryRun=false` since explicit approval on 2026-07-31.
+- **LinkedIn (historical 2026-07-31 configuration, not a current sending instruction):** the partnership dispatcher (`crKIsaL5k3YBfqDZ`) formerly used 30 requests/day and 3pm CT; the partnership DM workflow is `nspggypNF245xzeL`. Both sender workflows were later **deactivated**, and Ed's newer account-wide policy is **20 invites/day and 5/hour in America/Los_Angeles**, inclusive of all senders and re-invites. Do not reactivate either path or reuse the historical 30/day cap without separate approval and live reconciliation; see the [2026-10-21 withdrawal closeout](../docs/sessions/2026-10-21-linkedin-pre-2026-10-14-withdrawal-execution.md).
 
 #### Reply Detection
 - Email replies: polled every 5 minutes by `LT - Partnership Reply Poller` (`0SQ7tTk03okegp9V`). On detection, the Reply Handler tags the contact `partner_replied`, creates a Partnership Pipeline opportunity, and posts to Slack.

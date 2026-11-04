@@ -2,7 +2,11 @@
 
 The root `scripts/` directory is intentionally organized by operational domain. These files are reusable or retained for rollback/audit and are versioned by Git. Do not put disposable browser captures, caches, or machine-specific probes here.
 
-> **Exact-path classification notice (2026-11-05):** the developer-transition review produced a per-path classification with sizes, doc-reference counts, and sensitive-hit flags: `docs/transition/scripts-classification-2026-11-05.md`. It is a review-only proposal; no file was moved or deleted. Files flagged there with hardcoded credential literals are pending owner-approved hardening.
+> **Exact-path classification notice (2026-11-05):** the developer-transition review produced a per-path classification with sizes, doc-reference counts, and sensitive-hit flags: `docs/transition/scripts-classification-2026-11-05.md`. It is a review-only proposal; the nine files flagged there with hardcoded credential literals were redacted to `os.environ` loaders on 2026-11-05 (batch-1 manifest). No other file was moved or deleted from `scripts/`.
+>
+> **Reduced-toolkit note (2026-11-05/06):** per the organization census (`docs/transition/repository-organization-2026-11-06.md`), the one-off legacy probes that lived at the repo root (2026-07-07 wave) are archived at `local-archive/scripts-legacy-2026-07/`; `scripts/` itself is unchanged pending the owner's reduced-toolkit decisions in the owner review package.
+
+> **Owner disposition (2026-11-06):** Ed chose conservative retention of all 242 script-like files under `scripts/` as versioned source/history. **Retention is not an operational-toolkit endorsement.** Do not run a script merely because it is tracked or listed below; inspect its effects, target tenant, credentials and current callers before use. The smaller maintained developer toolkit is not selected until Ed supplies/reviews exact paths. `landing/` is retained as source, not deployed or deleted.
 
 ## Categories
 

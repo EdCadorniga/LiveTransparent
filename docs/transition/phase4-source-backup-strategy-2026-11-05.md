@@ -6,12 +6,15 @@ Read-only: each critical workflow ID was searched across tracked `scripts/`, `n8
 workflow data was re-read (see the archive classification for rollback snapshots).
 Not a cleanup authorization; nothing was changed.
 
-**Source strategy (verified from this pass):** the live n8n-lt instance is the system
+**Scope correction (2026-11-06):** an ID occurrence in a file is a *reference*, not proof that the file is a reproducible builder/source or a last-known-good backup. The table's GHL automation `WL - Micro - Set Vertical Sender (Webhook)` was mistakenly assigned the n8n ID `z0Sq4AE3Xdbgw2Yh`; its GHL ID is `52f6a14a-927c-433b-82c3-9503feb14110` per `AGENTS.md`. That row is not an additional n8n workflow. No production read or archive restore test was performed by this correction.
+
+**Source strategy (documented from this pass, not recovery-tested):** the live n8n-lt instance is the system
 of record; n8n API `GET /workflows/{id}` provides an authoritative live export for any
-workflow before/after a change. The repo's builder/repair scripts are the documented
-reproducible sources for changes; where a workflow has **no** repo reference, its only
-durable source is the live instance (and any dated local snapshot listed in the
-archive classification).
+workflow before/after a change. Some referenced files may be builders/repair scripts,
+but this ID search did not verify that they reproduce the current live graph. Where a
+workflow has **no** tracked ID reference, its current graph still depends on the live
+instance (plus any dated local snapshot listed in the archive classification). A GET
+export opportunity is not itself a retained or restore-tested backup.
 
 | workflow (role) | id | repo artifacts referencing the ID |
 |---|---|---|
@@ -59,10 +62,10 @@ archive classification).
 | LT - Booking Link SMS Redirect (Webhook) — Booking attribution SMS redirect | `9HT13te9FalOtUZM` | —none— |
 | LT - Vertical Sender Assign (Webhook) — Per-vertical sender round-robin | `z0Sq4AE3Xdbgw2Yh` | —none— |
 | LT - Last-Touch Owner Resolver + 14-Day Backfill — Owner attribution resolver | `KQjosWjChMYbhZkF` | `scripts/build_last_touch_owner_workflow.py` |
-| WL - Micro - Set Vertical Sender (Webhook) — GHL caller — same capability as above | `z0Sq4AE3Xdbgw2Yh` | —none— |
+| WL - Micro - Set Vertical Sender (Webhook) — GHL caller, **not an n8n workflow** | GHL `52f6a14a-927c-433b-82c3-9503feb14110` | —not part of n8n source count— |
 | LT - Inbound Intent Priority Router — Priority router (execute-workflow target) | `URpjcm2k5isHUyls` | —none— |
 
-**Workflows with no tracked repo reference (15)** rely solely on the live
+**Workflows with no tracked repo ID reference (15)** rely solely on the live
 n8n-lt instance and any dated archive/local snapshots; treat their repo replications
 as future work if/when they are edited by an approved change.
 

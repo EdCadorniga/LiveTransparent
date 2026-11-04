@@ -603,7 +603,7 @@ EOS verification: the latest attribution-triggered executions are `989640` (Exec
 
 ### Reviewed
 
-- `Executive Summary Edits .docx` was text-extracted and compared with the V1 implementation.
+- `Executive Summary Edits .docx` was text-extracted and compared with the V1 implementation. *(Archived 2026-11-05 to `local-archive/campaign-design-docx-2026-11/` per `docs/transition/retention-manifest-2026-11-06-batch-10-root-legacy-scripts-and-docx.md`.)*
 - `reports/embed/executive-v1/index.html` was syntax-checked and smoke-tested locally with browser automation.
 - The live `Sales Outreach` pipeline was re-read. Priority is at position 1 with stage ID `be636da7-3c15-48ab-b589-c75bcd6f9955`.
 - The live LinkedIn inbound workflow `LT - LinkedIn Unipile New Messages` (`7o5EBdvwAuIaWW7k`) was read-only verified active with 19 nodes.

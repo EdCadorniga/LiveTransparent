@@ -1,6 +1,6 @@
 # LiveTransparent Repository File Map
 
-Updated: 2026-09-17
+Updated: 2026-11-05 (late continuation; supersedes the 2026-09-17 snapshot lists below)
 
 > **Freshness notice (2026-11-05):** the script filename lists/counts below are a 2026-09-17 snapshot and are stale. A bounded metadata-only census now finds 242 script-like files (1,256,534 bytes) under `scripts/`, compared with the older per-domain lists below. See [`scripts/README.md`](../scripts/README.md) for current directory counts. Do not use the old lists as a complete inventory or infer that any listed/unlisted file is safe, maintained, or disposable. Exact-path review remains part of the developer transition; nothing was run or removed for this census.
 >
@@ -13,12 +13,35 @@ This map describes the repository boundaries after the file-organization cleanup
 ## Operating boundaries
 
 - `scripts/` — versioned, reviewed automation grouped by operational domain. See `scripts/README.md`.
-- `local-scripts/` — ignored operator-only helpers, probes, and campaign working files; may contain machine-specific or sensitive runtime material.
-- `local-archive/` — ignored historical n8n exports/backups and one-off patch inputs; never redeploy without reconciliation.
+- `local-scripts/` — ignored operator-only helpers, probes, and campaign working files; may contain machine-specific or sensitive runtime material. `local-scripts/linkedin-invite-withdrawals/` is held untouched while the 310-unledgered-invitation investigation is open.
+- `local-archive/` — ignored historical captures/archives; never redeploy without reconciliation. Dated archive destinations (2026-11-05): `n8n/`, `campaign-template-captures-2026-11/`, `report-captures-2026-11/`, `historical-captures-2026-11/`, `repomix-authoring-2026-11/`, `contact-division-2026-07/`, `ghl-export-csvs-2026-11/`, `contacts-import-august-2026/`, `campaign-design-docx-2026-11/` (incl. `_qa_remove_exec/` staging), `scripts-legacy-2026-07/`.
 - `data/runs/` — dated campaign/import artifacts, notes, reconciliation outputs, and machine-readable snapshots.
 - `.monitor/` — active monitor state/logs; do not prune while the monitor depends on them.
-- `.tmp/`, `.npm-cache/`, `.playwright-cli/`, `.playwright-mcp/` — disposable ignored runtime/browser artifacts; safe to recreate.
+- `.tmp/`, `.npm-cache/`, `.playwright-cli/` — disposable ignored runtime/browser artifacts; safe to recreate. **(2026-11-05: `.playwright-mcp/` (50 MB) and `.pip-cache/` were deleted under manifest batch 5; they regenerate automatically.)**
 - `.env` — local secret material; presence may be documented, contents must not be copied into repository maps.
+
+### Dated reorganization note (2026-11-05, batches 5–11)
+
+Per [`docs/transition/repository-organization-2026-11-06.md`](transition/repository-organization-2026-11-06.md) and
+manifests [`retention-manifest-2026-11-06-batch-…`](transition/retention-manifest-2026-11-06-batch-5-regenerable-caches.md) 5–11:
+
+- Root loose files were resolved: report-era captures (16 files), contact-division working
+  files (12), three `Export_Contacts_*.csv`, `Contacts added August 25 2026/`, the root
+  `_*.py` probes, the 8 campaign/design `.docx`, `_qa_remove_exec/`, and
+  `repomix.config.json`/`.repomixignore` were archived (nothing deleted; tracked copies
+  staged out of the index).
+- Root `Dockerfile` is **load-bearing** (Coolify `reports.livetransparent_server` builds from
+  `/Dockerfile`) — do not move.
+- Deleted (regenerable/dedup only): `.pip-cache/`, `.playwright-mcp/`, and one
+  byte-identical duplicate in `marketing/email-marketing/cold-outreach-prep/reports/`
+  (identical twin retained).
+- Kept + documented: `bookstack/` and `qdrant/` (deployable compose templates referenced by
+  chatbot/knowledgebase plans), `landing/` (undeployed tracked website build pending owner
+  decision), `AppScript for IG and FB enhancement/` (tracked Apps Script sources),
+  `.kilo/`, `.qwen/`, `.gemini/` (tool state).
+- Out of project scope, untouched at root: the three `Billing Report …` files and
+  `repeated linkedin messages.png`.
+
 
 ## Dated run bundles
 

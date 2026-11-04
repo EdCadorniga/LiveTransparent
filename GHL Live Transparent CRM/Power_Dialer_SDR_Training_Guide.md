@@ -1,5 +1,7 @@
 # Power Dialer SDR Training Guide
 
+> **Transition review (2026-11-06):** Ed currently owns and distributes this guide; the incoming developer will own it after handoff. The queue/workflow behavior below is a historical operating description, **not freshly verified in authenticated GHL**. Before adding queue tags, calling, or changing dispositions, confirm live workflow state, consent and suppression rules with Ed. This guide does not authorize a test call or CRM mutation. Review status and evidence gaps: [training register](../docs/transition/training-doc-register.md).
+
 ## Purpose
 
 The GHL Power Dialer is the human calling queue for SDRs working the `Sales Outreach` pipeline. It helps Marc and Jason make organized outbound calls, record the correct call outcome, and move each opportunity into the next appropriate step.

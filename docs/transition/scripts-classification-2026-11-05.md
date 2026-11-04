@@ -543,3 +543,9 @@ with the mandatory manifest [retention-manifest-2026-11-05-batch-1-credential-ha
 | `tools/patch-gsc-workflow.ps1` | 7,593 | 2026-05-09 | 0 |  |
 | `tools/patch-linkedin-dispatcher-postgres.ps1` | 9,717 | 2026-06-03 | 0 |  |
 | `tools/patch-simpletexting-workflows.ps1` | 5,881 | 2026-04-22 | 0 |  |
+
+## Disposition addendum - late continuation 2026-11-05
+
+Executed under manifests `retention-manifest-2026-11-06-batch-5..11` (see `repository-organization-2026-11-06.md`): regenerable caches deleted (`.pip-cache/`, `.playwright-mcp/`); one byte-identical duplicate deduped inside `marketing/`; root residue (report-era captures, contact-division working files, `Export_Contacts_*` CSVs, `Contacts added August 25 2026/`, root `_check_config.py`/`_kill_and_fix.py`/`_mark_enrolled.py`, campaign/design `.docx` set, `_qa_remove_exec/`, `repomix.config.json`/`.repomixignore`) archived to dated `local-archive/` folders (PII kept locally, staged out of the Git index, not deleted). Nothing referenced by a maintained doc moved without a pointer update. This artifact's per-path tables remain historical evidence of the pre-batch state.
+
+scripts/ set unchanged: the 242 script-like files were neither moved nor deleted; the three July root probes _check_config.py/_kill_and_fix.py/_mark_enrolled.py are archived to local-archive/scripts-legacy-2026-07/ (batch 10). The 9 batch-1 redacted files still pass the masked re-probe (0 flagged literals) with os.environ loaders in place.

@@ -92,3 +92,11 @@ destructive action.
   (later, same day) under Ed's YOLO mandate — see §3 update and the
   [cleanup EOS](../sessions/2026-11-05-developer-transition-cleanup-eos.md). Still not
   done anywhere: any production/live-state action, restore, send, or workflow change.**
+
+## Execution update - late continuation 2026-11-05
+
+Residue-scope batches 5-11 executed under the continuing YOLO mandate (`docs/transition/repository-organization-2026-11-06.md` + manifests): root loose files archived, regenerable caches deleted, one 81.9 MB byte-duplicate deduped, bulk contact PII staged out of the Git index.
+
+New owner-review item: `marketing/email-marketing/cold-outreach-prep/reports/` still holds ~140 dated Feb-2026 run captures, including `workflow-T28iLcm4Hszo19MG.apiKey-env-payload-20260220T094956Z.json`. None has been opened; per-file sensitivity review is required before any redistribution.
+
+All previously listed owner-gated items remain open unchanged: Coolify backup governance/restore/network drift/preview duplicates, LinkedIn 310-invitation residue and the held withdrawal family, training-guide owners, onboarding facts, optional portal enumeration.

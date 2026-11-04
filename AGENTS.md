@@ -1,5 +1,11 @@
 # LiveTransparent Agent Notes
 
+## CURRENT 2026-11-05 local-clock EOS — developer transition still incomplete
+
+- Start at [`docs/transition-plan.md`](docs/transition-plan.md) and update the ledger after **each** completed item. Latest app-count closeout: [`docs/sessions/2026-11-05-marketplace-app-count-eos.md`](docs/sessions/2026-11-05-marketplace-app-count-eos.md); copy-ready handoff: [`docs/sessions/2026-11-05-marketplace-app-count-handoff-prompt.md`](docs/sessions/2026-11-05-marketplace-app-count-handoff-prompt.md). The full-plan acceptance audit remains [`docs/transition/completeness-audit-2026-11-06-full-plan.md`](docs/transition/completeness-audit-2026-11-06-full-plan.md). Some preceding artifact labels say 2026-11-06 while the EOS workstation clock said 2026-11-05 +08; do not assume those filenames prove collection time.
+- Ed explicitly chose **production read-only**. The 212-workflow [structural supplement](docs/transition/n8n-workflow-structural-supplement-2026-11-06.md) was validated for metadata only; 130 workflow timezone fields are empty and must not be inferred. Use only verified `n8n-lt`; no workflow execution, send, CRM/service modification or publication. Existing backups/archive remain under Ed's ownership; a dedicated **non-production** restore host is not provisioned, and restore is untested.
+- Ed currently owns/distributes five Markdown training guides, with the new developer to own them after handoff; bounded safety corrections do not certify live GHL procedure/consent. He retains all 242 `scripts/` files and `landing/` as source/history, not a selected toolkit or deployment. Incoming developer receives a **copy of the local repo**; do not assume a push or inclusion of unstaged/untracked files. Read-only Marketplace portal inventory confirmed exactly three apps; install/location assignments, runtime callbacks, exact guide audiences, release/access roster and restore host remain open. Preserve the 62 staged deletions and existing work; no commit/push requested.
+
 ## CURRENT 2026-11-04 — Developer transition inventory in progress
 
 - Transition scope, acceptance checklist and per-item progress ledger: [`docs/transition-plan.md`](docs/transition-plan.md). **Initial review complete. Next agent: start at the ledger and update that plan after each finished item** (date, evidence, status and remaining blocker), not just at EOS. Do not silently expand scope.
@@ -877,7 +883,7 @@ The historical planning notes in this section below are superseded by the curren
 ## ✅ CLOSED OUT: 2026-09-10 Business Improvement Plan and Shareable Guides
 
 - `improvementPlan.md` is a review-only strategic plan for Transparent eCom. Its opening now contains a plain-language summary, document map, jump links, role-specific reading paths, video-informed positioning, customer FAQ, reusable messaging, a Cameron booking bridge, and Executive Report simplification recommendations.
-- The full plan was converted to `Transparent eCom Business Improvement Plan - Full.docx`; it remains untracked and uncommitted. The condensed Google Doc and full converted Google Doc are documented in `Project Status and Next Steps.md` and the detailed closeout under `docs/sessions/`.
+- The full plan was converted to `Transparent eCom Business Improvement Plan - Full.docx`; *(archived 2026-11-05 to `local-archive/campaign-design-docx-2026-11/` per `docs/transition/retention-manifest-2026-11-06-batch-10-root-legacy-scripts-and-docx.md`)*. The condensed Google Doc and full converted Google Doc are documented in `Project Status and Next Steps.md` and the detailed closeout under `docs/sessions/`.
 - The condensed guide's full-plan link was reinserted after an initial insertion did not persist and was verified in the document contents. Both Google Docs were verified under `ed@livetransparent.com`.
 - This strategy/documentation session did not mutate or execute production workflows, GHL records, campaigns, senders, or website deployments. FAQ and claim language requires owner approval and proof references before publication or outbound use.
 - The isolated sample landing page was built and deployed for review on 2026-09-10. Deployment details and limitations are documented in `docs/sessions/2026-09-10-sample-landing-page-preview-deployment.md`. The preview remains non-production and requires Cameron approval before any production implementation.
@@ -2139,7 +2145,7 @@ The import workflows (`LT - Brands Pool to Postgres + Sheets`, `LT - Dispensarie
 
 **Result**: 13,755 with IDs (3,645 brands / 10,110 dispensaries), 113 still missing (not in exports). **5,373 now eligible for DAN dispatch**.
 
-**Export CSVs used** (delete after use):
+**Export CSVs used** (delete after use; *(archived 2026-11-05 → `local-archive/ghl-export-csvs-2026-11/` per `docs/transition/retention-manifest-2026-11-06-batch-9-contact-cohort-sources.md`)*)
 - `Export_Contacts_brands pool_Jul_2026_5_24_AM.csv`
 - `Export_Contacts_Dispensaries pool_Jul_2026_5_28_AM.csv`
 
@@ -2528,9 +2534,9 @@ GHL App: `LiveTransparent SimpleTexting SMS`, provider `SimpleTexting SMS` (`6a5
 
 - .env
 - Project Status and Next Steps.md
-- Export_Contacts_brands pool_Jul_2026_5_24_AM.csv (GHL export, used for DAN backfill)
-- Export_Contacts_Dispensaries pool_Jul_2026_5_28_AM.csv (GHL export, used for DAN backfill)
-- Export_Contacts_for fresh Linkedin connections_Jul_2026_2_16_AM.csv (GHL export, 14,987 contacts, used for LinkedIn dispatcher bulk feed 2026-07-13)
+- Export_Contacts_brands pool_Jul_2026_5_24_AM.csv (GHL export, used for DAN backfill — archived 2026-11-05 to `local-archive/ghl-export-csvs-2026-11/`)
+- Export_Contacts_Dispensaries pool_Jul_2026_5_28_AM.csv (GHL export, used for DAN backfill — archived 2026-11-05 to `local-archive/ghl-export-csvs-2026-11/`)
+- Export_Contacts_for fresh Linkedin connections_Jul_2026_2_16_AM.csv (GHL export, 14,987 contacts, used for LinkedIn dispatcher bulk feed 2026-07-13 — archived 2026-11-05 to `local-archive/ghl-export-csvs-2026-11/`)
 - GHL Live Transparent CRM/
 - postgres/reporting-bootstrap.sql
 - n8n/docker-compose.yml

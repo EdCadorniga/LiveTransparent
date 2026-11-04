@@ -18,12 +18,14 @@ Continued from [`docs/transition-plan.md`](../transition-plan.md) after the trai
 - Copy-ready continuation instructions are in [`2026-11-05 developer-transition next-session prompt`](2026-11-05-developer-transition-next-session-prompt.md), linked from the [transition README](../transition/README.md). Continue through every authorized/unblocked task rather than stopping after a status update. Access/owner approvals remain genuine blockers: request them, keep working on independent authorized tasks, and never bypass safety gates or mark blocked work complete.
 - No new production state was queried in this continuation. Do not use the October/November dated records as fresh proof.
 
+> **Superseded app-count status (2026-11-05 later):** the authenticated Marketplace listing and Ed's confirmation establish exactly three apps. The historical portal blocker and unknown-fourth language in this EOS no longer describe current status; no fourth-app search is needed. See the [app evidence register](../transition/ghl-marketplace-apps-2026-11-04.md) and [latest app-count EOS](2026-11-05-marketplace-app-count-eos.md).
+
 ## Open / blocked
 
 - Phase 2 remains partial. Other stale factual claims in large historical documents require deliberate, bounded reconciliation; the heading relabel is not fact validation. Do not rewrite chronology or infer operational state from it.
 - Training guide owners, audiences, and active use are unconfirmed. No training guide was edited. Obtain owner confirmation and authorized read-only GHL/runtime evidence before changing procedures.
 - Complete onboarding runtime, install, release/PR, access/escalation, ownership, and recovery instructions only from owner-confirmed facts. Existing backup files remain untouched; restore acceptance remains untested.
-- GHL Developer portal verification remains blocked pending authenticated read-only access. Three app names are evidence from prior owner material; the fourth remains unknown. Do not guess it.
+- Historical portal blocker, superseded later on 2026-11-05: authenticated read-only portal verification confirmed exactly three apps. Install/location assignments and runtime callback/OAuth behavior remain unverified; no fourth-app search is in scope.
 - Coolify saved configuration, complete drift/routes, backup schedule/coverage, and restore gaps remain open.
 - Invitation cleanup follow-up remains out of scope without exact owner approval. Do not infer dates from provider-relative labels; leave the 310 unledgered invitations and the held `ready` row untouched.
 - Artifact-family classification and exact-path retention manifest remain unapproved/not complete. No cleanup beyond the separately authorized Repomix removal.
@@ -51,7 +53,7 @@ Continued from [`docs/transition-plan.md`](../transition-plan.md) after the trai
 1. Start at `docs/transition-plan.md`; continue exact-path Phase 3 review in bounded, safe families and refresh `docs/repository-file-map.md` only after reviewed inventory.
 2. Continue exact-path workflow export/backup and temporary/data artifact inventories without opening sensitive contents unnecessarily; do not alter anything.
 3. Complete full documentation/untracked diff review and final consistency checks.
-4. Ask Ed for authenticated read-only GHL Developer portal access and training-guide owners/audiences/active-use confirmations; request Coolify saved-config read access if available. Keep blocked items open until evidence is provided.
+4. Do not repeat the completed three-app inventory. Ask Ed for training-guide owners/audiences/active-use confirmations; request any needed location-side read-only install evidence and Coolify saved-config access. Keep blocked items open until evidence is provided.
 5. Preserve all work and backups. No cleanup, restore, production mutation, or transition-complete claim without explicit approval and evidence.
 
 ## Continuation addendum — bounded artifact/access follow-up, 2026-11-05
