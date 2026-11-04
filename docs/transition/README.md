@@ -4,6 +4,8 @@ Start with the [transition plan and per-item progress ledger](../transition-plan
 
 **Latest app-count closeout (2026-11-05):** [EOS](../sessions/2026-11-05-marketplace-app-count-eos.md) → [copy-ready next-agent handoff](../sessions/2026-11-05-marketplace-app-count-handoff-prompt.md). Exactly three Marketplace apps are confirmed; the separate dashboard aggregate is not another app. Production remains read-only; install/location assignments, runtime callbacks, guide ownership/audiences, release roster, and restore host remain open. Some prior artifacts are labeled `2026-11-06` despite the EOS workstation clock reading `2026-11-05 +08`; preserve their filenames but do not treat the label as verified capture time.
 
+**Latest continuation closeout (2026-11-05 local clock):** [YOLO-scope EOS](../sessions/2026-11-05-developer-transition-yolo-eos.md) → [copy-ready next-agent handoff](../sessions/2026-11-05-developer-transition-yolo-handoff-prompt.md). Commit `7f9ce98` containing the previously pending 62 deletions and transition artifacts was pushed; the follow-on EOS/handoff changes are recorded in the plan ledger. YOLO applies to repository/documentation work within project scope; production remains explicitly read-only, and owner-gated restore/access/acceptance items remain blocked rather than waived.
+
 ## Evidence already captured (2026-11-04)
 
 - [n8n-lt 212-workflow snapshot](n8n-workflow-inventory-2026-11-04.md), [literal relationship edges](n8n-workflow-relationships-2026-11-04.md), [ten active-name exceptions](n8n-active-name-exceptions-2026-11-04.md).
