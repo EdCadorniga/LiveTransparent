@@ -19,10 +19,10 @@
 
 ## Next owner/developer sequence
 
-1. Check current Git status and review these uncommitted documentation changes; arrange an actual copy of the local repository, verify its tracked revision and exclusions, and record the recipient's acceptance.
+1. Check current Git status and review the pushed documentation at `2665b9f`; arrange an actual copy of the local repository, verify its tracked revision and exclusions, and record the recipient's acceptance.
 2. Ed supplies the named access/release/escalation roster, exact five-guide audiences and procedure/consent evidence; provision credentials through a secure channel, never in documentation.
 3. In an approved read-only session, complete installed-location/grant/caller evidence for the three known apps and per-workflow operational detail through verified `n8n-lt` only. No fourth-app search.
 4. Provision a dedicated isolated non-production restore host with resource, network and secret containment before any restore; then document actual results. Do not use production or a workstation as an improvised restore target.
 5. Keep production read-only; any later operational remediation, send, credential rotation or withdrawal investigation requires its own explicit scope and authorization. Do not close the original §5 requirements without evidence or a clearly approved scope change.
 
-**Git closeout:** these documentation edits are uncommitted and unpushed pending review; no commit/push instruction was given for this continuation. Validation results and final status are recorded in the plan ledger.
+**Git closeout (superseded by later owner instruction):** this document was initially prepared without a commit/push instruction. Ed subsequently requested “git commit and push all”; the seven reviewed transition files were committed and pushed as `2665b9f` (`docs(transition): record post-handoff audit and decisions`). Fresh EOS readback shows `HEAD` and `origin/codex/social-outreach-sync` at `2665b9f`, worktree clean before this EOS documentation correction. No production access or change was involved in the commit. The present EOS correction itself is not yet committed or pushed.

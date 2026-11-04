@@ -10,6 +10,8 @@ Start with the [transition plan and per-item progress ledger](../transition-plan
 
 **Conservative owner disposition:** [closeout decisions](closeout-decisions-2026-11-05.md) resolve what to retain, freeze, and hand over as reference-only. They do not certify untested installations, callers, restores, scripts, or training procedures. Ed remains interim escalation/access owner pending a named roster.
 
+**Latest Git/EOS readback:** [post-handoff closeout](../sessions/2026-11-05-developer-transition-post-handoff-closeout.md) documents the audit and remaining technical gates. Ed later directed commit/push; the seven transition files were pushed at `2665b9f`. This EOS correction is local until separately committed; check `git status` before using a copy of the repository as a handoff.
+
 ## Evidence already captured (2026-11-04)
 
 - [n8n-lt 212-workflow snapshot](n8n-workflow-inventory-2026-11-04.md), [literal relationship edges](n8n-workflow-relationships-2026-11-04.md), [ten active-name exceptions](n8n-active-name-exceptions-2026-11-04.md).
