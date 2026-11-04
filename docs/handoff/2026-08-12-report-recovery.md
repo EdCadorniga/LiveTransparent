@@ -6,7 +6,7 @@ Updated: 2026-08-12
 
 This is the canonical continuation handoff for the next session. Live n8n is the workflow source of truth; repository workflow files may be stale. Do not begin by changing the frontend or rebuilding the runner: both are currently verified.
 
-1. Read `repomix-output.md`, `AGENTS.md`, this handoff, and the first 120 lines of `Project Status and Next Steps.md`.
+1. Read `AGENTS.md`, this handoff, and the first 120 lines of `Project Status and Next Steps.md`. The Repomix bundle named in older notes was retired on 2026-11-04; do not recreate it.
 2. Run `python scripts/social-reporting/report_runtime_audit.py` and re-query the database baseline before any mutation. The counts below are a measured 2026-08-12 checkpoint, not a permanent expectation.
 3. ~~Fetch live workflow details and recent executions for `LT - GHL Daily Sales Ingest` (`aYT5oHcgmBALzHy5`) with `n8n-lt`.~~ **DONE.** Repaired and published as version `91603d56`; execution `743094` succeeded with 7,984 opportunities + 7,984 pipeline history rows via atomic direct-`pg` transaction.
 4. ~~Repair that workflow first.~~ **DONE.** Replaced stale GHL authentication and migrated `Upsert Raw Sales` plus `Finalize Run Records` from Postgres v2.6 nodes to one atomic direct-`pg` transaction. Preserved existing bounded pagination, retry, cursor, watermark, and fail-closed behavior.
@@ -172,7 +172,7 @@ The attribution follow-up also updated the Newsletter Dispatcher (`88c53670-6e0a
 6. Restore/replay remaining source state one system at a time with provenance. LinkedIn Reply Backfill succeeded (execution `743291`). Other sources will populate through live workflow activity.
 7. ~~Fix Executive Summary/report date correctness~~ **DONE.** Duplicate keys removed, timezone drift fixed, date filters added.
 8. Complete OAuth social statistics and native GHL report UI backlog.
-9. Perform cleanup last, then update this handoff and regenerate `repomix-output.md`.
+9. Perform only separately authorized cleanup, then update this handoff and the canonical project status. The Repomix regeneration instruction is retired (2026-11-04); do not create a replacement bundle.
 
 ## Relevant Files
 

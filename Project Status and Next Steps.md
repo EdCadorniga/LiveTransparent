@@ -1,13 +1,26 @@
 # LiveTransparent Project Status and Next Steps
 
-### CURRENT 2026-10-26 — Executive Report V1 source-coverage audit
+### CURRENT 2026-11-04 — Developer transition and repository handoff
+
+- Transition plan: [`docs/transition-plan.md`](docs/transition-plan.md). The plan review is complete; start next session with its progress ledger, finish remaining read-only evidence work in order, and update the plan **after each completed item**, not only at EOS.
+- Draft developer onboarding: [`docs/transition/developer-onboarding.md`](docs/transition/developer-onboarding.md). Five operator/training Markdown guides were reviewed on 2026-11-05; none was edited because owner/use and several live procedures remain unverified. Findings and blockers are tracked in [`training-doc-register.md`](docs/transition/training-doc-register.md).
+- Read-only n8n-lt inventory captured 212/212 workflows: 107 API-active, 32 archived, zero detail-read failures, and no active/draft version mismatches. Ten workflows named DRAFT/STAGED/TEMP are active; their status/triggers have since been rechecked, but guard/caller/execution acceptance remains open. Do not toggle.
+- Read-only Coolify host snapshot: Docker 29.6.2, seven Compose projects, 21 containers, eight networks, six volumes. Generated Compose, mount ownership and environment variable **names** were subsequently checked; saved-vs-generated drift, domains, backup schedule, and restore evidence remain open.
+- GHL Marketplace/Developer portal was not accessible during this pass. Dashboard evidence identifies three app names and indicates four live apps; the fourth remains unknown.
+- No production workflows/services were changed. Personal invoicing is outside this project and excluded from this status/handoff. Ed authorized removal of the root Repomix bundle; it is retired and must not be recreated. Use only n8n-lt for n8n.
+- Detailed inventories and scripts: [`docs/transition/`](docs/transition/). Latest EOS handoff: [`docs/sessions/2026-11-04-developer-transition-continuation-eos.md`](docs/sessions/2026-11-04-developer-transition-continuation-eos.md).
+- **Continuation 2026-11-05:** completed training-guide review and added onboarding draft; the exact unresolved guide/control-doc/live-evidence gates and copy-ready next-agent prompt are in [`docs/sessions/2026-11-05-developer-transition-training-review.md`](docs/sessions/2026-11-05-developer-transition-training-review.md). Transition remains in progress; begin from the ledger and preserve the dirty worktree.
+- **Control-document cross-check 2026-11-05:** corrected stale LinkedIn activation and SMS “missing build” wording in [`Project Specifications.md`](Project%20Specifications.md), using dated evidence rather than claiming a fresh live read. Updated the AGENTS runtime note to the 2.44.6 version recorded by the November 4 host inventory. Other historical “CURRENT” blocks and training procedures are not comprehensively reconciled; see the open Phase 2 ledger item.
+- **Continuation 2026-11-04 (verified/read-only):** all ten DRAFT/STAGED/TEMP-named workflows remain API-active with enabled triggers and matching published versions; [per-ID exception register](docs/transition/n8n-active-name-exceptions-2026-11-04.md). Generated Coolify Compose confirms n8n 2.44.6 and its runner, Postgres 17.7, service network/mount dependencies and a one-time pre-upgrade backup set; [configuration evidence](docs/transition/coolify-configuration-2026-11-04.md). Developer portal access showed a public sign-in page: the fourth app is **not identified**, and three app names remain screenshot/project-record evidence only; [app evidence](docs/transition/ghl-marketplace-apps-2026-11-04.md). Saved Coolify definitions, scheduled backup coverage and isolated restore testing remain unverified. [Retention proposal](docs/transition/repository-retention-proposal-2026-11-04.md) remains unapproved except for Ed's separately scoped root Repomix removal. The preceding first-pass gaps are superseded only to the extent expressly verified here.
+
+### DATED CHECKPOINT 2026-10-26 — Executive Report V1 source-coverage audit
 
 - The Oct 18–24 Pacific call snapshot is deployed and verified: Marc 502, Jason 416, team 918. It is explicitly marked as user-supplied GHL call-report evidence, separate from the incomplete automated V1 call-facts feed. Snapshot data is committed in `3ac8754`.
 - Updated V1 status copy to distinguish successful API requests from complete metric coverage, and to explain unavailable vertical email/social metrics. The V1-only deploy passed JS/nginx/legacy-byte checks; legacy report SHA is unchanged.
 - Supported GHL email-export reads for Oct 18–24 were inconsistent (0/37/0) and outbound records lacked vertical workflow IDs; no per-vertical email totals were accepted. Other open data gaps: vertical SMS outcomes, LinkedIn attribution, voicemail dispositions, appointment showed/no-show, close-event/revenue, selected-window social statistics, and complete retargeting/action-queue facts.
 - No CRM/workflow changes, sends, event replays, or retries. Full audit, evidence limits, deployment, and ordered next steps: [`docs/sessions/2026-10-26-executive-v1-source-coverage-audit.md`](docs/sessions/2026-10-26-executive-v1-source-coverage-audit.md). Existing cache-store runtime acceptance remains pending per the cache runner handoff below.
 
-### CURRENT 2026-10-26 — Executive Report cache runner network repair
+### DATED CHECKPOINT 2026-10-26 — Executive Report cache runner network repair
 
 - Execution `1194021` stopped at `Query Summary` with n8n's generic possible-OOM message. A second workflow also crashed simultaneously as n8n began a new session; no OOM kill was confirmed. The trigger for that container replacement remains unknown.
 - Retry `1194029` completed the query but failed writing `v1_facts_cache` because runner DNS resolved `postgres` to unreachable `10.0.0.1`. Coolify's runner Compose had drifted: stale `postgres:host-gateway` mapping and no `coolify-shared` attachment. The failed cache write left refreshes repeating expensive cold queries.
@@ -16,7 +29,7 @@
 - Diagnostic inspection exposed refresh-auth and database configuration values in tool output. Coordinate rotation/caller updates; do not include values in records or casually rotate shared DB/n8n encryption credentials.
 - Detailed closeout: [`docs/sessions/2026-10-26-report-executive-cache-runner-network-fix.md`](docs/sessions/2026-10-26-report-executive-cache-runner-network-fix.md).
 
-### CURRENT 2026-10-26 — LinkedIn state sync honors withdrawal holds
+### DATED CHECKPOINT 2026-10-26 — LinkedIn state sync honors withdrawal holds
 
 - Execution `1194006` failed because the state sync attempted to queue an identity covered by the durable invitation-withdrawal hold. The database correctly rejected it; the hold must remain in force.
 - Updated `LT - LinkedIn Connection State Sync (Unipile)` (`ceaKnz6E3onQrZpt`) to load active hold identities before syncing and skip matches by GHL contact ID/candidate IDs, LinkedIn public identifier, or provider ID. It reports `held_skipped`; `LT - LinkedIn Connection State Upsert` and the database trigger are unchanged.
@@ -24,7 +37,7 @@
 - `py_compile` and `git diff --check` passed. No manual production sync run was made, so runtime acceptance remains pending. Next: inspect the next natural scheduled run for held skips and confirm there is no failed child State Upsert execution.
 - Details: [`docs/sessions/2026-10-26-linkedin-state-sync-withdrawal-hold-fix.md`](docs/sessions/2026-10-26-linkedin-state-sync-withdrawal-hold-fix.md).
 
-### CURRENT 2026-10-26 — n8n upgraded to stable 2.44.6
+### DATED CHECKPOINT 2026-10-26 — n8n upgraded to stable 2.44.6
 
 - Live n8n-lt and its external JavaScript/Python task-runner sidecar are now on matching release `2.44.6`. The public readiness endpoint returned HTTP 200 after startup; n8n logs confirm the task broker is ready and both launchers registered. DB migrations completed.
 - Custom runner build updated from the old hard-coded pnpm path to `pnpm` on PATH; `pg@8.21.0` remains present and resolvable in the runner.
@@ -32,7 +45,7 @@
 - In-flight `LT - Partnership Reply Poller` execution `1193844` was marked `crashed` during restart; its next natural scheduled execution `1193871` succeeded at 2026-10-25 19:15 UTC. No replay was performed.
 - Pre-upgrade backups (live Compose, n8n DB, n8n data volume) are under `/root/n8n-upgrade-backups/` on the VPS. Full record: [`docs/sessions/2026-10-26-n8n-stable-upgrade.md`](docs/sessions/2026-10-26-n8n-stable-upgrade.md).
 
-### CURRENT 2026-10-21 — LinkedIn pre-2026-10-14 withdrawal campaign EXECUTED (1,188 withdrawn)
+### DATED CHECKPOINT 2026-10-21 — LinkedIn pre-2026-10-14 withdrawal campaign EXECUTED (1,188 withdrawn)
 
 - **Ed approved the live withdrawal; it ran 2026-10-21 12:07-16:27 PT (18:45-23:27 UTC) and is COMPLETE.** Scope = every pending LinkedIn connection request sent strictly before 2026-10-14 = **1,221**. Outcome: **1,188 withdrawn** (all HTTP 200, provider-confirmed `InvitationCanceled`, journaled before and after every DELETE), **32 skipped**, **1 `already_gone`**, **0 uncertain, 0 failed**, 0 rows left `pending`.
 - **Provider pending is now 88** = the 32 skipped in-scope invitations + **56 out-of-scope** (day labels as captured: Oct 14 = 3, Oct 20 = 30, Oct 21 = 23 - the provider recomputes these daily, see below). The out-of-scope set was never captured so it was never selectable, and the worker asserted every cycle that its pending count fell by no more than our own withdrawals. The 206 John/mojibake withdrawals from 2026-10-12 were untouched.
@@ -55,7 +68,7 @@
 - **Next session, in order:** obtain Ed's explicit approval for this campaign; add a date-scope filter to `scripts/linkedin/plan_john_invite_withdrawals.py` (its `issue_of()` only matches `john_note`/`mojibake`, so it cannot select this scope today); capture all 1,221 into `linkedin_invitation_withdrawals` with note text, `dispatcher_hold=true`, 22-day cooldown and a SHA'd snapshot before any DELETE; withdraw at the recorded pacing (30 s between withdrawals, batch cap, 10-minute pause, ~10.2 h total, resumable worker); fail closed on `account_restricted`/timeout and never blind-retry; verify the 52 stay pending after each batch; then reconcile the 206 stale rows, the 235 untracked invites and the 28 phantom `requested_pending`; decide the re-invite plan under the account-wide 20/day, 5/hour Pacific cap (existing 191 `pending` + 15 `needs_review` carry `cooldown_until = 2026-11-03`); identify the out-of-band sender; keep every sender inactive.
 - Full detail: [`docs/sessions/2026-10-21-linkedin-connection-request-status-and-withdrawal-scope.md`](docs/sessions/2026-10-21-linkedin-connection-request-status-and-withdrawal-scope.md). No workflow activated, no invitation sent or withdrawn, no CRM write, no commit.
 
-### CURRENT 2026-10-19 — Executive V1 planned report improvements deployed
+### DATED CHECKPOINT 2026-10-19 — Executive V1 planned report improvements deployed
 
 - Build `2026-10-19-v1-improvements` is live at `/embed/executive-v1/`; legacy report bytes unchanged. Implemented the report-side planned improvements: native SDR call snapshots for Sep 27–Oct 3, Oct 4–10, and Oct 11–17 (Oct 11–17 matches the user-provided GHL totals; uncaptured windows stay Unavailable), meetings detail table with owner/calendar/status, vertical sends for date-matched native email cohorts (Oct 4–10 reconciles to 1,501), partial retargeting visibility, expanded action queue, consistent labels/notes, and a fix for the late comparison render overwriting vertical sends.
 - Desktop/390px, inline JS, nginx and legacy-byte checks passed. Facts payload remains `accuracy-20261015-v1`.
@@ -65,20 +78,20 @@
 
 - EOS handoff: [`docs/sessions/2026-10-19-executive-v1-eos-handoff.md`](docs/sessions/2026-10-19-executive-v1-eos-handoff.md). Next: implement Monday 00:10/01:10 Pacific prewarm for the completed + prior weeks, then clicker drill-down, click-intake repair, SMS reconciliation, closure/revenue and delivery feeds.
 
-### CURRENT 2026-10-15 — Executive V1 accuracy corrections deployed
+### DATED CHECKPOINT 2026-10-15 — Executive V1 accuracy corrections deployed
 
 - Facts/refresh published and matching active versions; four Pacific windows reconcile across headline, owner, source and vertical totals. Oct 4–10 / Sep 27–Oct 3: opportunities **98/16**, MQL ledger contacts **36/24**, verified SQLs **1/1**, valid chronological conversions **0/0**, scheduled meeting contacts **3/2**. Missing owner/UTM no longer excludes actual non-canceled approved-calendar bookings.
 - Fixed monthly source overcount and failed cold Facts path, false 0 email headline (now 1,501 vertical sends), stale booking/SQL labels, and partial-social-statistics totals. UI deployed `2026-10-15-v1-accuracy`; desktop/mobile and legacy preservation passed. Natural reporting refresh `1145256` succeeded. Cold queries remain slow; unsupported closure/revenue/delivery fields remain unavailable.
 - Full scope, versions, validation and source limits: [`docs/sessions/2026-10-15-executive-v1-accuracy-audit.md`](docs/sessions/2026-10-15-executive-v1-accuracy-audit.md). Earlier October 13 cache/count statements below are superseded. No CRM writes, sends or commit.
 
-### CURRENT 2026-10-13 — SQL writer fixed; reporting reconciliation remains
+### DATED CHECKPOINT 2026-10-13 — SQL writer fixed; reporting reconciliation remains
 
 - Confirmed n8n SQL-tag writer is **WL - Webhook to Slack Channel Update** `lQTW0QPwBcf3o7j8`, node **Build Slack Payload**. Published `15ef9b89-fbad-4467-a858-2bb2b83c7d7f`: CRM writes require an independently verified matching appointment on Book a demo or Regulated Ads. Eight mocked checks, JavaScript parse, and exact active/published readback passed; no live execution.
 - Click intake `1diZyFmTqWQUEny3` published `97f9d873-cdf5-41ce-a0dc-fe386f909f5e`: MQL only; false `meeting booked` write removed; single serialized response. Do not run the proposed reply-only SQL opportunity-deletion script.
 - Still open: V1 27 measures Sales Outreach pipeline entries rather than verified SQL bookings; MQL 36 is a tag-ledger count, not 36 proven form fills. Lifetime email stats cannot be weekly campaign metrics. Cache parses but its lookup key does not match the sole seeded key and no refresh schedule is installed.
 - Authoritative correction and next tasks: `docs/sessions/2026-10-13-verified-sql-writer-correction.md`.
 
-### CURRENT 2026-10-13 — vertical LinkedIn connection + Sales Navigator DM design
+### DATED CHECKPOINT 2026-10-13 — vertical LinkedIn connection + Sales Navigator DM design
 
 - Ed approved an **inactive-draft-only** design for all eight October verticals: rotate the vertical queues (Alcohol → Cannabis → Cannabis Dispensaries → Crypto → Gambling → Mushroom → Nicotine → Peptides), with one existing LinkedIn account and the account-wide **20/day, 5/hour Pacific** cap; then send PDF-specific Day 9 and Day 17 DMs through Sales Navigator only after verified connection.
 - Read all eight source sequence PDFs. Each contains vertical-specific connection-note and two DM copy. No workflow was created or changed in this session.
@@ -86,20 +99,20 @@
 - GHL Marketplace OAuth redirect diagnosis: the supplied install URL targets `/webhook/lt-sales-navigator-provider`, whose active GET path does not exchange OAuth codes or persist tokens; its POST path is the signed provider delivery handler. A dedicated state-validated Marketplace callback and isolated token storage are required before reinstall verification. Do not use the shared `ghl_oauth_tokens` active row without tracing its consumers.
 - Detailed architecture, readback state, open decisions, and ordered next steps: [`docs/sessions/2026-10-13-vertical-linkedin-workflow-design.md`](docs/sessions/2026-10-13-vertical-linkedin-workflow-design.md). No invitations, messages, contact/state/tag writes, executions, workflow changes, or publications occurred.
 
-### CURRENT 2026-10-13 — existing vertical cohorts scheduled; SMS delivery/reporting first next action
+### DATED CHECKPOINT 2026-10-13 — existing vertical cohorts scheduled; SMS delivery/reporting first next action
 
 - Enrollment audit reconciled **2,263 historical records to 1,819 distinct contacts and 1,816 active**. All active contacts have queued execution times and connected remaining email/SMS paths. All 1,819 campaign-specific sender assignments are valid. Historical finished duplicates do not need re-enrollment; three inactive Cannabis contacts meet the explicit DAN Dispensary exclusion. Ed confirmed no duplicate re-enrollment. No tag/field changes were required.
 - **SMS is not delivery-ready despite active schedules/dryRun=false:** Oct4–10 Pacific native logs show477 unauthorized responses and434 Nicotine timeouts (911webhooks total). Diagnose canonical auth contract, reconcile timeout/provider/idempotency outcomes, and review the future Crypto09:03–09:08Pacific SMS queue against the effective10–17Pacific guard. No repair or replay yet; approval before live correction.
 - Native vertical email activity supports Ed's reporting concern:1,501 successfully queued actions,21 errors,2skips. Supported export has1,552 outbound sent messages across all sources; exact vertical join and provider/native delivery metrics pending. V1 has not yet ingested these captures; no deployment in this continuation.
 - Ordered TODOs, exact workflow versions, native queue dates, evidence paths and copy-ready next-session prompt: [`docs/sessions/2026-10-13-vertical-enrollment-send-reconciliation.md`](docs/sessions/2026-10-13-vertical-enrollment-send-reconciliation.md). Continue SMS/send-reporting first, then the recorded booking-click parser repair and GHL clicker query/filter work. No commit.
 
-### CURRENT 2026-10-13 — LinkedIn withdrawal pacing and new-request caps
+### DATED CHECKPOINT 2026-10-13 — LinkedIn withdrawal pacing and new-request caps
 
 - Captured John + mojibake set: 206. Latest ledger readback (Oct 12 17:10 UTC): **120 withdrawn / 86 pending**, no unresolved withdrawal states; previous batch provider readback passed. Both durable queue holds runtime-verified, 22-day cooldowns retained.
 - Ed requested **30 seconds between withdrawals**, with up to 30 per batch and the existing 10-minute post-batch pause. Worker was restarted safely while waiting; PID 14076, preserved next batch Oct 12 17:19:43 UTC. Local status/log under `local-scripts/linkedin-invite-withdrawals/`; computer must remain awake. Cleanup remains running, not complete. See [session record](docs/sessions/2026-10-12-linkedin-john-invite-withdrawal-plan.md).
 - **New invitations: 20/day (America/Los_Angeles), maximum 5/hour**, account-wide including future re-invites. Supersedes old sending caps. Senders remain paused; reconcile/implement shared live enforcement before separately authorized activation. No new requests/re-invites sent.
 
-### CURRENT 2026-10-13 — Executive Report V1 restored + vertical performance
+### DATED CHECKPOINT 2026-10-13 — Executive Report V1 restored + vertical performance
 
 - Facts API repaired and published at `e8c3dd1a-1000-4162-b784-93ad161d0e06`; the defect was missing `END` in SQL→Closed CASE. Both weekly endpoints return populated JSON. New contacts are **1,744/22**, with LinkedIn backfills **0/5** separate. Other funnel/meeting counts reconcile to the prior documented raw facts.
 - One-contact discrepancy resolved: `hWikhd4bEQNJLcQWmXkh` created Oct 11 00:42 UTC = Oct 10 Pacific; legacy Summary timezone-unqualified DATE excludes it. Materializer success `1131823`, cohort 1,744.
@@ -116,13 +129,13 @@
 - UTM audit found no booking click-ledger rows or linked appointment facts for the 27 SQL-stage opportunities. Do not write fabricated booking UTMs. Two contact last-touch UTM fields were filled from exact legacy website-click metadata; this does not prove booking attribution. The click intake now maps legacy booking-link IDs and will write last-touch fields on future mapped link clicks, but has not had a live click test.
 - `verticalPerformance` remains hardcoded empty. Its source mapping and acceptance steps are in the same V1 EOS plan. No commit was made; preserve unrelated workspace changes.
 
-### CURRENT 2026-10-12 — all-vertical email template typography updated; paragraph spacing follow-up open
+### DATED CHECKPOINT 2026-10-12 — all-vertical email template typography updated; paragraph spacing follow-up open
 
 - Updated 35 templates through GHL PIT; the five Cannabis Brands templates already matched the reference. Fresh saved-preview readback covered 40 campaign templates across eight verticals.
 - The templates use Arial 14px / 1.25 line-height / zero paragraph margins. Copy and links were preserved. **Body paragraph spacing remains inconsistent** because most templates have zero paragraph margins and only explicit spacer blocks after the greeting and before the sign-off. See `docs/sessions/2026-10-12-email-template-spacing-eos.md`.
 - Next: set one rule for a blank visual gap between ordinary body paragraphs, apply it to all 40 templates while avoiding duplicate oversized gaps, then verify saved rendered previews and workflow template sync as needed. No email was sent and no workflow was changed.
 
-### CURRENT 2026-10-10 (EOS 4) — Gambling + Cannabis Dispensaries cohorts prepared, imported, and enrolled (246 / 121)
+### DATED CHECKPOINT 2026-10-10 (EOS 4) — Gambling + Cannabis Dispensaries cohorts prepared, imported, and enrolled (246 / 121)
 
 - **Prep delivered:** `New Campaigns October 2026/GHL Import Prep/` has `Gambling Brands - GHL Import + Sender.csv` (246 rows; `Vertical=Gambling`; per-vertical sender; balanced 62/62/61/61; no enroll tag; 0 existing GHL matches) and the Dispensaries split `Cannabis Dispensaries Brands - GHL Import + Sender (Net-New).csv` (51 rows) + `Cannabis Dispensaries Brands - GHL Overlaps (Hold).csv` (78 existing contacts). Scripts (read-only): `prepare_gambling_dispensaries_import.py`, `split_dispensaries_net_new.py`.
 - **⚠️ Safety gate crossed:** live GHL now shows `Vertical=Gambling` **246** and `Vertical=Cannabis Dispensaries` **121**, with enroll tags `lt_campaign_gambling_brands_oct_2026_enroll` = **246** and `lt_campaign_cannabis_dispensaries_brands_oct_2026_enroll` = **121** and senders assigned. Both workflows were already published with SMS `dryRun=false`, so the enroll tags should have started live enrollment. This was done by a **concurrent process** (Ed or another session), not by me.
@@ -130,14 +143,14 @@
 - **Next:** confirm who ran the import/enroll; verify workflow enrollment + provider logs (pause if unintended); decide whether to revert the 70 reclassifications (preserve Emerald/DAN tags); reconcile the duplicate artifact sets. Full detail: `docs/sessions/2026-10-10-gambling-dispensaries-import-prep-eos.md`; `AGENTS.md` (top).
 - **Gates:** no additional sends/enroll/publish for these verticals without Ed's explicit approval; use only n8n-lt; never print/commit the PIT/pg password/JWT/n8n key.
 
-### CURRENT 2026-10-09 (EOS) — Booking attribution: email Trigger Links + SMS redirect + ledger + V1 facts
+### DATED CHECKPOINT 2026-10-09 (EOS) — Booking attribution: email Trigger Links + SMS redirect + ledger + V1 facts
 
 - **Shipped per-campaign booking attribution** (email Trigger Links + SMS n8n redirect → one Postgres ledger → report-time join). 8 booking Trigger Links created; GHL `LT - Booking Link Click → n8n` (`44e3fa9b-e557-4099-bd74-b308d70f39bb`) published; n8n-lt `LT - Booking Link Click Intake` (`1diZyFmTqWQUEny3`) + `LT - Booking Link SMS Redirect` (`9HT13te9FalOtUZM`) active; 32 email templates use `{{trigger_link.<ID>}}`; all 8 campaign workflows × 4 SMS-2 nodes send `…/lt-booking-sms?c={{contact.id}}&v=<vertical>&s=sms2`; table `lt_booking_link_clicks`; views `lt_booking_attribution` (last-touch 30d) + `lt_booking_attribution_first` (first-touch 90d); V1 facts `oxYDg6XnRBKhl1Xd` `sqlBookingBreakdown` now carries `campaign` + `attribution_model`.
 - **Audit (read-only) all green:** V1 30d reconciles **572=572**; DB views 1:1 (43/43/43, no nulls); campaign workflows 85 nodes with email nodes untouched; email E1–E4 tokens / E5 deck-only. **Defect found+fixed:** the two **draft** workflows **Cannabis Dispensaries** (`365ecf51…`) and **Gambling** (`4a238825…`) SMS-2 nodes **reverted** after the first API wiring; re-wired + re-verified (`good=4`). **Risk:** API step edits to *draft* GHL workflows may not persist — re-verify before publishing those two.
 - **Next:** fire one controlled **email** click → confirm a `medium=email` row (validates the GHL→n8n payload format); fire one **SMS-2** click → `medium=sms` row; re-verify the two drafts before publishing; reconcile a real booking → V1 `campaign` populates. Full detail: `docs/sessions/2026-10-09-booking-attribution-build.md`; `AGENTS.md` (top).
 - **Gates:** no publish/enroll/send for Dispensaries/Gambling without explicit approval; use only n8n-lt; never print the JWT/PIT/pg password/n8n key.
 
-### CURRENT 2026-10-10 (EOS) — Vertical-sender automation SHIPPED; Crypto/Peptides confirmed live; next: Gambling + Cannabis Dispensaries
+### DATED CHECKPOINT 2026-10-10 (EOS) — Vertical-sender automation SHIPPED; Crypto/Peptides confirmed live; next: Gambling + Cannabis Dispensaries
 
 - **Shipped the GHL→n8n "assign per-vertical sender when `Vertical` changes" automation.**
   - n8n-lt `LT - Vertical Sender Assign (Webhook)` = **`z0Sq4AE3Xdbgw2Yh`**, active, version `0c7127ba-b273-44a8-8f06-27b93358f064` (Webhook → `GHL Config` → `GET GHL Contact` → `Compute Sender` (Code, `require('pg')` + atomic `lt_campaign_sender_rotation` round-robin + empty-check guard) → `Skip?` → `PUT GHL Sender` → `Respond`).
@@ -148,14 +161,14 @@
 - **Next session (Ed directive):** convert **Gambling `4a238825-61d2-49e6-a3d0-4acb3a19c674`** and **Cannabis Dispensaries `365ecf51-d700-4c2d-8058-df20ad523538`** outbound workflows from their Alcohol source content — repoint all 20 email Send actions to the already-created vertical templates and update the SimpleTexting Webhook SMS copy (SMS 1/2/3). Keep both Draft/unpublished/unenrolled; no sends/enrolls/publish without approval. Full checklist in `AGENTS.md` (top).
 - **Gates:** Gambling/Cannabis Dispensaries no sends/enroll tags/publish without explicit approval. Use only n8n-lt. Never print/commit the PIT, pg password, or n8n API key.
 
-### CURRENT 2026-10-09 — All vertical campaign SMS webhooks set to dryRun=false (live mode) + GHL backend workflow API
+### DATED CHECKPOINT 2026-10-09 — All vertical campaign SMS webhooks set to dryRun=false (live mode) + GHL backend workflow API
 
 - Every SMS SimpleTexting Webhook in all eight vertical outbound campaigns is now **`dryRun=false` (96/96)** verified by fresh workflow-definition readback. Only **Peptides** needed the change (its 12 nodes were `true`); **Crypto** was also `true` at session start and was flipped; the other six were already `false`. Canonical `…/webhook/lt-simpletexting-send-sms` endpoint, `Content-Type: application/json`, `x-lt-simpletexting-key` header, and `contact_id/phone/first_name/message/source/dryRun` payload preserved on every node.
 - Workflows/versions: Crypto `0a79d683-4374-432d-bc64-6c8272540041` Published v48, Peptides `11a70375-d401-45d1-86c1-13e538528748` Draft v14, Cannabis Dispensaries `365ecf51-d700-4c2d-8058-df20ad523538` Draft v1, Cannabis `5d1236a2-1b98-4b7f-9621-5d4f7749f377` Published v73, Gambling `4a238825-61d2-49e6-a3d0-4acb3a19c674` Draft v1, Alcohol `2e8c2d78-aaec-4591-9b53-b0715be8c4ce` Published v38, Nicotine `42ecc39c-3c0d-474b-8d78-83cd10e9c620` Published v40, Mushroom `f1280d4b-ac8f-4353-b3c1-f874f7202bdb` Published v21.
 - **Live-send impact:** Alcohol (169 active), Cannabis (41), Nicotine (701), and Mushroom will now send real SMS on their next scheduled run; Crypto is Published with 0 enrolled; the three Draft verticals cannot send until separately published + enrolled. Ed gave explicit authorization for the live-send change across all verticals.
 - **NEW CAPABILITY:** GHL workflow graphs are read AND saved via `backend.leadconnectorhq.com` — `GET /workflow/{loc}/{id}?includeScheduledPauseInfo=true` returns `workflowData.templates`; `PUT /workflow/{loc}/{id}` (with `modifiedSteps`/`createdSteps`/`deletedSteps`/`triggersChanged`/`oldTriggers`/`newTriggers`) saves the draft. **This supersedes the earlier "workflow-definition GET returns 404 / Firestore-backed so not scriptable" notes.** Auth is the workflow-builder Bearer JWT. Full method at the top of `AGENTS.md`.
 
-### CURRENT 2026-10-09 — Gambling / Cannabis Dispensaries / Peptides email templates (created) + Peptides workflow next
+### DATED CHECKPOINT 2026-10-09 — Gambling / Cannabis Dispensaries / Peptides email templates (created) + Peptides workflow next
 
 - **15 GHL email templates created** for Ed's three new vertical folders via the `.env` GHL PIT (no browser). Flow: `POST /emails/builder` (returns HTTP 201, ignores name) then `PATCH /emails/builder/{id}` with `editorType=html`+`editorContent`+`name`.
   - Gambling folder `6ac8e43939edc5e18c159cf8`; Peptides folder `6ac8e41a39edc5e18c159aa5`; Cannabis Dispensaries folder `6ac8e42a1ea8584cd7a514af`. Exact template IDs per vertical are in [`docs/sessions/2026-10-09-gambling-dispensaries-peptides-email-templates-eos.md`](docs/sessions/2026-10-09-gambling-dispensaries-peptides-email-templates-eos.md) and `AGENTS.md`.
@@ -165,7 +178,7 @@
 - **Peptides workflow (2026-10-09):** `11a70375-d401-45d1-86c1-13e538528748` **CONVERTED; now Draft v14**. Entry tag, `Vertical = Peptides` gate, Peptides sender field/router, all 20 email actions mapped to the 5 Peptides templates with Sync Edits, and SMS/voicemail copy replaced. Its 12 SMS Webhooks are now **`dryRun=false`** (see the SMS section at the top). Remaining: cohort reconciliation + balanced sender assignment, entry-tag application, publication/enrollment. Full graph read/edit uses the backend workflow API (`GET`/`PUT backend.leadconnectorhq.com/workflow/{loc}/{id}`) — the earlier "definition GET → 404 / save not scriptable" note is superseded. Siblings: Cannabis Dispensaries `365ecf51-d700-4c2d-8058-df20ad523538` v1, Gambling `4a238825-61d2-49e6-a3d0-4acb3a19c674` v1, Crypto `0a79d683-4374-432d-bc64-6c8272540041` Published v48.
 - No emails sent, no workflows changed, no contacts touched, nothing committed.
 
-### CURRENT 2026-10-09 — Executive Report V1 SQL booking attribution + email Trigger Links
+### DATED CHECKPOINT 2026-10-09 — Executive Report V1 SQL booking attribution + email Trigger Links
 
 - **Continuation via GHL PIT (2026-10-09):** used `GHL_PIT` from `.env` without exposing or recording its value. Documented v3 API reads returned 14 active calendars, 17 Trigger Links, 98 workflow summaries, and 27 workflow-email campaigns. The three Trigger Link Source Attribution workflows are Published (Alcohol v3, Cannabis v5, Nicotine v4); the separate booking-click and website-click workflows are Published v7 and v4. Production `GET /workflows/{id}/definition` with Version v4 still returned 404 using the PIT, so exact triggers/actions and source writes remain unaudited. Readable Alcohol/Cannabis workflow-email HTML confirms their direct booking links have only `utm_source` values and bypass booking Trigger Links; the named deck Trigger Links are separate. Saved templates for Nicotine, Mushroom, Crypto, and DAN were read via documented template APIs, but live workflow action mapping is unconfirmed. The four sampled non-null appointment creator IDs resolve to Jason Bornillo while the assigned user resolves to Cameron Karkut; 9/13 sampled events lack creator IDs and four show `rescheduledAt`. Thus creator/owner are distinct and creator identity is still incomplete. No CRM/workflow/template/report writes or tests occurred.
 - Durable API readbacks: [`2026-10-09-ghl-calendar-inventory.csv`](docs/sessions/2026-10-09-ghl-calendar-inventory.csv), [`2026-10-09-sql-booking-link-registry.csv`](docs/sessions/2026-10-09-sql-booking-link-registry.csv), [`2026-10-09-sql-booking-email-link-readback.csv`](docs/sessions/2026-10-09-sql-booking-email-link-readback.csv), and [`2026-10-09-sql-booking-template-link-readback.csv`](docs/sessions/2026-10-09-sql-booking-template-link-readback.csv). They distinguish saved-link/template observations from confirmed active workflow usage; redirect chains have not been clicked or verified.
@@ -175,7 +188,7 @@
 - **Next steps:** obtain supported production workflow-definition access (browser editor or an API route available on production) and read the three attribution workflows, booking-click workflow, and all relevant campaign actions. Confirm action-to-template mapping, Trigger Link filters, Contact `source` consumers, and source/redirect propagation before changing shared templates or redirects. Then finish appointment date-boundary/reschedule reconciliation and field/ledger design; update missing UTMs and exact-link click capture using a controlled contact without sending campaign email or publishing a test automation; verify click, redirect, booking, identity, and dedupe; refresh facts and monitor capture gaps. Keep click attribution separate from SQL booking attribution and preserve the 578 unnamed calendar-path historical gap unless records establish more.
 - The production GHL workflow-definition v4 endpoint returned 404 and the browser surface was unavailable; therefore click automation work is **not complete**. No live GHL workflow or contact writes, tests, sends, or workflow publication occurred. Full implementation notes and field-level plan: [`docs/sessions/2026-10-09-sql-booking-and-triggerlink-attribution-plan.md`](docs/sessions/2026-10-09-sql-booking-and-triggerlink-attribution-plan.md).
 
-### CURRENT 2026-10-09 — sequential setup of remaining vertical campaigns
+### DATED CHECKPOINT 2026-10-09 — sequential setup of remaining vertical campaigns
 
 - Ed wants the remaining vertical workflows built **one at a time**, beginning with email templates, SMS templates/snippets, and tags, followed by the complete setup used for Alcohol and the other vertical campaigns. Do not work on all verticals in parallel.
 - Confirmed sequence: **Crypto → Cannabis Dispensaries → Gambling → Peptides**. Gambling is the distinct second vertical intended by the duplicate Crypto in the initial list. Finish one vertical fully and complete its non-sending acceptance readback before starting the next.
@@ -187,7 +200,7 @@
 - **New follow-up (Ed, 2026-10-09):** audit already-imported contacts with blank/missing campaign-specific sender fields, map each to the correct vertical/workflow, and prepare balanced sender assignments before proper workflow enrollment. This is pending; no historic contacts were searched or changed for this follow-up. Preserve sticky existing assignments and verify sender fields before any separately authorized entry-tag writes.
 - The requested inbound response → `mql` tag → opportunity in **Sales Outreach → New**, with no new opportunity when any opportunity already exists, is recorded as a requirement but deferred behind the sequential vertical campaign setup. Its conflict with the Janvi AI qualification/promotion gate and treatment of existing non-Sales Outreach opportunities remain to be reconciled before implementation.
 - Full EOS state, remaining vertical-by-vertical checklist, and a ready-to-paste next-LLM handoff prompt: [`docs/sessions/2026-10-09-remaining-vertical-campaigns-crypto-eos.md`](docs/sessions/2026-10-09-remaining-vertical-campaigns-crypto-eos.md).
-- Repomix refresh is paused at Ed's request. Do not run Repomix or `packlive` until he explicitly reauthorizes it; the generated output from this session was restored to its pre-session version.
+- **Historical note (superseded 2026-11-04):** Repomix refresh was paused at that time. Ed later directed deletion of the root bundle; it is retired and must not be recreated or replaced.
 - Earlier Crypto scaffold checkpoint (2026-10-09 morning; **superseded by the current state in line 27 and the detailed EOS linked above**): entry/gate/router had just been converted to Crypto values; 12 SMS nodes were made dry-run safe but still had Alcohol copy; Email 1 action was still Alcohol-linked; the initial 1-day wait, later waits, exits, and cohort were not yet reconciled. A CSV count was then reported as 291; the corrected source count is 292 data rows. These are historical checkpoints only; use the current EOS for live state.
 
 ### ⏳ SUPERSEDED 2026-10-09 — SMS 3 correction continuation (active-contact impact check)
@@ -198,7 +211,7 @@
 - No extra initial wait is required before Day 1 Email 1. This original checkpoint's list of pending work is superseded by the saved implementation summary below.
 - Detailed continuation: [`docs/sessions/2026-10-09-cannabis-sms3-correction-eos.md`](docs/sessions/2026-10-09-cannabis-sms3-correction-eos.md).
 
-### ⚠️ CURRENT 2026-10-09 — expanded wait and SMS 3 repair authorization
+### ⚠️ DATED CHECKPOINT 2026-10-09 — expanded wait and SMS 3 repair authorization
 
 - Ed authorized correcting wrong waits and SMS 3 messages across Alcohol, Cannabis, Nicotine, and Mushroom, preserving enrolled contacts. Do not force contacts forward, remove/re-enroll, retag, or compensate them.
 - **There is no additional initial wait before Day 1 Email 1.** Email 1 is the first workflow action; the wait cadence begins after it. This supersedes any earlier repair note that treated the absent entry→Email 1 wait as a defect.
@@ -209,7 +222,7 @@
 - **Alcohol fresh branch-order recheck (2026-10-09):** current saved workflow `2e8c2d78-aaec-4591-9b53-b0715be8c4ce` is Published version 38. Live edge traversal across `.com`, `.co`, `.agency`, `.org` confirms Day7 voicemail1 → Wait 4d → Day11 Email3 → Wait 2d → Day13 SMS2 → Wait 2d → Day15 Email4. This supersedes the preceding version-37 readback that still showed SMS2 before Email3. Alcohol's four Day21 SMS3 actions and all 12 `dryRun=false` Webhooks remain saved.
 - GHL workflow metadata remains Published: Alcohol version 38, Cannabis version 73, Nicotine version 40, Mushroom version 21. No additional wait before Day1 Email1.
 
-### CURRENT 2026-10-09 — Cannabis early-exit re-entry and inbound-stop verification
+### DATED CHECKPOINT 2026-10-09 — Cannabis early-exit re-entry and inbound-stop verification
 
 - Ed deferred the shared consent/STOP/DND and idempotency/provider-reconciliation reviews, voicemail-consent review, and three-month newsletter nurture work. Keep those as later follow-ups, not blockers to the current re-entry decision.
 - Reopened the central inbound-stop workflow `Transparent eCom - Stop Outbound on Inbound Communication (All Verticals)` (`54dc6321-ed85-4eee-870d-0716c73c66fb`): workflow list shows **Published**, 8 total / 0 active. The Builder shows a `Customer replied` trigger with no filters and `Remove from Workflow` targeting all four vertical outbound automations. This confirms the published reply-stop workflow; the observed configuration does not establish coverage for Call Details or every custom provider.
@@ -217,7 +230,7 @@
 - **No contacts were re-entered or retagged.** Do not re-enter Finished/No Action records solely by status; the sampled cases are ineligible or already active, so another entry could repeat or duplicate a sequence. Preserve the 41 active waits. Re-enter only a specific reconciled contact if confirmed eligible, not currently active, and exited before sequence actions due to an edit.
 - Detailed verification and re-entry rationale: [`docs/sessions/2026-10-09-cannabis-sms3-correction-eos.md`](docs/sessions/2026-10-09-cannabis-sms3-correction-eos.md).
 
-### CURRENT 2026-10-09 — inbound response → MQL / Sales Outreach opportunity review
+### DATED CHECKPOINT 2026-10-09 — inbound response → MQL / Sales Outreach opportunity review
 
 - **Requested behavior:** any inbound response should apply the `mql` tag and ensure a Sales Outreach → New opportunity exists, without creating a new opportunity when one already exists. This is a project requirement deferred behind the remaining vertical setup; no workflow, contact, or opportunity was changed or tested.
 - **Existing GHL workflow checked:** `WL - Micro - Stage MQL Opportunity Baseline` (`172e98e7-7dde-49fd-b32e-e1d98395484a`) is **Published**, 750 total / 0 active at the workflow-list readback (last updated Aug 31, 2026). Its trigger is Contact Tag → `mql` added. It POSTs contact ID/name/first name/last name/tag to `https://automations.livetransparent.com/webhook/ghl-mql-opportunity-baseline-v2` and separately sends lead details to `https://automations.livetransparent.com/webhook/wl-slack-channel-update-v2` with alert title `New MQL` and contact/source/UTM fields. It fires after the MQL tag is already present; it does not detect an inbound response or add the MQL tag itself.

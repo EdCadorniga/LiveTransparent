@@ -1,0 +1,6847 @@
+{
+  "listed": 212,
+  "errors": [],
+  "workflows": [
+    {
+      "id": "0P2AZcQYWYZjXbRi",
+      "name": "LT - GA4 Traffic Rollup Bridge",
+      "active": true,
+      "archived": false,
+      "draft": "babcf1e1-cea9-44c1-bf9f-08d2c7c07fd4",
+      "activeVersion": "babcf1e1-cea9-44c1-bf9f-08d2c7c07fd4",
+      "updated": "2026-04-30T15:22:34.347Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "0SQ7tTk03okegp9V",
+      "name": "LT - Partnership Reply Poller",
+      "active": true,
+      "archived": false,
+      "draft": "332930dd-d50a-4456-9138-39a0ec7c2e8f",
+      "activeVersion": "332930dd-d50a-4456-9138-39a0ec7c2e8f",
+      "updated": "2026-09-10T02:01:28.654Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule - Every 5 min",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule - Every 5 min",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "0jDKgG8VvmfyORQn",
+      "name": "LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)",
+      "active": true,
+      "archived": false,
+      "draft": "70326727-ce6c-4a63-b320-d7b2826dcda0",
+      "activeVersion": "70326727-ce6c-4a63-b320-d7b2826dcda0",
+      "updated": "2026-04-14T16:12:34.658Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-emerald-campaign-postgres-intake"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "1diZyFmTqWQUEny3",
+      "name": "LT - Booking Link Click Intake (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "a9d36466-8248-4003-851b-2e335003b559",
+      "activeVersion": "a9d36466-8248-4003-851b-2e335003b559",
+      "updated": "2026-10-13T17:22:09.065Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.if": 1,
+        "n8n-nodes-base.httpRequest": 2
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-booking-click"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "1iEqGs5IxEuD5rrS",
+      "name": "LT - Instagram Company Page Message 1 Dispatcher (Dry Run)",
+      "active": false,
+      "archived": false,
+      "draft": "6a0482b9-a9c3-4f06-a443-3ff5d8caff00",
+      "activeVersion": null,
+      "updated": "2026-08-16T21:19:03.973Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Dry Run Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "1ogCy9ScVjtF0Cqf",
+      "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+      "active": false,
+      "archived": true,
+      "draft": "4a8dc48a-bfa5-4bd2-b963-5a1924f3ba17",
+      "activeVersion": null,
+      "updated": "2026-05-18T16:36:58.381Z",
+      "nodeCount": 20,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.postgres": 4,
+        "n8n-nodes-base.if": 3,
+        "n8n-nodes-base.httpRequest": 3,
+        "n8n-nodes-base.set": 3,
+        "n8n-nodes-base.webhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Cron - Queue Poll",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Webhook - Dequeue Next",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Dequeue Next",
+          "method": "GET",
+          "path": "voice-dequeue-next"
+        }
+      ],
+      "schedules": [
+        {
+          "node": "Cron - Queue Poll",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "27NLAovEaClxCAuI",
+      "name": "LT - Instagram Company Page Five Send Test",
+      "active": false,
+      "archived": false,
+      "draft": "0f555cde-4317-4a78-937f-76febaaf612e",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:01:32.712Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Five Send Test",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "2vbq9jfgev9PKsJs",
+      "name": "LT - Sales Navigator Map Readonly Counts (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "620a7ea3-5648-4bf0-8df9-38c3bd73050f",
+      "activeVersion": null,
+      "updated": "2026-09-30T20:12:45.987Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Trigger",
+          "method": "POST",
+          "path": "lt-sn-map-counts-71f1a2b95821ba1fdaf9"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "3GTjuUviVvFF8thU",
+      "name": "LT - Historical Partnership Reply Backfill",
+      "active": false,
+      "archived": true,
+      "draft": "927e94b1-c809-4ed8-80c5-eaf79ccce581",
+      "activeVersion": null,
+      "updated": "2026-08-04T06:03:00.939Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "3J0vJWb0W0KsiLsI",
+      "name": "LT - Audit Email Engagement Mismatch",
+      "active": false,
+      "archived": true,
+      "draft": "6757ebf4-4e85-483e-b25e-3a91d6823c31",
+      "activeVersion": null,
+      "updated": "2026-08-10T17:19:31.016Z",
+      "nodeCount": 9,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 6,
+        "n8n-nodes-base.merge": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Audit",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Audit",
+          "method": "GET",
+          "path": "lt-audit-email-engagement"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "3XHThUiUSNa4sTb9",
+      "name": "LT - Report Postgres Bootstrap Apply",
+      "active": true,
+      "archived": false,
+      "draft": "8fee10b5-2023-4510-b10f-5f0455fb9d50",
+      "activeVersion": "8fee10b5-2023-4510-b10f-5f0455fb9d50",
+      "updated": "2026-05-08T13:52:23.779Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "GET",
+          "path": "lt-report-postgres-bootstrap"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "3gXztCnBEN6sGINb",
+      "name": "LT - Report Publish Refresh",
+      "active": true,
+      "archived": false,
+      "draft": "27842551-e3d0-4be3-9848-3928aaf92549",
+      "activeVersion": "27842551-e3d0-4be3-9848-3928aaf92549",
+      "updated": "2026-07-25T02:46:05.366Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "3kjsIUeoEQFx26cC",
+      "name": "rb2b leads",
+      "active": true,
+      "archived": false,
+      "draft": "94215cb0-9314-41e5-9dcf-6cd68653b812",
+      "activeVersion": "94215cb0-9314-41e5-9dcf-6cd68653b812",
+      "updated": "2026-09-10T02:01:34.564Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.httpRequest": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "rb2b_leads_v3"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "3ttEvr5NMcQCS4Hp",
+      "name": "LT - LinkedIn Connection Acceptance Checker (Unipile)",
+      "active": true,
+      "archived": false,
+      "draft": "d6500907-cad3-4616-95e8-c9afe75e6019",
+      "activeVersion": "d6500907-cad3-4616-95e8-c9afe75e6019",
+      "updated": "2026-10-02T02:23:31.578Z",
+      "nodeCount": 9,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - LinkedIn Acceptance",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - LinkedIn Acceptance",
+          "method": "POST",
+          "path": "lt-linkedin-connection-accepted"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "4Qww6KyTxnoRAs9m",
+      "name": "LT - LinkedIn Inbound OAuth Retry",
+      "active": true,
+      "archived": false,
+      "draft": "c0f666a1-fb11-4423-955f-b284fdc600d0",
+      "activeVersion": "c0f666a1-fb11-4423-955f-b284fdc600d0",
+      "updated": "2026-09-29T18:14:28.626Z",
+      "nodeCount": 9,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.httpRequest": 2,
+        "n8n-nodes-base.set": 3,
+        "n8n-nodes-base.if": 1
+      },
+      "triggers": [
+        {
+          "node": "Every 6 Hours + 10 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every 6 Hours + 10 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "4U3bj7BIaHBLszG4",
+      "name": "LT - Executive Report V1 Schema Probe",
+      "active": false,
+      "archived": false,
+      "draft": "aa3117c8-1f4b-45ce-87b7-18089836286e",
+      "activeVersion": null,
+      "updated": "2026-09-29T18:14:28.626Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Probe Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Probe Webhook",
+          "method": "GET",
+          "path": "lt-executive-report-v1-schema-probe"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "5mfwR4JPN3XF2FcX",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "54f0ba5e-babe-49c5-b3ba-b6871b4c92d1",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:34:04.875Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "5nYzp9DgQUopzWhR",
+      "name": "GHL Warm Intake - SMS Tag (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "3517408f-ddaf-4ed1-8032-45f07e967fb7",
+      "activeVersion": "3517408f-ddaf-4ed1-8032-45f07e967fb7",
+      "updated": "2026-09-10T02:01:39.374Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-warm-intake-sms-v2"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "5u70GKgWzEHJ5l4B",
+      "name": "LT - Report Rollup Corrections",
+      "active": false,
+      "archived": false,
+      "draft": "99734dc0-863f-415e-a817-1a6affeca1c8",
+      "activeVersion": null,
+      "updated": "2026-05-01T14:34:55.475Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "6ILxRR6ZAVngGPD1",
+      "name": "LT - Instagram Company Page GHL Association",
+      "active": false,
+      "archived": false,
+      "draft": "615aa26e-f719-4861-aed1-55ab56bd27fe",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:01:41.541Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Association Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "6lp8sIS3YMB1t9Ri",
+      "name": "GHL Warm Intake - Referral Tag (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "8e16812c-74b3-4f48-90d3-e9ad4bf407f6",
+      "activeVersion": "8e16812c-74b3-4f48-90d3-e9ad4bf407f6",
+      "updated": "2026-09-10T02:01:43.456Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-warm-intake-referral-v2"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "6pCSGzFmrMDFL5Yq",
+      "name": "LT - GA4 Daily Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "34a63b5f-db3b-43d1-ba12-4961cc15e2c3",
+      "activeVersion": "34a63b5f-db3b-43d1-ba12-4961cc15e2c3",
+      "updated": "2026-09-25T16:41:01.152Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.googleAnalytics": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "72BI9d1giXcRNl6w",
+      "name": "LT - Report Pipeline Velocity",
+      "active": false,
+      "archived": false,
+      "draft": "4366b98b-4709-4a13-87c4-0ebd635e3416",
+      "activeVersion": null,
+      "updated": "2026-05-07T19:05:47.361Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "7jDUxKen32sMyUUy",
+      "name": "Untitled Workflow",
+      "active": false,
+      "archived": false,
+      "draft": "d055ac66-e25d-4cec-bbe9-99baee2607d0",
+      "activeVersion": null,
+      "updated": "2026-05-08T17:41:30.656Z",
+      "nodeCount": 0,
+      "types": {},
+      "triggers": [],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "7mSiivR3NhtLIcNz",
+      "name": "LT - SimpleTexting Campaign Sequencer (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "57564fc0-d04e-4f18-9eac-ee42a86bfb39",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:01:46.475Z",
+      "nodeCount": 34,
+      "types": {
+        "n8n-nodes-base.executeWorkflowTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 20,
+        "n8n-nodes-base.postgres": 7,
+        "n8n-nodes-base.wait": 5
+      },
+      "triggers": [
+        {
+          "node": "When Executed by Another Workflow",
+          "type": "n8n-nodes-base.executeWorkflowTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "7o5EBdvwAuIaWW7k",
+      "name": "LT - LinkedIn Unipile New Messages",
+      "active": true,
+      "archived": false,
+      "draft": "8a22c193-3702-4257-bd28-ebd6c6efe720",
+      "activeVersion": "8a22c193-3702-4257-bd28-ebd6c6efe720",
+      "updated": "2026-10-01T00:58:48.240Z",
+      "nodeCount": 27,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 16,
+        "n8n-nodes-base.postgres": 7,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.executeWorkflow": 2
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Unipile New LinkedIn Messages",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Unipile New LinkedIn Messages",
+          "method": "POST",
+          "path": "lt-unipile-linkedin-new-messages"
+        }
+      ],
+      "schedules": [],
+      "calls": [
+        {
+          "node": "Route LinkedIn Reply to Priority",
+          "workflowId": "URpjcm2k5isHUyls"
+        },
+        {
+          "node": "Route Partnership LinkedIn Reply to Priority",
+          "workflowId": "URpjcm2k5isHUyls"
+        }
+      ],
+      "internalHttp": []
+    },
+    {
+      "id": "8Poy3zagNYMTSx3t",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "4b39e8fb-10d0-4dae-8ffd-8e442c25882b",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:20:41.397Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "8USvJkRlKzbj6Fu1",
+      "name": "WL - Webhook to Slack Channel - Website Visitor",
+      "active": true,
+      "archived": false,
+      "draft": "61c91377-09f1-402a-a7ea-bb7dbf989906",
+      "activeVersion": "61c91377-09f1-402a-a7ea-bb7dbf989906",
+      "updated": "2026-07-28T18:09:14.190Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.httpRequest": 2
+      },
+      "triggers": [
+        {
+          "node": "Webhook Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Trigger",
+          "method": "POST",
+          "path": "30df5fe6-5ac4-4e0d-8811-e4a28dfe0540"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": [
+        {
+          "node": "Sync Website Attribution",
+          "endpoint": "https://automations.livetransparent.com/webhook/<redacted-token>/lt-email-event-ingest"
+        }
+      ]
+    },
+    {
+      "id": "8UXlpoMJnQ229AuG",
+      "name": "LT - Emerald Campaign Sender Release Dispatcher (Staged)",
+      "active": true,
+      "archived": false,
+      "draft": "c63eaa03-8907-47a0-820a-c4143f89949a",
+      "activeVersion": "c63eaa03-8907-47a0-820a-c4143f89949a",
+      "updated": "2026-09-17T14:10:26.788Z",
+      "nodeCount": 11,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 5,
+        "n8n-nodes-base.code": 4
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "8YtaPmPnTXUkBDAd",
+      "name": "LT - GHL Executive Report Menu Sync",
+      "active": false,
+      "archived": false,
+      "draft": "88876d89-d8d5-4e11-b509-a4b0aeddf2c2",
+      "activeVersion": null,
+      "updated": "2026-04-21T16:27:47.826Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-ghl-report-menu-sync"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "8hQKQi1PooYDFxNR",
+      "name": "LT - SimpleTexting Campaign Phone Backfill",
+      "active": true,
+      "archived": false,
+      "draft": "83202303-bca2-4786-9bce-eed8147307c3",
+      "activeVersion": "83202303-bca2-4786-9bce-eed8147307c3",
+      "updated": "2026-08-16T22:23:28.035Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.code": 2
+      },
+      "triggers": [
+        {
+          "node": "SMS Phone Backfill Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "SMS Phone Backfill Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "98FJR2XHodmRvCBw",
+      "name": "GA4 Credential Test",
+      "active": false,
+      "archived": true,
+      "draft": "e677ee61-17f1-4a16-9cc3-f7e796d16153",
+      "activeVersion": null,
+      "updated": "2026-07-11T02:10:41.740Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.googleAnalytics": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "9HT13te9FalOtUZM",
+      "name": "LT - Booking Link SMS Redirect (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "9c523bd0-30af-429a-96a4-3c557a57a206",
+      "activeVersion": "9c523bd0-30af-429a-96a4-3c557a57a206",
+      "updated": "2026-10-09T17:52:53.653Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "GET",
+          "path": "lt-booking-sms"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "9Y3Kedm768kkwwSV",
+      "name": "LT - Company MQL Google Sheets Sync",
+      "active": true,
+      "archived": false,
+      "draft": "94e4d422-fa76-4428-8b71-f63d1ea412ba",
+      "activeVersion": "94e4d422-fa76-4428-8b71-f63d1ea412ba",
+      "updated": "2026-07-06T04:16:41.660Z",
+      "nodeCount": 14,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 2,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.httpRequest": 2,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.scheduleTrigger": 2
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Daily Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger - Broad",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Daily Schedule - Broad",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Daily Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Daily Schedule - Broad",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "9ecyXUgQcwXPA088",
+      "name": "LT - Voice Migration - Add pipeline_stage Column",
+      "active": false,
+      "archived": true,
+      "draft": "25bfa362-12d4-418d-9996-b6bcc29f62b0",
+      "activeVersion": null,
+      "updated": "2026-05-13T23:29:36.133Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "AEi1VCzkLvaYFr4U",
+      "name": "LT - SimpleTexting Delivery Events (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "91c05570-37bb-4ce5-be69-da790037ebd4",
+      "activeVersion": "91c05570-37bb-4ce5-be69-da790037ebd4",
+      "updated": "2026-09-10T02:01:54.618Z",
+      "nodeCount": 11,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.if": 2
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-simpletexting-delivery-events-v2"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "BIVAw1AWTTzC0igW",
+      "name": "LT - IG & FB Company Page Enrichment",
+      "active": false,
+      "archived": false,
+      "draft": "21c45f6b-c8dd-4dcc-8df9-53c17e1bad43",
+      "activeVersion": null,
+      "updated": "2026-08-14T17:45:22.053Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.httpRequest": 3,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.splitInBatches": 1,
+        "n8n-nodes-base.scheduleTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Every Five Minutes Start",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every Five Minutes Start",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "BLr1x1HKdgM1Xfxk",
+      "name": "LT - Emerald CSV -> GHL Import (DryRun, Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "a5aeb34e-eeff-4673-90ab-a973c7085faf",
+      "activeVersion": null,
+      "updated": "2026-04-05T10:13:53.997Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-emerald-ghl-import"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "BaHZ5jTXdQ99D6Zp",
+      "name": "LT - Call Outcome Ingest",
+      "active": false,
+      "archived": false,
+      "draft": "dd13ceee-b951-4c84-84ba-3d7be45d0bc8",
+      "activeVersion": null,
+      "updated": "2026-05-05T01:11:17.266Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Call Outcome Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Call Outcome Webhook",
+          "method": "POST",
+          "path": "lt-call-outcome-ingest"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Bukc0mgOD2r7V6ED",
+      "name": "LT - Report Executive Summary API",
+      "active": true,
+      "archived": false,
+      "draft": "8f404316-2ac2-4679-8d42-eb7fdb44036d",
+      "activeVersion": "8f404316-2ac2-4679-8d42-eb7fdb44036d",
+      "updated": "2026-10-25T19:32:50.602Z",
+      "nodeCount": 12,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 6,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.if": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "GET",
+          "path": "lt-report-executive-summary"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "CFfNeRBRuo7YRBjl",
+      "name": "LT - GHL Call Outcomes Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "6228de7e-437c-4bc5-87cf-6e1f2c6c645c",
+      "activeVersion": "6228de7e-437c-4bc5-87cf-6e1f2c6c645c",
+      "updated": "2026-05-11T19:42:28.632Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-ghl-call-outcomes-ingest"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "CfpedDQWxoJLEMdL",
+      "name": "LT - Unipile Sales Navigator V2 Inbound (DRAFT)",
+      "active": true,
+      "archived": false,
+      "draft": "dd6b78e3-5bd5-4ce4-90f1-ecb82f2b66ed",
+      "activeVersion": "dd6b78e3-5bd5-4ce4-90f1-ecb82f2b66ed",
+      "updated": "2026-10-01T16:22:08.906Z",
+      "nodeCount": 74,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 24,
+        "n8n-nodes-base.if": 20,
+        "n8n-nodes-base.postgres": 15,
+        "n8n-nodes-base.httpRequest": 10,
+        "n8n-nodes-base.respondToWebhook": 3
+      },
+      "triggers": [
+        {
+          "node": "Unipile V2 Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Unipile V2 Webhook",
+          "method": "POST",
+          "path": "lt-unipile-sales-navigator-new-messages"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "CqkIQuCArxvIEuBk",
+      "name": "LT - Report Pipeline Velocity",
+      "active": false,
+      "archived": false,
+      "draft": "9b4383eb-1ec5-43fb-a6c5-f907ae16d20c",
+      "activeVersion": null,
+      "updated": "2026-05-07T19:05:24.701Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "DNwar2RUUBk8EJAQ",
+      "name": "LT - Sales Navigator Readonly Table Discovery (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "e133f502-d525-4b2c-9bd5-bc0fffe5103c",
+      "activeVersion": null,
+      "updated": "2026-09-30T20:09:59.198Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Trigger",
+          "method": "POST",
+          "path": "lt-sn-schema-inspect-52d2e7a1d55e3e02d3b0"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Dqy8FEdbCUfFhaUe",
+      "name": "Test Activation",
+      "active": false,
+      "archived": true,
+      "draft": "d1b09be7-39a7-4a68-9684-9d11696c7238",
+      "activeVersion": null,
+      "updated": "2026-07-11T02:10:41.708Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.noOp": 1
+      },
+      "triggers": [
+        {
+          "node": "Cron",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Cron",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "EUeOiRttoVLQ9zF9",
+      "name": "LT - Report Daily Rollups",
+      "active": true,
+      "archived": false,
+      "draft": "1af59845-fd7c-48d0-86c7-362c698cdd98",
+      "activeVersion": "1af59845-fd7c-48d0-86c7-362c698cdd98",
+      "updated": "2026-09-08T17:40:14.789Z",
+      "nodeCount": 9,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "EhAiGey2o7UJT1cv",
+      "name": "LT - SimpleTexting Inbound Reply (Webhook, Staged)",
+      "active": false,
+      "archived": true,
+      "draft": "7e557875-fad9-40ca-af47-031e262aa923",
+      "activeVersion": null,
+      "updated": "2026-05-30T09:36:25.421Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.httpRequest": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-simpletexting-inbound-reply"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Ej3ZlC5QhIbUZQnM",
+      "name": "LT - Activation Test",
+      "active": false,
+      "archived": true,
+      "draft": "56d4b854-d938-40ad-a7ec-9951ec20a4b0",
+      "activeVersion": null,
+      "updated": "2026-07-11T02:10:41.886Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "GET",
+          "path": "lt-activation-test"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "FQE90HDUilFVdASY",
+      "name": "WL - Webhook to Slack Channel - Form Submission",
+      "active": true,
+      "archived": false,
+      "draft": "18b4952b-7a40-4d56-ba86-2c1e49c220e2",
+      "activeVersion": "18b4952b-7a40-4d56-ba86-2c1e49c220e2",
+      "updated": "2026-03-05T14:14:31.047Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.httpRequest": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Trigger",
+          "method": "POST",
+          "path": "form-submission-alert-slack"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "GHVYyYmhfNiZ7bbN",
+      "name": "LT - Emerald Executive SSO -> Company Sync (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "d140c0cc-2e87-4e12-ad79-78bce3667456",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:02:28.252Z",
+      "nodeCount": 16,
+      "types": {
+        "n8n-nodes-base.stickyNote": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 4,
+        "n8n-nodes-base.code": 6,
+        "n8n-nodes-base.if": 1,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.merge": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "GOlNNAZ50xydORRg",
+      "name": "My workflow",
+      "active": false,
+      "archived": false,
+      "draft": "dbca45b3-d9f9-4777-aa1f-d0cea71f2e0b",
+      "activeVersion": null,
+      "updated": "2026-07-11T01:00:43.631Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.switch": 1
+      },
+      "triggers": [
+        {
+          "node": "When clicking \u2018Execute workflow\u2019",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "GQv0yNqDtibOXMB8",
+      "name": "LT - Vertical LinkedIn Sales Navigator DM Sequence",
+      "active": false,
+      "archived": false,
+      "draft": "f8c5c81a-f259-4a8e-bc93-47714b30395d",
+      "activeVersion": null,
+      "updated": "2026-10-15T15:42:21.588Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "HZ8ndNF4p80PrQjf",
+      "name": "LT - Newsletter Click Track",
+      "active": true,
+      "archived": false,
+      "draft": "672c4fcb-dd1c-4c92-8c01-7461910e9419",
+      "activeVersion": "672c4fcb-dd1c-4c92-8c01-7461910e9419",
+      "updated": "2026-08-21T14:26:32.587Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Click Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Click Webhook",
+          "method": "GET",
+          "path": "lt-newsletter-click"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "HbhYLZwEM8NClSnU",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "83c1538b-bdba-449d-82be-cc6278450fba",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:44:49.197Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "HkTQ9mqwHcpg3AIM",
+      "name": "LT - Newsletter Open Pixel",
+      "active": true,
+      "archived": false,
+      "draft": "dbe9725c-9e70-472c-8a3d-a30a71e3a3eb",
+      "activeVersion": "dbe9725c-9e70-472c-8a3d-a30a71e3a3eb",
+      "updated": "2026-08-21T14:26:13.649Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Open Pixel Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Open Pixel Webhook",
+          "method": "GET",
+          "path": "lt-newsletter-pixel"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "HpgL5E5CcHKqz7Oi",
+      "name": "LT - Instagram Company Page Identity Validator",
+      "active": false,
+      "archived": false,
+      "draft": "ab1834b8-92d8-4b80-9d42-81e9a3cda3f6",
+      "activeVersion": null,
+      "updated": "2026-08-17T18:14:31.975Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Validation Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "IPN8jnR3XSurX0o1",
+      "name": "LT - LinkedIn DM Suppression from GHL Tag",
+      "active": true,
+      "archived": false,
+      "draft": "ededf18b-1355-4f8d-ad4d-1b0381382cb8",
+      "activeVersion": "ededf18b-1355-4f8d-ad4d-1b0381382cb8",
+      "updated": "2026-09-15T17:41:41.735Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - GHL Stop LinkedIn DMs",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - GHL Stop LinkedIn DMs",
+          "method": "POST",
+          "path": "lt-linkedin-suppress-dms"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "IduCoT5YOs0g2faT",
+      "name": "LT - Campaign Contact Classifier",
+      "active": true,
+      "archived": false,
+      "draft": "07e53f3b-c427-4aea-b286-e1071e2b7839",
+      "activeVersion": "07e53f3b-c427-4aea-b286-e1071e2b7839",
+      "updated": "2026-09-25T21:54:06.932Z",
+      "nodeCount": 17,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.httpRequest": 2,
+        "n8n-nodes-base.if": 1,
+        "@n8n/n8n-nodes-langchain.chainLlm": 1,
+        "@n8n/n8n-nodes-langchain.lmChatOpenRouter": 1,
+        "n8n-nodes-base.merge": 2,
+        "n8n-nodes-base.scheduleTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger 15m",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger 15m",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "IeovbYnhCsetXS89",
+      "name": "LT - Instagram Company Page Partnership Sender",
+      "active": true,
+      "archived": false,
+      "draft": "6c30293d-8863-4e0e-a2e3-9c23c4b00fdd",
+      "activeVersion": "6c30293d-8863-4e0e-a2e3-9c23c4b00fdd",
+      "updated": "2026-10-12T17:32:44.907Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "IyBKMkpYQ7pa0C8V",
+      "name": "LT - SimpleTexting Unsubscribe Events (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "9331c7d3-ac50-4f17-9a9a-fe15642e2d74",
+      "activeVersion": "9331c7d3-ac50-4f17-9a9a-fe15642e2d74",
+      "updated": "2026-09-10T02:02:43.331Z",
+      "nodeCount": 11,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.if": 2
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-simpletexting-unsubscribes-v2"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "J4B0n0QeSeOeqAci",
+      "name": "GHL Warm Intake - Email Outbound Tag (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "6241158e-a6f0-47e7-880f-e37ab2aeddfd",
+      "activeVersion": "6241158e-a6f0-47e7-880f-e37ab2aeddfd",
+      "updated": "2026-09-10T02:02:45.622Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-warm-intake-email-outbound-v3"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "J5uwS4Dn83JDpYs5",
+      "name": "LT - Power Dialer Queue Builder",
+      "active": false,
+      "archived": false,
+      "draft": "b68c6460-6f62-4c7b-ae63-4e1198a9245c",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:02:48.507Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 2
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "J7xZH6BBnoXEQsoB",
+      "name": "LT - Mass Email Open Tracking (STAGED)",
+      "active": false,
+      "archived": false,
+      "draft": "13f7e658-68a8-4050-ac36-f6f2106da773",
+      "activeVersion": null,
+      "updated": "2026-09-16T11:00:17.106Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Open Webhook (Staged)",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Open Webhook (Staged)",
+          "method": "GET",
+          "path": "lt-mass-email-open"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "JH8ShfpglWmLMZ3l",
+      "name": "LT - Apollo Phone Enrichment Polling",
+      "active": true,
+      "archived": false,
+      "draft": "9c135647-525c-41ed-b809-84cd4a88eea7",
+      "activeVersion": "9c135647-525c-41ed-b809-84cd4a88eea7",
+      "updated": "2026-10-08T16:06:59.455Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.scheduleTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        },
+        {
+          "node": "Schedule Trigger - Apollo Rate-Limited Batch",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "ghl-apollo-phone-enrichment-intake-v3"
+        }
+      ],
+      "schedules": [
+        {
+          "node": "Schedule Trigger - Apollo Rate-Limited Batch",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "JLuLRbRkVB1STnL0",
+      "name": "LT - Correct Partnership Email Reply Timestamp",
+      "active": false,
+      "archived": true,
+      "draft": "509f12ae-376c-4fd2-9bd4-4b82e0d55e31",
+      "activeVersion": null,
+      "updated": "2026-08-04T06:09:33.074Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "JRw9qnckedWzfcf6",
+      "name": "LT - Voice Agent V1 Vapi Callback + Tools",
+      "active": false,
+      "archived": true,
+      "draft": "d87d6514-eabb-4b1d-bc60-68d3711f80d9",
+      "activeVersion": null,
+      "updated": "2026-05-07T03:27:48.210Z",
+      "nodeCount": 15,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.if": 1,
+        "n8n-nodes-base.switch": 1,
+        "n8n-nodes-base.postgres": 4,
+        "n8n-nodes-base.httpRequest": 4,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Vapi",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Vapi",
+          "method": "POST",
+          "path": "lt-voice-agent-vapi-callback"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "JUvrA7qMa24SwAZG",
+      "name": "LT - LinkedIn Conversation Backfill",
+      "active": false,
+      "archived": false,
+      "draft": "b34bc049-1c83-449c-afa4-4dcf88590cb4",
+      "activeVersion": null,
+      "updated": "2026-09-10T20:04:45.399Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "KQjosWjChMYbhZkF",
+      "name": "LT - Last-Touch Owner Resolver + 14-Day Backfill",
+      "active": true,
+      "archived": false,
+      "draft": "61ae25fd-d03d-4fcc-9354-0138151e3164",
+      "activeVersion": "61ae25fd-d03d-4fcc-9354-0138151e3164",
+      "updated": "2026-10-12T14:32:25.368Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Backfill Webhook",
+          "type": "n8n-nodes-base.webhook"
+        },
+        {
+          "node": "Daily Last-Touch Owner Sweep",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Backfill Webhook",
+          "method": "POST",
+          "path": "lt-last-touch-owner-backfill-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [
+        {
+          "node": "Daily Last-Touch Owner Sweep",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "KftL5ohZKPjIinUY",
+      "name": "LT - Export Unknown Contact Sources 90d",
+      "active": false,
+      "archived": false,
+      "draft": "6571322b-308e-43d8-9b91-d486bf1ac265",
+      "activeVersion": null,
+      "updated": "2026-05-11T16:27:17.039Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "GET",
+          "path": "lt-export-unknown-contact-sources-90d"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "KlBw3ThLbNlMfE2J",
+      "name": "LT - Executive Report V1 Response SLA Materializer",
+      "active": true,
+      "archived": false,
+      "draft": "5957bf7b-a52f-4131-97a6-cc07303cb4b7",
+      "activeVersion": "5957bf7b-a52f-4131-97a6-cc07303cb4b7",
+      "updated": "2026-09-29T18:14:28.626Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Response SLA Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Response SLA Webhook",
+          "method": "POST",
+          "path": "lt-executive-report-v1-response-sla-materializer"
+        }
+      ],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "KsBMFcz1YpBGrjDW",
+      "name": "LT - Voice Dequeue Next",
+      "active": false,
+      "archived": false,
+      "draft": "670543be-0ecd-4f72-baa7-95d1717303e4",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:02:52.639Z",
+      "nodeCount": 13,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.switch": 2,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.httpRequest": 3
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Trigger",
+          "method": "POST",
+          "path": "voice-dequeue-next"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "KsJ3xkDoIfXzjVDw",
+      "name": "LT - Vertical LinkedIn Connection Dispatcher",
+      "active": false,
+      "archived": false,
+      "draft": "64036203-98d3-486d-afe2-5893e184d56a",
+      "activeVersion": null,
+      "updated": "2026-10-15T15:42:19.939Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "L7OOqQ6vH7BOQ48w",
+      "name": "LT - Voice Tag Audit Query (temp)",
+      "active": false,
+      "archived": true,
+      "draft": "fdaf9e25-d7ba-4702-8074-ed1736f22b44",
+      "activeVersion": null,
+      "updated": "2026-07-11T02:10:41.123Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "M5mXcDTFSko6EdHb",
+      "name": "LT - Report QA and Alerts",
+      "active": true,
+      "archived": false,
+      "draft": "004f260e-7153-4ab7-9e30-dc066ea2458e",
+      "activeVersion": "004f260e-7153-4ab7-9e30-dc066ea2458e",
+      "updated": "2026-09-24T16:35:08.843Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "MI91SutAbAj3QSXp",
+      "name": "GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "9cc34338-0683-40f4-944b-95c608ad79ab",
+      "activeVersion": "9cc34338-0683-40f4-944b-95c608ad79ab",
+      "updated": "2026-10-13T16:45:26.736Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "MQL Tag Added Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "MQL Tag Added Webhook",
+          "method": "POST",
+          "path": "ghl-mql-opportunity-baseline-v2"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Mf4wdFNurt5vyQu4",
+      "name": "LT - GHL OAuth Token Refresh",
+      "active": true,
+      "archived": false,
+      "draft": "c04eadaa-507f-4066-90ea-341ea2b2be45",
+      "activeVersion": "c04eadaa-507f-4066-90ea-341ea2b2be45",
+      "updated": "2026-09-24T11:36:15.497Z",
+      "nodeCount": 14,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.httpRequest": 3,
+        "n8n-nodes-base.set": 3,
+        "n8n-nodes-base.if": 2,
+        "n8n-nodes-base.code": 3
+      },
+      "triggers": [
+        {
+          "node": "Every 6 Hours",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every 6 Hours",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "MvPLbUAN9IIQikxb",
+      "name": "LT - Report Campaign Channel Summary",
+      "active": true,
+      "archived": false,
+      "draft": "c2336fc3-6a58-4a55-a9a9-9010579348df",
+      "activeVersion": "c2336fc3-6a58-4a55-a9a9-9010579348df",
+      "updated": "2026-10-13T16:19:08.258Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.if": 1
+      },
+      "triggers": [
+        {
+          "node": "Campaign Summary Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Campaign Summary Webhook",
+          "method": "GET",
+          "path": "lt-report-campaign-channel-summary"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "NTpQnMrpjzusPXHX",
+      "name": "LT - Cold Outreach Sender Release Dispatcher (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "cdaa4894-8ef3-4a72-9dd1-1871ed5b02e0",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:03:03.015Z",
+      "nodeCount": 11,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 5,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.stickyNote": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "OGnADUQKd5z5f905",
+      "name": "LT - Emerging Pool Go Live Helper",
+      "active": false,
+      "archived": false,
+      "draft": "d3b69c9e-ccbd-47a0-8264-62bc9c2a80df",
+      "activeVersion": null,
+      "updated": "2026-08-13T17:41:19.457Z",
+      "nodeCount": 13,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 12
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Old7ZvyVYgFaJgDr",
+      "name": "LT - LinkedIn Connection State Upsert",
+      "active": true,
+      "archived": false,
+      "draft": "07da8e81-bcda-4116-911c-245e6a4003f7",
+      "activeVersion": "07da8e81-bcda-4116-911c-245e6a4003f7",
+      "updated": "2026-10-25T20:00:18.071Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - LinkedIn State Upsert",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - LinkedIn State Upsert",
+          "method": "POST",
+          "path": "lt-linkedin-connection-state-upsert"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "OowP3sAd8c9paSKf",
+      "name": "GHL Warm Intake - Add Intake Tag (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "801c9d1c-2918-4374-b095-676c4cf5a311",
+      "activeVersion": "801c9d1c-2918-4374-b095-676c4cf5a311",
+      "updated": "2026-09-10T02:03:04.764Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-warm-intake-tag"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "OtqWjqGXZC3OcrXP",
+      "name": "LT - GHL Daily Leads Ingest",
+      "active": false,
+      "archived": true,
+      "draft": "f5730285-59d4-47f0-a5cd-bd9d75b498ca",
+      "activeVersion": null,
+      "updated": "2026-04-25T22:09:14.207Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 4
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "PUCfTZBANSPcgS0c",
+      "name": "LT - Call Outcome Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "f9388b9a-ab70-45b2-bc77-4f5c2efef829",
+      "activeVersion": "f9388b9a-ab70-45b2-bc77-4f5c2efef829",
+      "updated": "2026-09-25T20:53:27.253Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.executeWorkflow": 1
+      },
+      "triggers": [
+        {
+          "node": "Call Outcome Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Call Outcome Webhook",
+          "method": "POST",
+          "path": "lt-call-outcome-ingest"
+        }
+      ],
+      "schedules": [],
+      "calls": [
+        {
+          "node": "Route Call to Priority",
+          "workflowId": "URpjcm2k5isHUyls"
+        }
+      ],
+      "internalHttp": []
+    },
+    {
+      "id": "Q3Ivnwe4z2Y3cD7A",
+      "name": "LT - SimpleTexting SMS Send (Webhook, Staged)",
+      "active": true,
+      "archived": false,
+      "draft": "b69a183e-273a-43f9-b06d-b2bd1575543b",
+      "activeVersion": "b69a183e-273a-43f9-b06d-b2bd1575543b",
+      "updated": "2026-09-28T21:31:11.294Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.switch": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-simpletexting-send-sms"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "QZoqCaTwDhbym80O",
+      "name": "LT - GHL Daily Social Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "18d545da-455f-424f-b6f1-5a01c1b26d88",
+      "activeVersion": "18d545da-455f-424f-b6f1-5a01c1b26d88",
+      "updated": "2026-09-10T02:03:23.449Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Qd7sn9MPq4W24WKi",
+      "name": "LT - IG & FB Dispensary Page Enrichment",
+      "active": false,
+      "archived": false,
+      "draft": "bd888ef2-c01b-4447-ae02-1d5fc3a790b2",
+      "activeVersion": null,
+      "updated": "2026-08-14T18:52:58.867Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.httpRequest": 3,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.splitInBatches": 1,
+        "n8n-nodes-base.scheduleTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Every Five Minutes Start",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every Five Minutes Start",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "QfJ2EZcc7lZwNgxj",
+      "name": "LT - LinkedIn Reply Backfill (Unipile)",
+      "active": true,
+      "archived": false,
+      "draft": "436a54d0-7bd4-47a5-8bb0-e9b158dab5d0",
+      "activeVersion": "436a54d0-7bd4-47a5-8bb0-e9b158dab5d0",
+      "updated": "2026-10-12T18:06:05.386Z",
+      "nodeCount": 14,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 4,
+        "n8n-nodes-base.code": 7,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Qtlq4j0d0x6s7RYc",
+      "name": "TEMP - Voice TZ Counts 20260526-003422",
+      "active": false,
+      "archived": false,
+      "draft": "e1d88a60-3330-4a5a-affd-7b82c90f4903",
+      "activeVersion": null,
+      "updated": "2026-07-11T01:00:38.441Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-temp-voice-tz-counts-20260526-003422"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "R1gTdLkbjJUPAr6u",
+      "name": "LT - Voice Agent V1 Vapi Callback + Tools Copy",
+      "active": false,
+      "archived": true,
+      "draft": "ff5cc8b3-0d10-4f5e-a24c-2d63186f06aa",
+      "activeVersion": null,
+      "updated": "2026-05-07T03:22:24.350Z",
+      "nodeCount": 17,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.if": 4,
+        "n8n-nodes-base.postgres": 4,
+        "n8n-nodes-base.httpRequest": 4,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Vapi",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Vapi",
+          "method": "POST",
+          "path": "lt-voice-agent-vapi-callback"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "RFIZ9Bcfl3Yvms2b",
+      "name": "LT - Vapi Campaign Queue Feeder",
+      "active": false,
+      "archived": false,
+      "draft": "db1d6d28-ad3a-4f5b-883b-ec871a35e4c6",
+      "activeVersion": null,
+      "updated": "2026-07-03T12:22:28.034Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.filter": 1,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Every 30 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every 30 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "RIszKsd6dAh6GrU4",
+      "name": "LT - Campaign LinkedIn Reply Poller",
+      "active": true,
+      "archived": false,
+      "draft": "1a130f72-f104-4d43-a2e4-68096949d96d",
+      "activeVersion": "1a130f72-f104-4d43-a2e4-68096949d96d",
+      "updated": "2026-09-10T02:03:27.968Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 2
+      },
+      "triggers": [
+        {
+          "node": "Schedule - Every 15 Min",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule - Every 15 Min",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "RL5ZyUoshSPbmVA1",
+      "name": "LT - Apollo Queued Timeout Reaper",
+      "active": true,
+      "archived": false,
+      "draft": "554fd192-8402-4133-bb65-da240bce3be7",
+      "activeVersion": "554fd192-8402-4133-bb65-da240bce3be7",
+      "updated": "2026-09-10T02:03:30.246Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Hourly Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Hourly Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "RSfLF7LU0rDC4jAI",
+      "name": "Website Lead Intake from Footer Form",
+      "active": true,
+      "archived": false,
+      "draft": "d233408b-6c26-4c01-b235-9cfb5db76290",
+      "activeVersion": "d233408b-6c26-4c01-b235-9cfb5db76290",
+      "updated": "2026-09-10T02:03:32.357Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-form-footer-intake"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "RTV5jUiTt05lad07",
+      "name": "Website Lead Intake from Hero form",
+      "active": true,
+      "archived": false,
+      "draft": "fd1f03b4-40a6-437a-949c-3f7ef9c758b8",
+      "activeVersion": "fd1f03b4-40a6-437a-949c-3f7ef9c758b8",
+      "updated": "2026-09-10T02:03:34.501Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-form-demo-intake"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Rg75M56vfbRuioeC",
+      "name": "Temp: Backfill voice_call_queue campaign_ids",
+      "active": false,
+      "archived": true,
+      "draft": "a1f3807d-eccb-46e2-84c7-bb1652a67a4a",
+      "activeVersion": null,
+      "updated": "2026-08-06T18:26:43.699Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "RlogFNDYjtjkuRFJ",
+      "name": "LT - IG & FB Partnership Page Enrichment",
+      "active": false,
+      "archived": false,
+      "draft": "77dd74f2-7093-4e5c-adda-9fd571c518dc",
+      "activeVersion": null,
+      "updated": "2026-08-14T18:52:58.855Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.httpRequest": 3,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.splitInBatches": 1,
+        "n8n-nodes-base.scheduleTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Every Five Minutes Start",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every Five Minutes Start",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Rrsigvi8AhH3iR55",
+      "name": "LT - Executive Summary and Channels Cache Refresh",
+      "active": true,
+      "archived": false,
+      "draft": "2a0310f9-501c-43bf-93f8-a6c403c686e8",
+      "activeVersion": "2a0310f9-501c-43bf-93f8-a6c403c686e8",
+      "updated": "2026-10-13T16:19:13.491Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Hourly Source Cache Refresh",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Protected Source Refresh",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Protected Source Refresh",
+          "method": "POST",
+          "path": "lt-report-source-cache-refresh"
+        }
+      ],
+      "schedules": [
+        {
+          "node": "Hourly Source Cache Refresh",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "RvYusUSGB79K2e2k",
+      "name": "LT - Newsletter Unsubscribe",
+      "active": true,
+      "archived": false,
+      "draft": "c1ee71ca-6df6-4de8-a4f5-9428fc863e5a",
+      "activeVersion": "c1ee71ca-6df6-4de8-a4f5-9428fc863e5a",
+      "updated": "2026-09-10T02:03:36.559Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Unsubscribe Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Unsubscribe Webhook",
+          "method": "GET",
+          "path": "lt-newsletter-unsub"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "SA5SF1cZQcVf3IyB",
+      "name": "LT - GHL Outbound Call Event Ledger (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "15b2944f-5b71-40fe-b97a-d87718cd6cdb",
+      "activeVersion": "15b2944f-5b71-40fe-b97a-d87718cd6cdb",
+      "updated": "2026-09-29T00:27:04.277Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.switch": 1
+      },
+      "triggers": [
+        {
+          "node": "GHL OutboundMessage Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "GHL OutboundMessage Webhook",
+          "method": "POST",
+          "path": "lt-ghl-outbound-message-call"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "SmMf8QIfysuxQJbG",
+      "name": "GHL Warm Intake - Email Inbound Tag (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "ebe2439c-9eec-41fa-b7dc-2e48122526e4",
+      "activeVersion": "ebe2439c-9eec-41fa-b7dc-2e48122526e4",
+      "updated": "2026-09-10T02:03:38.628Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-warm-intake-email-inbound-v3"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "SqNQ0BYaTdcqyt1l",
+      "name": "LT - GHL Daily Calls Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "cb349a13-ec7f-47c5-8141-7cd3824ea550",
+      "activeVersion": "cb349a13-ec7f-47c5-8141-7cd3824ea550",
+      "updated": "2026-09-29T01:43:50.748Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 3
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "T28iLcm4Hszo19MG",
+      "name": "LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "46624f8f-ed9a-4d37-8703-82ee3f047e63",
+      "activeVersion": null,
+      "updated": "2026-02-20T09:52:01.421Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-cold-outreach-ghl-import"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "TbYFpB80xSlRZ6gy",
+      "name": "LT - Mass Email Click Tracking (STAGED)",
+      "active": false,
+      "archived": false,
+      "draft": "bbc4fd13-8eb0-487f-b12d-b21d844f8eb8",
+      "activeVersion": null,
+      "updated": "2026-09-16T11:00:18.680Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Click Webhook (Staged)",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Click Webhook (Staged)",
+          "method": "GET",
+          "path": "lt-mass-email-click"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "ToMOV6FElZD4ezZN",
+      "name": "LT - Meta Ads Daily Ingest (Staged)",
+      "active": true,
+      "archived": false,
+      "draft": "2ffc62df-c126-4a99-a6b2-0adfed8608f4",
+      "activeVersion": "2ffc62df-c126-4a99-a6b2-0adfed8608f4",
+      "updated": "2026-05-04T21:31:08.314Z",
+      "nodeCount": 11,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.postgres": 3
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "U7c6byTLXAMgcS75",
+      "name": "GHL Apollo Phone Enrichment - Callback Handler V4",
+      "active": true,
+      "archived": false,
+      "draft": "268bf4d0-8d6d-4caa-81bc-c3e7be7229b3",
+      "activeVersion": "268bf4d0-8d6d-4caa-81bc-c3e7be7229b3",
+      "updated": "2026-09-10T02:03:46.939Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "ghl-apollo-phone-enrichment-callback-v4"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "U9oc2tZRsr4zq6IM",
+      "name": "LT - MQL Tag Event Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "61845a92-6a36-4125-9dc3-35d12255af69",
+      "activeVersion": "61845a92-6a36-4125-9dc3-35d12255af69",
+      "updated": "2026-10-13T16:01:35.513Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.if": 1,
+        "n8n-nodes-base.respondToWebhook": 2
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-mql-tag-event"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "URbeg7Y6onVmQQt1",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "0faa6cd1-1d0a-46b3-8f20-ff7b73072597",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:49:49.352Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "URpjcm2k5isHUyls",
+      "name": "LT - Inbound Intent Priority Router",
+      "active": true,
+      "archived": false,
+      "draft": "3a3a6ab2-79a3-4fcc-822f-52677b6ae38c",
+      "activeVersion": "3a3a6ab2-79a3-4fcc-822f-52677b6ae38c",
+      "updated": "2026-09-25T20:03:40.939Z",
+      "nodeCount": 15,
+      "types": {
+        "n8n-nodes-base.executeWorkflowTrigger": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.switch": 3,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.httpRequest": 4
+      },
+      "triggers": [
+        {
+          "node": "Inbound Intent Router Input",
+          "type": "n8n-nodes-base.executeWorkflowTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "UUTjW9GZX2lJ6zpt",
+      "name": "LT - Voice Agent V1 Outbound Dialer (Vapi) v2",
+      "active": false,
+      "archived": true,
+      "draft": "c3d6c37a-0096-4e0f-ab3d-783eb4a4c7ba",
+      "activeVersion": null,
+      "updated": "2026-05-18T16:27:51.109Z",
+      "nodeCount": 0,
+      "types": {},
+      "triggers": [],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "UUi1HUZvtJRMqlGM",
+      "name": "LT - Emerging Pool to Postgres + Sheets",
+      "active": false,
+      "archived": true,
+      "draft": "2acdca5e-585a-4f1f-8399-cca6b4264175",
+      "activeVersion": null,
+      "updated": "2026-07-02T17:47:54.353Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 2
+      },
+      "triggers": [
+        {
+          "node": "Upload CSV",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "UnSWPnVoUy3tNJkX",
+      "name": "LT - GHL OAuth Callback",
+      "active": true,
+      "archived": false,
+      "draft": "fe7b45cd-6f70-474a-9c62-c1204161150f",
+      "activeVersion": "fe7b45cd-6f70-474a-9c62-c1204161150f",
+      "updated": "2026-09-10T00:56:09.055Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "GET - GHL OAuth Callback",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "GET - GHL OAuth Callback",
+          "method": "GET",
+          "path": "oauth-callback"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "VI39o4X954fYDjOQ",
+      "name": "LT - Opportunity Owner to Contact Owner Sync",
+      "active": false,
+      "archived": false,
+      "draft": "ddc67443-1455-4496-a25a-ab814d46d603",
+      "activeVersion": null,
+      "updated": "2026-07-26T13:00:28.248Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.httpRequest": 4
+      },
+      "triggers": [
+        {
+          "node": "Owner Change Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Owner Change Webhook",
+          "method": "POST",
+          "path": "lt-opportunity-owner-sync-7b8e4f2d"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "VPiHfBwzOHaJnHBY",
+      "name": "LT - LinkedIn Relations Backfill (Unipile)",
+      "active": true,
+      "archived": false,
+      "draft": "0754c540-80a5-4f6f-8b74-7d7ef8f35f9f",
+      "activeVersion": "0754c540-80a5-4f6f-8b74-7d7ef8f35f9f",
+      "updated": "2026-10-02T04:05:32.186Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "VXFHc8IrF9DDEEdj",
+      "name": "LT - Report Outgoing Calls Detail",
+      "active": true,
+      "archived": false,
+      "draft": "3b1ce45d-1dcb-4658-a1e1-8d16cd553bfb",
+      "activeVersion": "3b1ce45d-1dcb-4658-a1e1-8d16cd553bfb",
+      "updated": "2026-08-07T17:03:22.999Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Outgoing Calls Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Outgoing Calls Webhook",
+          "method": "GET",
+          "path": "lt-report-outgoing-calls"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "WFIrD47cHMoiqIKF",
+      "name": "LT - Export Unknown Contact Sources",
+      "active": false,
+      "archived": true,
+      "draft": "7faba48f-1c0b-450f-91a1-df2c585fccbf",
+      "activeVersion": null,
+      "updated": "2026-05-11T16:16:25.247Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "WYyZ7HoZWnCcQDYN",
+      "name": "PDF Download from Form on Website",
+      "active": true,
+      "archived": false,
+      "draft": "9c33453e-c8df-4bfa-805a-e456dec9a4d8",
+      "activeVersion": "9c33453e-c8df-4bfa-805a-e456dec9a4d8",
+      "updated": "2026-04-10T17:14:53.909Z",
+      "nodeCount": 1,
+      "types": {
+        "n8n-nodes-base.webhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "GET",
+          "path": "18293a7a-ae26-43e0-acf6-3a069207480d"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "WcuEAOFY2pMTyumV",
+      "name": "TMP - Reset Emerald SSO Bad Cache Rows",
+      "active": false,
+      "archived": true,
+      "draft": "2dde5f32-040d-4a78-afc7-3045fa586a13",
+      "activeVersion": null,
+      "updated": "2026-04-05T09:39:30.560Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Reset Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Reset Webhook",
+          "method": "POST",
+          "path": "tmp-reset-emerald-sso-bad-cache-rows"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "WhEpQsUE7SWRIWnJ",
+      "name": "LT - Meta Ads Daily Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "00b60775-8396-417f-a495-9c85fe6d8800",
+      "activeVersion": "00b60775-8396-417f-a495-9c85fe6d8800",
+      "updated": "2026-05-11T15:55:30.613Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.httpRequest": 1
+      },
+      "triggers": [
+        {
+          "node": "Daily Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Daily Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "WmKAhG7mIaXonNsh",
+      "name": "GHL Apollo Enrichment - Webhook Intake (Sheet First)",
+      "active": false,
+      "archived": false,
+      "draft": "934807e3-261d-4e75-a176-72e117fd5745",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:04:00.535Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.googleSheets": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "ghl-apollo-enrichment-intake-sheet-first-v3"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "WuxgTa0EEL1mb2SA",
+      "name": "GHL Apollo Enrichment - Phone Webhook Intake (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "e028fb72-09f2-4fb2-bb35-b7cd65a6039c",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:04:02.737Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.googleSheets": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "ghl-apollo-phone-enrichment-intake-v3"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "XiOTlG36vmOTnL01",
+      "name": "LT - Emerald Intro Backfill Tagger (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "1fffe102-22a4-4b07-be31-e83b5721d8a6",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:04:04.528Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Xshck23cKo1yXL9D",
+      "name": "LT - Partnership Email Dispatcher",
+      "active": true,
+      "archived": false,
+      "draft": "9d8520bf-bb5e-49e5-9deb-a718e7283b42",
+      "activeVersion": "9d8520bf-bb5e-49e5-9deb-a718e7283b42",
+      "updated": "2026-09-17T14:11:11.970Z",
+      "nodeCount": 9,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.code": 4
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "XzcpOBi9YcIhJPck",
+      "name": "LT - Voice Queue Enqueue",
+      "active": true,
+      "archived": false,
+      "draft": "767d0e27-0a8a-4271-bcc9-90246846711b",
+      "activeVersion": "767d0e27-0a8a-4271-bcc9-90246846711b",
+      "updated": "2026-09-10T02:04:08.688Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.respondToWebhook": 2,
+        "n8n-nodes-base.if": 1,
+        "n8n-nodes-base.set": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Receive",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Receive",
+          "method": "POST",
+          "path": "voice-queue-enqueue"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Y0TU7Il71JswxOBp",
+      "name": "LT - Report Attribution Bridge",
+      "active": true,
+      "archived": false,
+      "draft": "6d56d5c0-cd84-4691-a881-0d215f3f0e31",
+      "activeVersion": "6d56d5c0-cd84-4691-a881-0d215f3f0e31",
+      "updated": "2026-09-25T17:38:38.447Z",
+      "nodeCount": 9,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "YZpytMC97P3ihExu",
+      "name": "LT - SimpleTexting State Debug",
+      "active": false,
+      "archived": true,
+      "draft": "0a1eefd7-86f3-44d5-bfc7-c76439737000",
+      "activeVersion": null,
+      "updated": "2026-07-11T02:10:41.635Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "YaWizRnw7XmkcvZH",
+      "name": "GHL Apollo Phone Enrichment - Callback Handler",
+      "active": false,
+      "archived": false,
+      "draft": "d55ee4d1-8b6e-41bb-bcb0-7deac9b0f6fa",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:04:11.042Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "ghl-apollo-phone-enrichment-callback-v3"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "YbGxKgR7mdXwMspc",
+      "name": "LT - Campaign Email Cohort Reply Poller",
+      "active": true,
+      "archived": false,
+      "draft": "9f0e2c3e-158e-4cbd-bccf-fbc5f8136ed3",
+      "activeVersion": "9f0e2c3e-158e-4cbd-bccf-fbc5f8136ed3",
+      "updated": "2026-09-10T02:04:12.739Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.merge": 1,
+        "n8n-nodes-base.filter": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule - Every 15 min",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule - Every 15 min",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "ZhD0CB9m4IyW3S5L",
+      "name": "LT - Call Outcome Ingest",
+      "active": false,
+      "archived": false,
+      "draft": "cce9a729-6c64-4ad6-bd1f-0e69a1e7a8c2",
+      "activeVersion": null,
+      "updated": "2026-05-05T01:12:13.711Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Call Outcome Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Call Outcome Webhook",
+          "method": "POST",
+          "path": "lt-call-outcome-ingest"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "ZiYEBuP7xdddhnUB",
+      "name": "LT - Sales Navigator Provider Gateway (DRAFT)",
+      "active": true,
+      "archived": false,
+      "draft": "66019014-f467-4bea-ac1c-d47f6dbfbd07",
+      "activeVersion": "66019014-f467-4bea-ac1c-d47f6dbfbd07",
+      "updated": "2026-10-01T16:22:04.738Z",
+      "nodeCount": 24,
+      "types": {
+        "n8n-nodes-base.webhook": 2,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 9,
+        "n8n-nodes-base.if": 5,
+        "n8n-nodes-base.postgres": 4,
+        "n8n-nodes-base.httpRequest": 2,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "GET Sales Navigator OAuth Callback",
+          "type": "n8n-nodes-base.webhook"
+        },
+        {
+          "node": "POST Sales Navigator Provider",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "GET Sales Navigator OAuth Callback",
+          "method": "GET",
+          "path": "lt-sales-navigator-provider"
+        },
+        {
+          "node": "POST Sales Navigator Provider",
+          "method": "POST",
+          "path": "lt-sales-navigator-provider"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "ZrqFN8qLKO8eVHDc",
+      "name": "LT - Email Event Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "e57c2664-f0f1-484f-b3a6-32bba41ff125",
+      "activeVersion": "e57c2664-f0f1-484f-b3a6-32bba41ff125",
+      "updated": "2026-09-17T16:05:32.157Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-email-event-ingest"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "Zt8p2aYtIuY0HK18",
+      "name": "LT - LinkedIn Connection Request (Unipile) (Internal Test)",
+      "active": false,
+      "archived": true,
+      "draft": "2dbc826a-cfb5-4b3b-93a2-39fc6fc806b4",
+      "activeVersion": null,
+      "updated": "2026-07-15T18:13:28.312Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.webhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Webhook Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Trigger",
+          "method": "POST",
+          "path": "unipile-linkedin-connect-test"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "aYT5oHcgmBALzHy5",
+      "name": "LT - GHL Daily Sales Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "efc352e0-c628-441c-bc8d-f7b89c1b40c8",
+      "activeVersion": "efc352e0-c628-441c-bc8d-f7b89c1b40c8",
+      "updated": "2026-09-10T02:01:56.875Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.stickyNote": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "aomO3Z4AXJIgEvvN",
+      "name": "LT - Report Config Sync",
+      "active": true,
+      "archived": false,
+      "draft": "38bb3e1f-1215-485f-a96f-bf28c2b61c69",
+      "activeVersion": "38bb3e1f-1215-485f-a96f-bf28c2b61c69",
+      "updated": "2026-07-30T15:05:26.990Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "apeJUQFsvsjiaRuz",
+      "name": "LT - SimpleTexting Send Count Check",
+      "active": false,
+      "archived": true,
+      "draft": "46caa6f2-a9cc-420c-b7e0-5d0c5b92be8e",
+      "activeVersion": null,
+      "updated": "2026-06-01T22:01:24.958Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "b41Sas8FVVrytZrl",
+      "name": "LT - GHL Email Template Campaign Dispatcher (STAGED)",
+      "active": true,
+      "archived": false,
+      "draft": "bf892c33-edca-416d-9b74-cff2ccea9fdf",
+      "activeVersion": "bf892c33-edca-416d-9b74-cff2ccea9fdf",
+      "updated": "2026-09-16T19:41:15.687Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 3
+      },
+      "triggers": [
+        {
+          "node": "Dispatch Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Dispatch Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Dispatch Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "bYk1Ai6MJLyhTsDZ",
+      "name": "LT - Voice Queue Vapi Intake Poller",
+      "active": true,
+      "archived": false,
+      "draft": "cc69efd8-6f74-400f-b1fd-2ed8fa0a8763",
+      "activeVersion": "cc69efd8-6f74-400f-b1fd-2ed8fa0a8763",
+      "updated": "2026-09-10T02:01:59.248Z",
+      "nodeCount": 12,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 6,
+        "n8n-nodes-base.switch": 1,
+        "n8n-nodes-base.httpRequest": 4
+      },
+      "triggers": [
+        {
+          "node": "Every 10 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every 10 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "ceaKnz6E3onQrZpt",
+      "name": "LT - LinkedIn Connection State Sync (Unipile)",
+      "active": true,
+      "archived": false,
+      "draft": "b387672d-ef20-4ce6-a65f-220d1078cc70",
+      "activeVersion": "b387672d-ef20-4ce6-a65f-220d1078cc70",
+      "updated": "2026-10-25T19:30:49.850Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "crKIsaL5k3YBfqDZ",
+      "name": "LT - Partnership LinkedIn Dispatcher",
+      "active": false,
+      "archived": false,
+      "draft": "aba6ac8f-a604-48f3-824b-d67fee7c937f",
+      "activeVersion": null,
+      "updated": "2026-10-01T14:48:59.417Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 5,
+        "n8n-nodes-base.code": 3
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "d0tEtijajisIsYcs",
+      "name": "LT - LinkedIn DM Sequence (Unipile)",
+      "active": false,
+      "archived": false,
+      "draft": "6e301f91-ec2c-4c86-a434-da034c74591e",
+      "activeVersion": null,
+      "updated": "2026-10-01T14:49:36.478Z",
+      "nodeCount": 12,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.code": 5,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "dIQascjRloXs4FNB",
+      "name": "LT - GHL Daily Leads Ingest",
+      "active": false,
+      "archived": true,
+      "draft": "b96742d0-e1ac-424d-9b63-0084ebd8e338",
+      "activeVersion": null,
+      "updated": "2026-04-25T22:08:18.897Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1
+      },
+      "triggers": [
+        {
+          "node": "Test",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "dLzlfXsqA5r8pDrq",
+      "name": "LT - Backfill Vapi Timezones",
+      "active": false,
+      "archived": false,
+      "draft": "6c411747-c04f-4d2d-8790-180fe97a797a",
+      "activeVersion": null,
+      "updated": "2026-07-11T01:00:05.107Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Backfill",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Backfill",
+          "method": "POST",
+          "path": "lt-backfill-vapi-timezones"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "dMDbLSzPSSrHo1wK",
+      "name": "LT - Emerald Intro Sent -> P2 Queue Dispatcher (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "6c6d7a71-f779-42c4-b50d-1a4d5fa2dba4",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:02:12.185Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.scheduleTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "dUyOfxllvkxZavaw",
+      "name": "LT - SimpleTexting Campaign Step Runner",
+      "active": false,
+      "archived": false,
+      "draft": "b6c3393b-278a-4178-8e13-9c3b22173995",
+      "activeVersion": null,
+      "updated": "2026-08-16T22:24:54.617Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.set": 1
+      },
+      "triggers": [
+        {
+          "node": "SMS Step Runner Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "SMS Step Runner Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": [
+        {
+          "node": "Send Claimed SMS Step",
+          "endpoint": "https://automations.livetransparent.com/webhook/lt-simpletexting-send-sms"
+        }
+      ]
+    },
+    {
+      "id": "dZQLlbTLkpE1843X",
+      "name": "LT - SimpleTexting Warmup Dispatcher (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "59e6f4b6-6538-4f51-9055-25ee55e540d9",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:02:14.307Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.stickyNote": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "eauOm3fIqvnL6oWs",
+      "name": "LT - Report Rollup Corrections",
+      "active": false,
+      "archived": true,
+      "draft": "a80bf0c2-4b7e-481c-9331-c0d76629bd55",
+      "activeVersion": null,
+      "updated": "2026-05-01T14:31:42.801Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "eeksgD0fbGHUqh4r",
+      "name": "LT - Sales Outreach Jason Marc No-Owner Allocator",
+      "active": false,
+      "archived": false,
+      "draft": "8fe4bf7b-be74-482c-befd-7b97f6d4568e",
+      "activeVersion": null,
+      "updated": "2026-08-06T17:48:31.933Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.httpRequest": 2,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.if": 1
+      },
+      "triggers": [
+        {
+          "node": "Every 10 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every 10 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "enkF6Y25bvzVSPr0",
+      "name": "LT - Instagram DM State Upsert",
+      "active": true,
+      "archived": false,
+      "draft": "83ddaa09-e97d-4c92-8bdc-52bb1d5597b9",
+      "activeVersion": "83ddaa09-e97d-4c92-8bdc-52bb1d5597b9",
+      "updated": "2026-05-29T17:50:56.906Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Instagram State Upsert",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Instagram State Upsert",
+          "method": "POST",
+          "path": "lt-instagram-dm-state-upsert"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "ew6uQQnAjgCbjeGn",
+      "name": "LT - Partnership LinkedIn URL Update",
+      "active": true,
+      "archived": false,
+      "draft": "a473edaf-6358-4822-854d-47060ce20a66",
+      "activeVersion": "a473edaf-6358-4822-854d-47060ce20a66",
+      "updated": "2026-09-10T02:02:17.514Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-partnership-li-url-update"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "f4VoO1lBWkYRcQai",
+      "name": "LT - SimpleTexting Provider Outbound Router",
+      "active": true,
+      "archived": false,
+      "draft": "287678fd-a9e1-48c9-ab91-587368a3249a",
+      "activeVersion": "287678fd-a9e1-48c9-ab91-587368a3249a",
+      "updated": "2026-09-30T17:16:47.496Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.webhook": 2,
+        "n8n-nodes-base.respondToWebhook": 2,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "GET - Provider Health Check",
+          "type": "n8n-nodes-base.webhook"
+        },
+        {
+          "node": "POST - GHL Provider Outbound",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "GET - Provider Health Check",
+          "method": "GET",
+          "path": "lt-simpletexting-provider-outbound"
+        },
+        {
+          "node": "POST - GHL Provider Outbound",
+          "method": "POST",
+          "path": "lt-simpletexting-provider-outbound"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "f87KRQ1Slhs9VUxJ",
+      "name": "LT - Mass Email Provider Event Ingest (STAGED)",
+      "active": false,
+      "archived": false,
+      "draft": "296ad86b-0aac-4858-bb3b-998a126bbcbf",
+      "activeVersion": null,
+      "updated": "2026-09-16T13:27:14.169Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Provider Event Webhook (Staged)",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Provider Event Webhook (Staged)",
+          "method": "POST",
+          "path": "lt-mass-email-event"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "fOVBHwti9rC3qrLV",
+      "name": "LT - GSC Rollup Bridge",
+      "active": true,
+      "archived": false,
+      "draft": "2a313714-a245-440f-b300-7d93f71067a5",
+      "activeVersion": "2a313714-a245-440f-b300-7d93f71067a5",
+      "updated": "2026-05-18T20:18:41.674Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "fXxw5lanZcDmUrst",
+      "name": "LT - GHL LinkedIn Connect Dispatcher",
+      "active": false,
+      "archived": false,
+      "draft": "65a7398b-328c-4f99-b709-ee2da1bc6683",
+      "activeVersion": null,
+      "updated": "2026-10-02T03:39:25.096Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "fg06Ip8wT3EapfdD",
+      "name": "LT - Brands Pool to Postgres + Sheets",
+      "active": false,
+      "archived": false,
+      "draft": "7febeb13-3be0-45ad-becb-edc9201f6e51",
+      "activeVersion": null,
+      "updated": "2026-07-02T18:40:25.418Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.readWriteFile": 1,
+        "n8n-nodes-base.code": 2
+      },
+      "triggers": [
+        {
+          "node": "Upload CSV",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "fx4UvKUWbqJEY3LK",
+      "name": "LT - Voice Agent V1 Vapi Callback + Tools",
+      "active": true,
+      "archived": false,
+      "draft": "96528eca-947d-4f24-b701-ce8a5d8d255d",
+      "activeVersion": "96528eca-947d-4f24-b701-ce8a5d8d255d",
+      "updated": "2026-09-10T02:02:22.523Z",
+      "nodeCount": 49,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 19,
+        "n8n-nodes-base.if": 8,
+        "n8n-nodes-base.respondToWebhook": 6,
+        "n8n-nodes-base.switch": 2,
+        "n8n-nodes-base.httpRequest": 9,
+        "n8n-nodes-base.wait": 2,
+        "n8n-nodes-base.set": 2
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Vapi",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Vapi",
+          "method": "POST",
+          "path": "lt-voice-agent-vapi-callback"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "g7e33v9ksSnRurUZ",
+      "name": "LT - SimpleTexting State Diagnostic",
+      "active": false,
+      "archived": false,
+      "draft": "f5919968-622c-4fca-95b2-fa606f62aa06",
+      "activeVersion": null,
+      "updated": "2026-08-16T22:25:34.273Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "gfZcWpzuWBqWyNRP",
+      "name": "GRD_Note_Upload_Batch",
+      "active": false,
+      "archived": true,
+      "draft": "8e5fc56f-2f23-4b67-8166-75c789e0160f",
+      "activeVersion": null,
+      "updated": "2026-06-02T09:36:44.234Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.googleSheets": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.httpRequest": 1
+      },
+      "triggers": [
+        {
+          "node": "Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "gwaEpWDpTIwsafi8",
+      "name": "LT - SMS Idempotent Send",
+      "active": true,
+      "archived": false,
+      "draft": "52eefd2a-70be-41c9-a60a-2fce0f037929",
+      "activeVersion": "52eefd2a-70be-41c9-a60a-2fce0f037929",
+      "updated": "2026-09-24T11:20:15.018Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-sms-send"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "hCsfu0WuFEU3UTnN",
+      "name": "LT - Report Pipeline Velocity",
+      "active": false,
+      "archived": false,
+      "draft": "4c85a3cd-2d4c-4b46-af7c-82c1c470b79a",
+      "activeVersion": null,
+      "updated": "2026-05-07T19:06:25.521Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "hxiiYCpEfMuoSt5H",
+      "name": "LT - Campaign Email Reply Poller",
+      "active": true,
+      "archived": false,
+      "draft": "6e60f832-f175-41a8-a4b7-193f286bef18",
+      "activeVersion": "6e60f832-f175-41a8-a4b7-193f286bef18",
+      "updated": "2026-09-25T20:55:06.792Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.executeWorkflow": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule - Every 15 min",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule - Every 15 min",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [
+        {
+          "node": "Route Email Reply to Priority",
+          "workflowId": "URpjcm2k5isHUyls"
+        }
+      ],
+      "internalHttp": []
+    },
+    {
+      "id": "i0pROHpFtN4LYR0Q",
+      "name": "LT - SimpleTexting Inbound Reply (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "599995a9-72ce-467d-9892-c7ddf496c3fa",
+      "activeVersion": "599995a9-72ce-467d-9892-c7ddf496c3fa",
+      "updated": "2026-09-25T20:38:54.592Z",
+      "nodeCount": 15,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 6,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.httpRequest": 2,
+        "n8n-nodes-base.if": 2,
+        "n8n-nodes-base.executeWorkflow": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Intake",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Intake",
+          "method": "POST",
+          "path": "lt-simpletexting-inbound-reply-v2"
+        }
+      ],
+      "schedules": [],
+      "calls": [
+        {
+          "node": "Route SMS Reply to Priority",
+          "workflowId": "URpjcm2k5isHUyls"
+        }
+      ],
+      "internalHttp": []
+    },
+    {
+      "id": "iCnY6ccdHhfJg3sf",
+      "name": "LT - Instagram DM Sequence (Unipile)",
+      "active": false,
+      "archived": false,
+      "draft": "dc2d1ff0-e2c6-4a02-afcb-0b625f0337d4",
+      "activeVersion": null,
+      "updated": "2026-07-15T16:52:17.217Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "iFfwh0jpYUZoDhDR",
+      "name": "LT - Report Pipeline Velocity",
+      "active": true,
+      "archived": false,
+      "draft": "09e0f2e7-193b-4102-9008-4ec33bda02d2",
+      "activeVersion": "09e0f2e7-193b-4102-9008-4ec33bda02d2",
+      "updated": "2026-08-30T20:45:30.889Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "iQ80zfEH3JiulLNv",
+      "name": "LT - Instagram Company Page Source Import",
+      "active": false,
+      "archived": false,
+      "draft": "b66c1409-1d3a-415c-b064-d3dd0367903c",
+      "activeVersion": null,
+      "updated": "2026-08-16T20:46:30.056Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.httpRequest": 3,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Import Start",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "if0Siw6KzlBItEbd",
+      "name": "LT - GSC Daily Ingest",
+      "active": false,
+      "archived": true,
+      "draft": "cfd305e0-ed97-43f4-b81a-891e8a437165",
+      "activeVersion": null,
+      "updated": "2026-05-08T17:50:19.950Z",
+      "nodeCount": 0,
+      "types": {},
+      "triggers": [],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "kBuW8Uq3EOJFQKNF",
+      "name": "LT - Executive V1 Reporting Cache Refresh",
+      "active": true,
+      "archived": false,
+      "draft": "11e51495-aefc-43cd-9beb-e2adf9036ae0",
+      "activeVersion": "11e51495-aefc-43cd-9beb-e2adf9036ae0",
+      "updated": "2026-10-19T15:51:21.703Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.webhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Hourly Report Refresh",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Protected Cache Refresh",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Protected Cache Refresh",
+          "method": "POST",
+          "path": "lt-exec-v1-cache-refresh"
+        }
+      ],
+      "schedules": [
+        {
+          "node": "Hourly Report Refresh",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "kVCTmy1m8fEyP6Q7",
+      "name": "LT - Cold Outreach CSV -> Postgres Ingest (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "6fec1151-c1a5-41be-a7b7-08d757a9089a",
+      "activeVersion": null,
+      "updated": "2026-02-20T10:10:37.649Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-cold-outreach-postgres-intake"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "knc2wxe4pyYIJ5tw",
+      "name": "LT - Executive Report V1 Data Materializer",
+      "active": true,
+      "archived": false,
+      "draft": "fdae462c-55b6-4616-b322-e0ca49478c3e",
+      "activeVersion": "fdae462c-55b6-4616-b322-e0ca49478c3e",
+      "updated": "2026-10-12T15:46:32.370Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.webhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "V1 Materializer Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "V1 Materializer Webhook",
+          "method": "POST",
+          "path": "lt-executive-report-v1-materializer"
+        }
+      ],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "kqIi8i1RjFAZKrK3",
+      "name": "LT - Social Provider Outbound Router",
+      "active": true,
+      "archived": false,
+      "draft": "4a688b2b-540e-401b-8bdf-8909172c138a",
+      "activeVersion": "4a688b2b-540e-401b-8bdf-8909172c138a",
+      "updated": "2026-08-16T20:36:38.794Z",
+      "nodeCount": 15,
+      "types": {
+        "n8n-nodes-base.webhook": 2,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.respondToWebhook": 2,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.if": 2,
+        "n8n-nodes-base.httpRequest": 1
+      },
+      "triggers": [
+        {
+          "node": "GET - Provider Health Check",
+          "type": "n8n-nodes-base.webhook"
+        },
+        {
+          "node": "POST - GHL Provider Outbound",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "GET - Provider Health Check",
+          "method": "GET",
+          "path": "lt-social-provider-outbound"
+        },
+        {
+          "node": "POST - GHL Provider Outbound",
+          "method": "POST",
+          "path": "lt-social-provider-outbound"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "lBPUy5OFO6pHAdL4",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "e54a8f03-1b03-4b67-826d-7f16e6b73e16",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:43:26.830Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "lHtnzhwA3Pr7QzJt",
+      "name": "LT - Sales Navigator Readonly Column Discovery (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "6e773ce2-bb7c-4faf-89e8-9b61187abe92",
+      "activeVersion": null,
+      "updated": "2026-09-30T20:12:24.611Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Trigger",
+          "method": "POST",
+          "path": "lt-sn-column-inspect-2bf400d73ff619279dc7"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "lQTW0QPwBcf3o7j8",
+      "name": "WL - Webhook to Slack Channel Update",
+      "active": true,
+      "archived": false,
+      "draft": "d06b29dc-72c0-45ab-aed7-3ffbf1407177",
+      "activeVersion": "d06b29dc-72c0-45ab-aed7-3ffbf1407177",
+      "updated": "2026-10-13T17:49:25.840Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.httpRequest": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook Trigger",
+          "method": "POST",
+          "path": "wl-slack-channel-update-v2"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "mRDw57IHtnQe4wOo",
+      "name": "LT - Partnership Reply Handler",
+      "active": true,
+      "archived": false,
+      "draft": "42da3b2e-4b6a-4f2f-9341-880b36292eb4",
+      "activeVersion": "42da3b2e-4b6a-4f2f-9341-880b36292eb4",
+      "updated": "2026-09-25T20:56:50.532Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.executeWorkflow": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook - Partnership Reply",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook - Partnership Reply",
+          "method": "POST",
+          "path": "lt-partnership-reply"
+        }
+      ],
+      "schedules": [],
+      "calls": [
+        {
+          "node": "Route Partnership Email Reply to Priority",
+          "workflowId": "URpjcm2k5isHUyls"
+        }
+      ],
+      "internalHttp": []
+    },
+    {
+      "id": "mSegmpMUd0DRwFEx",
+      "name": "LT - Emerald CSV -> Postgres Ingest (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "9a88fcc2-8ca7-4170-9d00-9919113c68af",
+      "activeVersion": null,
+      "updated": "2026-04-05T10:13:50.109Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-emerald-postgres-intake"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "nspggypNF245xzeL",
+      "name": "LT - Partnership LinkedIn DM Sequence",
+      "active": false,
+      "archived": false,
+      "draft": "773aa100-5e56-435c-970c-40a22f207cd1",
+      "activeVersion": null,
+      "updated": "2026-10-01T14:49:39.553Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 2
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "nuuB3qCKxr7J6iPw",
+      "name": "LT - Temp Social Map Maintenance 2026-07-16",
+      "active": false,
+      "archived": true,
+      "draft": "57f2f900-0ad1-4c5b-9a2a-46407841c473",
+      "activeVersion": null,
+      "updated": "2026-07-16T10:26:13.589Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "POST - Temp Map Maintenance",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "POST - Temp Map Maintenance",
+          "method": "POST",
+          "path": "lt-temp-social-map-maintenance-20260716-7f3a"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "orJrDqR6hQjgPLpg",
+      "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+      "active": false,
+      "archived": true,
+      "draft": "73e58567-5cd9-4883-b47e-de6b716d9b1f",
+      "activeVersion": null,
+      "updated": "2026-05-18T16:27:50.810Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.if": 1,
+        "n8n-nodes-base.httpRequest": 2
+      },
+      "triggers": [
+        {
+          "node": "Cron - Queue Poll",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Cron - Queue Poll",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "osIJOgBmWITF5Yuv",
+      "name": "LT - GHL Daily Leads Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "7057fd10-a7db-4888-98ad-4adb1af1c2cc",
+      "activeVersion": "7057fd10-a7db-4888-98ad-4adb1af1c2cc",
+      "updated": "2026-09-24T16:34:34.379Z",
+      "nodeCount": 14,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 6,
+        "n8n-nodes-base.postgres": 4,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "oxYDg6XnRBKhl1Xd",
+      "name": "LT - Executive Report V1 Facts API",
+      "active": true,
+      "archived": false,
+      "draft": "c540335c-0fb0-4c80-a897-904961ff8a2b",
+      "activeVersion": "c540335c-0fb0-4c80-a897-904961ff8a2b",
+      "updated": "2026-10-19T15:51:17.732Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.set": 1
+      },
+      "triggers": [
+        {
+          "node": "V1 Facts Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "V1 Facts Webhook",
+          "method": "GET",
+          "path": "lt-report-executive-v1-facts"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "p1RkRjjPMoVhSz0I",
+      "name": "Form Submissions from Website with no downloads",
+      "active": true,
+      "archived": false,
+      "draft": "67b9c480-8c29-4fdb-8af3-f92793e2138b",
+      "activeVersion": "67b9c480-8c29-4fdb-8af3-f92793e2138b",
+      "updated": "2026-04-12T08:21:17.529Z",
+      "nodeCount": 1,
+      "types": {
+        "n8n-nodes-base.webhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "GET",
+          "path": "websiteform_submission_nodownload"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "pISlgYUsyJIrLuJd",
+      "name": "LT - Instagram Unipile New Messages",
+      "active": true,
+      "archived": false,
+      "draft": "e09111d7-2c63-4925-b335-741c57f5ab5d",
+      "activeVersion": "e09111d7-2c63-4925-b335-741c57f5ab5d",
+      "updated": "2026-09-25T20:38:20.633Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.executeWorkflow": 1
+      },
+      "triggers": [
+        {
+          "node": "POST /lt-unipile-instagram-new-messages",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "POST /lt-unipile-instagram-new-messages",
+          "method": "POST",
+          "path": "lt-unipile-instagram-new-messages"
+        }
+      ],
+      "schedules": [],
+      "calls": [
+        {
+          "node": "Route Instagram Reply to Priority",
+          "workflowId": "URpjcm2k5isHUyls"
+        }
+      ],
+      "internalHttp": []
+    },
+    {
+      "id": "pRq3Mh24mnnKsjuQ",
+      "name": "LT - Vapi Timezone Backfill",
+      "active": false,
+      "archived": true,
+      "draft": "4c1fe1bc-cbde-4eea-84ae-eddc7639cb47",
+      "activeVersion": null,
+      "updated": "2026-05-25T18:48:45.549Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "pq7XVajNFnnwMUTr",
+      "name": "LT - LinkedIn Follower DM Sequence (Unipile)",
+      "active": false,
+      "archived": false,
+      "draft": "c27f7d45-69aa-4f0f-8e30-01e156ff9645",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:03:15.242Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "q7qbjjm6185WeukV",
+      "name": "LT - Dispensaries Pool to Postgres + Sheets",
+      "active": false,
+      "archived": false,
+      "draft": "798bde55-0196-40b8-8913-eebba7cf6fb9",
+      "activeVersion": null,
+      "updated": "2026-07-02T18:36:50.959Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.readWriteFile": 1,
+        "n8n-nodes-base.code": 2
+      },
+      "triggers": [
+        {
+          "node": "Upload CSV",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "r7UjWLndmc6EqEUW",
+      "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+      "active": true,
+      "archived": false,
+      "draft": "eff312be-db29-48e1-b8c3-6a401ddf9d79",
+      "activeVersion": "eff312be-db29-48e1-b8c3-6a401ddf9d79",
+      "updated": "2026-09-10T02:03:25.810Z",
+      "nodeCount": 29,
+      "types": {
+        "n8n-nodes-base.code": 15,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.httpRequest": 3,
+        "n8n-nodes-base.switch": 4,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.noOp": 4
+      },
+      "triggers": [
+        {
+          "node": "Every 2 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every 2 Minutes",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "rP3ff1VNo1FpyHG0",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "7ae4a1f6-c4e1-4cce-a6ce-6140fdc20eac",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:21:28.090Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "rcvTMprJKga9aEJ6",
+      "name": "LT - LinkedIn Connected Tag Sync",
+      "active": true,
+      "archived": false,
+      "draft": "1394ef0f-7a23-4903-be32-aaded3af2d8c",
+      "activeVersion": "1394ef0f-7a23-4903-be32-aaded3af2d8c",
+      "updated": "2026-10-02T04:01:33.153Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "sFrvSJIZusAbrsFx",
+      "name": "LT - Sales Navigator V2 Uncertain Write Reconciler",
+      "active": true,
+      "archived": false,
+      "draft": "af169a1c-b0f7-485d-a7fa-c345b2c8cdf9",
+      "activeVersion": "af169a1c-b0f7-485d-a7fa-c345b2c8cdf9",
+      "updated": "2026-10-01T15:10:59.387Z",
+      "nodeCount": 12,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.if": 3,
+        "n8n-nodes-base.httpRequest": 3,
+        "n8n-nodes-base.code": 3
+      },
+      "triggers": [
+        {
+          "node": "Every Minute",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Every Minute",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "shi9VrWUoXach2Hc",
+      "name": "LT - Sales Navigator V2 Schema Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "2909e489-799d-4904-b7ec-af51b46cc456",
+      "activeVersion": null,
+      "updated": "2026-09-30T20:03:06.781Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply V2 Schema",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply V2 Schema",
+          "method": "POST",
+          "path": "lt-sn-v2-schema-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "t4TfmnUtPTonPYzd",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "ad73fbf4-0a98-460e-b772-b1aee5df37b2",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:20:07.408Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "t5frjtbuKzVZI294",
+      "name": "LT - GHL Email Template Trigger Intake (STAGED)",
+      "active": true,
+      "archived": false,
+      "draft": "9523da34-9306-462b-b24f-72594a62a023",
+      "activeVersion": "9523da34-9306-462b-b24f-72594a62a023",
+      "updated": "2026-09-16T15:21:23.978Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "GHL Email Template Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "GHL Email Template Trigger",
+          "method": "POST",
+          "path": "lt-email-template-trigger-stage"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "t5ty7HxgFSsgLX7l",
+      "name": "LT - GHL Daily Leads Ingest copy",
+      "active": false,
+      "archived": true,
+      "draft": "8ceabb38-58cd-4359-98df-dfc1fcc40232",
+      "activeVersion": null,
+      "updated": "2026-04-25T20:30:50.634Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 4
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "toUG1yPDmFG48KEP",
+      "name": "LT - DAN Campaign Sender Release Dispatcher (Staged)",
+      "active": true,
+      "archived": false,
+      "draft": "3f5b124b-595e-4573-b75e-a6d7ba93cc70",
+      "activeVersion": "3f5b124b-595e-4573-b75e-a6d7ba93cc70",
+      "updated": "2026-09-17T14:09:28.820Z",
+      "nodeCount": 10,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "When clicking \u00e2\u20ac\u02dcExecute workflow\u00e2\u20ac\u2122",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "u33o2oG9FNXJ3ZrY",
+      "name": "LT - Sales Navigator Identity Readonly Counts (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "ba2af464-7254-4007-83f0-73ab82659faf",
+      "activeVersion": null,
+      "updated": "2026-09-30T20:13:13.248Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Trigger",
+          "method": "POST",
+          "path": "lt-sn-identity-counts-be604cc64d93c54abdd9"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "ufqTCVwgUcLfIUSp",
+      "name": "LT - Report Social Statistics",
+      "active": false,
+      "archived": true,
+      "draft": "c33cd146-b6bf-4703-931f-5f5d9c2934f3",
+      "activeVersion": null,
+      "updated": "2026-08-17T14:35:51.563Z",
+      "nodeCount": 9,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.respondToWebhook": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.httpRequest": 3
+      },
+      "triggers": [
+        {
+          "node": "GET Social Statistics",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "GET Social Statistics",
+          "method": "GET",
+          "path": "lt-report-social-statistics"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "usxYXSuc4ahw40V3",
+      "name": "LT - SimpleTexting Pool Dispatcher (Staged)",
+      "active": false,
+      "archived": false,
+      "draft": "706ec3d2-91c5-49d4-ac84-af0544209e54",
+      "activeVersion": null,
+      "updated": "2026-09-10T02:03:49.060Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 3,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "v2eMeP05wjxqCTFe",
+      "name": "TMP - Reset Emerald Executive SSO Company Sync Queue",
+      "active": false,
+      "archived": false,
+      "draft": "7327bec6-535a-4b88-80fa-a7fe251e257e",
+      "activeVersion": null,
+      "updated": "2026-04-05T13:16:35.908Z",
+      "nodeCount": 5,
+      "types": {
+        "n8n-nodes-base.stickyNote": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "vRXRFC6IwIxUME2k",
+      "name": "LT - GHL Email Template Campaign Queue (STAGED)",
+      "active": true,
+      "archived": false,
+      "draft": "714b2d22-777c-4006-a233-d7e0fa6eb930",
+      "activeVersion": "714b2d22-777c-4006-a233-d7e0fa6eb930",
+      "updated": "2026-09-16T19:40:18.154Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.code": 2
+      },
+      "triggers": [
+        {
+          "node": "Queue Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Queue Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Queue Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "veg9jbN1P67Xmqy8",
+      "name": "LT - GHL Social Statistics Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "053ded37-5687-4f7c-8b02-376edd1e3475",
+      "activeVersion": "053ded37-5687-4f7c-8b02-376edd1e3475",
+      "updated": "2026-09-10T02:03:50.692Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 4
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "vkKydDzHfA7zDlii",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "cf204712-146f-4bc2-bbf6-e15222c191f4",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:51:50.228Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "vru7OtCkDnPJkWt2",
+      "name": "LT - Newsletter Dispatcher",
+      "active": true,
+      "archived": false,
+      "draft": "dacd2df9-4647-4910-8ea3-857cf889f9b5",
+      "activeVersion": "dacd2df9-4647-4910-8ea3-857cf889f9b5",
+      "updated": "2026-09-25T18:09:17.308Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 4
+      },
+      "triggers": [
+        {
+          "node": "Dispatch Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Dispatch Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "vvPdJMzBJMgcf5I9",
+      "name": "LT - Newsletter Contact Prep",
+      "active": true,
+      "archived": false,
+      "draft": "80ae911a-73aa-4832-ac55-dcc421400b46",
+      "activeVersion": "80ae911a-73aa-4832-ac55-dcc421400b46",
+      "updated": "2026-09-17T14:11:55.911Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.postgres": 2,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.manualTrigger": 1
+      },
+      "triggers": [
+        {
+          "node": "Prep Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Prep Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Prep Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "wBy0fi5lpFUMDS94",
+      "name": "LT - MQL Tag Ingest (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "ea449e0d-80ab-4608-b014-539d393d3c43",
+      "activeVersion": "ea449e0d-80ab-4608-b014-539d393d3c43",
+      "updated": "2026-10-13T15:49:59.551Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-mql-tag-ingest"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "wYLF75k1OGwKZ72Y",
+      "name": "LT - Report Pipeline Velocity",
+      "active": false,
+      "archived": false,
+      "draft": "ebd40005-9625-4835-a105-b86c466eade6",
+      "activeVersion": null,
+      "updated": "2026-05-07T19:04:45.092Z",
+      "nodeCount": 8,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 3,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        },
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "wnpVYUNFLyNe5cS6",
+      "name": "LT - LinkedIn DM Sequence Test (No Delay)",
+      "active": false,
+      "archived": true,
+      "draft": "9f1ed968-d636-47b8-9a17-fa1651d96564",
+      "activeVersion": null,
+      "updated": "2026-07-15T18:13:12.311Z",
+      "nodeCount": 4,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 2,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "x5vUQ34IcyKggdqP",
+      "name": "LT - Meeting Outcome Reminder",
+      "active": true,
+      "archived": false,
+      "draft": "cf3c0d72-76fd-4b32-be96-820b49964dc7",
+      "activeVersion": "cf3c0d72-76fd-4b32-be96-820b49964dc7",
+      "updated": "2026-09-08T20:27:21.349Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.if": 1,
+        "n8n-nodes-base.httpRequest": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "xHqmCC1vOeZ11gCd",
+      "name": "LT - GSC Daily Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "ed3c59c1-05fc-4c2a-ab88-eef523c13651",
+      "activeVersion": "ed3c59c1-05fc-4c2a-ab88-eef523c13651",
+      "updated": "2026-09-25T16:35:31.316Z",
+      "nodeCount": 9,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 4,
+        "n8n-nodes-base.httpRequest": 1,
+        "n8n-nodes-base.postgres": 2
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "yWZVSqEcjTbMT3kG",
+      "name": "LT - GHL Daily Appointments Ingest",
+      "active": true,
+      "archived": false,
+      "draft": "495e76e2-0239-462f-a23d-841dd38d0b51",
+      "activeVersion": "495e76e2-0239-462f-a23d-841dd38d0b51",
+      "updated": "2026-09-10T02:04:14.745Z",
+      "nodeCount": 6,
+      "types": {
+        "n8n-nodes-base.scheduleTrigger": 1,
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 2,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        },
+        {
+          "node": "Manual Trigger",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [
+        {
+          "node": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger"
+        }
+      ],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "ylhTKtLlJOxTc61R",
+      "name": "LT - Sales Navigator Readonly Column Discovery (one-time)",
+      "active": true,
+      "archived": false,
+      "draft": "d8d55a27-5aca-4e04-84aa-0050c1d3ab24",
+      "activeVersion": "d8d55a27-5aca-4e04-84aa-0050c1d3ab24",
+      "updated": "2026-09-30T20:10:21.493Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Trigger",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Trigger",
+          "method": "POST",
+          "path": "lt-sn-column-inspect-37b861c046359d769153"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "z0Sq4AE3Xdbgw2Yh",
+      "name": "LT - Vertical Sender Assign (Webhook)",
+      "active": true,
+      "archived": false,
+      "draft": "0c7127ba-b273-44a8-8f06-27b93358f064",
+      "activeVersion": "0c7127ba-b273-44a8-8f06-27b93358f064",
+      "updated": "2026-10-09T17:22:39.303Z",
+      "nodeCount": 7,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.httpRequest": 2,
+        "n8n-nodes-base.code": 1,
+        "n8n-nodes-base.if": 1,
+        "n8n-nodes-base.respondToWebhook": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-vertical-sender-assign"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "z6QNjmG6ijys53Mj",
+      "name": "LT - Emerging Pool to Google Sheets",
+      "active": false,
+      "archived": true,
+      "draft": "522879e3-58d9-4752-bd9c-1373c220c37c",
+      "activeVersion": null,
+      "updated": "2026-07-02T17:47:18.504Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.manualTrigger": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Upload CSV",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      ],
+      "webhooks": [],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "z7y6FEf86x7u0MBz",
+      "name": "LT - LinkedIn Profile Index Apply (one-time)",
+      "active": false,
+      "archived": false,
+      "draft": "e20b4c91-0961-430a-ae4b-b81468b2920e",
+      "activeVersion": null,
+      "updated": "2026-10-01T00:50:58.466Z",
+      "nodeCount": 2,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.postgres": 1
+      },
+      "triggers": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Apply LinkedIn Profile Index",
+          "method": "POST",
+          "path": "lt-linkedin-profile-index-[redacted-token-like-segment]"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    },
+    {
+      "id": "zmrYrUjVcyXaS7PJ",
+      "name": "LT - Partnership Bulk Import",
+      "active": true,
+      "archived": false,
+      "draft": "a8a1ae9c-f931-4d18-a0a3-2bc2849702e1",
+      "activeVersion": "a8a1ae9c-f931-4d18-a0a3-2bc2849702e1",
+      "updated": "2026-09-10T02:04:16.705Z",
+      "nodeCount": 3,
+      "types": {
+        "n8n-nodes-base.webhook": 1,
+        "n8n-nodes-base.set": 1,
+        "n8n-nodes-base.code": 1
+      },
+      "triggers": [
+        {
+          "node": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        }
+      ],
+      "webhooks": [
+        {
+          "node": "Webhook",
+          "method": "POST",
+          "path": "lt-partnership-bulk-import"
+        }
+      ],
+      "schedules": [],
+      "calls": [],
+      "internalHttp": []
+    }
+  ]
+}

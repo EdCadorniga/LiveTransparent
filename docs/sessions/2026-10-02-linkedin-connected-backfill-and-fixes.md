@@ -117,7 +117,7 @@ proven at the API: `/users/relations` returns 5,506 items).
 
 ## 7. STILL OPEN — security
 
-The GHL PIT (`pit-d25ac994-…`) and `stateUpsertSecret` remain committed in plaintext in
+The GHL PIT (`<redacted-pit>…`) and `stateUpsertSecret` remain committed in plaintext in
 many workflow `Config` nodes and were printed into earlier sessions. **Not rotated this
 session** — rotation touches many live workflows and risks breaking state writes at
 session end. Plan (next session):

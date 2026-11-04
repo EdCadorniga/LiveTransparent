@@ -10,7 +10,7 @@ Treat live n8n and the deployed Postgres state as authoritative. The repository 
 
 The Postgres state model, source import, fail-closed Unipile identity validator, GHL association bridge, and Message 1 dry-run dispatcher now exist. No live Instagram message was sent, and no new workflow is active or published.
 
-1. Read `repomix-output.md`, `AGENTS.md`, this handoff, `plan.md`, and the first 180 lines of `Project Status and Next Steps.md`.
+1. Read `AGENTS.md`, this handoff, `plan.md`, and the first 180 lines of `Project Status and Next Steps.md`. The Repomix bundle referenced in older instructions was retired on 2026-11-04; do not recreate it.
 2. Read `docs/strategy/unipile-ghl-bidirectional-integration.md`, especially `Company Instagram Page Outreach Contract (2026-08-14)` and the existing inbound/outbound bridge sections.
 3. Fetch live state before mutation. Live n8n is the source of truth; repository workflow snapshots may be stale.
 4. Continue identity validation in controlled manual batches and resolve the remaining Partnership GHL associations without fuzzy automatic matching.

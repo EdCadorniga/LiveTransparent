@@ -1,0 +1,3030 @@
+{
+ "generated_at_utc": "2026-11-04T17:48:54.606063+00:00",
+ "method": "read-only GETs against n8n-lt /api/v1; no execution, toggle, or write",
+ "coverage": {
+  "listed_workflows": 212,
+  "definition_read_failures": []
+ },
+ "execute_workflow_edges": [
+  {
+   "from": "7o5EBdvwAuIaWW7k",
+   "node": "Route LinkedIn Reply to Priority",
+   "to": "URpjcm2k5isHUyls"
+  },
+  {
+   "from": "7o5EBdvwAuIaWW7k",
+   "node": "Route Partnership LinkedIn Reply to Priority",
+   "to": "URpjcm2k5isHUyls"
+  },
+  {
+   "from": "PUCfTZBANSPcgS0c",
+   "node": "Route Call to Priority",
+   "to": "URpjcm2k5isHUyls"
+  },
+  {
+   "from": "hxiiYCpEfMuoSt5H",
+   "node": "Route Email Reply to Priority",
+   "to": "URpjcm2k5isHUyls"
+  },
+  {
+   "from": "i0pROHpFtN4LYR0Q",
+   "node": "Route SMS Reply to Priority",
+   "to": "URpjcm2k5isHUyls"
+  },
+  {
+   "from": "mRDw57IHtnQe4wOo",
+   "node": "Route Partnership Email Reply to Priority",
+   "to": "URpjcm2k5isHUyls"
+  },
+  {
+   "from": "pISlgYUsyJIrLuJd",
+   "node": "Route Instagram Reply to Priority",
+   "to": "URpjcm2k5isHUyls"
+  }
+ ],
+ "http_webhook_edges": [
+  {
+   "from": "8USvJkRlKzbj6Fu1",
+   "node": "Sync Website Attribution",
+   "path": "webhook/<redacted-token>/lt-email-event-ingest",
+   "served_by": null
+  },
+  {
+   "from": "dUyOfxllvkxZavaw",
+   "node": "Send Claimed SMS Step",
+   "path": "webhook/lt-simpletexting-send-sms",
+   "served_by": [
+    "Q3Ivnwe4z2Y3cD7A"
+   ]
+  }
+ ],
+ "code_literal_path_refs": {
+  "lt-partnership-reply": [
+   "0SQ7tTk03okegp9V"
+  ],
+  "lt-linkedin-connection-state-upsert": [
+   "3ttEvr5NMcQCS4Hp",
+   "IPN8jnR3XSurX0o1",
+   "VPiHfBwzOHaJnHBY",
+   "ceaKnz6E3onQrZpt",
+   "crKIsaL5k3YBfqDZ",
+   "d0tEtijajisIsYcs",
+   "fXxw5lanZcDmUrst",
+   "nspggypNF245xzeL",
+   "pq7XVajNFnnwMUTr"
+  ],
+  "lt-simpletexting-send-sms": [
+   "7mSiivR3NhtLIcNz",
+   "dUyOfxllvkxZavaw",
+   "dZQLlbTLkpE1843X"
+  ],
+  "ghl-apollo-phone-enrichment-callback-v4": [
+   "JH8ShfpglWmLMZ3l",
+   "WuxgTa0EEL1mb2SA"
+  ],
+  "lt-sms-send": [
+   "Q3Ivnwe4z2Y3cD7A",
+   "f4VoO1lBWkYRcQai"
+  ],
+  "lt-sales-navigator-provider": [
+   "ZiYEBuP7xdddhnUB"
+  ],
+  "voice-dequeue-next": [
+   "fx4UvKUWbqJEY3LK"
+  ],
+  "lt-instagram-dm-state-upsert": [
+   "iCnY6ccdHhfJg3sf"
+  ],
+  "lt-social-provider-outbound": [
+   "kqIi8i1RjFAZKrK3"
+  ]
+ },
+ "served_paths_count": 94,
+ "served_paths": [
+  {
+   "path": "<redacted-token>",
+   "method": "GET",
+   "served_by": [
+    "WYyZ7HoZWnCcQDYN"
+   ]
+  },
+  {
+   "path": "<redacted-token>",
+   "method": "POST",
+   "served_by": [
+    "8USvJkRlKzbj6Fu1"
+   ]
+  },
+  {
+   "path": "form-submission-alert-slack",
+   "method": "POST",
+   "served_by": [
+    "FQE90HDUilFVdASY"
+   ]
+  },
+  {
+   "path": "ghl-apollo-enrichment-intake-sheet-first-v3",
+   "method": "POST",
+   "served_by": [
+    "WmKAhG7mIaXonNsh"
+   ]
+  },
+  {
+   "path": "ghl-apollo-phone-enrichment-callback-v3",
+   "method": "POST",
+   "served_by": [
+    "YaWizRnw7XmkcvZH"
+   ]
+  },
+  {
+   "path": "ghl-apollo-phone-enrichment-callback-v4",
+   "method": "POST",
+   "served_by": [
+    "U7c6byTLXAMgcS75"
+   ]
+  },
+  {
+   "path": "ghl-apollo-phone-enrichment-intake-v3",
+   "method": "POST",
+   "served_by": [
+    "JH8ShfpglWmLMZ3l",
+    "WuxgTa0EEL1mb2SA"
+   ]
+  },
+  {
+   "path": "ghl-mql-opportunity-baseline-v2",
+   "method": "POST",
+   "served_by": [
+    "MI91SutAbAj3QSXp"
+   ]
+  },
+  {
+   "path": "lt-activation-test",
+   "method": "GET",
+   "served_by": [
+    "Ej3ZlC5QhIbUZQnM"
+   ]
+  },
+  {
+   "path": "lt-audit-email-engagement",
+   "method": "GET",
+   "served_by": [
+    "3J0vJWb0W0KsiLsI"
+   ]
+  },
+  {
+   "path": "lt-backfill-vapi-timezones",
+   "method": "POST",
+   "served_by": [
+    "dLzlfXsqA5r8pDrq"
+   ]
+  },
+  {
+   "path": "lt-booking-click",
+   "method": "POST",
+   "served_by": [
+    "1diZyFmTqWQUEny3"
+   ]
+  },
+  {
+   "path": "lt-booking-sms",
+   "method": "GET",
+   "served_by": [
+    "9HT13te9FalOtUZM"
+   ]
+  },
+  {
+   "path": "lt-call-outcome-ingest",
+   "method": "POST",
+   "served_by": [
+    "BaHZ5jTXdQ99D6Zp",
+    "PUCfTZBANSPcgS0c",
+    "ZhD0CB9m4IyW3S5L"
+   ]
+  },
+  {
+   "path": "lt-cold-outreach-ghl-import",
+   "method": "POST",
+   "served_by": [
+    "T28iLcm4Hszo19MG"
+   ]
+  },
+  {
+   "path": "lt-cold-outreach-postgres-intake",
+   "method": "POST",
+   "served_by": [
+    "kVCTmy1m8fEyP6Q7"
+   ]
+  },
+  {
+   "path": "lt-email-event-ingest",
+   "method": "POST",
+   "served_by": [
+    "ZrqFN8qLKO8eVHDc"
+   ]
+  },
+  {
+   "path": "lt-email-template-trigger-stage",
+   "method": "POST",
+   "served_by": [
+    "t5frjtbuKzVZI294"
+   ]
+  },
+  {
+   "path": "lt-emerald-campaign-postgres-intake",
+   "method": "POST",
+   "served_by": [
+    "0jDKgG8VvmfyORQn"
+   ]
+  },
+  {
+   "path": "lt-emerald-ghl-import",
+   "method": "POST",
+   "served_by": [
+    "BLr1x1HKdgM1Xfxk"
+   ]
+  },
+  {
+   "path": "lt-emerald-postgres-intake",
+   "method": "POST",
+   "served_by": [
+    "mSegmpMUd0DRwFEx"
+   ]
+  },
+  {
+   "path": "lt-exec-v1-cache-refresh",
+   "method": "POST",
+   "served_by": [
+    "kBuW8Uq3EOJFQKNF"
+   ]
+  },
+  {
+   "path": "lt-executive-report-v1-materializer",
+   "method": "POST",
+   "served_by": [
+    "knc2wxe4pyYIJ5tw"
+   ]
+  },
+  {
+   "path": "lt-executive-report-v1-response-sla-materializer",
+   "method": "POST",
+   "served_by": [
+    "KlBw3ThLbNlMfE2J"
+   ]
+  },
+  {
+   "path": "lt-executive-report-v1-schema-probe",
+   "method": "GET",
+   "served_by": [
+    "4U3bj7BIaHBLszG4"
+   ]
+  },
+  {
+   "path": "lt-export-unknown-contact-sources-90d",
+   "method": "GET",
+   "served_by": [
+    "KftL5ohZKPjIinUY"
+   ]
+  },
+  {
+   "path": "lt-form-demo-intake",
+   "method": "POST",
+   "served_by": [
+    "RTV5jUiTt05lad07"
+   ]
+  },
+  {
+   "path": "lt-form-footer-intake",
+   "method": "POST",
+   "served_by": [
+    "RSfLF7LU0rDC4jAI"
+   ]
+  },
+  {
+   "path": "lt-ghl-call-outcomes-ingest",
+   "method": "POST",
+   "served_by": [
+    "CFfNeRBRuo7YRBjl"
+   ]
+  },
+  {
+   "path": "lt-ghl-outbound-message-call",
+   "method": "POST",
+   "served_by": [
+    "SA5SF1cZQcVf3IyB"
+   ]
+  },
+  {
+   "path": "lt-ghl-report-menu-sync",
+   "method": "POST",
+   "served_by": [
+    "8YtaPmPnTXUkBDAd"
+   ]
+  },
+  {
+   "path": "lt-instagram-dm-state-upsert",
+   "method": "POST",
+   "served_by": [
+    "enkF6Y25bvzVSPr0"
+   ]
+  },
+  {
+   "path": "lt-last-touch-owner-backfill-<redacted-token>",
+   "method": "POST",
+   "served_by": [
+    "KQjosWjChMYbhZkF"
+   ]
+  },
+  {
+   "path": "lt-linkedin-connection-accepted",
+   "method": "POST",
+   "served_by": [
+    "3ttEvr5NMcQCS4Hp"
+   ]
+  },
+  {
+   "path": "lt-linkedin-connection-state-upsert",
+   "method": "POST",
+   "served_by": [
+    "Old7ZvyVYgFaJgDr"
+   ]
+  },
+  {
+   "path": "lt-linkedin-profile-index-<redacted-token>",
+   "method": "POST",
+   "served_by": [
+    "5mfwR4JPN3XF2FcX",
+    "8Poy3zagNYMTSx3t",
+    "HbhYLZwEM8NClSnU",
+    "URbeg7Y6onVmQQt1",
+    "lBPUy5OFO6pHAdL4",
+    "rP3ff1VNo1FpyHG0",
+    "t4TfmnUtPTonPYzd",
+    "vkKydDzHfA7zDlii",
+    "z7y6FEf86x7u0MBz"
+   ]
+  },
+  {
+   "path": "lt-linkedin-suppress-dms",
+   "method": "POST",
+   "served_by": [
+    "IPN8jnR3XSurX0o1"
+   ]
+  },
+  {
+   "path": "lt-mass-email-click",
+   "method": "GET",
+   "served_by": [
+    "TbYFpB80xSlRZ6gy"
+   ]
+  },
+  {
+   "path": "lt-mass-email-event",
+   "method": "POST",
+   "served_by": [
+    "f87KRQ1Slhs9VUxJ"
+   ]
+  },
+  {
+   "path": "lt-mass-email-open",
+   "method": "GET",
+   "served_by": [
+    "J7xZH6BBnoXEQsoB"
+   ]
+  },
+  {
+   "path": "lt-mql-tag-event",
+   "method": "POST",
+   "served_by": [
+    "U9oc2tZRsr4zq6IM"
+   ]
+  },
+  {
+   "path": "lt-mql-tag-ingest",
+   "method": "POST",
+   "served_by": [
+    "wBy0fi5lpFUMDS94"
+   ]
+  },
+  {
+   "path": "lt-newsletter-click",
+   "method": "GET",
+   "served_by": [
+    "HZ8ndNF4p80PrQjf"
+   ]
+  },
+  {
+   "path": "lt-newsletter-pixel",
+   "method": "GET",
+   "served_by": [
+    "HkTQ9mqwHcpg3AIM"
+   ]
+  },
+  {
+   "path": "lt-newsletter-unsub",
+   "method": "GET",
+   "served_by": [
+    "RvYusUSGB79K2e2k"
+   ]
+  },
+  {
+   "path": "lt-opportunity-owner-sync-7b8e4f2d",
+   "method": "POST",
+   "served_by": [
+    "VI39o4X954fYDjOQ"
+   ]
+  },
+  {
+   "path": "lt-partnership-bulk-import",
+   "method": "POST",
+   "served_by": [
+    "zmrYrUjVcyXaS7PJ"
+   ]
+  },
+  {
+   "path": "lt-partnership-li-url-update",
+   "method": "POST",
+   "served_by": [
+    "ew6uQQnAjgCbjeGn"
+   ]
+  },
+  {
+   "path": "lt-partnership-reply",
+   "method": "POST",
+   "served_by": [
+    "mRDw57IHtnQe4wOo"
+   ]
+  },
+  {
+   "path": "lt-report-campaign-channel-summary",
+   "method": "GET",
+   "served_by": [
+    "MvPLbUAN9IIQikxb"
+   ]
+  },
+  {
+   "path": "lt-report-executive-summary",
+   "method": "GET",
+   "served_by": [
+    "Bukc0mgOD2r7V6ED"
+   ]
+  },
+  {
+   "path": "lt-report-executive-v1-facts",
+   "method": "GET",
+   "served_by": [
+    "oxYDg6XnRBKhl1Xd"
+   ]
+  },
+  {
+   "path": "lt-report-outgoing-calls",
+   "method": "GET",
+   "served_by": [
+    "VXFHc8IrF9DDEEdj"
+   ]
+  },
+  {
+   "path": "lt-report-postgres-bootstrap",
+   "method": "GET",
+   "served_by": [
+    "3XHThUiUSNa4sTb9"
+   ]
+  },
+  {
+   "path": "lt-report-social-statistics",
+   "method": "GET",
+   "served_by": [
+    "ufqTCVwgUcLfIUSp"
+   ]
+  },
+  {
+   "path": "lt-report-source-cache-refresh",
+   "method": "POST",
+   "served_by": [
+    "Rrsigvi8AhH3iR55"
+   ]
+  },
+  {
+   "path": "lt-sales-navigator-provider",
+   "method": "GET",
+   "served_by": [
+    "ZiYEBuP7xdddhnUB"
+   ]
+  },
+  {
+   "path": "lt-sales-navigator-provider",
+   "method": "POST",
+   "served_by": [
+    "ZiYEBuP7xdddhnUB"
+   ]
+  },
+  {
+   "path": "lt-simpletexting-delivery-events-v2",
+   "method": "POST",
+   "served_by": [
+    "AEi1VCzkLvaYFr4U"
+   ]
+  },
+  {
+   "path": "lt-simpletexting-inbound-reply",
+   "method": "POST",
+   "served_by": [
+    "EhAiGey2o7UJT1cv"
+   ]
+  },
+  {
+   "path": "lt-simpletexting-inbound-reply-v2",
+   "method": "POST",
+   "served_by": [
+    "i0pROHpFtN4LYR0Q"
+   ]
+  },
+  {
+   "path": "lt-simpletexting-provider-outbound",
+   "method": "GET",
+   "served_by": [
+    "f4VoO1lBWkYRcQai"
+   ]
+  },
+  {
+   "path": "lt-simpletexting-provider-outbound",
+   "method": "POST",
+   "served_by": [
+    "f4VoO1lBWkYRcQai"
+   ]
+  },
+  {
+   "path": "lt-simpletexting-send-sms",
+   "method": "POST",
+   "served_by": [
+    "Q3Ivnwe4z2Y3cD7A"
+   ]
+  },
+  {
+   "path": "lt-simpletexting-unsubscribes-v2",
+   "method": "POST",
+   "served_by": [
+    "IyBKMkpYQ7pa0C8V"
+   ]
+  },
+  {
+   "path": "lt-sms-send",
+   "method": "POST",
+   "served_by": [
+    "gwaEpWDpTIwsafi8"
+   ]
+  },
+  {
+   "path": "lt-sn-column-inspect-<redacted-token>",
+   "method": "POST",
+   "served_by": [
+    "lHtnzhwA3Pr7QzJt",
+    "ylhTKtLlJOxTc61R"
+   ]
+  },
+  {
+   "path": "lt-sn-identity-counts-<redacted-token>",
+   "method": "POST",
+   "served_by": [
+    "u33o2oG9FNXJ3ZrY"
+   ]
+  },
+  {
+   "path": "lt-sn-map-counts-<redacted-token>",
+   "method": "POST",
+   "served_by": [
+    "2vbq9jfgev9PKsJs"
+   ]
+  },
+  {
+   "path": "lt-sn-schema-inspect-<redacted-token>",
+   "method": "POST",
+   "served_by": [
+    "DNwar2RUUBk8EJAQ"
+   ]
+  },
+  {
+   "path": "lt-sn-v2-schema-<redacted-token>",
+   "method": "POST",
+   "served_by": [
+    "shi9VrWUoXach2Hc"
+   ]
+  },
+  {
+   "path": "lt-social-provider-outbound",
+   "method": "GET",
+   "served_by": [
+    "kqIi8i1RjFAZKrK3"
+   ]
+  },
+  {
+   "path": "lt-social-provider-outbound",
+   "method": "POST",
+   "served_by": [
+    "kqIi8i1RjFAZKrK3"
+   ]
+  },
+  {
+   "path": "lt-temp-social-map-maintenance-20260716-7f3a",
+   "method": "POST",
+   "served_by": [
+    "nuuB3qCKxr7J6iPw"
+   ]
+  },
+  {
+   "path": "lt-temp-voice-tz-counts-20260526-003422",
+   "method": "POST",
+   "served_by": [
+    "Qtlq4j0d0x6s7RYc"
+   ]
+  },
+  {
+   "path": "lt-unipile-instagram-new-messages",
+   "method": "POST",
+   "served_by": [
+    "pISlgYUsyJIrLuJd"
+   ]
+  },
+  {
+   "path": "lt-unipile-linkedin-new-messages",
+   "method": "POST",
+   "served_by": [
+    "7o5EBdvwAuIaWW7k"
+   ]
+  },
+  {
+   "path": "lt-unipile-sales-navigator-new-messages",
+   "method": "POST",
+   "served_by": [
+    "CfpedDQWxoJLEMdL"
+   ]
+  },
+  {
+   "path": "lt-vertical-sender-assign",
+   "method": "POST",
+   "served_by": [
+    "z0Sq4AE3Xdbgw2Yh"
+   ]
+  },
+  {
+   "path": "lt-voice-agent-vapi-callback",
+   "method": "POST",
+   "served_by": [
+    "JRw9qnckedWzfcf6",
+    "R1gTdLkbjJUPAr6u",
+    "fx4UvKUWbqJEY3LK"
+   ]
+  },
+  {
+   "path": "lt-warm-intake-email-inbound-v3",
+   "method": "POST",
+   "served_by": [
+    "SmMf8QIfysuxQJbG"
+   ]
+  },
+  {
+   "path": "lt-warm-intake-email-outbound-v3",
+   "method": "POST",
+   "served_by": [
+    "J4B0n0QeSeOeqAci"
+   ]
+  },
+  {
+   "path": "lt-warm-intake-referral-v2",
+   "method": "POST",
+   "served_by": [
+    "6lp8sIS3YMB1t9Ri"
+   ]
+  },
+  {
+   "path": "lt-warm-intake-sms-v2",
+   "method": "POST",
+   "served_by": [
+    "5nYzp9DgQUopzWhR"
+   ]
+  },
+  {
+   "path": "lt-warm-intake-tag",
+   "method": "POST",
+   "served_by": [
+    "OowP3sAd8c9paSKf"
+   ]
+  },
+  {
+   "path": "oauth-callback",
+   "method": "GET",
+   "served_by": [
+    "UnSWPnVoUy3tNJkX"
+   ]
+  },
+  {
+   "path": "rb2b_leads_v3",
+   "method": "POST",
+   "served_by": [
+    "3kjsIUeoEQFx26cC"
+   ]
+  },
+  {
+   "path": "tmp-reset-emerald-sso-bad-cache-rows",
+   "method": "POST",
+   "served_by": [
+    "WcuEAOFY2pMTyumV"
+   ]
+  },
+  {
+   "path": "unipile-linkedin-connect-test",
+   "method": "POST",
+   "served_by": [
+    "Zt8p2aYtIuY0HK18"
+   ]
+  },
+  {
+   "path": "voice-dequeue-next",
+   "method": "GET",
+   "served_by": [
+    "1ogCy9ScVjtF0Cqf"
+   ]
+  },
+  {
+   "path": "voice-dequeue-next",
+   "method": "POST",
+   "served_by": [
+    "KsBMFcz1YpBGrjDW"
+   ]
+  },
+  {
+   "path": "voice-queue-enqueue",
+   "method": "POST",
+   "served_by": [
+    "XzcpOBi9YcIhJPck"
+   ]
+  },
+  {
+   "path": "websiteform_submission_nodownload",
+   "method": "GET",
+   "served_by": [
+    "p1RkRjjPMoVhSz0I"
+   ]
+  },
+  {
+   "path": "wl-slack-channel-update-v2",
+   "method": "POST",
+   "served_by": [
+    "lQTW0QPwBcf3o7j8"
+   ]
+  }
+ ],
+ "exception_last_runs_metadata": [
+  {
+   "id": "0jDKgG8VvmfyORQn",
+   "name": "LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)",
+   "status": "none-returned",
+   "startedAt": null,
+   "stoppedAt": null
+  },
+  {
+   "id": "8UXlpoMJnQ229AuG",
+   "name": "LT - Emerald Campaign Sender Release Dispatcher (Staged)",
+   "status": "success",
+   "startedAt": "2026-11-04T17:00:13.052Z",
+   "stoppedAt": "2026-11-04T17:00:13.619Z"
+  },
+  {
+   "id": "CfpedDQWxoJLEMdL",
+   "name": "LT - Unipile Sales Navigator V2 Inbound (DRAFT)",
+   "status": "success",
+   "startedAt": "2026-11-04T17:29:47.010Z",
+   "stoppedAt": "2026-11-04T17:29:47.753Z"
+  },
+  {
+   "id": "Q3Ivnwe4z2Y3cD7A",
+   "name": "LT - SimpleTexting SMS Send (Webhook, Staged)",
+   "status": "none-returned",
+   "startedAt": null,
+   "stoppedAt": null
+  },
+  {
+   "id": "ToMOV6FElZD4ezZN",
+   "name": "LT - Meta Ads Daily Ingest (Staged)",
+   "status": "success",
+   "startedAt": "2026-11-04T13:31:04.636Z",
+   "stoppedAt": "2026-11-04T13:31:07.123Z"
+  },
+  {
+   "id": "ZiYEBuP7xdddhnUB",
+   "name": "LT - Sales Navigator Provider Gateway (DRAFT)",
+   "status": "none-returned",
+   "startedAt": null,
+   "stoppedAt": null
+  },
+  {
+   "id": "b41Sas8FVVrytZrl",
+   "name": "LT - GHL Email Template Campaign Dispatcher (STAGED)",
+   "status": "success",
+   "startedAt": "2026-11-04T17:45:07.044Z",
+   "stoppedAt": "2026-11-04T17:45:07.432Z"
+  },
+  {
+   "id": "t5frjtbuKzVZI294",
+   "name": "LT - GHL Email Template Trigger Intake (STAGED)",
+   "status": "none-returned",
+   "startedAt": null,
+   "stoppedAt": null
+  },
+  {
+   "id": "toUG1yPDmFG48KEP",
+   "name": "LT - DAN Campaign Sender Release Dispatcher (Staged)",
+   "status": "success",
+   "startedAt": "2026-11-04T17:30:37.073Z",
+   "stoppedAt": "2026-11-04T17:30:37.316Z"
+  },
+  {
+   "id": "vRXRFC6IwIxUME2k",
+   "name": "LT - GHL Email Template Campaign Queue (STAGED)",
+   "status": "success",
+   "startedAt": "2026-11-04T17:45:18.046Z",
+   "stoppedAt": "2026-11-04T17:45:18.327Z"
+  }
+ ],
+ "schedule_triggers": [
+  {
+   "id": "0P2AZcQYWYZjXbRi",
+   "name": "LT - GA4 Traffic Rollup Bridge",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 1440
+    }
+   ]
+  },
+  {
+   "id": "0SQ7tTk03okegp9V",
+   "name": "LT - Partnership Reply Poller",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "triggerAtMinute": 5
+    }
+   ]
+  },
+  {
+   "id": "1ogCy9ScVjtF0Cqf",
+   "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes"
+    }
+   ]
+  },
+  {
+   "id": "3gXztCnBEN6sGINb",
+   "name": "LT - Report Publish Refresh",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 6
+    }
+   ]
+  },
+  {
+   "id": "4Qww6KyTxnoRAs9m",
+   "name": "LT - LinkedIn Inbound OAuth Retry",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "10 */6 * * *"
+    }
+   ]
+  },
+  {
+   "id": "5u70GKgWzEHJ5l4B",
+   "name": "LT - Report Rollup Corrections",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 1440
+    }
+   ]
+  },
+  {
+   "id": "6pCSGzFmrMDFL5Yq",
+   "name": "LT - GA4 Daily Ingest",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 1440
+    }
+   ]
+  },
+  {
+   "id": "72BI9d1giXcRNl6w",
+   "name": "LT - Report Pipeline Velocity",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 24
+    }
+   ]
+  },
+  {
+   "id": "8UXlpoMJnQ229AuG",
+   "name": "LT - Emerald Campaign Sender Release Dispatcher (Staged)",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "hours"
+    }
+   ]
+  },
+  {
+   "id": "8hQKQi1PooYDFxNR",
+   "name": "LT - SimpleTexting Campaign Phone Backfill",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "*/10 * * * *"
+    }
+   ]
+  },
+  {
+   "id": "9Y3Kedm768kkwwSV",
+   "name": "LT - Company MQL Google Sheets Sync",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 6 * * *",
+     "tz": "America/New_York"
+    }
+   ]
+  },
+  {
+   "id": "9Y3Kedm768kkwwSV",
+   "name": "LT - Company MQL Google Sheets Sync",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 6 * * *",
+     "tz": "America/New_York"
+    }
+   ]
+  },
+  {
+   "id": "BIVAw1AWTTzC0igW",
+   "name": "LT - IG & FB Company Page Enrichment",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 5
+    }
+   ]
+  },
+  {
+   "id": "CqkIQuCArxvIEuBk",
+   "name": "LT - Report Pipeline Velocity",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 24
+    }
+   ]
+  },
+  {
+   "id": "Dqy8FEdbCUfFhaUe",
+   "name": "Test Activation",
+   "timezone": null,
+   "interval": [
+    {
+     "minutesInterval": 60,
+     "field": "minutes"
+    }
+   ]
+  },
+  {
+   "id": "EUeOiRttoVLQ9zF9",
+   "name": "LT - Report Daily Rollups",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "days",
+     "daysInterval": 1
+    }
+   ]
+  },
+  {
+   "id": "GHVYyYmhfNiZ7bbN",
+   "name": "LT - Emerald Executive SSO -> Company Sync (Staged)",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 2
+    }
+   ]
+  },
+  {
+   "id": "GQv0yNqDtibOXMB8",
+   "name": "LT - Vertical LinkedIn Sales Navigator DM Sequence",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "*/15 9-16 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "IduCoT5YOs0g2faT",
+   "name": "LT - Campaign Contact Classifier",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 15
+    }
+   ]
+  },
+  {
+   "id": "IeovbYnhCsetXS89",
+   "name": "LT - Instagram Company Page Partnership Sender",
+   "timezone": null,
+   "interval": [
+    {
+     "expression": "0 10-15 * * 1-5",
+     "field": "cronExpression"
+    }
+   ]
+  },
+  {
+   "id": "JH8ShfpglWmLMZ3l",
+   "name": "LT - Apollo Phone Enrichment Polling",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 5
+    }
+   ]
+  },
+  {
+   "id": "KQjosWjChMYbhZkF",
+   "name": "LT - Last-Touch Owner Resolver + 14-Day Backfill",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 2 * * *"
+    }
+   ]
+  },
+  {
+   "id": "KlBw3ThLbNlMfE2J",
+   "name": "LT - Executive Report V1 Response SLA Materializer",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 15
+    }
+   ]
+  },
+  {
+   "id": "KsJ3xkDoIfXzjVDw",
+   "name": "LT - Vertical LinkedIn Connection Dispatcher",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "*/15 9-16 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "M5mXcDTFSko6EdHb",
+   "name": "LT - Report QA and Alerts",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 60
+    }
+   ]
+  },
+  {
+   "id": "Mf4wdFNurt5vyQu4",
+   "name": "LT - GHL OAuth Token Refresh",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 */6 * * *"
+    }
+   ]
+  },
+  {
+   "id": "NTpQnMrpjzusPXHX",
+   "name": "LT - Cold Outreach Sender Release Dispatcher (Staged)",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "hours"
+    }
+   ]
+  },
+  {
+   "id": "OtqWjqGXZC3OcrXP",
+   "name": "LT - GHL Daily Leads Ingest",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 1440
+    }
+   ]
+  },
+  {
+   "id": "QZoqCaTwDhbym80O",
+   "name": "LT - GHL Daily Social Ingest",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 12
+    }
+   ]
+  },
+  {
+   "id": "Qd7sn9MPq4W24WKi",
+   "name": "LT - IG & FB Dispensary Page Enrichment",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 5
+    }
+   ]
+  },
+  {
+   "id": "QfJ2EZcc7lZwNgxj",
+   "name": "LT - LinkedIn Reply Backfill (Unipile)",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "*/10 * * * *"
+    }
+   ]
+  },
+  {
+   "id": "RFIZ9Bcfl3Yvms2b",
+   "name": "LT - Vapi Campaign Queue Feeder",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 30
+    }
+   ]
+  },
+  {
+   "id": "RIszKsd6dAh6GrU4",
+   "name": "LT - Campaign LinkedIn Reply Poller",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 15
+    }
+   ]
+  },
+  {
+   "id": "RL5ZyUoshSPbmVA1",
+   "name": "LT - Apollo Queued Timeout Reaper",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 1
+    }
+   ]
+  },
+  {
+   "id": "RlogFNDYjtjkuRFJ",
+   "name": "LT - IG & FB Partnership Page Enrichment",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 5
+    }
+   ]
+  },
+  {
+   "id": "Rrsigvi8AhH3iR55",
+   "name": "LT - Executive Summary and Channels Cache Refresh",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "25 * * * *"
+    }
+   ]
+  },
+  {
+   "id": "SqNQ0BYaTdcqyt1l",
+   "name": "LT - GHL Daily Calls Ingest",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 4
+    }
+   ]
+  },
+  {
+   "id": "ToMOV6FElZD4ezZN",
+   "name": "LT - Meta Ads Daily Ingest (Staged)",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 1440
+    }
+   ]
+  },
+  {
+   "id": "VPiHfBwzOHaJnHBY",
+   "name": "LT - LinkedIn Relations Backfill (Unipile)",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "15 3 * * *"
+    }
+   ]
+  },
+  {
+   "id": "WhEpQsUE7SWRIWnJ",
+   "name": "LT - Meta Ads Daily Ingest",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "days",
+     "daysInterval": 1,
+     "triggerAtHour": 6,
+     "triggerAtMinute": 0
+    }
+   ]
+  },
+  {
+   "id": "Xshck23cKo1yXL9D",
+   "name": "LT - Partnership Email Dispatcher",
+   "timezone": "America/New_York",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 11 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "Y0TU7Il71JswxOBp",
+   "name": "LT - Report Attribution Bridge",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "days",
+     "daysInterval": 1
+    }
+   ]
+  },
+  {
+   "id": "YbGxKgR7mdXwMspc",
+   "name": "LT - Campaign Email Cohort Reply Poller",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 15
+    }
+   ]
+  },
+  {
+   "id": "aYT5oHcgmBALzHy5",
+   "name": "LT - GHL Daily Sales Ingest",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "days",
+     "daysInterval": 1,
+     "triggerAtHour": 1,
+     "triggerAtMinute": 15
+    }
+   ]
+  },
+  {
+   "id": "aomO3Z4AXJIgEvvN",
+   "name": "LT - Report Config Sync",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 6
+    }
+   ]
+  },
+  {
+   "id": "b41Sas8FVVrytZrl",
+   "name": "LT - GHL Email Template Campaign Dispatcher (STAGED)",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 5
+    }
+   ]
+  },
+  {
+   "id": "bYk1Ai6MJLyhTsDZ",
+   "name": "LT - Voice Queue Vapi Intake Poller",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 10
+    }
+   ]
+  },
+  {
+   "id": "ceaKnz6E3onQrZpt",
+   "name": "LT - LinkedIn Connection State Sync (Unipile)",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "15 */6 * * *"
+    }
+   ]
+  },
+  {
+   "id": "crKIsaL5k3YBfqDZ",
+   "name": "LT - Partnership LinkedIn Dispatcher",
+   "timezone": "America/Chicago",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 15 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "d0tEtijajisIsYcs",
+   "name": "LT - LinkedIn DM Sequence (Unipile)",
+   "timezone": "",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 12-22 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "dMDbLSzPSSrHo1wK",
+   "name": "LT - Emerald Intro Sent -> P2 Queue Dispatcher (Staged)",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 30
+    }
+   ]
+  },
+  {
+   "id": "dUyOfxllvkxZavaw",
+   "name": "LT - SimpleTexting Campaign Step Runner",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "*/5 * * * *"
+    }
+   ]
+  },
+  {
+   "id": "dZQLlbTLkpE1843X",
+   "name": "LT - SimpleTexting Warmup Dispatcher (Staged)",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 1
+    }
+   ]
+  },
+  {
+   "id": "eauOm3fIqvnL6oWs",
+   "name": "LT - Report Rollup Corrections",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 1440
+    }
+   ]
+  },
+  {
+   "id": "eeksgD0fbGHUqh4r",
+   "name": "LT - Sales Outreach Jason Marc No-Owner Allocator",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 10
+    }
+   ]
+  },
+  {
+   "id": "fOVBHwti9rC3qrLV",
+   "name": "LT - GSC Rollup Bridge",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "days",
+     "daysInterval": 1,
+     "triggerAtHour": 4,
+     "triggerAtMinute": 0
+    }
+   ]
+  },
+  {
+   "id": "fXxw5lanZcDmUrst",
+   "name": "LT - GHL LinkedIn Connect Dispatcher",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "*/15 15-21 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "hCsfu0WuFEU3UTnN",
+   "name": "LT - Report Pipeline Velocity",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 24
+    }
+   ]
+  },
+  {
+   "id": "hxiiYCpEfMuoSt5H",
+   "name": "LT - Campaign Email Reply Poller",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 15
+    }
+   ]
+  },
+  {
+   "id": "iCnY6ccdHhfJg3sf",
+   "name": "LT - Instagram DM Sequence (Unipile)",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 12-22 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "iFfwh0jpYUZoDhDR",
+   "name": "LT - Report Pipeline Velocity",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 9 * * *"
+    }
+   ]
+  },
+  {
+   "id": "kBuW8Uq3EOJFQKNF",
+   "name": "LT - Executive V1 Reporting Cache Refresh",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "15 * * * *"
+    }
+   ]
+  },
+  {
+   "id": "knc2wxe4pyYIJ5tw",
+   "name": "LT - Executive Report V1 Data Materializer",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 30
+    }
+   ]
+  },
+  {
+   "id": "nspggypNF245xzeL",
+   "name": "LT - Partnership LinkedIn DM Sequence",
+   "timezone": "America/Chicago",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 12 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "orJrDqR6hQjgPLpg",
+   "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 5
+    }
+   ]
+  },
+  {
+   "id": "osIJOgBmWITF5Yuv",
+   "name": "LT - GHL Daily Leads Ingest",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 1,
+     "triggerAtMinute": 0
+    }
+   ]
+  },
+  {
+   "id": "pq7XVajNFnnwMUTr",
+   "name": "LT - LinkedIn Follower DM Sequence (Unipile)",
+   "timezone": "America/New_York",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 12-22 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "r7UjWLndmc6EqEUW",
+   "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+   "timezone": "America/Chicago",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "*/2 9-16 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "rcvTMprJKga9aEJ6",
+   "name": "LT - LinkedIn Connected Tag Sync",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 4 * * *"
+    }
+   ]
+  },
+  {
+   "id": "sFrvSJIZusAbrsFx",
+   "name": "LT - Sales Navigator V2 Uncertain Write Reconciler",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 1
+    }
+   ]
+  },
+  {
+   "id": "t5ty7HxgFSsgLX7l",
+   "name": "LT - GHL Daily Leads Ingest copy",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 1440
+    }
+   ]
+  },
+  {
+   "id": "toUG1yPDmFG48KEP",
+   "name": "LT - DAN Campaign Sender Release Dispatcher (Staged)",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 30
+    }
+   ]
+  },
+  {
+   "id": "usxYXSuc4ahw40V3",
+   "name": "LT - SimpleTexting Pool Dispatcher (Staged)",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "15 10 * * 1-5",
+     "tz": "America/New_York"
+    },
+    {
+     "field": "cronExpression",
+     "expression": "0 15 * * 1-5",
+     "tz": "America/New_York"
+    }
+   ]
+  },
+  {
+   "id": "vRXRFC6IwIxUME2k",
+   "name": "LT - GHL Email Template Campaign Queue (STAGED)",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "minutes",
+     "minutesInterval": 5
+    }
+   ]
+  },
+  {
+   "id": "veg9jbN1P67Xmqy8",
+   "name": "LT - GHL Social Statistics Ingest",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "days",
+     "daysInterval": 1,
+     "triggerAtHour": 6,
+     "triggerAtMinute": 0
+    }
+   ]
+  },
+  {
+   "id": "vru7OtCkDnPJkWt2",
+   "name": "LT - Newsletter Dispatcher",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "*/12 7-19 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "vvPdJMzBJMgcf5I9",
+   "name": "LT - Newsletter Contact Prep",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "30 6 * * 1"
+    }
+   ]
+  },
+  {
+   "id": "wYLF75k1OGwKZ72Y",
+   "name": "LT - Report Pipeline Velocity",
+   "timezone": null,
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 24
+    }
+   ]
+  },
+  {
+   "id": "x5vUQ34IcyKggdqP",
+   "name": "LT - Meeting Outcome Reminder",
+   "timezone": "America/Los_Angeles",
+   "interval": [
+    {
+     "field": "cronExpression",
+     "expression": "0 8 * * 1-5"
+    }
+   ]
+  },
+  {
+   "id": "xHqmCC1vOeZ11gCd",
+   "name": "LT - GSC Daily Ingest",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "expression": "0 2 * * *",
+     "field": "cronExpression"
+    }
+   ]
+  },
+  {
+   "id": "yWZVSqEcjTbMT3kG",
+   "name": "LT - GHL Daily Appointments Ingest",
+   "timezone": "UTC",
+   "interval": [
+    {
+     "field": "hours",
+     "hoursInterval": 6
+    }
+   ]
+  }
+ ],
+ "workflow_summaries": [
+  {
+   "id": "0jDKgG8VvmfyORQn",
+   "name": "LT - Emerald Campaign Snapshot -> Postgres Ingest (Staged)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "0P2AZcQYWYZjXbRi",
+   "name": "LT - GA4 Traffic Rollup Bridge",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "0SQ7tTk03okegp9V",
+   "name": "LT - Partnership Reply Poller",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "1diZyFmTqWQUEny3",
+   "name": "LT - Booking Link Click Intake (Webhook)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "1iEqGs5IxEuD5rrS",
+   "name": "LT - Instagram Company Page Message 1 Dispatcher (Dry Run)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "1ogCy9ScVjtF0Cqf",
+   "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "27NLAovEaClxCAuI",
+   "name": "LT - Instagram Company Page Five Send Test",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "2vbq9jfgev9PKsJs",
+   "name": "LT - Sales Navigator Map Readonly Counts (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "3GTjuUviVvFF8thU",
+   "name": "LT - Historical Partnership Reply Backfill",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "3gXztCnBEN6sGINb",
+   "name": "LT - Report Publish Refresh",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "3J0vJWb0W0KsiLsI",
+   "name": "LT - Audit Email Engagement Mismatch",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "3kjsIUeoEQFx26cC",
+   "name": "rb2b leads",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "3ttEvr5NMcQCS4Hp",
+   "name": "LT - LinkedIn Connection Acceptance Checker (Unipile)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "3XHThUiUSNa4sTb9",
+   "name": "LT - Report Postgres Bootstrap Apply",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "4Qww6KyTxnoRAs9m",
+   "name": "LT - LinkedIn Inbound OAuth Retry",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "4U3bj7BIaHBLszG4",
+   "name": "LT - Executive Report V1 Schema Probe",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "5mfwR4JPN3XF2FcX",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "5nYzp9DgQUopzWhR",
+   "name": "GHL Warm Intake - SMS Tag (Webhook)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "5u70GKgWzEHJ5l4B",
+   "name": "LT - Report Rollup Corrections",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "6ILxRR6ZAVngGPD1",
+   "name": "LT - Instagram Company Page GHL Association",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "6lp8sIS3YMB1t9Ri",
+   "name": "GHL Warm Intake - Referral Tag (Webhook)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "6pCSGzFmrMDFL5Yq",
+   "name": "LT - GA4 Daily Ingest",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "72BI9d1giXcRNl6w",
+   "name": "LT - Report Pipeline Velocity",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "7jDUxKen32sMyUUy",
+   "name": "Untitled Workflow",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "7mSiivR3NhtLIcNz",
+   "name": "LT - SimpleTexting Campaign Sequencer (Staged)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "7o5EBdvwAuIaWW7k",
+   "name": "LT - LinkedIn Unipile New Messages",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "8hQKQi1PooYDFxNR",
+   "name": "LT - SimpleTexting Campaign Phone Backfill",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "8Poy3zagNYMTSx3t",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "8USvJkRlKzbj6Fu1",
+   "name": "WL - Webhook to Slack Channel - Website Visitor",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "8UXlpoMJnQ229AuG",
+   "name": "LT - Emerald Campaign Sender Release Dispatcher (Staged)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "8YtaPmPnTXUkBDAd",
+   "name": "LT - GHL Executive Report Menu Sync",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "98FJR2XHodmRvCBw",
+   "name": "GA4 Credential Test",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "9ecyXUgQcwXPA088",
+   "name": "LT - Voice Migration - Add pipeline_stage Column",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "9HT13te9FalOtUZM",
+   "name": "LT - Booking Link SMS Redirect (Webhook)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "9Y3Kedm768kkwwSV",
+   "name": "LT - Company MQL Google Sheets Sync",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "AEi1VCzkLvaYFr4U",
+   "name": "LT - SimpleTexting Delivery Events (Webhook)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "aomO3Z4AXJIgEvvN",
+   "name": "LT - Report Config Sync",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "apeJUQFsvsjiaRuz",
+   "name": "LT - SimpleTexting Send Count Check",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "aYT5oHcgmBALzHy5",
+   "name": "LT - GHL Daily Sales Ingest",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "b41Sas8FVVrytZrl",
+   "name": "LT - GHL Email Template Campaign Dispatcher (STAGED)",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "BaHZ5jTXdQ99D6Zp",
+   "name": "LT - Call Outcome Ingest",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "BIVAw1AWTTzC0igW",
+   "name": "LT - IG & FB Company Page Enrichment",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "BLr1x1HKdgM1Xfxk",
+   "name": "LT - Emerald CSV -> GHL Import (DryRun, Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "Bukc0mgOD2r7V6ED",
+   "name": "LT - Report Executive Summary API",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "bYk1Ai6MJLyhTsDZ",
+   "name": "LT - Voice Queue Vapi Intake Poller",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "ceaKnz6E3onQrZpt",
+   "name": "LT - LinkedIn Connection State Sync (Unipile)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "CFfNeRBRuo7YRBjl",
+   "name": "LT - GHL Call Outcomes Ingest",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "CfpedDQWxoJLEMdL",
+   "name": "LT - Unipile Sales Navigator V2 Inbound (DRAFT)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "CqkIQuCArxvIEuBk",
+   "name": "LT - Report Pipeline Velocity",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "crKIsaL5k3YBfqDZ",
+   "name": "LT - Partnership LinkedIn Dispatcher",
+   "active": false,
+   "timezone": "America/Chicago"
+  },
+  {
+   "id": "d0tEtijajisIsYcs",
+   "name": "LT - LinkedIn DM Sequence (Unipile)",
+   "active": false,
+   "timezone": ""
+  },
+  {
+   "id": "dIQascjRloXs4FNB",
+   "name": "LT - GHL Daily Leads Ingest",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "dLzlfXsqA5r8pDrq",
+   "name": "LT - Backfill Vapi Timezones",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "dMDbLSzPSSrHo1wK",
+   "name": "LT - Emerald Intro Sent -> P2 Queue Dispatcher (Staged)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "DNwar2RUUBk8EJAQ",
+   "name": "LT - Sales Navigator Readonly Table Discovery (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "Dqy8FEdbCUfFhaUe",
+   "name": "Test Activation",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "dUyOfxllvkxZavaw",
+   "name": "LT - SimpleTexting Campaign Step Runner",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "dZQLlbTLkpE1843X",
+   "name": "LT - SimpleTexting Warmup Dispatcher (Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "eauOm3fIqvnL6oWs",
+   "name": "LT - Report Rollup Corrections",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "eeksgD0fbGHUqh4r",
+   "name": "LT - Sales Outreach Jason Marc No-Owner Allocator",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "EhAiGey2o7UJT1cv",
+   "name": "LT - SimpleTexting Inbound Reply (Webhook, Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "Ej3ZlC5QhIbUZQnM",
+   "name": "LT - Activation Test",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "enkF6Y25bvzVSPr0",
+   "name": "LT - Instagram DM State Upsert",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "EUeOiRttoVLQ9zF9",
+   "name": "LT - Report Daily Rollups",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "ew6uQQnAjgCbjeGn",
+   "name": "LT - Partnership LinkedIn URL Update",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "f4VoO1lBWkYRcQai",
+   "name": "LT - SimpleTexting Provider Outbound Router",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "f87KRQ1Slhs9VUxJ",
+   "name": "LT - Mass Email Provider Event Ingest (STAGED)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "fg06Ip8wT3EapfdD",
+   "name": "LT - Brands Pool to Postgres + Sheets",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "fOVBHwti9rC3qrLV",
+   "name": "LT - GSC Rollup Bridge",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "FQE90HDUilFVdASY",
+   "name": "WL - Webhook to Slack Channel - Form Submission",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "fx4UvKUWbqJEY3LK",
+   "name": "LT - Voice Agent V1 Vapi Callback + Tools",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "fXxw5lanZcDmUrst",
+   "name": "LT - GHL LinkedIn Connect Dispatcher",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "g7e33v9ksSnRurUZ",
+   "name": "LT - SimpleTexting State Diagnostic",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "gfZcWpzuWBqWyNRP",
+   "name": "GRD_Note_Upload_Batch",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "GHVYyYmhfNiZ7bbN",
+   "name": "LT - Emerald Executive SSO -> Company Sync (Staged)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "GOlNNAZ50xydORRg",
+   "name": "My workflow",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "GQv0yNqDtibOXMB8",
+   "name": "LT - Vertical LinkedIn Sales Navigator DM Sequence",
+   "active": false,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "gwaEpWDpTIwsafi8",
+   "name": "LT - SMS Idempotent Send",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "HbhYLZwEM8NClSnU",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "hCsfu0WuFEU3UTnN",
+   "name": "LT - Report Pipeline Velocity",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "HkTQ9mqwHcpg3AIM",
+   "name": "LT - Newsletter Open Pixel",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "HpgL5E5CcHKqz7Oi",
+   "name": "LT - Instagram Company Page Identity Validator",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "hxiiYCpEfMuoSt5H",
+   "name": "LT - Campaign Email Reply Poller",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "HZ8ndNF4p80PrQjf",
+   "name": "LT - Newsletter Click Track",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "i0pROHpFtN4LYR0Q",
+   "name": "LT - SimpleTexting Inbound Reply (Webhook)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "iCnY6ccdHhfJg3sf",
+   "name": "LT - Instagram DM Sequence (Unipile)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "IduCoT5YOs0g2faT",
+   "name": "LT - Campaign Contact Classifier",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "IeovbYnhCsetXS89",
+   "name": "LT - Instagram Company Page Partnership Sender",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "if0Siw6KzlBItEbd",
+   "name": "LT - GSC Daily Ingest",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "iFfwh0jpYUZoDhDR",
+   "name": "LT - Report Pipeline Velocity",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "IPN8jnR3XSurX0o1",
+   "name": "LT - LinkedIn DM Suppression from GHL Tag",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "iQ80zfEH3JiulLNv",
+   "name": "LT - Instagram Company Page Source Import",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "IyBKMkpYQ7pa0C8V",
+   "name": "LT - SimpleTexting Unsubscribe Events (Webhook)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "J4B0n0QeSeOeqAci",
+   "name": "GHL Warm Intake - Email Outbound Tag (Webhook)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "J5uwS4Dn83JDpYs5",
+   "name": "LT - Power Dialer Queue Builder",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "J7xZH6BBnoXEQsoB",
+   "name": "LT - Mass Email Open Tracking (STAGED)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "JH8ShfpglWmLMZ3l",
+   "name": "LT - Apollo Phone Enrichment Polling",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "JLuLRbRkVB1STnL0",
+   "name": "LT - Correct Partnership Email Reply Timestamp",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "JRw9qnckedWzfcf6",
+   "name": "LT - Voice Agent V1 Vapi Callback + Tools",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "JUvrA7qMa24SwAZG",
+   "name": "LT - LinkedIn Conversation Backfill",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "kBuW8Uq3EOJFQKNF",
+   "name": "LT - Executive V1 Reporting Cache Refresh",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "KftL5ohZKPjIinUY",
+   "name": "LT - Export Unknown Contact Sources 90d",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "KlBw3ThLbNlMfE2J",
+   "name": "LT - Executive Report V1 Response SLA Materializer",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "knc2wxe4pyYIJ5tw",
+   "name": "LT - Executive Report V1 Data Materializer",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "kqIi8i1RjFAZKrK3",
+   "name": "LT - Social Provider Outbound Router",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "KQjosWjChMYbhZkF",
+   "name": "LT - Last-Touch Owner Resolver + 14-Day Backfill",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "KsBMFcz1YpBGrjDW",
+   "name": "LT - Voice Dequeue Next",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "KsJ3xkDoIfXzjVDw",
+   "name": "LT - Vertical LinkedIn Connection Dispatcher",
+   "active": false,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "kVCTmy1m8fEyP6Q7",
+   "name": "LT - Cold Outreach CSV -> Postgres Ingest (Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "L7OOqQ6vH7BOQ48w",
+   "name": "LT - Voice Tag Audit Query (temp)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "lBPUy5OFO6pHAdL4",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "lHtnzhwA3Pr7QzJt",
+   "name": "LT - Sales Navigator Readonly Column Discovery (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "lQTW0QPwBcf3o7j8",
+   "name": "WL - Webhook to Slack Channel Update",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "M5mXcDTFSko6EdHb",
+   "name": "LT - Report QA and Alerts",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "Mf4wdFNurt5vyQu4",
+   "name": "LT - GHL OAuth Token Refresh",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "MI91SutAbAj3QSXp",
+   "name": "GHL - MQL Tag -> Ensure Warm Qualified Opportunity (Webhook)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "mRDw57IHtnQe4wOo",
+   "name": "LT - Partnership Reply Handler",
+   "active": true,
+   "timezone": "America/New_York"
+  },
+  {
+   "id": "mSegmpMUd0DRwFEx",
+   "name": "LT - Emerald CSV -> Postgres Ingest (Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "MvPLbUAN9IIQikxb",
+   "name": "LT - Report Campaign Channel Summary",
+   "active": true,
+   "timezone": "America/New_York"
+  },
+  {
+   "id": "nspggypNF245xzeL",
+   "name": "LT - Partnership LinkedIn DM Sequence",
+   "active": false,
+   "timezone": "America/Chicago"
+  },
+  {
+   "id": "NTpQnMrpjzusPXHX",
+   "name": "LT - Cold Outreach Sender Release Dispatcher (Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "nuuB3qCKxr7J6iPw",
+   "name": "LT - Temp Social Map Maintenance 2026-07-16",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "OGnADUQKd5z5f905",
+   "name": "LT - Emerging Pool Go Live Helper",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "Old7ZvyVYgFaJgDr",
+   "name": "LT - LinkedIn Connection State Upsert",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "OowP3sAd8c9paSKf",
+   "name": "GHL Warm Intake - Add Intake Tag (Webhook)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "orJrDqR6hQjgPLpg",
+   "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "osIJOgBmWITF5Yuv",
+   "name": "LT - GHL Daily Leads Ingest",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "OtqWjqGXZC3OcrXP",
+   "name": "LT - GHL Daily Leads Ingest",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "oxYDg6XnRBKhl1Xd",
+   "name": "LT - Executive Report V1 Facts API",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "p1RkRjjPMoVhSz0I",
+   "name": "Form Submissions from Website with no downloads",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "pISlgYUsyJIrLuJd",
+   "name": "LT - Instagram Unipile New Messages",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "pq7XVajNFnnwMUTr",
+   "name": "LT - LinkedIn Follower DM Sequence (Unipile)",
+   "active": false,
+   "timezone": "America/New_York"
+  },
+  {
+   "id": "pRq3Mh24mnnKsjuQ",
+   "name": "LT - Vapi Timezone Backfill",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "PUCfTZBANSPcgS0c",
+   "name": "LT - Call Outcome Ingest",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "Q3Ivnwe4z2Y3cD7A",
+   "name": "LT - SimpleTexting SMS Send (Webhook, Staged)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "q7qbjjm6185WeukV",
+   "name": "LT - Dispensaries Pool to Postgres + Sheets",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "Qd7sn9MPq4W24WKi",
+   "name": "LT - IG & FB Dispensary Page Enrichment",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "QfJ2EZcc7lZwNgxj",
+   "name": "LT - LinkedIn Reply Backfill (Unipile)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "Qtlq4j0d0x6s7RYc",
+   "name": "TEMP - Voice TZ Counts 20260526-003422",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "QZoqCaTwDhbym80O",
+   "name": "LT - GHL Daily Social Ingest",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "R1gTdLkbjJUPAr6u",
+   "name": "LT - Voice Agent V1 Vapi Callback + Tools Copy",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "r7UjWLndmc6EqEUW",
+   "name": "LT - Voice Agent V1 Outbound Dialer (Vapi)",
+   "active": true,
+   "timezone": "America/Chicago"
+  },
+  {
+   "id": "rcvTMprJKga9aEJ6",
+   "name": "LT - LinkedIn Connected Tag Sync",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "RFIZ9Bcfl3Yvms2b",
+   "name": "LT - Vapi Campaign Queue Feeder",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "Rg75M56vfbRuioeC",
+   "name": "Temp: Backfill voice_call_queue campaign_ids",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "RIszKsd6dAh6GrU4",
+   "name": "LT - Campaign LinkedIn Reply Poller",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "RL5ZyUoshSPbmVA1",
+   "name": "LT - Apollo Queued Timeout Reaper",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "RlogFNDYjtjkuRFJ",
+   "name": "LT - IG & FB Partnership Page Enrichment",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "rP3ff1VNo1FpyHG0",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "Rrsigvi8AhH3iR55",
+   "name": "LT - Executive Summary and Channels Cache Refresh",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "RSfLF7LU0rDC4jAI",
+   "name": "Website Lead Intake from Footer Form",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "RTV5jUiTt05lad07",
+   "name": "Website Lead Intake from Hero form",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "RvYusUSGB79K2e2k",
+   "name": "LT - Newsletter Unsubscribe",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "SA5SF1cZQcVf3IyB",
+   "name": "LT - GHL Outbound Call Event Ledger (Webhook)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "sFrvSJIZusAbrsFx",
+   "name": "LT - Sales Navigator V2 Uncertain Write Reconciler",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "shi9VrWUoXach2Hc",
+   "name": "LT - Sales Navigator V2 Schema Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "SmMf8QIfysuxQJbG",
+   "name": "GHL Warm Intake - Email Inbound Tag (Webhook)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "SqNQ0BYaTdcqyt1l",
+   "name": "LT - GHL Daily Calls Ingest",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "T28iLcm4Hszo19MG",
+   "name": "LT - Cold Outreach CSV -> GHL Import (DryRun, Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "t4TfmnUtPTonPYzd",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "t5frjtbuKzVZI294",
+   "name": "LT - GHL Email Template Trigger Intake (STAGED)",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "t5ty7HxgFSsgLX7l",
+   "name": "LT - GHL Daily Leads Ingest copy",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "TbYFpB80xSlRZ6gy",
+   "name": "LT - Mass Email Click Tracking (STAGED)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "ToMOV6FElZD4ezZN",
+   "name": "LT - Meta Ads Daily Ingest (Staged)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "toUG1yPDmFG48KEP",
+   "name": "LT - DAN Campaign Sender Release Dispatcher (Staged)",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "u33o2oG9FNXJ3ZrY",
+   "name": "LT - Sales Navigator Identity Readonly Counts (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "U7c6byTLXAMgcS75",
+   "name": "GHL Apollo Phone Enrichment - Callback Handler V4",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "U9oc2tZRsr4zq6IM",
+   "name": "LT - MQL Tag Event Ingest",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "ufqTCVwgUcLfIUSp",
+   "name": "LT - Report Social Statistics",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "UnSWPnVoUy3tNJkX",
+   "name": "LT - GHL OAuth Callback",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "URbeg7Y6onVmQQt1",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "URpjcm2k5isHUyls",
+   "name": "LT - Inbound Intent Priority Router",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "usxYXSuc4ahw40V3",
+   "name": "LT - SimpleTexting Pool Dispatcher (Staged)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "UUi1HUZvtJRMqlGM",
+   "name": "LT - Emerging Pool to Postgres + Sheets",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "UUTjW9GZX2lJ6zpt",
+   "name": "LT - Voice Agent V1 Outbound Dialer (Vapi) v2",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "v2eMeP05wjxqCTFe",
+   "name": "TMP - Reset Emerald Executive SSO Company Sync Queue",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "veg9jbN1P67Xmqy8",
+   "name": "LT - GHL Social Statistics Ingest",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "VI39o4X954fYDjOQ",
+   "name": "LT - Opportunity Owner to Contact Owner Sync",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "vkKydDzHfA7zDlii",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "VPiHfBwzOHaJnHBY",
+   "name": "LT - LinkedIn Relations Backfill (Unipile)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "vru7OtCkDnPJkWt2",
+   "name": "LT - Newsletter Dispatcher",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "vRXRFC6IwIxUME2k",
+   "name": "LT - GHL Email Template Campaign Queue (STAGED)",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "vvPdJMzBJMgcf5I9",
+   "name": "LT - Newsletter Contact Prep",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "VXFHc8IrF9DDEEdj",
+   "name": "LT - Report Outgoing Calls Detail",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "wBy0fi5lpFUMDS94",
+   "name": "LT - MQL Tag Ingest (Webhook)",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "WcuEAOFY2pMTyumV",
+   "name": "TMP - Reset Emerald SSO Bad Cache Rows",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "WFIrD47cHMoiqIKF",
+   "name": "LT - Export Unknown Contact Sources",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "WhEpQsUE7SWRIWnJ",
+   "name": "LT - Meta Ads Daily Ingest",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "WmKAhG7mIaXonNsh",
+   "name": "GHL Apollo Enrichment - Webhook Intake (Sheet First)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "wnpVYUNFLyNe5cS6",
+   "name": "LT - LinkedIn DM Sequence Test (No Delay)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "WuxgTa0EEL1mb2SA",
+   "name": "GHL Apollo Enrichment - Phone Webhook Intake (Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "wYLF75k1OGwKZ72Y",
+   "name": "LT - Report Pipeline Velocity",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "WYyZ7HoZWnCcQDYN",
+   "name": "PDF Download from Form on Website",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "x5vUQ34IcyKggdqP",
+   "name": "LT - Meeting Outcome Reminder",
+   "active": true,
+   "timezone": "America/Los_Angeles"
+  },
+  {
+   "id": "xHqmCC1vOeZ11gCd",
+   "name": "LT - GSC Daily Ingest",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "XiOTlG36vmOTnL01",
+   "name": "LT - Emerald Intro Backfill Tagger (Staged)",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "Xshck23cKo1yXL9D",
+   "name": "LT - Partnership Email Dispatcher",
+   "active": true,
+   "timezone": "America/New_York"
+  },
+  {
+   "id": "XzcpOBi9YcIhJPck",
+   "name": "LT - Voice Queue Enqueue",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "Y0TU7Il71JswxOBp",
+   "name": "LT - Report Attribution Bridge",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "YaWizRnw7XmkcvZH",
+   "name": "GHL Apollo Phone Enrichment - Callback Handler",
+   "active": false,
+   "timezone": "UTC"
+  },
+  {
+   "id": "YbGxKgR7mdXwMspc",
+   "name": "LT - Campaign Email Cohort Reply Poller",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "ylhTKtLlJOxTc61R",
+   "name": "LT - Sales Navigator Readonly Column Discovery (one-time)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "yWZVSqEcjTbMT3kG",
+   "name": "LT - GHL Daily Appointments Ingest",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "YZpytMC97P3ihExu",
+   "name": "LT - SimpleTexting State Debug",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "z0Sq4AE3Xdbgw2Yh",
+   "name": "LT - Vertical Sender Assign (Webhook)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "z6QNjmG6ijys53Mj",
+   "name": "LT - Emerging Pool to Google Sheets",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "z7y6FEf86x7u0MBz",
+   "name": "LT - LinkedIn Profile Index Apply (one-time)",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "ZhD0CB9m4IyW3S5L",
+   "name": "LT - Call Outcome Ingest",
+   "active": false,
+   "timezone": null
+  },
+  {
+   "id": "ZiYEBuP7xdddhnUB",
+   "name": "LT - Sales Navigator Provider Gateway (DRAFT)",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "zmrYrUjVcyXaS7PJ",
+   "name": "LT - Partnership Bulk Import",
+   "active": true,
+   "timezone": "UTC"
+  },
+  {
+   "id": "ZrqFN8qLKO8eVHDc",
+   "name": "LT - Email Event Ingest",
+   "active": true,
+   "timezone": null
+  },
+  {
+   "id": "Zt8p2aYtIuY0HK18",
+   "name": "LT - LinkedIn Connection Request (Unipile) (Internal Test)",
+   "active": false,
+   "timezone": "UTC"
+  }
+ ]
+}

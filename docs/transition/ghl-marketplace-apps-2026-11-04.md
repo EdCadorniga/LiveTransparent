@@ -1,0 +1,24 @@
+# GHL Developer / Marketplace app evidence — 2026-11-04
+
+**Portal access result:** read-only browser visit to `https://marketplace.gohighlevel.com/` returned the public landing page with **Sign In**, not an authenticated developer dashboard. No app listing or app settings were available. No login, OAuth grant, app edit, or provider test occurred. Therefore **zero apps are portal-verified in this pass**.
+
+| Candidate app | Evidence source | What can be said | Not yet verified |
+|---|---|---|---|
+| SalesNavigator via Unipile (`6abd41c58a3e9cb4acdbc555`) | Owner-supplied dashboard screenshot described in [plan](../transition-plan.md#1c-ghl-developer--marketplace-app-inventory); dated project records | Screenshot marked Live v1.1.0; n8n-lt V2 inbound and provider gateway are active. | Portal settings, scopes/grant, installed locations, whether OAuth redirect completes, webhook subscription, account health. |
+| SMS via SimpleTexting (`6a5b8e67ab44faa209beb1f5`) | Same screenshot; dated project records | Screenshot marked Live v1.0.0; n8n-lt provider router and SMS sender are active. | Install count/location, callback/provider settings, current app scopes. |
+| Transparent eCom Social Inbox (`6a57dec68099a1e7cf68a266`) | Same screenshot; dated project records | Screenshot marked Live v1.1.0; n8n-lt Social Provider Outbound Router is active. | Current portal callback/installation and provider registration. |
+| **Fourth live app — unidentified (RESOLVED 2026-11-05)** | Owner statement | **Ed confirmed (2026-11-05, later) that there is no fourth app.** The three named apps above are the complete application list; the dashboard's "4 total live apps" aggregate is informational only. | ~~Identity~~ Closed by owner statement; only the dashboard-count semantics remain unexplained (informational). |
+
+The screenshot also reports 34 total installs and five active accounts **for the selected range**, not per-app installation or operational proof. Project records mention conversation-provider IDs and workflow associations, but they are historical, not a fresh portal read. In particular, a GET route on the Sales Navigator provider gateway did not complete a Marketplace OAuth exchange as of the documented October 13 analysis; n8n OAuth credential connectivity is a different claim. Obtain owner-authenticated developer access and inspect the all-app listing, each app's versions/scopes/redirects/subscriptions/installations, and the location-side integration before promoting any of these to portal-verified facts. No remediation recommended without that readback.
+
+## Owner clarification — 2026-11-05
+
+Ed clarified that the Social Inbox/LinkedIn/Sales Navigator app family exists to expose LinkedIn, social, and LinkedIn Sales Navigator conversations inside GHL Conversations, so GHL users can respond to customers through those apps. This is owner-reported purpose, not verification of any particular app's install, scope, callback, provider ID, or current operational state. The Developer portal app-by-app inventory remains blocked pending authenticated read-only access; the fourth app remains unidentified.
+
+## Owner resolution — 2026-11-05 (later)
+
+**Ed confirmed there is no fourth app.** The application list is the three apps identified above; the screenshot dashboard's "4 total live apps" aggregate for the selected date range is treated as informational only (possible install/account-count or range semantics) — the discrepancy is not resolved by portal readback, but no additional application exists by owner statement. This closes the "identify the fourth app" acceptance item as **resolved by owner statement (2026-11-05)**; do not look for a fourth app further. The remaining 1C item — app-by-app portal enumeration of the three known apps (installs, scopes, callbacks, subscriptions, provider configuration) — still requires authenticated read-only portal access and stays blocked/optional per the plan's evidence rules.
+
+## Authenticated-browser follow-up — 2026-11-05
+
+Ed reported that an authenticated Chrome session is available at the Marketplace. The browser session exposed to this agent was checked read-only: the selected tab at `https://marketplace.gohighlevel.com/` rendered the public landing page with a **Sign In** link; following that link opened `https://marketplace.gohighlevel.com/login` with email/password and Google sign-in controls, not an authenticated app dashboard. No credentials were entered and no app data/settings were accessed. This indicates the authenticated browser context has not yet been attached/exposed to this session; it does not dispute that Ed is logged in in another Chrome context. App-by-app verification remains blocked until that authenticated context is available (or Ed provides an owner-controlled screen share/read-only evidence). No install, app setting, OAuth grant, callback, or provider change occurred.

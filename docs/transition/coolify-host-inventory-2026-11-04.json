@@ -1,0 +1,27 @@
+{
+  "docker_version": {
+    "exit": 0,
+    "output": "29.6.2",
+    "error": ""
+  },
+  "compose_projects": {
+    "exit": 0,
+    "output": "[{\"Name\":\"coolify-proxy\",\"Status\":\"running(1)\",\"ConfigFiles\":\"/data/coolify/proxy/docker-compose.yml\"},{\"Name\":\"n44wksswcocwk88ogcog8c48\",\"Status\":\"running(2)\",\"ConfigFiles\":\"/data/coolify/services/n44wksswcocwk88ogcog8c48/docker-compose.yml\"},{\"Name\":\"sales-navigator-media\",\"Status\":\"running(1)\",\"ConfigFiles\":\"/srv/livetransparent/sales-navigator-media/docker-compose.yml\"},{\"Name\":\"source\",\"Status\":\"running(3)\",\"ConfigFiles\":\"/data/coolify/source/docker-compose.yml,/data/coolify/source/docker-compose.prod.yml\"},{\"Name\":\"uokgs4c04ko0s4scccg40cgg\",\"Status\":\"running(1)\",\"ConfigFiles\":\"/data/coolify/services/uokgs4c04ko0s4scccg40cgg/docker-compose.yml\"},{\"Name\":\"v3ud1lum1svamymuor21upog\",\"Status\":\"running(1)\",\"ConfigFiles\":\"/data/coolify/applications/v3ud1lum1svamymuor21upog/docker-compose.yaml\"},{\"Name\":\"vkrlibgdjdi4u6iz8hokue00\",\"Status\":\"running(1)\",\"ConfigFiles\":\"/artifacts/otslcb42ud0plok31ajdrman/docker-compose.yaml\"}]",
+    "error": ""
+  },
+  "containers": {
+    "exit": 0,
+    "output": "coolify|coollabsio/coolify:4.6.0|Up 13 hours (healthy)|8000/tcp, 8443/tcp, 0.0.0.0:6001-6002->6001-6002/tcp, [::]:6001-6002->6001-6002/tcp, 9000/tcp, 0.0.0.0:8000->8080/tcp, [::]:8000->8080/tcp\ncoolify-db|postgres:15-alpine|Up 13 hours (healthy)|5432/tcp\ncoolify-redis|redis:7-alpine|Up 13 hours (healthy)|6379/tcp\nhca8|mcr.microsoft.com/playwright:v1.48.2-jammy|Exited (0) 5 days ago|\nhca7|mcr.microsoft.com/playwright:v1.48.2-jammy|Exited (0) 5 days ago|\nhca6|mcr.microsoft.com/playwright:v1.48.2-jammy|Exited (0) 5 days ago|\nhca5|mcr.microsoft.com/playwright:v1.48.2-jammy|Exited (0) 5 days ago|\nhca4|mcr.microsoft.com/playwright:v1.48.2-jammy|Exited (0) 5 days ago|\nhca3|mcr.microsoft.com/playwright:v1.48.2-jammy|Exited (0) 5 days ago|\nhca2|mcr.microsoft.com/playwright:v1.48.2-jammy|Exited (0) 5 days ago|\nhcm1|mcr.microsoft.com/playwright:v1.48.2-jammy|Exited (0) 5 days ago|\ncoolify-sentinel|coollabsio/sentinel:1.1.3|Up 6 days (healthy)|\nreports-livetransparent|v3ud1lum1svamymuor21upog:executive-v1-20261019-opportunity-actions|Up 9 days|80/tcp\nn8n-runner-n44wksswcocwk88ogcog8c48|n44wksswcocwk88ogcog8c48-n8n-runner|Up 9 days|5680/tcp\nn8n-n44wksswcocwk88ogcog8c48|n8nio/n8n:2.44.6|Up 9 days|5678/tcp\nsales-navigator-media-sales-navigator-media-1|sales-navigator-media-sales-navigator-media|Up 2 weeks|8080/tcp\nvkrlibgdjdi4u6iz8hokue00-200808650013|localhost:5000/livetransparent-sample-landing:review|Up 2 weeks|80/tcp\nvkrlibgdjdi4u6iz8hokue00|localhost:5000/livetransparent-sample-landing:review|Up 2 weeks|80/tcp\nsample-landing-registry|registry:2|Up 2 weeks|127.0.0.1:5000->5000/tcp\npostgres-uokgs4c04ko0s4scccg40cgg|postgres:17.7|Up 2 weeks (healthy)|5432/tcp\ncoolify-proxy|traefik:v3.6.11|Up 2 weeks (healthy)|0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp, 0.0.0.0:443->443/udp, [::]:443->443/udp",
+    "error": ""
+  },
+  "networks": {
+    "exit": 0,
+    "output": "bridge|bridge|local\ncoolify|bridge|local\ncoolify-shared|bridge|local\nhost|host|local\nn44wksswcocwk88ogcog8c48|bridge|local\nnone|null|local\nsource_default|bridge|local\nuokgs4c04ko0s4scccg40cgg|bridge|local",
+    "error": ""
+  },
+  "volumes": {
+    "exit": 0,
+    "output": "7663d54ed0c4a742f05bb16afc779dec68f1261611b9c7c303fe114ed11f8e26|local\ncoolify-db|local\ncoolify-redis|local\nn8n_data|local\nn44wksswcocwk88ogcog8c48_n8n-data|local\nuokgs4c04ko0s4scccg40cgg_postgres-data|local",
+    "error": ""
+  }
+}

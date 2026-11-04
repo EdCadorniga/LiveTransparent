@@ -2,6 +2,10 @@
 
 Updated: 2026-09-17
 
+> **Freshness notice (2026-11-05):** the script filename lists/counts below are a 2026-09-17 snapshot and are stale. A bounded metadata-only census now finds 242 script-like files (1,256,534 bytes) under `scripts/`, compared with the older per-domain lists below. See [`scripts/README.md`](../scripts/README.md) for current directory counts. Do not use the old lists as a complete inventory or infer that any listed/unlisted file is safe, maintained, or disposable. Exact-path review remains part of the developer transition; nothing was run or removed for this census.
+>
+> **Dated exact-path evidence (2026-11-05), supersedes treating this map as an inventory:** reviewed per-path classification with sensitivity/doc-reference data is now maintained as a transition artifact — see [`docs/transition/scripts-classification-2026-11-05.md`](transition/scripts-classification-2026-11-05.md), [`docs/transition/n8n-archive-classification-2026-11-05.md`](transition/n8n-archive-classification-2026-11-05.md), and [`docs/transition/tmp-artifacts-classification-2026-11-05.md`](transition/tmp-artifacts-classification-2026-11-05.md) (all review-only proposals, not deletions).
+
 This map describes the repository boundaries after the file-organization cleanup. Git and the live system remain authoritative for current state; this file is a navigation index, not a substitute for runbooks.
 
 ## Operating boundaries

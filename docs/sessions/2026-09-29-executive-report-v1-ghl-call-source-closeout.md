@@ -59,7 +59,7 @@ The captured widget values are exact for that window only. They are not evidence
 4. **Evaluate two-window API access.** If GHL grants supported access or a supported export format is available, run selected `7d` and immediately prior `7d` windows, confirm cursor/date semantics, status mapping, deduplication, and parity. Do not update V1 call values until this passes.
 5. **Keep webhook work optional and forward-only.** Do not enable Marketplace subscription as a historical-data fix. If later enabled for a separate realtime ledger, require genuine signature-positive validation, idempotent persistence, and source precedence before using its facts.
 6. **Maintain V1 display boundary.** Keep the exact-week snapshot as-is; show other ranges as incomplete/unavailable until a supported source has passed reconciliation. Do not substitute private browser routes or fabricated event payloads.
-7. **Close out with documentation.** Record versions, exact execution IDs and node-level evidence, reconciliation totals, unresolved source gaps, final worktree, and next actions in this handoff and project status. Refresh `repomix-output.md` with `packlive` only after documentation is final.
+7. **Close out with documentation.** Record versions, exact execution IDs and node-level evidence, reconciliation totals, unresolved source gaps, final worktree, and next actions in this handoff and project status. Historical Repomix guidance in this handoff was retired on 2026-11-04; do not generate a replacement bundle.
 
 ## Safety boundaries
 

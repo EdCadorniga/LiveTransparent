@@ -11,7 +11,7 @@ whether the "API key" and the PIT are the same in form and function.
 ## Completed
 
 - `.env` (`C:\1_Ed's Active Work\Projects\LiveTransparent\.env`): `GHL_PIT`, `GHL_API_KEY`,
-  and `GHL_PIT_LT_HERMES` all now hold the new full-access PIT (`pit-d25ac994-...`).
+  and `GHL_PIT_LT_HERMES` all now hold the new full-access PIT (`<redacted-pit>...`).
   Pre-rotation backup: `%LOCALAPPDATA%\Temp\lt_pit_rotation\.env.backup.20260910_100618`.
   `.env` is gitignored/local-only; nothing committed or pushed.
 - Live n8n workflows: rotated all 4 old tokens to the new PIT in **70 of 75** workflows via

@@ -14,7 +14,7 @@ Implemented and published the fix; the checker now works end-to-end.
   - 3 `linkedin_activity_events` `connection_accepted` rows.
   - Negative test (`gwelen`, a pending invitee; Unipile `THIRD_DEGREE`): `matched:false, reason:not_connected`; no tag/upsert; state row untouched (`requested`).
 - **Note:** n8n will not retry a succeeded execution (`POST /executions/{id}/retry` → "The execution succeeded, so it cannot be retried"), so the stored webhook bodies were replayed directly against `https://automations.livetransparent.com/webhook/lt-linkedin-connection-accepted`.
-- **STILL OPEN — security:** the `Config` Code node printed a plaintext GHL PIT (`pit-d25ac994-…`) and `stateUpsertSecret` into this and the prior session. Rotate `stateUpsertSecret` (evaluate the PIT) and migrate the `Config` literals to a Set node.
+- **STILL OPEN — security:** the `Config` Code node printed a plaintext GHL PIT (`<redacted-pit>…`) and `stateUpsertSecret` into this and the prior session. Rotate `stateUpsertSecret` (evaluate the PIT) and migrate the `Config` literals to a Set node.
 - **Optional backstop (not created):** a Unipile USERS webhook subscribed to `new_relation` (catches accepts without notes; delayed up to 8h).
 
 ## Objective / scope

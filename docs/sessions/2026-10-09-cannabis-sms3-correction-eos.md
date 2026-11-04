@@ -4,7 +4,7 @@
 
 ## New vertical setup priority (2026-10-09)
 
-> **Superseded for campaign setup by the Crypto-first EOS:** [`docs/sessions/2026-10-09-remaining-vertical-campaigns-crypto-eos.md`](docs/sessions/2026-10-09-remaining-vertical-campaigns-crypto-eos.md). That handoff records the verified Crypto assets/workflow, confirmed order Crypto → Cannabis Dispensaries → Gambling → Peptides, exact template-spacing checks, and a copy-ready prompt for the next LLM. This file remains the authoritative history for the Cannabis SMS3 correction, active-contact check, and deferred inbound→MQL review.
+> **Superseded for campaign setup by the Crypto-first EOS:** [`2026-10-09-remaining-vertical-campaigns-crypto-eos.md`](2026-10-09-remaining-vertical-campaigns-crypto-eos.md). That handoff records the verified Crypto assets/workflow, confirmed order Crypto → Cannabis Dispensaries → Gambling → Peptides, exact template-spacing checks, and a copy-ready prompt for the next LLM. This file remains the authoritative history for the Cannabis SMS3 correction, active-contact check, and deferred inbound→MQL review.
 
 - Ed wants the remaining vertical automations set up one at a time, starting with email templates, SMS templates/snippets, and tags, then completing the same end-to-end build process used for Alcohol and the other verticals.
 - Fresh GHL workflow-list readbacks confirm four pre-created workflows, each Draft with 0 total / 0 active enrollment: Crypto Multi-Channel Outbound - Oct 2026; Cannabis Dispensaries Multi-Channel Outbound - Oct 2026; Gambling Multi-Channel Outbound - Oct 2026; Peptides Multi-Channel Outbound - Oct 2026.

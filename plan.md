@@ -1,10 +1,22 @@
 # Plan Pointer
 
+## CURRENT 2026-11-04 — Developer transition
+
+The active cross-project transition and cleanup plan is [`docs/transition-plan.md`](docs/transition-plan.md). Its initial review is complete; **follow the progress ledger and update that file immediately after finishing each item**, with evidence, result and remaining blockers. Read-only n8n-lt and Docker/Coolify host snapshots are in [`docs/transition/`](docs/transition/). Personal invoicing is outside project scope. Ed authorized removal of the root `repomix-output.md`; it must not be recreated or replaced. No other cleanup or production changes are authorized by this plan.
+
+**2026-11-04 continuation:** plan reviewed and refined with an evidence gate and acceptance checks. Ten active-name exceptions were freshly verified; generated Coolify service/mount metadata was checked; the GHL Developer portal requires owner-authenticated access, and saved Coolify configuration, backup schedule and restore test remain unverified. See [exception register](docs/transition/n8n-active-name-exceptions-2026-11-04.md), [app evidence](docs/transition/ghl-marketplace-apps-2026-11-04.md), [host recovery gaps](docs/transition/coolify-configuration-2026-11-04.md), [transition plan](docs/transition-plan.md), and [latest continuation handoff](docs/sessions/2026-11-04-developer-transition-continuation-eos.md). Training-guide reconciliation is now an explicit Phase 2 deliverable.
+
+**2026-11-05 documentation continuation:** the four control documents were cross-checked; bounded stale-state wording corrections are recorded in `Project Specifications.md` and the AGENTS runtime note. The remaining Phase 2 reconciliation is partial and tracked in [`docs/transition-plan.md`](docs/transition-plan.md); no live state is inferred from these documentation edits.
+
+**2026-11-05 evidence continuation:** Phase 1A/1B/1D read-only evidence was completed as recorded in the [transition plan ledger](docs/transition-plan.md) — exception last-observed executions + schedule corroboration, deep-parameter relationship edges, the first direct Coolify saved-config read, and a Postgres schema inventory. Phase 3/4/5 exact-path classifications and a HIGH-severity PIT-exposure finding (rotation/history purge pending owner decision) are recorded there and in the [2026-11-05 evidence EOS](docs/sessions/2026-11-05-developer-transition-evidence-eos.md).
+
+> The dated material below is historical and may be superseded by newer verified status in [`Project Status and Next Steps.md`](Project%20Status%20and%20Next%20Steps.md), [`AGENTS.md`](AGENTS.md), and linked session records. Do not treat old checkpoints as current operational state.
+
 ## ⏳ 2026-10-09: Remaining vertical campaigns — Crypto continuation checkpoint
 
 > **Update 2026-10-09 (later):** all eight vertical campaign SMS Webhooks are now `dryRun=false` (96/96), verified by readback — see the top of `AGENTS.md`. Crypto is now **Published v48** (not Draft). Peptides is Draft v14 with `dryRun=false`. This supersedes the `dryRun=true` and Draft-status checkpoints below.
 
-- Repomix refresh is paused at Ed's request. Do not run Repomix/`packlive` until explicit reauthorization; existing output was restored to its pre-session version.
+- Historical note: Repomix refresh was once paused. On 2026-11-04 Ed directed removal of the root bundle; it is retired and must not be recreated or replaced.
 - Re-read the Crypto PDF/CSV and freshly checked its GHL workflow row: Draft, 0 total / 0 active enrollment; Builder Saved/Draft. Entry trigger, eligibility and sender routing are now Crypto-specific; downstream actions remain Alcohol-derived. No imports, enrollments, sends, provider calls or publication occurred.
 - Crypto PDF cadence is Day 0 LinkedIn (external), Day 1 Email 1 after 1 day, then Day 3 SMS 1 / Day 5 Email 2 / Day 7 voicemail 1 / Day 11 Email 3 / Day 13 SMS 2 / Day 15 Email 4 / Day 19 voicemail 2 / Day 21 SMS 3 / Day 23 Email 5 and a 3-month newsletter handoff. LinkedIn stays separate.
 - The source CSV has 291 data rows; exact-email reconciliation, phone collision handling, cohort eligibility and sender assignment remain unfinished.
@@ -19,7 +31,7 @@
 
 > **ARCHIVE / HISTORICAL.** This file is a chronological log of completed work and older baselines. It is NOT the operational source of truth. For current status, open issues, and next steps use **`Project Status and Next Steps.md`** (canonical) and the latest dated handoff under `docs/sessions/`. Per AGENTS.md document precedence, this file ranks last.
 >
-> **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This plan tracks active work items; it does not repeat the architecture.
+> This is a chronological archive. For current architecture and operations, use `AGENTS.md`, `Project Specifications.md`, `Project Status and Next Steps.md`, the relevant subsystem runbooks, and live system evidence. The generated Repomix bundle was retired on 2026-11-04 and is not a context source.
 
 ## ✅ 2026-09-17: Apollo C-Suite and Marketing September 2026 GHL batch closeout
 

@@ -1,6 +1,6 @@
 # Project Specifications: Outbound Voice Agent and Social Outreach
 
-> **Before reading this file, first review `repomix-output.md` for full system architecture, blueprints, and roadmaps.** This file defines boundaries, guardrails, and contracts; it does not repeat the architecture.
+> This file defines boundaries, guardrails, and contracts. The generated Repomix bundle was retired on 2026-11-04; use the current status, relevant subsystem runbooks, and live system evidence for architecture and operational state.
 
 ## Purpose
 
@@ -45,12 +45,12 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 
 ## Social Outreach Scope
 
-### Current Live LinkedIn State
+### LinkedIn State — dated evidence, refresh before operation
 
-- `LT - GHL LinkedIn Connect Dispatcher (Unipile)` is active and uses the invite copy from `outreach_messages.v2.docx`.
-- `LT - LinkedIn DM Sequence (Unipile)` is active and uses the LinkedIn DM copy from `outreach_messages.v2.docx`.
-- `LT - LinkedIn Unipile New Messages` is active and marks active conversations when inbound replies arrive. Its inbound normalizer must preserve the malformed form-payload fallback because Unipile can send unescaped JSON as the sole form body key; removing that fallback can lose reply sender/message fields.
-- LinkedIn DM sends are blocked when `payload_json.dm_conversation_status = 'active'`.
+This specification is not a live workflow inventory. The latest dated project closeout (2026-10-21) records all nine invite/DM-capable n8n-lt workflows as `active=false`; the 2026-11-04 inventory is the current transition snapshot. See [AGENTS.md](./AGENTS.md) and the [dated n8n inventory](./docs/transition/n8n-workflow-inventory-2026-11-04.md) before any operational decision. Do not infer present activation from the historical descriptions below.
+
+- The inbound normalizer's malformed form-payload fallback is a documented implementation guard; preserve it unless a fresh live read and tested replacement justify a change.
+- The shared-state reply-suppression requirements below are durable design constraints, not evidence that a sender is active.
 
 ### LinkedIn Timing
 
@@ -87,7 +87,9 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 - Replies should trigger a Slack notification in `#lead` so the team can respond without checking n8n first.
 - The preferred model is a shared Postgres state table or a tightly controlled send-state plus response-state pair, but the same contact record must be authoritative for both send and reply logic.
 
-### SMS Missing Steps
+### SMS Campaign Build Steps — historical design checkpoint
+
+**Superseded as a statement of current implementation.** Later project records document a live SimpleTexting sender/provider path and campaign workflows; this checklist must not be treated as proof that these components are unbuilt. Consult the [current project status](./Project%20Status%20and%20Next%20Steps.md), the SimpleTexting runbook/evidence, and a fresh authorized read before operating. Keep the following only as a historical design checklist; its smoke-test/deployment steps are not authorization to perform them.
 
 1. Normalize SMS copy from `outreach_messages.docx` into a template registry.
 2. Define the SMS state schema and idempotency keys.
@@ -159,23 +161,14 @@ Normalized callback output:
 - `vapi_wrong_number`
 - `vapi_contact_disconnected`
 
-## Smoke Test
+## Historical Smoke-Test Outline — Not Authorized for Production Use
 
-1. Seed one queue row with a controlled test number.
-2. Run the outbound workflow manually.
-3. Confirm the Vapi request includes expected metadata.
-4. Send a simulated callback payload.
-5. Confirm Postgres insert plus GHL note creation.
-6. Replay the callback and confirm no duplicate record.
-7. Confirm AI-qualified contacts are excluded from the Vapi queue and a successful warm transfer remains manually claimable by the answering SDR.
+The steps below are retained as historical acceptance ideas, not current operating instructions. They call outbound workflows, send messages, or mutate queue/CRM state and therefore must **not** be run as part of documentation review or routine verification. Production execution, provider tests, queue seeding, callback replay, and CRM/state writes require a separately approved, precisely scoped test plan. Prefer offline mocks and read-only artifact/state inspection; confirm current workflow status and safety gates from dated transition evidence before planning any test.
 
-## Social Outreach Smoke Test
+For the Vapi path, a future isolated test plan may verify metadata mapping, callback idempotency, suppression, and warm-transfer handling with mocks or a non-production harness. Do not seed a live queue row, run the live dialer, or replay a callback against production based on this outline.
 
-1. Verify LinkedIn invite and DM copy are still sourced from `outreach_messages.v2.docx`.
-2. Send one LinkedIn test DM and confirm `linkedin_connection_state` advances exactly one step.
-3. Simulate an inbound LinkedIn reply and confirm `dm_conversation_status` becomes `active`.
-4. Confirm the active conversation is excluded from both LinkedIn DM send paths.
-5. Confirm a replied LinkedIn contact stays excluded from all later automated DM steps, not just the next scheduled run.
-6. Prepare a single SMS test contact and confirm one SMS send is tagged in state.
-7. Simulate an inbound SMS reply and confirm the response workflow updates the same canonical state.
-8. Confirm unsubscribe handling blocks any future SMS sends for opted-out contacts.
+## Historical Social Outreach Test Outline — Not Authorized for Production Use
+
+These are not current instructions to send or simulate messages. LinkedIn outbound workflows were explicitly left inactive in the 2026-10-21 closeout, and the 2026-10-26 withdrawal-hold update requires held identities to remain out of automated queues. Do not infer that a test send is safe because a workflow or provider endpoint exists. Use read-only graph/state review and offline mocks only unless a new, explicit test authorization names the exact sender, recipient, action, and safeguards.
+
+The historical acceptance goals were to check message-copy provenance, sequence-state transitions, inbound-reply suppression, SMS opt-out handling, and deduplication. Any future validation should avoid real external sends and production state mutations unless separately approved; unsubscribe and reply protections must remain fail-closed.

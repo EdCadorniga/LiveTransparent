@@ -19,7 +19,7 @@ Objective: Fix GHL `/conversations/messages` 422 errors in `LT - LinkedIn Unipil
 - Verified correct flow: POST `/oauth/locationToken` with PIT token → get `access_token` → use as Bearer for `/conversations/messages/inbound`
 
 ### Additional Discoveries
-- GHL PIT token (`pit-d25ac994-226d-41ab-8ea9-f3458b6cc845`) works for main API but returns 401 for `/oauth/locationToken` — the OAuth token must come from `ghl_oauth_access_token` stored in Postgres `linkedin_conversation_map` table
+- GHL PIT token (`<redacted-pit>`) works for main API but returns 401 for `/oauth/locationToken` — the OAuth token must come from `ghl_oauth_access_token` stored in Postgres `linkedin_conversation_map` table
 - Postgres database is NOT accessible from local machine (connection refused on port 5432)
 - The n8n webhook at `https://automations.livetransparent.com/webhook/lt-unipile-linkedin-new-messages` accepts POSTs but returns 200 with empty body — workflow execution may be timing out at Postgres-dependent nodes (`Find LinkedIn State Row By Provider`, `Lookup LinkedIn Map and OAuth Token`)
 - The `responseMode: "responseNode"` on the webhook node means n8n waits for `Respond - Mark Conversation Active` node output
