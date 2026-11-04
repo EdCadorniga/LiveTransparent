@@ -23,7 +23,7 @@ The root `scripts/` directory is intentionally organized by operational domain. 
 - `social-reporting/` — social and Executive Report fixes/audits.
 - `utilities/` — shared or cross-cutting helpers that do not belong to one domain.
 
-The complete file-level inventory and repository boundaries are in [`docs/repository-file-map.md`](../docs/repository-file-map.md).
+The dated exact-path classification is [`docs/transition/scripts-classification-2026-11-05.md`](../docs/transition/scripts-classification-2026-11-05.md). [`docs/repository-file-map.md`](../docs/repository-file-map.md) is a navigation index with **incomplete 2026-09-17 filename lists**, not a complete current inventory.
 
 ## Inventory freshness
 

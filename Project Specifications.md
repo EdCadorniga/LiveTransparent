@@ -2,6 +2,8 @@
 
 > This file defines boundaries, guardrails, and contracts. The generated Repomix bundle was retired on 2026-11-04; use the current status, relevant subsystem runbooks, and live system evidence for architecture and operational state.
 
+> **Operational boundary (2026-11-05 local-clock documentation review):** Ed requires production read-only for the developer transition. The implementation/status paragraphs below are dated design or historical observations, not fresh runtime verification or authorization to execute the listed smoke tests, sends, workflow changes, or deployments. Full transition acceptance remains partial; see the [transition ledger](./docs/transition-plan.md) and [closeout decisions](./docs/transition/closeout-decisions-2026-11-05.md).
+
 ## Purpose
 
 Production outbound calling flow for Vapi + n8n + GHL. The agent introduces LiveTransparent, qualifies intent and fit, records call context, and routes outcomes through tool calls.
@@ -36,7 +38,7 @@ Production outbound calling flow for Vapi + n8n + GHL. The agent introduces Live
 - `LT - Voice Queue Enqueue` is authenticated with `X-LT-Voice-Queue-Secret` using the `VOICE_QUEUE_ENQUEUE_SECRET` deployment/reference value.
 - Callback timer state is deduplicated within 60 seconds and pruned after 30 minutes.
 
-## Live Workflows
+## Voice workflow identifiers — historical reference (refresh n8n-lt before operation)
 
 | Workflow | ID | Role |
 |----------|----|------|
@@ -54,7 +56,7 @@ This specification is not a live workflow inventory. The latest dated project cl
 
 ### LinkedIn Timing
 
-- The current LinkedIn DM cadence is approximately day 0, day 3, day 7, and day 10, with terminal completion at day 14.
+- The historical canonical LinkedIn DM sequence was designed around day 0, day 3, day 7, and day 10, with terminal completion at day 14; sender workflows were subsequently deactivated. Do not treat this as a currently running schedule.
 - The first message starts the clock by setting `dm_sequence_started_at`.
 - Sequence state is stored in `linkedin_connection_state`.
 
@@ -73,7 +75,7 @@ This specification is not a live workflow inventory. The latest dated project cl
 
 - Partnership LinkedIn state is isolated in `partnership_linkedin_connection_state` with `source_key = 'partnership'`; it must not be conflated with the main `linkedin_connection_state` table.
 - The partnership dispatcher seeds `ready` rows from GHL contacts tagged `partner_candidate_linkedin` before reading its ready queue. The 2026-07-31 seed produced 127 rows.
-- Partnership Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence have been live with `defaultDryRun=false` since explicit approval on 2026-07-31. Do not manually execute them unless an additional live batch is intentional.
+- As of the 2026-07-31 checkpoint, the Partnership Email Dispatcher, LinkedIn Dispatcher, and LinkedIn DM Sequence had been approved with `defaultDryRun=false`; the LinkedIn invite and DM senders were later deactivated (see the 2026-10-21 closeout). Do not infer present activation from this historical statement or manually execute any sender under the production-read-only decision.
 - Before changing or republishing a send-capable path, verify GHL suppression/reply checks, state-upsert authentication, idempotent claims, release-log writes, and the exact active version. A successful dry run or readable PIT is not sufficient evidence for safe production sending.
 
 ### SMS Campaign Scope

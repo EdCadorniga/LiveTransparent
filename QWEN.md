@@ -1,5 +1,7 @@
 # LiveTransparent Project
 
+> **Historical orientation only (reviewed 2026-11-05 local clock).** The directory sketch and capability descriptions below predate the repository cleanup and are not a verified inventory or production readiness assessment. Start with [`AGENTS.md`](AGENTS.md), the [transition README](docs/transition/README.md), [ledger](docs/transition-plan.md), and [Project Status and Next Steps](Project%20Status%20and%20Next%20Steps.md). Production is read-only; no script is preapproved for operational execution. Use only verified `n8n-lt` for n8n; do not infer live state from this file.
+
 ## Project Overview
 
 LiveTransparent is a marketing automation and CRM operations platform for a B2B compliance advertising agency focused on regulated cannabis marketing. The project orchestrates lead intake, warm lead routing, cold outreach, and email sequence campaigns using a combination of:

@@ -1,12 +1,14 @@
 # LiveTransparent Agent Notes
 
-## CURRENT 2026-11-05 local-clock EOS — developer transition still incomplete
+## Latest documented transition state — 2026-11-05 local-clock (not a fresh production read)
 
-- Start at [`docs/transition-plan.md`](docs/transition-plan.md) and update the ledger after **each** completed item. Latest EOS and copy-ready handoff: [`docs/sessions/2026-11-05-developer-transition-yolo-eos.md`](docs/sessions/2026-11-05-developer-transition-yolo-eos.md) and [`docs/sessions/2026-11-05-developer-transition-yolo-handoff-prompt.md`](docs/sessions/2026-11-05-developer-transition-yolo-handoff-prompt.md). The full-plan acceptance audit remains [`docs/transition/completeness-audit-2026-11-06-full-plan.md`](docs/transition/completeness-audit-2026-11-06-full-plan.md). Some preceding artifact labels say 2026-11-06 while the EOS workstation clock said 2026-11-05 +08; do not assume those filenames prove collection time.
+- Start at [`docs/transition-plan.md`](docs/transition-plan.md) and update the ledger after **each** completed item. The [transition README](docs/transition/README.md) points to the latest documented EOS and handoff; the [post-handoff re-audit](docs/transition/completeness-audit-2026-11-05-post-handoff.md) and [full-plan acceptance audit](docs/transition/completeness-audit-2026-11-06-full-plan.md) keep unmet criteria open. Some artifact labels say 2026-11-06 while the EOS workstation clock said 2026-11-05 +08; do not assume filenames prove collection time.
 - Ed explicitly chose **production read-only**. The 212-workflow [structural supplement](docs/transition/n8n-workflow-structural-supplement-2026-11-06.md) was validated for metadata only; 130 workflow timezone fields are empty and must not be inferred. Use only verified `n8n-lt`; no workflow execution, send, CRM/service modification or publication. Existing backups/archive remain under Ed's ownership; a dedicated **non-production** restore host is not provisioned, and restore is untested.
 - Ed currently owns/distributes five Markdown training guides, with the new developer to own them after handoff; bounded safety corrections do not certify live GHL procedure/consent. He retains all 242 `scripts/` files and `landing/` as source/history, not a selected toolkit or deployment. Incoming developer receives a **copy of the local repo**; transition commits `7f9ce98` and `cc69c8f` are pushed, with later closeout metadata also pushed. Always verify current Git state before relying on it. Read-only Marketplace portal inventory confirmed exactly three apps; install/location assignments, runtime callbacks, exact guide audiences, release/access roster and restore host remain open. Production remains read-only; no workflow execution, send, CRM/service modification, credential rotation, or publication.
 
-## CURRENT 2026-11-04 — Developer transition inventory in progress
+**Later documented decisions:** [closeout decisions](docs/transition/closeout-decisions-2026-11-05.md) freeze the LinkedIn withdrawal family, preapprove **zero** scripts for production execution, retain existing sensitive backups with Ed, and make the five guides reference-only until procedure/audience review. The authenticated three-app inventory supersedes the earlier `about:blank` portal-access observation; installation and runtime acceptance are still unverified. For current work use the [transition README](docs/transition/README.md) and [ledger](docs/transition-plan.md), not the historical checkpoints below. This session did not re-read production.
+
+## DATED CHECKPOINT 2026-11-04 — Developer transition inventory in progress (later evidence above supersedes open-access claims)
 
 - Transition scope, acceptance checklist and per-item progress ledger: [`docs/transition-plan.md`](docs/transition-plan.md). **Initial review complete. Next agent: start at the ledger and update that plan after each finished item** (date, evidence, status and remaining blocker), not just at EOS. Do not silently expand scope.
 - New-developer orientation draft: [`docs/transition/developer-onboarding.md`](docs/transition/developer-onboarding.md); training-guide findings and owner/use blockers: [`docs/transition/training-doc-register.md`](docs/transition/training-doc-register.md).
@@ -1110,7 +1112,7 @@ The generated Repomix bundle has been retired and must not be recreated. Load pr
 5. The relevant topic runbook, training guide, and latest dated session handoff
 6. Source code/scripts and other repository files only as needed; verify live workflow/service state before production decisions
 
-> **Source of Truth**: Live n8n (via `n8n-lt` MCP) is the single source of truth for all workflow state. Repo files (`.ts`, `.json`, `Backup of all n8n workflows/`) may be outdated snapshots. Always `get_workflow_details` or `search_workflows` to read current state before editing.
+> **Workflow source of truth:** Fresh read-only state from the **verified `n8n-lt` instance** (its MCP if available, otherwise its authenticated direct API) takes precedence over checked-in blueprints and dated inventories. Do not use the Katwill connector as a fallback. A fresh read is not permission to edit: production remains read-only for this transition. The historical `Backup of all n8n workflows/` path is absent in this checkout; do not assume it is a current rollback source.
 
 > **Historical traceability**: Detailed fix narratives, root-cause analyses, and execution histories from 2026-06 onward are preserved in git history. This file contains only the current operating guide and critical patterns.
 
@@ -1142,7 +1144,7 @@ Full cross-file review of AGENTS.md, plan.md, Project Status and Next Steps.md, 
 - Public hosts: `automations.livetransparent.com` for n8n and `reports.livetransparent.com` for the report host.
 - Prefer Coolify internal service-to-service calls when possible.
 - Live n8n-lt was recorded at `2.44.6` in the 2026-11-04 transition inventory; refresh before operational decisions. Recurring n8n workflows use native Schedule Trigger nodes; do not add OS/Coolify cron jobs for workflows.
-- Canonical MCP: `n8n-lt`.
+- Canonical n8n target: verified `n8n-lt` only; direct read-only API if its MCP is unavailable. Never use another tenant.
 - Root `.env` is the reference copy; Coolify env vars are the deployed source of truth.
 
 ### Business Timezone vs Operator Timezone

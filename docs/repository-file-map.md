@@ -1,6 +1,6 @@
 # LiveTransparent Repository File Map
 
-Updated: 2026-11-05 (late continuation; supersedes the 2026-09-17 snapshot lists below)
+Entry-point reconciliation: 2026-11-05 local-clock (file lists below remain the 2026-09-17 snapshot)
 
 > **Freshness notice (2026-11-05):** the script filename lists/counts below are a 2026-09-17 snapshot and are stale. A bounded metadata-only census now finds 242 script-like files (1,256,534 bytes) under `scripts/`, compared with the older per-domain lists below. See [`scripts/README.md`](../scripts/README.md) for current directory counts. Do not use the old lists as a complete inventory or infer that any listed/unlisted file is safe, maintained, or disposable. Exact-path review remains part of the developer transition; nothing was run or removed for this census.
 >
@@ -8,16 +8,16 @@ Updated: 2026-11-05 (late continuation; supersedes the 2026-09-17 snapshot lists
 >
 > **Cleanup execution status (2026-11-05, batches 0–4):** the transition cleanup batches were executed under Ed's YOLO mandate with dated recovery manifests — see [`docs/transition/retention-manifest-2026-11-05-batch-0-regenerable-junk.md`](transition/retention-manifest-2026-11-05-batch-0-regenerable-junk.md) (bytecode), [`retention-manifest-2026-11-05-batch-1-credential-hardening.md`](transition/retention-manifest-2026-11-05-batch-1-credential-hardening.md) (9 files redacted to `.env` loaders; 1 JWT capture archived), [`retention-manifest-2026-11-05-batch-2-tmp-captures.md`](transition/retention-manifest-2026-11-05-batch-2-tmp-captures.md) (36 tmp files moved to `local-archive/campaign-template-captures-2026-11/` and `local-archive/report-captures-2026-11/`), [`retention-manifest-2026-11-05-batch-3-archive-dedup.md`](transition/retention-manifest-2026-11-05-batch-3-archive-dedup.md) (2 hash-duplicate archive files deleted; archive now 66 files), and [`retention-manifest-2026-11-05-batch-4-node-modules.md`](transition/retention-manifest-2026-11-05-batch-4-node-modules.md) (`node_modules/` deleted; regenerate with `npm ci` from the retained lockfile). `tmp/` and root `tmp*` no longer exist in the working tree; the sections below mentioning them are historical.
 
-This map describes the repository boundaries after the file-organization cleanup. Git and the live system remain authoritative for current state; this file is a navigation index, not a substitute for runbooks.
+This map is a **historical navigation index**, not a complete post-cleanup inventory. The [organization census](transition/repository-organization-2026-11-06.md), [closeout decisions](transition/closeout-decisions-2026-11-05.md), Git and fresh authorized live reads supersede its old per-file lists. Do not use listed paths as run/deploy instructions.
 
 ## Operating boundaries
 
-- `scripts/` — versioned, reviewed automation grouped by operational domain. See `scripts/README.md`.
+- `scripts/` — versioned source/history grouped by operational domain; **none preapproved for operational execution**. See [`scripts/README.md`](../scripts/README.md).
 - `local-scripts/` — ignored operator-only helpers, probes, and campaign working files; may contain machine-specific or sensitive runtime material. `local-scripts/linkedin-invite-withdrawals/` is held untouched while the 310-unledgered-invitation investigation is open.
 - `local-archive/` — ignored historical captures/archives; never redeploy without reconciliation. Dated archive destinations (2026-11-05): `n8n/`, `campaign-template-captures-2026-11/`, `report-captures-2026-11/`, `historical-captures-2026-11/`, `repomix-authoring-2026-11/`, `contact-division-2026-07/`, `ghl-export-csvs-2026-11/`, `contacts-import-august-2026/`, `campaign-design-docx-2026-11/` (incl. `_qa_remove_exec/` staging), `scripts-legacy-2026-07/`.
 - `data/runs/` — dated campaign/import artifacts, notes, reconciliation outputs, and machine-readable snapshots.
 - `.monitor/` — active monitor state/logs; do not prune while the monitor depends on them.
-- `.tmp/`, `.npm-cache/`, `.playwright-cli/` — disposable ignored runtime/browser artifacts; safe to recreate. **(2026-11-05: `.playwright-mcp/` (50 MB) and `.pip-cache/` were deleted under manifest batch 5; they regenerate automatically.)**
+- `.tmp/`, `.npm-cache/`, `.playwright-cli/` — runtime/browser cache families; check ownership and use before any future deletion. **(2026-11-05: `.playwright-mcp/` and `.pip-cache/` were removed under manifest batch 5.)**
 - `.env` — local secret material; presence may be documented, contents must not be copied into repository maps.
 
 ### Dated reorganization note (2026-11-05, batches 5–11)
@@ -29,7 +29,7 @@ manifests [`retention-manifest-2026-11-06-batch-…`](transition/retention-manif
   files (12), three `Export_Contacts_*.csv`, `Contacts added August 25 2026/`, the root
   `_*.py` probes, the 8 campaign/design `.docx`, `_qa_remove_exec/`, and
   `repomix.config.json`/`.repomixignore` were archived (nothing deleted; tracked copies
-  staged out of the index).
+  removed from the tracked tree in subsequently pushed transition commits (local ignored archive copies are not part of a Git handoff).
 - Root `Dockerfile` is **load-bearing** (Coolify `reports.livetransparent_server` builds from
   `/Dockerfile`) — do not move.
 - Deleted (regenerable/dedup only): `.pip-cache/`, `.playwright-mcp/`, and one
