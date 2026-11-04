@@ -13,7 +13,7 @@ Ed requests **YOLO mode for all changes**: act autonomously and finish all safe,
 - Exactly **three** GHL Marketplace apps are confirmed. Do not search for a fourth or treat the dashboard’s separate “4 total live apps” aggregate as an app count.
 - Do not touch `local-scripts/linkedin-invite-withdrawals/` or its `__pycache__`; no worker/process, provider, ledger, or state changes. The previous evidence found 310 provider-pending invitations with no ledger rows plus a separate held-`ready` conflict. Do not derive scope from provider-relative dates.
 - Do not process personal invoicing or include personal-only details in project artifacts. Do not expose secrets, token-bearing URLs, execution payloads, or contact PII. The live PIT retention decision is owner-accepted; do not reproduce it. Other credential rotations are separate and unauthorized.
-- Check Git status before edits. Preserve user changes; do not reset/clean/checkout. Latest confirmed commit is `7f9ce98`, pushed on `codex/social-outreach-sync`; verify before relying on this. Commit/push only when the current owner instruction authorizes it.
+- Check Git status before edits. Preserve user changes; do not reset/clean/checkout. Latest confirmed commit is `cc69c8f`, pushed on `codex/social-outreach-sync`; verify before relying on this. Commit/push only when the current owner instruction authorizes it.
 
 ## Remaining work — do not call complete until evidenced
 
