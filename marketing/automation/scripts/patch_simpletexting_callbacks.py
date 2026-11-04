@@ -1,17 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import requests
 
 
 BASE = "https://automations.livetransparent.com/api/v1"
-API_KEY = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-    "eyJzdWIiOiI4NjFmYjY1NS1iMTc2LTRkNjMtYTRlZC0zY2M2NmUyNzk2NDIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYWUyNDg2MmUtZTUyZS00NWMwLWIzNWQtNjQ3ZGFiN2YyMjM1IiwiaWF0IjoxNzc0MzQ3MzE5LCJleHAiOjE3ODIxMTE2MDB9."
-    "wC0h35JV_ZvN37pVeweKo-h7xnfy7QBclcmLB4X0lkw"
-)
+API_KEY = os.environ.get("N8N_API_KEY_LT", "") # literal redacted 2026-11-05; see docs/transition/retention-manifest-2026-11-05-batch-1-credential-hardening.md
 HEADERS = {
     "X-N8N-API-KEY": API_KEY,
     "Accept": "application/json",
@@ -724,7 +721,7 @@ def modify_delivery(body: dict) -> None:
             extras = [
                 ("ghlLocationId", "string", "Zwz4relUXVPxx8uohnjV"),
                 ("ghlApiBaseUrl", "string", "https://services.leadconnectorhq.com"),
-                ("ghlApiKey", "string", "pit-8a0de81d-3555-4909-a8eb-afecd3794828"),
+                ("ghlApiKey", "string", os.environ.get("GHL_PIT", "<redacted-pit>")),
             ]
             for name, typ, value in extras:
                 if name not in by_name:
@@ -744,7 +741,7 @@ def modify_unsubscribe(body: dict) -> None:
             extras = [
                 ("ghlLocationId", "string", "Zwz4relUXVPxx8uohnjV"),
                 ("ghlApiBaseUrl", "string", "https://services.leadconnectorhq.com"),
-                ("ghlApiKey", "string", "pit-8a0de81d-3555-4909-a8eb-afecd3794828"),
+                ("ghlApiKey", "string", os.environ.get("GHL_PIT", "<redacted-pit>")),
                 ("tagOngoing", "string", "simpletext_ongoing"),
                 ("tagStop", "string", "simpletext_stop"),
             ]

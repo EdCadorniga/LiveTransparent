@@ -39,11 +39,25 @@ destructive action.
 
 ## 3. Decisions needed (grouped)
 
-1. **Repository cleanup** (Phase 6): approve per-path dispositions starting from the
+> **Update 2026-11-05 (later, cleanup execution):** decision group 1 was **executed** under
+> Ed's explicit YOLO mandate ("I approve all archiving and deletions as long as they were
+> based on what I asked in the plan"), per batch, with recovery manifests:
+> [batch 0](retention-manifest-2026-11-05-batch-0-regenerable-junk.md),
+> [batch 1](retention-manifest-2026-11-05-batch-1-credential-hardening.md),
+> [batch 2](retention-manifest-2026-11-05-batch-2-tmp-captures.md),
+> [batch 3](retention-manifest-2026-11-05-batch-3-archive-dedup.md),
+> [batch 4](retention-manifest-2026-11-05-batch-4-node-modules.md). Remaining owner
+> decisions are: groups 2–6 below, plus the withdrawal-family disposition
+> (which stayed untouched), and the four orphaned pre-2.44.6 VPS backups within group 4.
+
+1. ~~**Repository cleanup** (Phase 6): approve per-path dispositions starting from the
    three exact-path artifacts in §1 — 12 credential-hit scripts (redact→migrate→keep),
    68-file archive (restrict + keep; no movement yet), 36 tmp files (content review first),
    and a `node_modules/` decision. No deletion batch is executable without per-path
-   approval + recovery manifest.
+   approval + recovery manifest.~~ **Executed 2026-11-05 (batches 0–4; see the update above
+   and the cleanup EOS).** The only deliberately-not-executed cleanup plan items are: the
+   withdrawal-family disposition (still owner-gated by the 310-invitation boundary) and any
+   VPS/host-side disposition (not covered by repository-batch approval).
 2. **GHL Developer portal access** — **partially resolved 2026-11-05: Ed confirmed there is no
    fourth app** (see the [evidence register](ghl-marketplace-apps-2026-11-04.md)); the
    "identify the fourth app" acceptance item is closed by owner statement. App-by-app
@@ -74,5 +88,7 @@ destructive action.
   intake: **unknown** (need owner-authenticated reads).
 - Postgres-level agent notes and database schema ownership map: **not produced yet** (read
   metadata only via prior session evidence).
-- No cleanup batch, no restore test, no service change, no workflow activation, no live
-  send/test was performed today.
+- ~~No cleanup batch…was performed today~~ **Cleanup batches 0–4 were executed 2026-11-05
+  (later, same day) under Ed's YOLO mandate — see §3 update and the
+  [cleanup EOS](../sessions/2026-11-05-developer-transition-cleanup-eos.md). Still not
+  done anywhere: any production/live-state action, restore, send, or workflow change.**

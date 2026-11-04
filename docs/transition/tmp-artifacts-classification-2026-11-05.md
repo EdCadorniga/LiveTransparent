@@ -49,3 +49,13 @@ captures (bucketed JSON responses and SQL/JS scratch) — they may contain conta
 workflow definition text and require content review before any disposition. The bounded
 pattern scan does not rule out secrets for the PNG/YAML/SQL/JS kinds whose formats the
 pattern list doesn't cover; treat 'no hits' as scan-bounded, not cleared.
+
+## Disposition execution — batch 2 (2026-11-05, later same day)
+
+Executed under the [YOLO cleanup mandate](../sessions/2026-11-05-developer-transition-cleanup-handoff-prompt.md)
+with manifest [retention-manifest-2026-11-05-batch-2-tmp-captures.md](retention-manifest-2026-11-05-batch-2-tmp-captures.md):
+all 27 `tmp/` files moved to `local-archive/campaign-template-captures-2026-11/` and all 9
+root `tmp*` files moved to `local-archive/report-captures-2026-11/` (byte-preserved,
+**nothing deleted**; `tmp/` dir removed once empty). Tracked `tmp/` removals are staged-git
+deletions (uncommitted). Bounded review was kind/first-token only — no values echoed. The
+table above records the pre-move state; recovery = copy back from the two archive folders.

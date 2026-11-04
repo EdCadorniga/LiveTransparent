@@ -2,6 +2,20 @@
 
 **Status: NOT APPROVED for movement or deletion.** This is family-level triage, not a per-file deletion manifest. File counts are local recursive counts at review time (include ignored/untracked files). Before any batch, expand candidates to exact paths with sizes, references/dependencies, sensitivity, owner, recovery source, retention policy and explicit approval. No content was removed or executed.
 
+> **Update 2026-11-05 (later, same day):** the repository-side families governed by this
+> register were executed within Ed's explicit YOLO cleanup mandate, per batch, with dated
+> recovery manifests — see
+> [batch 0](retention-manifest-2026-11-05-batch-0-regenerable-junk.md),
+> [batch 1](retention-manifest-2026-11-05-batch-1-credential-hardening.md),
+> [batch 2](retention-manifest-2026-11-05-batch-2-tmp-captures.md),
+> [batch 3](retention-manifest-2026-11-05-batch-3-archive-dedup.md), and
+> [batch 4](retention-manifest-2026-11-05-batch-4-node-modules.md), plus the ledger rows in
+> [docs/transition-plan.md](../transition-plan.md). Settings unchanged by execution:
+> `local-scripts/linkedin-invite-withdrawals/` remains held (310-invitation boundary), and
+> the `scripts/`+`New Campaigns October 2026/`+`marketing/` families were **kept** (only the
+> credential-hardening edits listed in batch 1 touched them). This register's strike-through
+> era is historical.
+
 | Family (observed files) | Proposed classification | Reason / required review before action |
 |---|---|---|
 | `scripts/` (284) | **Keep** maintained source; **consolidate** demonstrable duplicates only | Production repair, deployment and migration helpers may be sole reproducible source. Scan per-script references and secrets safely before choosing candidates. |

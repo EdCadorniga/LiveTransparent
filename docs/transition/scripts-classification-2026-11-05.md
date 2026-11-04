@@ -46,6 +46,26 @@ call and must be coordinated with all workflow callers (see the plan's owner-dec
 no rotation now; the token's presence in Git history and the local archive files is an
 owner-accepted residual risk, with redistribution precautions unchanged.**
 
+## Disposition execution — batch 1 (2026-11-05, later same day)
+
+Executed under the [YOLO cleanup mandate](../sessions/2026-11-05-developer-transition-cleanup-handoff-prompt.md)
+with the mandatory manifest [retention-manifest-2026-11-05-batch-1-credential-hardening.md](retention-manifest-2026-11-05-batch-1-credential-hardening.md):
+
+- The 8 tracked script files in the hit table were **redacted in place** (literals →
+  `os.environ` loaders for `N8N_API_KEY_LT` / `GHL_PIT`); `py_compile` passes; a masked
+  re-probe shows 0 remaining hits in those files. `git show HEAD:<path>` remains the
+  recovery path for the pre-edit bytes (not committed).
+- `local-scripts/build_mass_email_stage.py` redacted in place (`GHL_PIT`,
+  `MASS_EMAIL_TRACK_SECRET`, `POSTGRES_PASSWORD` loaders); untracked, so no Git recovery —
+  values live in `.env`/live n8n Config nodes (manifest records the process deviation).
+- `marketing/email-marketing/cold-outreach-prep/reports/retest-api-key-20260220T053242Z.txt`
+  moved to `local-archive/historical-captures-2026-11/` with a historical/superseded header;
+  tracked deletion staged (uncommitted).
+- `_state_sync_sql.py` katwill hit = comment only → no change.
+- `local-scripts/linkedin-invite-withdrawals/capture-…withdrawal.jsonl` **untouched** (held family).
+- The hit table above is consequently historical for the redacted files; the per-path rows
+  remain precisely as scanned at classification time.
+
 ## Family summary and provisional classification rules
 
 | family | files | bytes | provisional class |

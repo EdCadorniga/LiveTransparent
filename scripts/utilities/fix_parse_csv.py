@@ -1,6 +1,6 @@
 import json, os, urllib.request
 
-API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NjFmYjY1NS1iMTc2LTRkNjMtYTRlZC0zY2M2NmUyNzk2NDIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiOTEwOThlZTEtZWI4NS00NjAwLTg5NmYtMGM3ZDMwOTg4YTg1IiwiaWF0IjoxNzc3NDIwMDk5fQ.6ZVb5kKoNltBUFYHoS2x4PQABycoJDvdmN9Nrfx-Z7U"
+API_KEY = os.environ.get("N8N_API_KEY_LT", "") # literal redacted 2026-11-05; see docs/transition/retention-manifest-2026-11-05-batch-1-credential-hardening.md
 BASE = "https://automations.livetransparent.com/api/v1"
 
 # GET current workflow

@@ -115,3 +115,23 @@ requires the documented deploy path plus explicit owner approval. The five May-2
 SimpleTexting send workflow. Sensitive hits must be reviewed before any redistribution.
 **Not approved** for movement or deletion.
 
+## Disposition execution — batches 1–4 (2026-11-05, later same day)
+
+Executed under the [YOLO cleanup mandate](../sessions/2026-11-05-developer-transition-cleanup-handoff-prompt.md)
+with manifests [batch 2](retention-manifest-2026-11-05-batch-2-tmp-captures.md) /
+[batch 3](retention-manifest-2026-11-05-batch-3-archive-dedup.md) /
+[batch 4](retention-manifest-2026-11-05-batch-4-node-modules.md):
+
+- **Dedup (batch 3):** SHA-256 over the 68 files found 2 duplicate groups; only the 2
+  byte-exact duplicates were deleted (kept the identical twins):
+  `workflows/f4VoO1lBWkYRcQai-before-simpletexting-response-fix-20260921T182447Z.json`
+  (twin `-182410Z.json` kept) and
+  `backups/workflow_Q3Ivnwe4z2Y3cD7A_20260527_003155.json` (twin `_003207.json` kept;
+  newest `_003224.json` + its TS companion + `_updated_preview.json` retained). Archive
+  is now **66 files / 1,759,243 bytes / 66 unique hashes / 0 duplicate groups** (88,931
+  bytes freed). All TS blueprints kept; no live-only workflow snapshot touched.
+- **Archive paths in general:** the archive family itself was retained as-is (it is the
+  archive destination for other batches); no file was moved out of it except the two
+  duplicate deletions above.
+- The table above is historical for the two deleted rows; all other rows remain accurate.
+

@@ -5,7 +5,7 @@ import textwrap
 
 BASE = "https://automations.livetransparent.com/api/v1"
 WORKFLOW_ID = "GHVYyYmhfNiZ7bbN"
-API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NjFmYjY1NS1iMTc2LTRkNjMtYTRlZC0zY2M2NmUyNzk2NDIiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiODQyYTM2NDctZjMwZi00NzcxLThkNmMtNjM5Mjg0YmQ0MWVkIiwiaWF0IjoxNzc0NTYwMzU3LCJleHAiOjE3ODIyODQ0MDB9.bsrDA-as3_JNXSoBI5x-i7zeaXTf1yeC9nxhRzmPJf4"
+API_KEY = os.environ.get("N8N_API_KEY_LT", "") # literal redacted 2026-11-05; see docs/transition/retention-manifest-2026-11-05-batch-1-credential-hardening.md
 
 ROOT = pathlib.Path(__file__).resolve().parent
 PREP_JS = (ROOT / "emerald_exec_company_sync_prepare.js").read_text(encoding="utf-8")

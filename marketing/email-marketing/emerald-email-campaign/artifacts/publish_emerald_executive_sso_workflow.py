@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 
@@ -92,7 +93,7 @@ return [{
                         "assignments": [
                             {"id": "location", "name": "locationId", "type": "string", "value": "Zwz4relUXVPxx8uohnjV"},
                             {"id": "base", "name": "apiBaseUrl", "type": "string", "value": "https://services.leadconnectorhq.com"},
-                            {"id": "apikey", "name": "apiKey", "type": "string", "value": "pit-8a0de81d-3555-4909-a8eb-afecd3794828"},
+                            {"id": "apikey", "name": "apiKey", "type": "string", "value": os.environ.get("GHL_PIT", "<redacted-pit>")},
                             {"id": "dry", "name": "defaultDryRun", "type": "boolean", "value": True},
                             {"id": "source", "name": "sourceLabel", "type": "string", "value": "emerald_executive_sso"},
                             {"id": "table", "name": "sourceTable", "type": "string", "value": "Emerald_Campaign_Contacts"},
