@@ -6,6 +6,10 @@ Start with the [transition plan and per-item progress ledger](../transition-plan
 
 **Latest continuation closeout (2026-11-05 local clock):** [YOLO-scope EOS](../sessions/2026-11-05-developer-transition-yolo-eos.md) → [copy-ready next-agent handoff](../sessions/2026-11-05-developer-transition-yolo-handoff-prompt.md). Commit `7f9ce98` containing the previously pending 62 deletions and transition artifacts was pushed; the follow-on EOS/handoff changes are recorded in the plan ledger. YOLO applies to repository/documentation work within project scope; production remains explicitly read-only, and owner-gated restore/access/acceptance items remain blocked rather than waived.
 
+**Post-handoff acceptance check (2026-11-05 local clock):** [current §1–7 re-audit](completeness-audit-2026-11-05-post-handoff.md) reconciles the pushed Git baseline and authenticated three-app read with the [earlier per-expectation audit](completeness-audit-2026-11-06-full-plan.md). It confirms the transition remains **partial**, not accepted. No new production read or operation was performed for this local check.
+
+**Conservative owner disposition:** [closeout decisions](closeout-decisions-2026-11-05.md) resolve what to retain, freeze, and hand over as reference-only. They do not certify untested installations, callers, restores, scripts, or training procedures. Ed remains interim escalation/access owner pending a named roster.
+
 ## Evidence already captured (2026-11-04)
 
 - [n8n-lt 212-workflow snapshot](n8n-workflow-inventory-2026-11-04.md), [literal relationship edges](n8n-workflow-relationships-2026-11-04.md), [ten active-name exceptions](n8n-active-name-exceptions-2026-11-04.md).

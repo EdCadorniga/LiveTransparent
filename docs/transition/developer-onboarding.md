@@ -24,11 +24,12 @@
 ## Access and tenant boundaries
 
 - **n8n:** use only the LiveTransparent `n8n-lt` instance at `automations.livetransparent.com`. The available Katwill/other customer connectors are not substitutes. If n8n-lt is unavailable, stop n8n operations.
-- **GHL:** use the LiveTransparent sub-account and supported authenticated surfaces. The Developer/Marketplace portal was not authenticated in the 2026-11-05 review; app inventory and some workflow-builder state remain blocked.
+- **GHL:** use the LiveTransparent sub-account and supported authenticated surfaces. A later authenticated read-only Developer/Marketplace session on 2026-11-05 confirmed exactly three apps and selected settings ([evidence register](ghl-marketplace-apps-2026-11-04.md)); install/location assignments, grants, callback behavior, and some workflow-builder state remain unverified. Do not search for a fourth app.
 - **Coolify/VPS:** saved-configuration structural facts plus Postgres schema and route-map evidence are now captured (2026-11-05, see README). Ed confirmed on 2026-11-06 that existing sensitive backups and the local n8n archive remain in place under his ownership and authorized an isolated **non-production** restore test, not yet performed. Scheduled-backup coverage and any remediation decision (e.g., reports-app saved/generated network drift) remain open. Production stays read-only; no restore into a production service or service change is authorized by this guide.
 - **Restore-target update (2026-11-06):** the dedicated non-production host is **not provisioned**. No restricted backup has been copied to a workstation, extracted, or restored; recoverability remains untested until the host, isolation, storage, and access method are provided.
 - Obtain credentials from the owner through an approved secure channel. Never put `.env`, PITs, API keys, signing secrets, OAuth tokens, token-bearing URLs, production contact exports, or raw execution payloads in Git or transition docs. Config nodes in n8n may contain plaintext secrets; restrict access and do not copy values into local artifacts.
 - Owner and escalation contacts for access provisioning, billing, domains, GHL apps, credentials, Coolify/VPS, and incidents have not been confirmed. Ask the project owner before operational work.
+- **Interim route:** Ed is the owner-controlled escalation and restricted-backup custodian until he supplies a named delegated roster; see [closeout decisions](closeout-decisions-2026-11-05.md). This is not a claim that access has been provisioned or that the incoming developer has accepted the handoff.
 
 ## Production safety and change control
 
