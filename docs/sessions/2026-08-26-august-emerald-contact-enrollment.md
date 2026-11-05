@@ -14,14 +14,14 @@ The cleaned source set contained 2,620 precedence-resolved rows:
 - Agency: 2,100
 - Dispensaries: 6
 
-Precedence was Brand, then Agency, then Dispensaries. The source-cleaning rules and exclusions are documented in `Contacts added August 25 2026/cleaned/August_2026_Emerald_Cleanup_Summary.md`.
+Precedence was Brand, then Agency, then Dispensaries. The source-cleaning rules and exclusions are documented in `Contacts added August 25 2026/cleaned/August_2026_Emerald_Cleanup_Summary.md` (archived 2026-11-05 at `local-archive/contacts-import-august-2026/Contacts added August 25 2026/cleaned/August_2026_Emerald_Cleanup_Summary.md`; local/ignored, not in a Git-only handoff).
 
 ## Live Actions
 
 - The existing enrollment script was not used as the final execution manifest because its full 35k-contact scan was too slow and its generated action CSV became stale after partial runs.
 - `scripts/emerald/reconcile_august_2026_emerald_live.ps1` was added for bounded reconciliation over contacts carrying `august_2026_emerald_contact`.
 - The script was hardened to retry transient GHL/Cloudflare `429`, `502`, `503`, and `504` responses.
-- Tag updates are grouped per contact and logged in `Contacts added August 25 2026/cleaned/August_2026_Emerald_Tag_Success.log`.
+- Tag updates are grouped per contact and logged in `Contacts added August 25 2026/cleaned/August_2026_Emerald_Tag_Success.log` (now `local-archive/contacts-import-august-2026/Contacts added August 25 2026/cleaned/August_2026_Emerald_Tag_Success.log`; local/ignored).
 - Existing contacts are not overwritten.
 
 ## Final Verification

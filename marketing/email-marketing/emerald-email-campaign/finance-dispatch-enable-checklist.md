@@ -34,9 +34,9 @@ Last updated: `2026-04-14`
 
 ## Local Artifact Updates Included
 - Finance bucket/map support added in:
-  - [publish_emerald_campaign_workflows.py](/C:/Users/edmon/OneDrive/Documents/Projects/LiveTransparent/emerald-email-campaign/artifacts/publish_emerald_campaign_workflows.py)
+  - [publish_emerald_campaign_workflows.py](artifacts/publish_emerald_campaign_workflows.py)
 - Finance intro copy added in:
-  - [emerald-sequence-copy-extract.txt](/C:/Users/edmon/OneDrive/Documents/Projects/LiveTransparent/emerald-email-campaign/emerald-sequence-copy-extract.txt)
+  - [emerald-sequence-copy-extract.txt](emerald-sequence-copy-extract.txt)
 
 ## Important Data Note
 - Current local snapshot file `Exported Emerald Contacts.csv` contains `0` finance-tagged rows.

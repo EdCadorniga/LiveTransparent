@@ -15,7 +15,7 @@ Deploy and operate the production Vapi voice agent safely in the LiveTransparent
 
 ## Pre-deploy checks
 - Confirm required env vars exist in Coolify for n8n.
-- Apply `postgres/voice_agent_schema.sql` to reporting Postgres.
+- Schema source: `n8n/voice-agent/postgres/voice_agent_schema.sql`. Applying it to Postgres is a production change and is not authorized by this historical runbook alone.
 - Confirm `GHL_LOCATION_ID=Zwz4relUXVPxx8uohnjV` is present in root `.env`.
 - Confirm `GHL_API_KEY` aliases `GHL_PIT` in root `.env` and that the Codex session has been restarted after any PIT rotation.
 - Verify the canonical merged callback URL is still `https://automations.livetransparent.com/webhook/lt-voice-agent-vapi-callback`.

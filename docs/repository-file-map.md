@@ -1,14 +1,14 @@
 # LiveTransparent Repository File Map
 
-Entry-point reconciliation: 2026-11-05 local-clock (file lists below remain the 2026-09-17 snapshot)
+Entry-point reconciliation: 2026-11-05 local-clock (script directories rechecked against this checkout)
 
-> **Freshness notice (2026-11-05):** the script filename lists/counts below are a 2026-09-17 snapshot and are stale. A bounded metadata-only census now finds 242 script-like files (1,256,534 bytes) under `scripts/`, compared with the older per-domain lists below. See [`scripts/README.md`](../scripts/README.md) for current directory counts. Do not use the old lists as a complete inventory or infer that any listed/unlisted file is safe, maintained, or disposable. Exact-path review remains part of the developer transition; nothing was run or removed for this census.
+> **Freshness notice:** the script filename lists below preserve a 2026-09-17 snapshot and are incomplete. The current directory mapping and exact-path inventory are linked below. A path appearing in either list is not evidence that its script is safe, maintained, or approved to run.
 >
 > **Dated exact-path evidence (2026-11-05), supersedes treating this map as an inventory:** reviewed per-path classification with sensitivity/doc-reference data is now maintained as a transition artifact — see [`docs/transition/scripts-classification-2026-11-05.md`](transition/scripts-classification-2026-11-05.md), [`docs/transition/n8n-archive-classification-2026-11-05.md`](transition/n8n-archive-classification-2026-11-05.md), and [`docs/transition/tmp-artifacts-classification-2026-11-05.md`](transition/tmp-artifacts-classification-2026-11-05.md) (all review-only proposals, not deletions).
 >
 > **Cleanup execution status (2026-11-05, batches 0–4):** the transition cleanup batches were executed under Ed's YOLO mandate with dated recovery manifests — see [`docs/transition/retention-manifest-2026-11-05-batch-0-regenerable-junk.md`](transition/retention-manifest-2026-11-05-batch-0-regenerable-junk.md) (bytecode), [`retention-manifest-2026-11-05-batch-1-credential-hardening.md`](transition/retention-manifest-2026-11-05-batch-1-credential-hardening.md) (9 files redacted to `.env` loaders; 1 JWT capture archived), [`retention-manifest-2026-11-05-batch-2-tmp-captures.md`](transition/retention-manifest-2026-11-05-batch-2-tmp-captures.md) (36 tmp files moved to `local-archive/campaign-template-captures-2026-11/` and `local-archive/report-captures-2026-11/`), [`retention-manifest-2026-11-05-batch-3-archive-dedup.md`](transition/retention-manifest-2026-11-05-batch-3-archive-dedup.md) (2 hash-duplicate archive files deleted; archive now 66 files), and [`retention-manifest-2026-11-05-batch-4-node-modules.md`](transition/retention-manifest-2026-11-05-batch-4-node-modules.md) (`node_modules/` deleted; regenerate with `npm ci` from the retained lockfile). `tmp/` and root `tmp*` no longer exist in the working tree; the sections below mentioning them are historical.
 
-This map is a **historical navigation index**, not a complete post-cleanup inventory. The [organization census](transition/repository-organization-2026-11-06.md), [closeout decisions](transition/closeout-decisions-2026-11-05.md), Git and fresh authorized live reads supersede its old per-file lists. Do not use listed paths as run/deploy instructions.
+This map combines a current directory index with a **historical filename snapshot**, not a complete post-cleanup inventory. The [organization census](transition/repository-organization-2026-11-06.md), [closeout decisions](transition/closeout-decisions-2026-11-05.md), Git and fresh authorized live reads supersede old per-file lists. Do not use listed paths as run/deploy instructions.
 
 ## Operating boundaries
 
@@ -49,6 +49,10 @@ manifests [`retention-manifest-2026-11-06-batch-…`](transition/retention-manif
 - `repeated linkedin messages.png` remains at repository root intentionally untracked because it contains identifying prospect data; do not stage or relocate without a separate decision.
 
 ## Versioned scripts by domain
+
+**Current directory mapping (filesystem check, 2026-11-05 local clock):** 242 script-like files in `scripts/`. The [exact-path classification](transition/scripts-classification-2026-11-05.md) is the full file inventory; the lists below are historical and incomplete. In particular, 55 files live directly under `scripts/` (mainly reporting helpers), which the older list omitted entirely. Current counts: root 55; `apollo/` 15; `deploy/` 13 (9 directly plus 4 in `deploy/acceptance_checker/`); `diagnostics/` 39; `email/` 2; `emerald/` 5; `instagram/` 8; `linkedin/` 43; `monitoring/` 1; `n8n/` 37; `partnerships/` 6; `social-reporting/` 10; `utilities/` 8. Counts are metadata only, not maintained-toolkit selections.
+
+### Historical filename snapshot (2026-09-17; not a current file map)
 
 ### `scripts/apollo/`
 

@@ -217,6 +217,6 @@ end-of-call webhook URL. If any drift, fix in Vapi.
 - [AGENTS.md](../../AGENTS.md)
   - operating guide, including the new MCP `n8n-lt` `updateNodeParameters` gotcha
 - Repomix context bundle was retired by Ed on 2026-11-04. Use `AGENTS.md`, current project status, and linked subsystem runbooks; do not regenerate or replace the bundle.
-- `n8n/workflows/lt-apollo-queued-timeout-reaper.ts` — reaper source
+- `n8n/workflows/lt-apollo-queued-timeout-reaper.ts` — historical reference; this file is absent from the current checkout. Fetch the reaper definition from verified n8n-lt read-only access before treating any local file as its source.
 - `local-archive/n8n/voice-agent/dialer-workflow-clean.mjs` — historical VAPI dialer scaffold; reconcile against live n8n before use
 - `local-archive/n8n/voice-agent/intake-poller-update.mjs` — historical VAPI poller patch; reference only

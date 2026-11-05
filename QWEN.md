@@ -136,7 +136,7 @@ curl -X PUT -H "X-N8N-API-KEY: <key>" -H "Content-Type: application/json" \
 ### Environment Variables
 
 - **Root `.env`** - Shared credentials (not tracked in git)
-- **`n8n/.env`** - n8n-specific secrets (encryption key, DB password)
+- **`n8n/.env`** - deployment-local environment file, not present in this checkout; the root `.env` is the local reference copy and Coolify's saved/deployed environment is authoritative. Never copy secret values into documentation.
 - **`bookstack/.env.example`** - BookStack environment template
 
 ### Service References

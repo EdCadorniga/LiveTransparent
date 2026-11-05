@@ -16,7 +16,7 @@ Last updated: `2026-04-10`
 - New Intro templates uploaded under folder:
   - `Emerald targeted by profile` (`69d8c788a4e06a2e22244803`)
 - Template IDs are tracked in:
-  - [profile-intro-template-map.json](/C:/Users/edmon/OneDrive/Documents/Projects/LiveTransparent/emerald-email-campaign/profile-intro-template-map.json)
+  - [profile-intro-template-map.json](profile-intro-template-map.json)
 
 ## Guardrails (Must-Have)
 - Intro is one-time per contact.
@@ -104,4 +104,3 @@ Last updated: `2026-04-10`
 - If duplicate sends appear:
   - enforce `Seq Emerald - Intro Sent` as first branch guard
   - enforce non-empty `Em_Profile_Intro_Sent_At` guard
-
